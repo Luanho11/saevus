@@ -1,16 +1,16 @@
 # SAEVUS PROJECT STATE
 
-_Last updated: 2026-10-03 (Session 2)_
+_Last updated: 2026-10-03 (Session 2, night)_
 
 ## Current Objective
 
-Bootstrap: prepare the development environment and a compilable UE 5.8 C++ base. The phase is done when: SAEVUS compiles, the editor opens, the character spawns, the camera works, walk/run/sprint/jump/air control work, the Sandbox map and Debug HUD exist, and Git has an initial commit.
+Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user authorized unattended work through the roadmap phases.
 
 ## Current Phase
 
-Bootstrap, **FASE 13 build ✅ / FASE 14 run ⛔**. Blocked: Windows **Smart App Control** (Enforce mode) won't load the locally built, unsigned `UnrealEditor-SAEVUS.dll` (`GetLastError=4551`, CodeIntegrity event 3077). The editor can't load the game module, so the tests, the asset script and the editor itself can't run. Waiting for the user to turn Smart App Control off.
+**Bootstrap: DONE (2026-10-03).** All acceptance criteria met: compiles clean, editor/game opens, character spawns, camera works, walk/run/sprint/jump/air control verified (automation tests + rendered smoke test), Sandbox map and Debug HUD exist, git has commits.
 
-Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependencies ✅ · 3 verify UE 5.8 ✅ · 4 create project ✅ · 5 folders ✅ · 6 base classes ✅ (code) · 7 character ✅ (code) · 8 camera ✅ (code) · 9 walk/run/sprint ✅ (code) · 10 jump/air control ✅ (code) · 11 Sandbox ⏳ (script validated in a scratch project, not run in SAEVUS) · 12 Debug HUD ✅ (code) · 13 build ✅ · 14 run ⛔ · 15 commit ✅.
+**Phase 1 — Locomotion feel: IN PROGRESS.** Jump assists (coyote time, jump buffer), gait locked in the air, performance baseline.
 
 ## Completed
 
@@ -39,15 +39,13 @@ Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependenci
 
 ## In Progress
 
-- The run is blocked by Smart App Control (see Known Problems). The `SAEVUS.*` automation tests and the SAEVUS-class parts of the asset script have not run yet.
+- Phase 1: coyote time + jump buffer + air-gait lock written (movement component, character `RequestJump` / `CanJumpWhileFalling`), tests being added (`Tests/SAEVUSMovementTestWorld.h` shared fixture).
 
 ## Pending
 
-- User turns off Smart App Control. Then run `Tools\Verify-Bootstrap.ps1` and fix whatever fails.
-- Open the editor and play `L_Sandbox`: walk (LeftAlt) / run / sprint (LeftShift, L3), jump, air control, camera, F6 Debug HUD. Take a `-game` screenshot and check the log. Commit the generated assets.
-- Owner reviews `Docs/development-roadmap.md` and picks the phase after Bootstrap.
-- `combat.md` and `asset-pipeline.md` are deliberately not written: they belong to their own phases (see the roadmap).
-- Outside Bootstrap scope, so deliberately not written yet: `USAEVUSCombatComponent`, `USAEVUSWeaponComponent`.
+- Phase 1 remainder: performance baseline from a warm-DDC smoke run; Sandbox decision notes in `movement.md`.
+- Owner reviews `Docs/development-roadmap.md` (order of later phases).
+- `combat.md` and `asset-pipeline.md` belong to their own phases.
 
 ## Architecture
 
@@ -91,15 +89,18 @@ Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependenci
 
 ## Known Problems
 
-- **Smart App Control (Enforce) blocks the game DLL.** `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState = 1`. Windows refuses any unsigned, locally compiled DLL (error 4551, CodeIntegrity events 3077/3033), and self-signing doesn't help. The fix is turning Smart App Control off (Windows Security → App & browser control → Smart App Control settings → Off). That's the user's decision.
-- Dev hardware is below Epic's recommendation: 7 GB RAM vs 32 GB recommended, integrated GPU. UBT limits itself to 1 parallel compile, so a full module build takes about 3–4 min. Close other apps before building or opening the editor.
-- Git `user.name` isn't configured globally (only `user.email`); the repo uses a local `Hostos`.
+- Dev hardware is below Epic's recommendation: 7 GB RAM vs 32 GB recommended, integrated GPU (Vega 8, 1 GB dedicated + shared, driver Adrenalin 21.20.02 from 2021, DX12 SM6.6 OK). UBT limits itself to 1 parallel compile, so a full module build takes about 3–4 min. First rendered launch compiles shaders for several minutes.
+- Smart App Control was turned off by the user (required for locally built DLLs).
+- The editor appended `[/Script/AndroidFileServerEditor...]` defaults to `DefaultEngine.ini` (engine plugin defaults, harmless).
+- Git `user.name` isn't configured globally; the repo uses a local `Hostos`.
 
 ## Testing
 
-- Build: `Engine/Build/BatchFiles/Build.bat SAEVUSEditor Win64 Development -Project=<path>\SAEVUS.uproject -WaitMutex -NoHotReload` → **Succeeded, 0 warnings**.
-- Everything else: `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` (build → `SAEVUS.*` tests → asset script → asset verify; logs in `Saved\Logs\Verify\`). Currently stops at step 2 with the Smart App Control message.
-- Engine noise to ignore: 14 × `LogAutomationTest: Error: Condition failed` during editor startup, before any project code runs (seen in an empty Blueprint-only project too).
+- `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` → build, `SAEVUS.*` automation tests, asset script, asset verify. **All passed** (2026-10-03).
+- Automation results: Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 cm vs 142.9 expected), Air.AirControl (434 cm/s vs ~420 expected) — all Success.
+- Rendered smoke test: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -ResY=720 -SAEVUSSmokeTest` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.7 cm; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`. First run (cold shader cache): 25.7 fps average, worst frame 400 ms (shader compile hitches) — not a valid perf baseline yet.
+- Simulation tests tick the movement component directly (a game-mode-less test world does not run its tick groups).
+- Engine noise to ignore: 14 × `LogAutomationTest: Error: Condition failed` during editor startup.
 
 ## Git
 
@@ -107,7 +108,7 @@ Branch `main`, Git LFS for `.uasset`/`.umap` and source art. `user.name` is set 
 
 ## Next Step
 
-Once the user confirms Smart App Control is off: run `Tools\Verify-Bootstrap.ps1`, fix failures, play `L_Sandbox` in the editor, commit the generated assets, and close Bootstrap.
+Finish Phase 1: build + run the jump-assist tests, commit, then take a warm-cache performance baseline with the smoke test.
 
 ## Notes
 
