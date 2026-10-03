@@ -44,4 +44,8 @@ public:
 	/** Bool, pressed. */
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	TObjectPtr<UInputAction> DashAction;
+
+	/** Bool, pressed. */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TObjectPtr<UInputAction> AttackAction;
 };

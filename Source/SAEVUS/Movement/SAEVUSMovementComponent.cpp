@@ -287,6 +287,35 @@ void USAEVUSMovementComponent::StartDash()
 	}
 }
 
+void USAEVUSMovementComponent::CancelDash()
+{
+	if (IsDashing())
+	{
+		EndDash();
+	}
+}
+
+void USAEVUSMovementComponent::StartLunge(const FVector& Direction, float Speed, float Duration)
+{
+	const FVector Horizontal = Direction.GetSafeNormal2D();
+	if (Speed <= 0.f || Duration <= 0.f || Horizontal.IsNearlyZero())
+	{
+		return;
+	}
+	LungeDirection = Horizontal;
+	LungeSpeed = Speed;
+	LungeTimeRemaining = Duration;
+}
+
+void USAEVUSMovementComponent::SnapFacing(const FVector& Direction)
+{
+	const FVector Horizontal = Direction.GetSafeNormal2D();
+	if (HasValidData() && !Horizontal.IsNearlyZero())
+	{
+		MoveUpdatedComponent(FVector::ZeroVector, Horizontal.ToOrientationQuat(), false);
+	}
+}
+
 void USAEVUSMovementComponent::EndDash()
 {
 	const FSAEVUSDashTuning& Tuning = GetDashTuning();
@@ -304,6 +333,10 @@ float USAEVUSMovementComponent::GetMaxSpeed() const
 	{
 		return GetDashTuning().Speed;
 	}
+	if (IsLunging())
+	{
+		return LungeSpeed;
+	}
 	if (IsWallRunning())
 	{
 		return GetWallRunTuning().Speed;
@@ -318,7 +351,7 @@ float USAEVUSMovementComponent::GetMaxSpeed() const
 	}
 	if (IsMovingOnGround())
 	{
-		return GetGaitSpeed(GetCurrentGait());
+		return GetGaitSpeed(GetCurrentGait()) * ActionSpeedScale;
 	}
 	// Falling uses a gait cap too, so air control never drags a sprint jump down to run speed.
 	if (IsFalling())
@@ -345,6 +378,13 @@ void USAEVUSMovementComponent::CalcVelocity(float DeltaTime, float Friction, boo
 	{
 		const float VerticalSpeed = Velocity.Z;
 		Velocity = DashDirection * GetDashTuning().Speed;
+		Velocity.Z = VerticalSpeed;
+		return;
+	}
+	if (IsLunging() && HasValidData() && !HasAnimRootMotion())
+	{
+		const float VerticalSpeed = Velocity.Z;
+		Velocity = LungeDirection * LungeSpeed;
 		Velocity.Z = VerticalSpeed;
 		return;
 	}
@@ -402,10 +442,11 @@ void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 		LastWallRunNormal = FVector::ZeroVector;
 		WallClimbsUsed = 0;
 	}
-	else if (IsDashing() && !IsFalling())
+	else if (!IsFalling())
 	{
-		// Dash only runs in walking and falling; any other mode ends it.
-		EndDash();
+		// Dash and lunge only run in walking and falling; any other mode ends them.
+		CancelDash();
+		LungeTimeRemaining = 0.f;
 	}
 
 	if (IsMovingOnGround() && JumpBufferTimeRemaining > 0.f && CharacterOwner)
@@ -420,6 +461,8 @@ void USAEVUSMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVect
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 	CoyoteTimeRemaining = FMath::Max(0.f, CoyoteTimeRemaining - DeltaSeconds);
 	JumpBufferTimeRemaining = FMath::Max(0.f, JumpBufferTimeRemaining - DeltaSeconds);
+
+	LungeTimeRemaining = FMath::Max(0.f, LungeTimeRemaining - DeltaSeconds);
 
 	if (IsDashing())
 	{

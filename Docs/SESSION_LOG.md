@@ -105,3 +105,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Test fix: the flip test kept steering into the wall, which air control turned into a smaller flip; the climb doesn't need input, so the test climbs without it.
 - Sandbox climb blocks. 33/33 tests, Verify-Bootstrap and smoke test pass.
 - **Phase 3 done** (feel tuning pending with the owner).
+
+### Phase 4 — melee foundation (same session)
+- `USAEVUSCombatComponent` with data-driven attack timelines (startup/active/recovery), input buffer, ground and air chains, per-action cancel windows, lunge and slowed ground speed through new movement hooks, sphere hit detection through the engine damage path. `ASAEVUSTrainingDummy` counts hits.
+- Character asks combat before a dash or jump goes through; an attack ends a dash. `IA_Attack` (LMB / gamepad X), `DA_MeleeMoveset_Default`, Sandbox dummies, `SAEVUS.Debug.Combat`, smoke-test attack stage.
+- `Docs/combat.md`. 40/40 tests, Verify-Bootstrap and smoke test pass.
+- Next: Phase 5 (firearms, weapon switching).

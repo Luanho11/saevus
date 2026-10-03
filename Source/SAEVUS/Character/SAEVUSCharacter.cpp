@@ -3,6 +3,7 @@
 #include "Character/SAEVUSCharacter.h"
 #include "Camera/SAEVUSCameraComponent.h"
 #include "Character/SAEVUSInputConfig.h"
+#include "Combat/SAEVUSCombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
@@ -32,6 +33,8 @@ ASAEVUSCharacter::ASAEVUSCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	Combat = CreateDefaultSubobject<USAEVUSCombatComponent>(TEXT("Combat"));
+
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bUsePawnControlRotation = true;
@@ -46,8 +49,19 @@ USAEVUSMovementComponent* ASAEVUSCharacter::GetSAEVUSMovement() const
 	return CastChecked<USAEVUSMovementComponent>(GetCharacterMovement());
 }
 
+void ASAEVUSCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	// Combat ticks first, so a lunge or speed change it starts applies in the same frame's movement.
+	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Combat, Combat->PrimaryComponentTick);
+}
+
 void ASAEVUSCharacter::RequestJump()
 {
+	if (!Combat->TryCancelForAction(ESAEVUSCancelAction::Jump))
+	{
+		return;
+	}
 	USAEVUSMovementComponent* Movement = GetSAEVUSMovement();
 	if (Movement->IsFalling() && !Movement->IsInCoyoteWindow())
 	{
@@ -108,7 +122,11 @@ void ASAEVUSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	if (InputConfig->DashAction)
 	{
-		Input->BindAction(InputConfig->DashAction, ETriggerEvent::Started, this, &ThisClass::HandleDash);
+		Input->BindAction(InputConfig->DashAction, ETriggerEvent::Started, this, &ThisClass::RequestDash);
+	}
+	if (InputConfig->AttackAction)
+	{
+		Input->BindAction(InputConfig->AttackAction, ETriggerEvent::Started, this, &ThisClass::RequestAttack);
 	}
 }
 
@@ -141,7 +159,15 @@ void ASAEVUSCharacter::HandleWalk(const FInputActionValue& Value)
 	GetSAEVUSMovement()->SetWalkRequested(Value.Get<bool>());
 }
 
-void ASAEVUSCharacter::HandleDash()
+void ASAEVUSCharacter::RequestDash()
 {
-	GetSAEVUSMovement()->RequestDash();
+	if (Combat->TryCancelForAction(ESAEVUSCancelAction::Dash))
+	{
+		GetSAEVUSMovement()->RequestDash();
+	}
+}
+
+void ASAEVUSCharacter::RequestAttack()
+{
+	Combat->RequestAttack();
 }

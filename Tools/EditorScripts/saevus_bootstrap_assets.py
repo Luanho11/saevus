@@ -34,6 +34,7 @@ SAEVUS_KEY_MAPPINGS = {
     "IA_Walk": ["LeftAlt"],
     # Pressed (Started). Shift and Alt are taken by sprint and walk.
     "IA_Dash": ["LeftControl", "ThumbMouseButton", "Gamepad_FaceButton_Right"],
+    "IA_Attack": ["LeftMouseButton", "Gamepad_FaceButton_Left"],
     # F1-F5, F9 and F11 are engine debug bindings (BaseInput.ini).
     "IA_ToggleDebugHUD": ["F6"],
 }
@@ -114,14 +115,16 @@ def create_data_assets(actions):
     input_config.set_editor_property("sprint_action", actions["IA_Sprint"])
     input_config.set_editor_property("walk_action", actions["IA_Walk"])
     input_config.set_editor_property("dash_action", actions["IA_Dash"])
+    input_config.set_editor_property("attack_action", actions["IA_Attack"])
 
     # Values stay at the code defaults until tuned in the editor.
     movement = data_asset("DA_MovementSettings_Default", unreal.SAEVUSMovementSettings)
     camera = data_asset("DA_CameraSettings_Default", unreal.SAEVUSCameraSettings)
-    return input_config, movement, camera
+    moveset = data_asset("DA_MeleeMoveset_Default", unreal.SAEVUSMeleeMovesetAsset)
+    return input_config, movement, camera, moveset
 
 
-def create_blueprints(actions, imc, input_config, movement, camera):
+def create_blueprints(actions, imc, input_config, movement, camera, moveset):
     character_bp = get_or_create_blueprint("BP_SAEVUSCharacter", unreal.SAEVUSCharacter)
     character = blueprint_cdo(character_bp)
     character.set_editor_property("input_config", input_config)
@@ -134,6 +137,7 @@ def create_blueprints(actions, imc, input_config, movement, camera):
     mesh.set_editor_property("anim_class", load(MANNEQUIN_ANIM_BP).generated_class())
     character.get_editor_property("character_movement").set_editor_property("movement_settings", movement)
     character.get_editor_property("follow_camera").set_editor_property("camera_settings", camera)
+    character.get_editor_property("combat").set_editor_property("moveset_asset", moveset)
 
     controller_bp = get_or_create_blueprint("BP_SAEVUSPlayerController", unreal.SAEVUSPlayerController)
     controller = blueprint_cdo(controller_bp)
@@ -218,6 +222,16 @@ def build_sandbox(game_mode_bp):
     spawn_block(actors, "WallClimb_Block350cm", unreal.Vector(3000, -1500, 175), (400, 800, 350), grid)
     spawn_block(actors, "WallClimb_Tall", unreal.Vector(3000, -2600, 500), (100, 800, 1000), dark)
 
+    # Training dummies near the start: one alone, two side by side to check single-target hits.
+    for label, location in (
+        ("Dummy_A", unreal.Vector(600, -400, 96)),
+        ("Dummy_B1", unreal.Vector(600, 300, 96)),
+        ("Dummy_B2", unreal.Vector(600, 420, 96)),
+    ):
+        dummy = actors.spawn_actor_from_class(unreal.SAEVUSTrainingDummy, location, unreal.Rotator(0, 0, 180))
+        dummy.set_actor_label(label)
+        dummy.set_folder_path("Combat")
+
     # Lighting: fully dynamic, no Lumen.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-50, yaw=-35))
     sun.set_actor_label("Sun")
@@ -248,8 +262,8 @@ def build_sandbox(game_mode_bp):
 
 def main():
     actions, imc = create_input_assets()
-    input_config, movement, camera = create_data_assets(actions)
-    game_mode_bp = create_blueprints(actions, imc, input_config, movement, camera)
+    input_config, movement, camera, moveset = create_data_assets(actions)
+    game_mode_bp = create_blueprints(actions, imc, input_config, movement, camera, moveset)
     build_sandbox(game_mode_bp)
     if not eal.save_directory(ROOT, only_if_is_dirty=False, recursive=True):
         raise RuntimeError("Saving /Game/SAEVUS failed")

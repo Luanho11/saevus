@@ -1,6 +1,7 @@
 // Copyright SAEVUS. All Rights Reserved.
 
 #include "Debug/SAEVUSDebugHUD.h"
+#include "Combat/SAEVUSCombatComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
@@ -35,10 +36,25 @@ void ASAEVUSDebugHUD::DrawHUD()
 		FString::Printf(TEXT("Location: %s"), *Character->GetActorLocation().ToCompactString()),
 	};
 
+	FString AttackLine = TEXT("Attack: none");
+	if (const USAEVUSCombatComponent* Combat = Character->FindComponentByClass<USAEVUSCombatComponent>())
+	{
+		if (const FSAEVUSAttackDefinition* Attack = Combat->GetCurrentAttack())
+		{
+			AttackLine = FString::Printf(TEXT("Attack: %s #%d %s %.2f s"), *Attack->Name.ToString(), Combat->GetComboIndex() + 1,
+				*UEnum::GetDisplayValueAsText(Combat->GetAttackPhase()).ToString(), Combat->GetAttackTime());
+		}
+		if (Combat->HasBufferedAttack())
+		{
+			AttackLine += TEXT(" (buffered)");
+		}
+	}
+
 	FVector2D Cursor = ScreenOrigin;
 	for (const FString& Line : Lines)
 	{
 		DrawText(Line, TextColor, Cursor.X, Cursor.Y, GEngine->GetSmallFont(), TextScale);
 		Cursor.Y += LineHeight;
 	}
+	DrawText(AttackLine, TextColor, Cursor.X, Cursor.Y, GEngine->GetSmallFont(), TextScale);
 }

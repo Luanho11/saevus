@@ -34,6 +34,8 @@ def main():
         "/Game/SAEVUS/Input/Actions/IA_Sprint",
         "/Game/SAEVUS/Input/Actions/IA_Walk",
         "/Game/SAEVUS/Input/Actions/IA_Dash",
+        "/Game/SAEVUS/Input/Actions/IA_Attack",
+        "/Game/SAEVUS/Data/DA_MeleeMoveset_Default",
         "/Game/SAEVUS/Input/Actions/IA_ToggleDebugHUD",
         "/Game/SAEVUS/Data/DA_MovementSettings_Default",
         "/Game/SAEVUS/Data/DA_CameraSettings_Default",
@@ -44,7 +46,7 @@ def main():
     input_config = eal.load_asset("/Game/SAEVUS/Data/DA_InputConfig")
     check("DA_InputConfig exists", input_config is not None)
     if input_config:
-        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action", "dash_action"):
+        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action", "dash_action", "attack_action"):
             check(f"DA_InputConfig.{prop} set", input_config.get_editor_property(prop) is not None)
 
     character = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSCharacter")
@@ -58,6 +60,8 @@ def main():
         check("movement settings set", movement.get_editor_property("movement_settings") is not None)
         camera = character.get_editor_property("follow_camera")
         check("camera settings set", camera.get_editor_property("camera_settings") is not None)
+        combat = character.get_editor_property("combat")
+        check("combat moveset set", combat is not None and combat.get_editor_property("moveset_asset") is not None)
 
     controller = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSPlayerController")
     if controller:

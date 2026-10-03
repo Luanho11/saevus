@@ -10,4 +10,7 @@ namespace SAEVUSDebug
 	/** SAEVUS.Debug.HUD */
 	SAEVUS_API bool IsDebugHUDEnabled();
 	SAEVUS_API void SetDebugHUDEnabled(bool bEnabled);
+
+	/** SAEVUS.Debug.Combat: draws attack hit spheres. */
+	SAEVUS_API bool IsDebugCombatEnabled();
 }

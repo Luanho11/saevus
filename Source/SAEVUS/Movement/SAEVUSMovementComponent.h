@@ -58,6 +58,24 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
 	bool IsDashing() const { return DashTimeRemaining > 0.f; }
 
+	/** Ends the current dash early, with the normal dash exit (speed cap, cooldown). */
+	void CancelDash();
+
+	/**
+	 * Action-driven motion such as a sword lunge: horizontal velocity held at Direction x Speed
+	 * for Duration, on the ground or in the air. A dash takes priority over it.
+	 */
+	void StartLunge(const FVector& Direction, float Speed, float Duration);
+
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	bool IsLunging() const { return LungeTimeRemaining > 0.f; }
+
+	/** Scales the ground speed cap while an action (e.g. an attack) commits the character. 1 = none. */
+	void SetActionSpeedScale(float Scale) { ActionSpeedScale = Scale; }
+
+	/** Turns the body to face Direction (horizontal) at once. */
+	void SnapFacing(const FVector& Direction);
+
 	/** Air dashes left before landing. */
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
 	int32 GetAirDashesRemaining() const;
@@ -160,6 +178,13 @@ private:
 	bool bWantsToSprint = false;
 	bool bWantsToWalk = false;
 	bool bWantsToDash = false;
+
+	// Action motion driven by combat. Local state, not in the saved move yet (combat is not
+	// networked until the networking phase).
+	FVector LungeDirection = FVector::ForwardVector;
+	float LungeSpeed = 0.f;
+	float LungeTimeRemaining = 0.f;
+	float ActionSpeedScale = 1.f;
 
 	// Dash state. Saved and restored by FSAEVUSSavedMove so replays after a correction match.
 	FVector DashDirection = FVector::ForwardVector;

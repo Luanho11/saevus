@@ -7,6 +7,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Character/SAEVUSCharacter.h"
+#include "Combat/SAEVUSCombatComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -101,6 +102,7 @@ namespace SAEVUSTests
 			Movement->SetMovementMode(MOVE_Falling);
 			Movement->Velocity = FVector::ZeroVector;
 			SimulatedMovement = Movement;
+			SimulatedCombat = Character->GetCombat();
 			return Character;
 		}
 
@@ -118,10 +120,20 @@ namespace SAEVUSTests
 			return SimulatedMovement->IsMovingOnGround();
 		}
 
+		/** Spawns any actor (targets, props) at Location. */
+		template <typename TActor>
+		TActor* SpawnActor(const FVector& Location, const FRotator& Rotation = FRotator::ZeroRotator)
+		{
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			return World->SpawnActor<TActor>(Location, Rotation, Params);
+		}
+
 		/**
-		 * Advances the spawned character's movement by one fixed step. The component is ticked
-		 * directly: a world without a game mode or viewport does not run its tick groups reliably,
-		 * and a direct tick keeps the simulation deterministic.
+		 * Advances the spawned character by one fixed step: combat, then movement, as the tick
+		 * prerequisite orders them in game. Components are ticked directly: a world without a game
+		 * mode or viewport does not run its tick groups reliably, and a direct tick keeps the
+		 * simulation deterministic.
 		 */
 		void Step()
 		{
@@ -129,12 +141,17 @@ namespace SAEVUSTests
 			World->TimeSeconds += SimStep;
 			World->UnpausedTimeSeconds += SimStep;
 			World->RealTimeSeconds += SimStep;
+			if (SimulatedCombat)
+			{
+				SimulatedCombat->TickComponent(SimStep, LEVELTICK_All, &SimulatedCombat->PrimaryComponentTick);
+			}
 			SimulatedMovement->TickComponent(SimStep, LEVELTICK_All, &SimulatedMovement->PrimaryComponentTick);
 		}
 
 	private:
 		UWorld* World = nullptr;
 		USAEVUSMovementComponent* SimulatedMovement = nullptr;
+		USAEVUSCombatComponent* SimulatedCombat = nullptr;
 	};
 }
 

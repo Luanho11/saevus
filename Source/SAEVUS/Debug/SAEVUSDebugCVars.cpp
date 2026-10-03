@@ -11,6 +11,17 @@ namespace SAEVUSDebug
 		TEXT("Shows the SAEVUS movement debug HUD (gait, speed, movement mode)."),
 		ECVF_Default);
 
+	static TAutoConsoleVariable<bool> CVarDebugCombat(
+		TEXT("SAEVUS.Debug.Combat"),
+		false,
+		TEXT("Draws SAEVUS attack hit spheres while they are active (yellow: no hit, red: hit)."),
+		ECVF_Default);
+
+	bool IsDebugCombatEnabled()
+	{
+		return CVarDebugCombat.GetValueOnGameThread();
+	}
+
 	bool IsDebugHUDEnabled()
 	{
 		return CVarDebugHUD.GetValueOnGameThread();

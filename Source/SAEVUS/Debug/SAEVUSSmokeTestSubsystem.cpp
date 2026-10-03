@@ -2,6 +2,7 @@
 
 #include "Debug/SAEVUSSmokeTestSubsystem.h"
 #include "Character/SAEVUSCharacter.h"
+#include "Combat/SAEVUSCombatComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -28,6 +29,9 @@ namespace SAEVUSSmokeTest
 	constexpr float MaxJumpDuration = 2.f;
 	// Covers the dash, its exit and the cooldown.
 	constexpr float DashStageDuration = 1.f;
+	// Longer than any default attack.
+	constexpr float MaxAttackStageDuration = 2.f;
+	constexpr float AttackDurationTolerance = 0.15f;
 	constexpr float ScreenshotDelay = 0.5f;
 	constexpr float PawnTimeout = 120.f;
 
@@ -70,7 +74,7 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	using namespace SAEVUSSmokeTest;
 	StageTime += DeltaTime;
 
-	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump || Stage == EStage::Dash)
+	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump || Stage == EStage::Dash || Stage == EStage::Attack)
 	{
 		SampleFrameTiming(DeltaTime);
 	}
@@ -156,6 +160,16 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		MaxDashSpeed = FMath::Max(MaxDashSpeed, static_cast<float>(Movement->Velocity.Size2D()));
 		if (StageTime >= DashStageDuration)
 		{
+			Pawn->RequestAttack();
+			bAttackStarted = Pawn->GetCombat()->IsAttacking();
+			EnterStage(EStage::Attack);
+		}
+		break;
+
+	case EStage::Attack:
+		if (!Pawn->GetCombat()->IsAttacking() || StageTime >= MaxAttackStageDuration)
+		{
+			AttackDuration = StageTime;
 			FScreenshotRequest::RequestScreenshot(ScreenshotName, true, false);
 			EnterStage(EStage::Screenshot);
 		}
@@ -175,6 +189,8 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		const float ExpectedApex = FMath::Square(Movement->JumpZVelocity) / (2.f * FMath::Abs(Movement->GetGravityZ()));
 		Check(TEXT("jump apex"), JumpApexZ - JumpStartZ, ExpectedApex, JumpApexTolerance);
 		Check(TEXT("dash speed"), MaxDashSpeed, Movement->GetDashTuning().Speed, SpeedTolerance);
+		Check(TEXT("attack started"), bAttackStarted ? 1.f : 0.f, 1.f, 0.f);
+		Check(TEXT("attack duration"), AttackDuration, Pawn->GetCombat()->GetMoveset().GroundCombo[0].GetTotalTime(), AttackDurationTolerance);
 		Finish();
 		break;
 	}
