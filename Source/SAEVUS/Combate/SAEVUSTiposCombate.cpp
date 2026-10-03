@@ -47,4 +47,27 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoAereo.CancelarConCambioArmaDesde = TajoAereo.EncadenarDesde;
 
 	ComboAire = { TajoAereo };
+
+	// Tajo hacia arriba: esfera sobre la cabeza, sin estocada ni retroceso (no se empuja contra el techo).
+	TajoArriba.Nombre = TEXT("TajoArriba");
+	TajoArriba.TiempoPreparacion = 0.08f;
+	TajoArriba.TiempoActivo = 0.1f;
+	TajoArriba.TiempoRecuperacion = 0.25f;
+	TajoArriba.Danio = 12.f;
+	TajoArriba.RadioGolpe = 70.f;
+	TajoArriba.DesplazamientoFrontalGolpe = 25.f;
+	TajoArriba.AlturaGolpe = 130.f;
+	TajoArriba.VelocidadEstocada = 0.f;
+	TajoArriba.RetrocesoAtacante = 0.f;
+	TajoArriba.EncadenarDesde = TajoArriba.TiempoPreparacion + TajoArriba.TiempoActivo;
+	TajoArriba.CancelarConDashDesde = TajoArriba.EncadenarDesde;
+	TajoArriba.CancelarConSaltoDesde = TajoArriba.EncadenarDesde;
+	TajoArriba.CancelarConCambioArmaDesde = TajoArriba.EncadenarDesde;
+
+	// Tajo hacia abajo: esfera bajo los pies; al acertar rebota (pogo), así se encadenan saltos sobre enemigos.
+	TajoAbajo = TajoArriba;
+	TajoAbajo.Nombre = TEXT("TajoAbajo");
+	TajoAbajo.DesplazamientoFrontalGolpe = 15.f;
+	TajoAbajo.AlturaGolpe = -130.f;
+	TajoAbajo.VelocidadRebote = 750.f;
 }

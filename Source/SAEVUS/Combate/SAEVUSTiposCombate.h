@@ -19,6 +19,16 @@ enum class ESAEVUSFaseAtaque : uint8
 	Recuperacion
 };
 
+/** Hacia dónde va un ataque cuerpo a cuerpo (tajos de Hollow Knight: de frente, arriba, abajo en el aire). */
+UENUM(BlueprintType)
+enum class ESAEVUSDireccionAtaque : uint8
+{
+	Frontal,
+	Arriba,
+	/** Solo en el aire; en el suelo se convierte en frontal. */
+	Abajo
+};
+
 /** Acciones del jugador que pueden cortar un ataque, cada una con su ventana en los datos del ataque. */
 UENUM(BlueprintType)
 enum class ESAEVUSAccionCancelacion : uint8
@@ -72,6 +82,22 @@ struct FSAEVUSDefinicionAtaque
 	/** Multiplicador del tope de velocidad en el suelo mientras dura este ataque (no limita la estocada). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ClampMax = "1"))
 	float EscalaVelocidadSuelo = 0.25f;
+
+	/** Al golpear, el atacante sale despedido hacia atrás (horizontal) a esta velocidad. 0 = nada. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float RetrocesoAtacante = 250.f;
+
+	/** Velocidad con la que el golpe empuja a un personaje golpeado, en la dirección del tajo. 0 = nada. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float EmpujeObjetivo = 350.f;
+
+	/** Parada de golpe (hit-stop) en tiempo real al acertar. 0 = sin parada. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionParadaGolpe = 0.06f;
+
+	/** Rebote (pogo): al acertar en el aire, la velocidad vertical pasa a este valor y se recargan dash y doble salto. 0 = sin rebote. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadRebote = 0.f;
 
 	/** Desde este tiempo, una pulsación de ataque en buffer inicia el siguiente ataque de la cadena. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones", meta = (ForceUnits = "s"))
@@ -137,6 +163,28 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	/** Ataques encadenados en orden cuando el primero empieza en el aire. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
 	TArray<FSAEVUSDefinicionAtaque> ComboAire;
+
+	/** Tajo hacia arriba (suelo y aire). No encadena. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
+	FSAEVUSDefinicionAtaque TajoArriba;
+
+	/** Tajo hacia abajo, solo en el aire; rebota al acertar (pogo). No encadena. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
+	FSAEVUSDefinicionAtaque TajoAbajo;
+
+	/**
+	 * Adaptación a 3D del "arriba/abajo + ataque": con la cámara inclinada al menos este ángulo
+	 * hacia arriba sale el tajo hacia arriba; inclinada hacia abajo hasta UmbralInclinacionAbajo, el tajo hacia abajo.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dirección", meta = (ClampMin = "0", ClampMax = "90", ForceUnits = "deg"))
+	float UmbralInclinacionArriba = 30.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dirección", meta = (ClampMin = "-90", ClampMax = "0", ForceUnits = "deg"))
+	float UmbralInclinacionAbajo = -40.f;
+
+	/** Escala de tiempo de los actores durante la parada de golpe (0 = congelados, 1 = sin parada). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ClampMax = "1"))
+	float EscalaTiempoParada = 0.05f;
 
 	/** Una pulsación de ataque se recuerda este tiempo hasta que puede empezar. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entrada", meta = (ClampMin = "0", ForceUnits = "s"))

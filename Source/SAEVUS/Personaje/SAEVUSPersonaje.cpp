@@ -302,8 +302,10 @@ void ASAEVUSPersonaje::PedirAtaque()
 	}
 	else if (!Armas->EstaCambiando())
 	{
-		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate).
-		Combate->PedirAtaque();
+		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate). La inclinación de la
+		// cámara elige el tajo: arriba, de frente o abajo (en el aire).
+		const float Inclinacion = Controller ? static_cast<float>(FRotator::NormalizeAxis(GetControlRotation().Pitch)) : 0.f;
+		Combate->PedirAtaqueEnDireccion(Combate->DireccionSegunInclinacion(Inclinacion));
 	}
 }
 

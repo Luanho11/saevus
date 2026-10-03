@@ -24,6 +24,7 @@ namespace SAEVUSPruebasAnimacion
 	constexpr float TiempoCarrera = 0.6f;
 	constexpr float TiempoAsentarPose = 0.5f;
 	constexpr float ToleranciaEscala = 0.1f;
+	constexpr float SubidaMinimaManoTajoArriba = 40.f;
 
 	/** Mundo con suelo y un personaje con el caballero en su malla poseable. */
 	struct FMundoAnimacion
@@ -170,6 +171,31 @@ bool FSAEVUSPruebaAnimacionAtaque::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("Recorrido lateral de la mano en el tajo %.1f cm"), Maximo - Minimo));
 	TestTrue(TEXT("El tajo mueve la mano de un lado a otro"), Maximo - Minimo > RecorridoMinimoMano);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionTajoArriba, "SAEVUS.Animacion.TajoArriba", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionTajoArriba::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	const float ManoReposo = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::ManoD).Z);
+	USAEVUSComponenteCombate* Combate = Mundo.Personaje->ObtenerCombate();
+	Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Arriba);
+	float ManoMaxima = ManoReposo;
+	while (Combate->EstaAtacando())
+	{
+		Mundo.MundoPrueba.Paso();
+		ManoMaxima = FMath::Max(ManoMaxima, static_cast<float>(Mundo.Hueso(ESAEVUSHueso::ManoD).Z));
+	}
+	AddInfo(FString::Printf(TEXT("La mano sube %.1f cm en el tajo hacia arriba"), ManoMaxima - ManoReposo));
+	TestTrue(TEXT("El tajo hacia arriba levanta la mano por encima del reposo"), ManoMaxima - ManoReposo > SubidaMinimaManoTajoArriba);
 	return true;
 }
 

@@ -120,8 +120,18 @@ namespace SAEVUSAnimacion
 		float InclinacionFin;
 	};
 
-	FTrayectoria TrayectoriaAtaque(int32 IndiceCombo, bool bAereo)
+	FTrayectoria TrayectoriaAtaque(int32 IndiceCombo, bool bAereo, ESAEVUSDireccionAtaque Direccion)
 	{
+		if (Direccion == ESAEVUSDireccionAtaque::Arriba)
+		{
+			// De delante-abajo a por encima de la cabeza, con el cuerpo echado atrás.
+			return { (Adelante * 0.8f - Arriba * 0.2f + Derecha * 0.2f).GetSafeNormal(), (Arriba * 0.95f - Adelante * 0.3f).GetSafeNormal(), 10.f, -5.f, -5.f, -18.f };
+		}
+		if (Direccion == ESAEVUSDireccionAtaque::Abajo)
+		{
+			// De arriba-delante a recto bajo los pies, con el cuerpo volcado hacia el golpe.
+			return { (Arriba * 0.6f + Adelante * 0.5f).GetSafeNormal(), (-Arriba * 0.95f + Adelante * 0.2f).GetSafeNormal(), 0.f, 0.f, 15.f, 35.f };
+		}
 		if (bAereo)
 		{
 			// Diagonal de arriba-derecha a abajo-izquierda.
@@ -318,7 +328,8 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	const bool bArmaFuego = Armas && Armas->TieneArmaFuegoEquipada();
 	if (Combate && Combate->ObtenerAtaqueActual())
 	{
-		PoseAtaque(Pose, *Combate->ObtenerAtaqueActual(), Combate->ObtenerIndiceCombo(), Combate->EsCadenaAerea(), Combate->ObtenerTiempoAtaque());
+		PoseAtaque(Pose, *Combate->ObtenerAtaqueActual(), Combate->ObtenerIndiceCombo(), Combate->EsCadenaAerea(), Combate->ObtenerDireccionAtaque(),
+			Combate->ObtenerTiempoAtaque());
 	}
 	else if (bArmaFuego && !Movimiento->EstaEscalando())
 	{
@@ -450,10 +461,11 @@ void USAEVUSComponenteAnimacionProcedural::PoseEscalada(FPose& Pose, float Delta
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Adelante, Arriba, 18.f) };
 }
 
-void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, float Tiempo)
+void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo,
+	ESAEVUSDireccionAtaque Direccion, float Tiempo)
 {
 	using namespace SAEVUSAnimacion;
-	const FTrayectoria Trayectoria = TrayectoriaAtaque(IndiceCombo, bAereo);
+	const FTrayectoria Trayectoria = TrayectoriaAtaque(IndiceCombo, bAereo, Direccion);
 	const FVector Guardia = (Adelante * 0.5f - Arriba * 0.7f + Derecha * 0.25f).GetSafeNormal();
 
 	// Dirección del brazo y del aguijón a lo largo de la línea de tiempo del ataque.

@@ -114,6 +114,12 @@ public:
 	/** Devuelve los dashes aéreos y los dobles saltos (aterrizar, rebote de un tajo hacia abajo). */
 	void RecargarRecursosAereos();
 
+	/** Rebote (pogo) de un tajo hacia abajo: fija la velocidad vertical, termina el dash y recarga los recursos aéreos. */
+	void Rebotar(float VelocidadVertical);
+
+	/** Corta la estocada en curso (p. ej. al golpear algo). */
+	void TerminarEstocada() { TiempoEstocadaRestante = 0.f; }
+
 	/**
 	 * Busca una pared casi vertical a menos de DistanciaDeteccion de la cápsula.
 	 * Devuelve su normal horizontal (alejándose de la pared), o cero si no hay.

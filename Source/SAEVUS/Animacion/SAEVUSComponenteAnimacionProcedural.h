@@ -12,6 +12,7 @@ class USAEVUSComponenteCombate;
 class USAEVUSComponenteMovimiento;
 class USAEVUSComponenteVida;
 struct FSAEVUSDefinicionAtaque;
+enum class ESAEVUSDireccionAtaque : uint8;
 
 /** Huesos del esqueleto propio del caballero (Herramientas/Arte/blender_caballero.py). */
 UENUM()
@@ -165,7 +166,7 @@ private:
 	void PoseDash(FPose& Pose);
 	void PoseCarreraPared(FPose& Pose, float DeltaTime);
 	void PoseEscalada(FPose& Pose, float DeltaTime);
-	void PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, float Tiempo);
+	void PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, ESAEVUSDireccionAtaque Direccion, float Tiempo);
 	void PoseDisparo(FPose& Pose);
 	void PoseMuerte(FPose& Pose, float DeltaTime);
 	void PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical);

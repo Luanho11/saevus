@@ -427,6 +427,17 @@ void USAEVUSComponenteMovimiento::RecargarRecursosAereos()
 	SaltosAereosUsados = 0;
 }
 
+void USAEVUSComponenteMovimiento::Rebotar(float VelocidadVertical)
+{
+	if (EstaEnDash())
+	{
+		TerminarDash();
+	}
+	TerminarEstocada();
+	Velocity.Z = VelocidadVertical;
+	RecargarRecursosAereos();
+}
+
 bool USAEVUSComponenteMovimiento::IntentarSaltoAereo()
 {
 	// Misma regla de pulsación que el salto de pared: solo la primera actualización de una pulsación

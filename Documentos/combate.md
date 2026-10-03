@@ -56,6 +56,19 @@ Lectura: los tajos rápidos se pueden dejar en cuanto golpean (fin de la fase ac
 
 Pares de cancelación diseñados: ataque → dash/salto/cambio de arma (tabla), dash → ataque (`bAtaqueTerminaDash`), salto durante un dash de suelo y salto de pared durante un dash (movimiento).
 
+## Tajos direccionales, rebote e impacto (Hollow Knight)
+
+Mecánicas de Hollow Knight adaptadas a 3D, con números propios:
+
+- **Dirección por la cámara.** En 2D se apunta con arriba/abajo; en tercera persona, W y S ya mueven. `ASAEVUSPersonaje::PedirAtaque` lee la inclinación vertical de la cámara: desde `UmbralInclinacionArriba` (30°) sale `TajoArriba`; hasta `UmbralInclinacionAbajo` (−40°), `TajoAbajo`. Abajo solo existe en el aire (en el suelo es el combo frontal). Umbrales en el repertorio; cambiables.
+- **Tajos direccionales** (`FSAEVUSRepertorioMelee::TajoArriba` / `TajoAbajo`): 0,08 / 0,10 / 0,25 s, 12 de daño, esfera de 70 cm a ±130 cm de altura, sin estocada. No encadenan: salen desde la ventana de encadenar de cualquier ataque, y tras ellos vuelve a empezar el combo.
+- **Rebote (pogo)**: `VelocidadRebote` (750 cm/s en el tajo hacia abajo). Al acertar en el aire, `USAEVUSComponenteMovimiento::Rebotar` fija la velocidad vertical, corta dash y estocada y **recarga dash aéreo y doble salto**: se puede encadenar rebote → doble salto → dash → rebote.
+- **Impacto** (una vez por ataque, en el primer acierto):
+  - `RetrocesoAtacante` (250 cm/s; 0 en los tajos direccionales): corta la estocada y echa al atacante hacia atrás, así el golpe se siente y no se atraviesa al enemigo.
+  - `EmpujeObjetivo` (350 cm/s): lanza a los personajes golpeados en la dirección del tajo (horizontal, arriba o abajo).
+  - **Parada de golpe** `DuracionParadaGolpe` (0,06 s reales) a la escala `EscalaTiempoParada` (0,05) del repertorio: `FSAEVUSParadaGolpe` baja `CustomTimeDilation` del atacante y de los golpeados y la devuelve a 1, contando tiempo real.
+- Animación: trayectorias propias para arriba (cuerpo echado atrás) y abajo (volcado hacia el golpe).
+
 ## Armas y cambio
 
 El arsenal es una lista de `USAEVUSDefinicionArma` en el componente de armas. Por defecto (`BP_SAEVUSPersonaje`): 1 Espada, 2 Pistola, 3 Rifle, 4 Escopeta.
@@ -84,7 +97,7 @@ Valores en la tabla `ARMAS` del script de assets y en los Data Assets; arquetipo
 
 ## Red
 
-Todavía no. Combate y armas son locales; estocada y escala de velocidad no van en el movimiento guardado. La fase de red llevará ataques, cambios y disparos a los datos de movimiento predichos (como el dash) y hará que el servidor confirme golpes; la dispersión necesitará una semilla por disparo compartida.
+Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata su simulación de movimiento: en red tendrá que ser solo visual); estocada y escala de velocidad no van en el movimiento guardado. La fase de red llevará ataques, cambios y disparos a los datos de movimiento predichos (como el dash) y hará que el servidor confirme golpes; la dispersión necesitará una semilla por disparo compartida.
 
 ## Depuración
 
@@ -94,10 +107,10 @@ Todavía no. Combate y armas son locales; estocada y escala de velocidad no van 
 
 ## Tests
 
-`SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`.
+`SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
 `SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Cambio`, `CambioCancela`, `RepertorioMelee`.
 `SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`.
 
 ## Pendiente
 
-Animación de ataques y disparos (ver `animacion.md`), reacciones al golpe, parada de golpe, bloqueo, modo de apuntado, munición de reserva.
+Reacciones al golpe en enemigos (llegan con los enemigos), rebote en pinchos y peligros, bloqueo, modo de apuntado, munición de reserva.
