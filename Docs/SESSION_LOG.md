@@ -77,3 +77,7 @@ Finish Phase 1 (locomotion feel) code work.
 
 ### Next
 Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap; then Phase 2 (GunZ research, documents only).
+
+### Phase 2 (same session)
+- `Docs/research/gunz.md` from public sources (Wikipedia, StrategyWiki/Fandom excerpts, critpoints.net analysis, MMOBomb on GunZ 2). Key finding: GunZ's depth came from unintended animation cancels; SAEVUS goal is a designed, data-driven cancel system with a low input floor.
+- Phase 3 order proposed: dash → wall jump → wall run → wall climb. Owner questions listed in the doc.

@@ -12,6 +12,10 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 **Phase 1 — Locomotion feel: code work DONE, waiting on the owner's playtest.** Done: coyote time, jump buffer, take-off gait locked in the air, open movement questions decided or deferred (`movement.md`), performance baseline (`performance.md`). Left: the feel-tuning pass on `DA_MovementSettings_Default` / `DA_CameraSettings_Default`, which needs a human playing it.
 
+**Phase 2 — GunZ research: DRAFT DONE (2026-10-03).** `Docs/research/gunz.md`: public-source summary, SAEVUS design goals, Phase 3 proposal and six questions for the owner.
+
+**Phase 3 — Advanced movement: IN PROGRESS.** Order: dash → wall jump → wall run → wall climb.
+
 ## Completed
 
 - Environment inspected (see Notes).
@@ -42,10 +46,11 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 ## In Progress
 
-- Nothing. Phase 1 waits on the owner's playtest.
+- Phase 3: dash.
 
 ## Pending
 
+- Owner answers the questions at the end of `Docs/research/gunz.md` (Phase 3 uses toggleable defaults until then).
 - Owner playtests `L_Sandbox` and tunes feel on the Data Assets (or reports what feels off).
 - Landing recovery and gait-correct animation (sprint foot sliding with the template blend space) are deferred until animation work; see `movement.md`.
 - Owner reviews `Docs/development-roadmap.md` (order of later phases).
