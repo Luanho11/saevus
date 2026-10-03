@@ -91,6 +91,7 @@ void ASAEVUSPersonaje::PostInitializeComponents()
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Alma, Alma->PrimaryComponentTick);
 
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
+	Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::ManejarCambioVida);
 	ObtenerMovimiento()->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash);
 
 	if (ConfigEntrada)
@@ -116,6 +117,21 @@ FRotator ASAEVUSPersonaje::ObtenerRotacionEntrada() const
 	// Sin controlador (tests, pawns sin dueño) se usan los ejes del mundo: el actor gira al moverse
 	// y la base de la entrada cambiaría entre pulsaciones.
 	return Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator;
+}
+
+void ASAEVUSPersonaje::ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
+{
+	if (Delta >= 0.f || !Instigador || Instigador == this || ComponenteVida->EstaMuerto())
+	{
+		return;
+	}
+	FVector Alejarse = (GetActorLocation() - Instigador->GetActorLocation()).GetSafeNormal2D();
+	if (Alejarse.IsNearlyZero())
+	{
+		Alejarse = -GetActorForwardVector();
+	}
+	ObtenerMovimiento()->CancelarDash();
+	LaunchCharacter(Alejarse * GolpeRecibido.VelocidadHorizontal + FVector::UpVector * GolpeRecibido.VelocidadVertical, true, true);
 }
 
 void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor* Asesino)
@@ -156,6 +172,11 @@ void ASAEVUSPersonaje::PedirSalto()
 		Movimiento->GuardarSaltoEnBuffer();
 	}
 	Jump();
+}
+
+bool ASAEVUSPersonaje::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const
+{
+	return GetLocalRole() == ROLE_Authority && CanBeDamaged() && Damage != 0.f;
 }
 
 bool ASAEVUSPersonaje::CanJumpWhileFalling() const

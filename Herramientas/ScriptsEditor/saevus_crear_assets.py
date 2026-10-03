@@ -454,6 +454,106 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     return bp_modo_juego
 
 
+# --- Enemigos ---------------------------------------------------------------------
+# Tipos de enemigo (FSAEVUSAjusteEnemigo). Valores de primera pasada; se ajustan en los Data Assets.
+# Ataques: tipo, distancias, tiempos de aviso/duración/recuperación, daño, velocidades, esfera de golpe.
+ENEMIGOS = {
+    "DA_Enemigo_Rastrero": {
+        "nombre_visible": "Rastrero", "vida_maxima": 30.0, "radio_capsula": 40.0, "media_altura_capsula": 40.0,
+        "color_cuerpo": (0.05, 0.03, 0.03), "color_mascara": (0.9, 0.45, 0.1),
+        "velocidad_movimiento": 280.0, "radio_deteccion": 900.0, "radio_perdida": 1800.0, "radio_patrulla": 250.0,
+        "danio_contacto": 10.0,
+        "ataques": [
+            {"nombre": "Embestida", "tipo": "EMBESTIDA", "distancia_minima": 0.0, "distancia_maxima": 450.0,
+             "tiempo_telegrafiar": 0.55, "duracion": 0.4, "tiempo_recuperacion": 0.8, "danio": 15.0, "velocidad": 950.0},
+        ],
+    },
+    "DA_Enemigo_Saltador": {
+        "nombre_visible": "Saltador", "vida_maxima": 25.0, "radio_capsula": 35.0, "media_altura_capsula": 50.0,
+        "color_cuerpo": (0.04, 0.05, 0.03), "color_mascara": (0.65, 0.85, 0.3),
+        "velocidad_movimiento": 220.0, "radio_deteccion": 1100.0, "radio_perdida": 2000.0, "radio_patrulla": 150.0,
+        "danio_contacto": 10.0,
+        "ataques": [
+            {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 150.0, "distancia_maxima": 700.0,
+             "tiempo_telegrafiar": 0.45, "duracion": 1.5, "tiempo_recuperacion": 0.7, "danio": 15.0,
+             "velocidad": 500.0, "velocidad_vertical": 750.0},
+        ],
+    },
+    "DA_Jefe_Guardian": {
+        "nombre_visible": "Guardián", "vida_maxima": 250.0, "es_jefe": True, "radio_capsula": 90.0, "media_altura_capsula": 120.0,
+        "color_cuerpo": (0.06, 0.05, 0.07), "color_mascara": (1.0, 0.55, 0.15),
+        "velocidad_movimiento": 260.0, "radio_deteccion": 1500.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
+        "danio_contacto": 15.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5,
+        "ataques": [
+            {"nombre": "Golpe", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 260.0,
+             "tiempo_telegrafiar": 0.6, "duracion": 0.25, "tiempo_recuperacion": 0.7, "danio": 25.0,
+             "radio_golpe": 160.0, "alcance_golpe": 150.0},
+            {"nombre": "Embestida", "tipo": "EMBESTIDA", "distancia_minima": 300.0, "distancia_maxima": 1200.0,
+             "tiempo_telegrafiar": 0.7, "duracion": 0.7, "tiempo_recuperacion": 1.0, "danio": 25.0, "velocidad": 1300.0},
+            {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 200.0, "distancia_maxima": 900.0,
+             "tiempo_telegrafiar": 0.6, "duracion": 2.0, "tiempo_recuperacion": 0.9, "danio": 30.0,
+             "velocidad": 600.0, "velocidad_vertical": 900.0},
+        ],
+        # Fase 2 a media vida: más rápido, avisos más cortos y añade el salto.
+        "fases": [
+            {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1]},
+            {"fraccion_vida": 0.5, "escala_velocidad": 1.3, "escala_tiempos": 0.7, "ataques": [0, 1, 2]},
+        ],
+    },
+}
+DIR_ENEMIGOS = f"{RAIZ}/Datos/Enemigos"
+
+
+def crear_datos_enemigos(material_base, material_particulas):
+    resultado = {}
+    for nombre, valores in ENEMIGOS.items():
+        fabrica = unreal.DataAssetFactory()
+        fabrica.set_editor_property("data_asset_class", unreal.SAEVUSDatosEnemigo)
+        datos = obtener_o_crear(nombre, DIR_ENEMIGOS, unreal.SAEVUSDatosEnemigo, fabrica)
+        ajuste = datos.get_editor_property("enemigo")
+        for campo, valor in valores.items():
+            if campo == "ataques":
+                ataques = []
+                for definicion in valor:
+                    ataque = unreal.SAEVUSAtaqueEnemigo()
+                    for campo_ataque, valor_ataque in definicion.items():
+                        if campo_ataque == "tipo":
+                            valor_ataque = valor_enum(unreal.SAEVUSTipoAtaqueEnemigo, valor_ataque)
+                        ataque.set_editor_property(campo_ataque, valor_ataque)
+                    ataques.append(ataque)
+                ajuste.set_editor_property("ataques", ataques)
+            elif campo == "fases":
+                fases = []
+                for definicion in valor:
+                    fase = unreal.SAEVUSFaseEnemigo()
+                    for campo_fase, valor_fase in definicion.items():
+                        fase.set_editor_property(campo_fase, valor_fase)
+                    fases.append(fase)
+                ajuste.set_editor_property("fases", fases)
+            elif campo.startswith("color_"):
+                ajuste.set_editor_property(campo, unreal.LinearColor(*valor, 1.0))
+            elif campo == "nombre_visible":
+                ajuste.set_editor_property(campo, unreal.Text(valor))
+            elif campo == "es_jefe":
+                ajuste.set_editor_property("es_jefe", valor)
+            else:
+                ajuste.set_editor_property(campo, valor)
+        datos.set_editor_property("enemigo", ajuste)
+        datos.set_editor_property("material_base", material_base)
+        datos.set_editor_property("material_particulas", material_particulas)
+        resultado[nombre] = datos
+    return resultado
+
+
+def crear_enemigo(actores, etiqueta, datos, posicion):
+    altura = datos.get_editor_property("enemigo").get_editor_property("media_altura_capsula")
+    enemigo = actores.spawn_actor_from_class(unreal.SAEVUSEnemigo, unreal.Vector(posicion.x, posicion.y, altura + 5.0), unreal.Rotator(0, 0, 180))
+    enemigo.set_actor_label(etiqueta)
+    enemigo.set_editor_property("datos", datos)
+    enemigo.set_folder_path("Enemigos")
+    return enemigo
+
+
 # --- Mapa de pruebas -----------------------------------------------------------
 
 def crear_bloque(actores, etiqueta, posicion, tamano_cm, material, rotacion=unreal.Rotator(0, 0, 0)):
@@ -508,7 +608,7 @@ def abrir_mapa_limpio(ruta):
     return editor_niveles, actores
 
 
-def construir_mapa_pruebas(bp_modo_juego):
+def construir_mapa_pruebas(bp_modo_juego, datos_enemigos):
     editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_PRUEBAS)
 
     rejilla = cargar(MATERIAL_REJILLA)
@@ -562,6 +662,11 @@ def construir_mapa_pruebas(bp_modo_juego):
     for distancia in (1000, 2000, 3000):
         crear_muneco(actores, f"Muneco_Tiro{distancia // 100}m", unreal.Vector(-distancia, 1000, 96))
 
+    # Zona de enemigos, lejos de la ruta de la prueba de humo (que va hacia +X cerca de Y = 0).
+    crear_enemigo(actores, "Enemigo_Rastrero", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(-1500, -4300, 0))
+    crear_enemigo(actores, "Enemigo_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(0, -4300, 0))
+    crear_enemigo(actores, "Jefe_Guardian", datos_enemigos["DA_Jefe_Guardian"], unreal.Vector(2000, -4300, 0))
+
     crear_iluminacion(actores)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
 
@@ -574,7 +679,9 @@ def main():
     acciones, imc = crear_assets_entrada()
     config_entrada, movimiento, camara, repertorio, armas = crear_data_assets(acciones)
     bp_modo_juego = crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertorio, armas)
-    construir_mapa_pruebas(bp_modo_juego)
+    datos_enemigos = crear_datos_enemigos(
+        cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"), cargar(f"{DIR_MATERIALES}/M_ParticulaAlma"))
+    construir_mapa_pruebas(bp_modo_juego, datos_enemigos)
     if not eal.save_directory(RAIZ, only_if_is_dirty=False, recursive=True):
         raise RuntimeError(f"Falló el guardado de {RAIZ}")
     registrar("hecho")

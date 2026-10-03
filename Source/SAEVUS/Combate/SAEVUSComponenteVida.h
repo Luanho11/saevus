@@ -51,6 +51,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Vida")
 	bool EstaEnInvulnerabilidadTrasGolpe() const;
 
+	/** Cambia la vida máxima y deja la vida completa (tipos de enemigo al aparecer). */
+	void FijarVidaMaxima(float NuevaVidaMaxima);
+
 	/** Segundos de invulnerabilidad tras cada golpe recibido. 0 = ninguna (enemigos). */
 	void FijarInvulnerabilidadTrasGolpe(float Duracion) { DuracionInvulnerableTrasGolpe = Duracion; }
 

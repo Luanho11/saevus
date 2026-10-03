@@ -35,6 +35,9 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero",
     "/Game/SAEVUS/Arte/Estilo/M_SAEVUS_PersonajeDibujado",
     "/Game/SAEVUS/Arte/Estilo/M_PP_Contorno",
+    "/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Rastrero",
+    "/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Saltador",
+    "/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian",
 )
 
 PROPIEDADES_CONFIG_ENTRADA = (
@@ -67,6 +70,14 @@ def main():
         for propiedad in PROPIEDADES_CONFIG_ENTRADA:
             comprobar(f"DA_ConfigEntrada.{propiedad} asignada", config_entrada.get_editor_property(propiedad) is not None)
         comprobar("4 acciones de ranura de arma", len(config_entrada.get_editor_property("acciones_ranura_arma")) == 4)
+
+    jefe = eal.load_asset("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian")
+    if jefe:
+        ajuste_jefe = jefe.get_editor_property("enemigo")
+        comprobar("el Guardián es jefe con 3 ataques y 2 fases",
+                  ajuste_jefe.get_editor_property("es_jefe") and len(ajuste_jefe.get_editor_property("ataques")) == 3
+                  and len(ajuste_jefe.get_editor_property("fases")) == 2)
+        comprobar("material de los enemigos asignado", jefe.get_editor_property("material_base") is not None)
 
     camara = eal.load_asset("/Game/SAEVUS/Datos/DA_AjustesCamara_Base")
     comprobar("contorno asignado en DA_AjustesCamara_Base",

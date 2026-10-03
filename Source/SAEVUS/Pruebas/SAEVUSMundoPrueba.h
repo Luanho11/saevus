@@ -11,6 +11,9 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Enemigos/SAEVUSComponenteIAEnemigo.h"
+#include "Enemigos/SAEVUSEnemigo.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
@@ -125,6 +128,22 @@ namespace SAEVUSPruebas
 			return Personaje;
 		}
 
+		/**
+		 * Crea un enemigo que se simula en cada Paso (IA y movimiento), con Datos (o el tipo por
+		 * defecto) y el objetivo dado.
+		 */
+		ASAEVUSEnemigo* CrearEnemigo(const FVector& Posicion, const USAEVUSDatosEnemigo* Datos, APawn* Objetivo)
+		{
+			FActorSpawnParameters Parametros;
+			Parametros.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			ASAEVUSEnemigo* Enemigo = Mundo->SpawnActor<ASAEVUSEnemigo>(Posicion, FRotator::ZeroRotator, Parametros);
+			Enemigo->FijarDatos(Datos);
+			Enemigo->ObtenerIA()->FijarObjetivo(Objetivo);
+			Enemigo->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			Enemigos.Add(Enemigo);
+			return Enemigo;
+		}
+
 		/** Avanza hasta que el personaje pisa algo; falso si no aterriza en MaxSegundos. */
 		bool AsentarEnSuelo(float MaxSegundos = 2.f)
 		{
@@ -171,6 +190,15 @@ namespace SAEVUSPruebas
 			{
 				AnimacionSimulada->Actualizar(PasoSimulacion);
 			}
+			for (const TWeakObjectPtr<ASAEVUSEnemigo>& Enemigo : Enemigos)
+			{
+				if (Enemigo.IsValid() && IsValid(Enemigo.Get()))
+				{
+					Enemigo->ObtenerIA()->Actualizar(PasoSimulacion);
+					UCharacterMovementComponent* MovimientoEnemigo = Enemigo->GetCharacterMovement();
+					MovimientoEnemigo->TickComponent(PasoSimulacion, LEVELTICK_All, &MovimientoEnemigo->PrimaryComponentTick);
+				}
+			}
 		}
 
 	private:
@@ -181,6 +209,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
 		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;
+		TArray<TWeakObjectPtr<ASAEVUSEnemigo>> Enemigos;
 	};
 }
 

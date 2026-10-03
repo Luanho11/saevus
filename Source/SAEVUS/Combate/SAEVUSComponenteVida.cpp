@@ -87,6 +87,13 @@ bool USAEVUSComponenteVida::EstaInvulnerable() const
 	return Mundo && Mundo->GetTimeSeconds() < InvulnerableHasta;
 }
 
+void USAEVUSComponenteVida::FijarVidaMaxima(float NuevaVidaMaxima)
+{
+	VidaMaxima = FMath::Max(1.f, NuevaVidaMaxima);
+	Vida = VidaMaxima;
+	bMuerto = false;
+}
+
 bool USAEVUSComponenteVida::EstaEnInvulnerabilidadTrasGolpe() const
 {
 	const UWorld* Mundo = GetWorld();

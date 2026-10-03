@@ -16,6 +16,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Caballero boceto** (`animacion.md`): malla + esqueleto propio de 24 huesos generados por script en Blender, importados por script; animación procedural en C++ (reposo, correr, aire, dash, pared, escalada, tajos por línea de tiempo, disparo, muerte, capa).
 - **Sombreado tipo Hollow Knight** (`pipeline-assets.md`, Sombreado): material de personaje dibujado con borde de luz fría, instancias por pieza del caballero, contorno por post-proceso de profundidad, viñeta y saturación baja desde la cámara.
 - **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
+- **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, tres tipos por datos (rastrero, saltador, mini jefe Guardián con dos fases), el jugador sale despedido al recibir golpes.
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
@@ -23,7 +24,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Verificación
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 73/73 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 80/80 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -48,4 +49,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 7 de `PROGRESS.md`: enemigos simples (IA de estados) y un mini jefe, con datos en Data Assets.
+Tarea 8 de `PROGRESS.md`: mapa tutorial `L_Tutorial` con secciones, carteles, mini enemigos y el mini jefe al final.

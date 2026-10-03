@@ -44,6 +44,7 @@ private:
 		Disparar,
 		Morir,
 		Reaparecer,
+		Enemigos,
 		Captura,
 		Informe,
 		Hecho
@@ -81,6 +82,8 @@ private:
 	bool bMurio = false;
 	bool bReaparecio = false;
 	float VidaAlReaparecer = 0.f;
+	/** Enemigos del mapa que pasaron a perseguir (o más) al acercar al jugador; -1 si el mapa no tiene. */
+	int32 EnemigosActivos = -1;
 	bool bPerfilGPUHecho = false;
 
 	/** Tiempos por fotograma acumulados solo en las etapas de acción (se excluyen los tirones de aparición y asentado). */

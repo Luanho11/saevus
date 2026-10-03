@@ -21,6 +21,19 @@ class USAEVUSComponenteVida;
 class USAEVUSConfigEntrada;
 struct FInputActionValue;
 
+/** Reacción del jugador al recibir un golpe: sale despedido lejos del causante. */
+USTRUCT(BlueprintType)
+struct FSAEVUSAjusteGolpeRecibido
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadHorizontal = 550.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadVertical = 350.f;
+};
+
 /**
  * Personaje del jugador de SAEVUS.
  *
@@ -102,12 +115,21 @@ public:
 	virtual bool CanJumpWhileFalling() const override;
 	//~ Fin de la interfaz de ACharacter
 
+	/**
+	 * El daño solo lo decide quien tiene autoridad; no hace falta modo de juego (APawn lo exige),
+	 * así funciona en cualquier mapa y en los mundos de prueba.
+	 */
+	virtual bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const override;
+
 protected:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Entrada")
 	TObjectPtr<const USAEVUSConfigEntrada> ConfigEntrada;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Combate")
+	FSAEVUSAjusteGolpeRecibido GolpeRecibido;
 
 private:
 	void ManejarMover(const FInputActionValue& Valor);
@@ -126,6 +148,10 @@ private:
 	/** Detiene el cuerpo (ragdoll si la malla tiene asset de física), quita la entrada y pide la reaparición al modo de juego. */
 	UFUNCTION()
 	void ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor* Asesino);
+
+	/** Al recibir daño de otro actor: sale despedido lejos de él. */
+	UFUNCTION()
+	void ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteCombate> Combate;

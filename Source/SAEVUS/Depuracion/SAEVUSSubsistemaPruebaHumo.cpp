@@ -9,6 +9,9 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Enemigos/SAEVUSComponenteIAEnemigo.h"
+#include "Enemigos/SAEVUSEnemigo.h"
+#include "EngineUtils.h"
 #include "DynamicRHI.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -58,6 +61,10 @@ namespace SAEVUSPruebaHumo
 	constexpr float LimiteReaparicion = 8.f;
 	constexpr float RetardoCaptura = 0.5f;
 	constexpr float LimitePawn = 120.f;
+	// Etapa de enemigos: el jugador aparece a esta distancia (en +Y) del primer enemigo y espera.
+	constexpr float DistanciaEnemigos = 700.f;
+	constexpr float DuracionEtapaEnemigos = 1.5f;
+	const TCHAR* const NombreCapturaEnemigos = TEXT("SAEVUS_PruebaHumo_Enemigos.png");
 	/** Radio mínimo (cm) de los límites del cuerpo: un humanoide de pie mide bastante más. */
 	constexpr float RadioMinimoCuerpo = 60.f;
 
@@ -289,11 +296,43 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 			VidaAlReaparecer = NuevoPawn->ObtenerVida()->ObtenerVida();
 			Personaje = NuevoPawn;
 			FScreenshotRequest::RequestScreenshot(NombreCaptura, true, false);
-			EntrarEtapa(EEtapa::Captura);
+			EntrarEtapa(EEtapa::Enemigos);
 		}
 		else if (TiempoEtapa >= LimiteReaparicion)
 		{
 			FScreenshotRequest::RequestScreenshot(NombreCaptura, true, false);
+			EntrarEtapa(EEtapa::Captura);
+		}
+		break;
+	}
+
+	case EEtapa::Enemigos:
+	{
+		// Con enemigos en el mapa: el jugador se planta cerca del primero, mirándolo, y espera.
+		TActorIterator<ASAEVUSEnemigo> Primero(GetWorld());
+		if (!Primero)
+		{
+			EntrarEtapa(EEtapa::Captura);
+			break;
+		}
+		if (TiempoEtapa <= 0.f || EnemigosActivos < 0)
+		{
+			const FVector Destino = Primero->GetActorLocation() + FVector(0.f, DistanciaEnemigos, 0.f);
+			Pawn->SetActorLocation(FVector(Destino.X, Destino.Y, Pawn->GetActorLocation().Z), false, nullptr, ETeleportType::TeleportPhysics);
+			if (APlayerController* Controlador = GetWorld()->GetFirstPlayerController())
+			{
+				Controlador->SetControlRotation(FRotator(-15.f, -90.f, 0.f));
+			}
+			EnemigosActivos = 0;
+		}
+		if (TiempoEtapa >= DuracionEtapaEnemigos)
+		{
+			for (TActorIterator<ASAEVUSEnemigo> Enemigo(GetWorld()); Enemigo; ++Enemigo)
+			{
+				EnemigosActivos += Enemigo->ObtenerIA()->ObtenerEstado() != ESAEVUSEstadoEnemigo::Reposo ? 1 : 0;
+			}
+			UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS humo] enemigos activos tras acercarse: %d"), EnemigosActivos);
+			FScreenshotRequest::RequestScreenshot(NombreCapturaEnemigos, true, false);
 			EntrarEtapa(EEtapa::Captura);
 		}
 		break;
@@ -322,6 +361,10 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("vida tras un golpe"), VidaTrasGolpe, Pawn->ObtenerVida()->ObtenerVidaMaxima() - DanioPrueba, 0.f);
 		Comprobar(TEXT("golpe ignorado durante la invulnerabilidad"), VidaTrasGolpeInvulnerable, VidaTrasGolpe, 0.f);
 		Comprobar(TEXT("murió"), bMurio ? 1.f : 0.f, 1.f, 0.f);
+		if (EnemigosActivos >= 0)
+		{
+			Comprobar(TEXT("los enemigos cercanos reaccionan al jugador"), EnemigosActivos > 0 ? 1.f : 0.f, 1.f, 0.f);
+		}
 		Comprobar(TEXT("reapareció"), bReaparecio ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("vida al reaparecer"), VidaAlReaparecer, Pawn->ObtenerVida()->ObtenerVidaMaxima(), 0.f);
 		Terminar();

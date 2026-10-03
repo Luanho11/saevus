@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 7)**
-**Último latido: 2026-10-03 17:52** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 8)**
+**Último latido: 2026-10-03 18:30** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -35,12 +35,12 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 4. [x] ~~Caballero boceto: malla + esqueleto personalizado generados en Blender por script, importados; animación procedural en C++ (reposo, correr, saltar, caer, dash, wall run, escalar, ataques sincronizados con la línea de tiempo, disparo, muerte).~~
 5. [x] ~~Sombreado tipo Hollow Knight (materiales oscuros, máscara clara, contorno por post-proceso barato).~~
 6. [x] ~~Mecánicas Hollow Knight: doble salto, ataque hacia arriba/abajo, rebote (pogo), retroceso al golpear, almas + curación.~~
-7. [ ] Enemigos simples (IA de estados) + mini jefe, datos en Data Assets.
+7. [x] ~~Enemigos simples (IA de estados) + mini jefe, datos en Data Assets.~~
 8. [ ] Mapa tutorial `L_Tutorial`: secciones con carteles y avisos en pantalla, mini enemigos, mini jefe al final.
 9. [ ] Interfaz UMG en C++ escalable: vida, almas, arma/munición, avisos de tutorial, barra del jefe.
 10. [ ] Después: nuevas tareas propuestas por Claude (pulido, efectos, tests, rendimiento).
 
 ## Estado del turno
-- Completado: tarea 6 (doble salto, tajos arriba/abajo, pogo, retroceso y parada de golpe, alma y curación, invulnerabilidad tras golpe; 73/73 tests; humo SUPERADA).
+- Completado: tarea 7 (enemigos con IA de estados, rastrero, saltador y mini jefe Guardián por datos; golpe recibido con empuje; 80/80 tests; humo SUPERADA con etapa de enemigos).
 - A medias: —
-- Siguiente paso exacto: tarea 7 — enemigos: `ASAEVUSEnemigo` (ACharacter con vida, cápsula, cuerpo de piezas generado), IA de estados en C++ (`USAEVUSComponenteIAEnemigo`: reposo/patrulla → perseguir → telegrafiar → atacar → recuperarse; aturdido al recibir golpe), datos en `USAEVUSDatosEnemigo` (Data Asset); dos tipos de mini enemigo (rastrero de contacto y saltador) y un mini jefe de fases; daño al jugador con retroceso. Tests por estado.
+- Siguiente paso exacto: tarea 8 — `L_Tutorial` generado por `saevus_crear_assets.py`: secciones en línea (moverse/saltar → dash por doble toque → paredes → combate con muñecos → tajos arriba/abajo y pogo → alma y curación → arena de mini enemigos → puerta → arena del Guardián), iluminación oscura, carteles de texto 3D y avisos en pantalla por volúmenes (`ASAEVUSVolumenTutorial`), puertas que se abren al vaciar una arena (`ASAEVUSPuertaArena` escuchando `AlMorirEnemigo`).
