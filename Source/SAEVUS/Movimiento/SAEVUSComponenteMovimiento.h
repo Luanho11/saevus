@@ -10,6 +10,7 @@
 
 /** Se emite al empezar un dash (no durante las repeticiones de corrección de red). Parámetro: dirección horizontal. */
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoDash, const FVector& /*Direccion*/);
+DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoSaltoAereo);
 
 /**
  * Movimiento del personaje de SAEVUS.
@@ -71,6 +72,9 @@ public:
 	/** Se emite al empezar cada dash. */
 	FSAEVUSEventoDash AlIniciarDash;
 
+	/** Se emite al hacer un doble salto (no en las repeticiones de corrección del cliente). */
+	FSAEVUSEventoSaltoAereo AlSaltoAereo;
+
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnDash() const { return TiempoDashRestante > 0.f; }
 
@@ -102,6 +106,13 @@ public:
 	/** Saltos de pared que quedan antes de aterrizar. */
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	int32 SaltosParedRestantes() const;
+
+	/** Dobles saltos que quedan antes de aterrizar. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
+	int32 SaltosAereosRestantes() const;
+
+	/** Devuelve los dashes aéreos y los dobles saltos (aterrizar, rebote de un tajo hacia abajo). */
+	void RecargarRecursosAereos();
 
 	/**
 	 * Busca una pared casi vertical a menos de DistanciaDeteccion de la cápsula.
@@ -165,6 +176,10 @@ private:
 
 	/** Impulsa lejos de la pared si el salto se acaba de pulsar en el aire junto a una. Cierto si lo hizo. */
 	bool IntentarSaltoPared();
+	/** Doble salto: una pulsación nueva en el aire, fuera del tiempo coyote. */
+	bool IntentarSaltoAereo();
+	/** Cierto si, cayendo, se tocará suelo caminable dentro del tiempo de buffer de salto. */
+	bool SueloDentroDelBuffer() const;
 	void ImpulsarDesdePared(const FVector& NormalEmpuje);
 
 	/** Pared casi vertical más cercana encontrada barriendo la cápsula en Direcciones (horizontales, unitarias). */
@@ -213,6 +228,7 @@ private:
 	float EnfriamientoDashRestante = 0.f;
 	int32 DashesAereosUsados = 0;
 	int32 SaltosParedUsados = 0;
+	int32 SaltosAereosUsados = 0;
 
 	// Estado de carrera por pared / escalada, también guardado y restaurado por FSAEVUSMovimientoGuardado.
 	FVector NormalPared = FVector::ZeroVector;

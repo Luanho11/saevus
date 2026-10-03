@@ -66,6 +66,13 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes")
 	float InclinacionCarreraPared = 22.f;
 
+	/** Recogida de piernas del doble salto: duración y grados extra de muslo y rodilla en el pico. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ForceUnits = "s"))
+	float DuracionRecogidaSaltoAereo = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto")
+	float RecogidaSaltoAereo = 45.f;
+
 	/** Rapidez del suavizado hacia la pose objetivo (1/s). Más alto = más seco. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0"))
 	float Suavizado = 14.f;
@@ -171,6 +178,8 @@ private:
 	UFUNCTION()
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
 
+	void AlSaltoAereo();
+
 	/** Dirección de reposo de un hueso en espacio de malla (hacia su hijo, o la fija de las hojas). */
 	FVector DireccionReposo(int32 Hueso) const;
 
@@ -198,5 +207,6 @@ private:
 	float TiempoAterrizaje = 0.f;
 	float TiempoMuerto = 0.f;
 	float Retroceso = 0.f;
+	float TiempoRecogidaSaltoAereo = 0.f;
 	bool bEstabaEnAire = false;
 };

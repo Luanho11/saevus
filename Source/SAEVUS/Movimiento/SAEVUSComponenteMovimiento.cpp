@@ -39,6 +39,7 @@ public:
 		EnfriamientoDashRestanteGuardado = 0.f;
 		DashesAereosUsadosGuardados = 0;
 		SaltosParedUsadosGuardados = 0;
+		SaltosAereosUsadosGuardados = 0;
 		NormalParedGuardada = FVector::ZeroVector;
 		DireccionCarreraParedGuardada = FVector::ZeroVector;
 		TiempoParedRestanteGuardado = 0.f;
@@ -73,7 +74,8 @@ public:
 		}
 		// Nunca se combinan una pulsación de dash ni un movimiento que empiece o termine un dash o un uso de pared.
 		if (bQuiereDashGuardado || Otro->bQuiereDashGuardado || DashesAereosUsadosGuardados != Otro->DashesAereosUsadosGuardados
-			|| SaltosParedUsadosGuardados != Otro->SaltosParedUsadosGuardados || !NormalUltimaCarreraParedGuardada.Equals(Otro->NormalUltimaCarreraParedGuardada)
+			|| SaltosParedUsadosGuardados != Otro->SaltosParedUsadosGuardados || SaltosAereosUsadosGuardados != Otro->SaltosAereosUsadosGuardados
+			|| !NormalUltimaCarreraParedGuardada.Equals(Otro->NormalUltimaCarreraParedGuardada)
 			|| EscaladasUsadasGuardadas != Otro->EscaladasUsadasGuardadas
 			|| (TiempoDashRestanteGuardado > 0.f) != (Otro->TiempoDashRestanteGuardado > 0.f))
 		{
@@ -96,6 +98,7 @@ public:
 			EnfriamientoDashRestanteGuardado = Movimiento->EnfriamientoDashRestante;
 			DashesAereosUsadosGuardados = Movimiento->DashesAereosUsados;
 			SaltosParedUsadosGuardados = Movimiento->SaltosParedUsados;
+			SaltosAereosUsadosGuardados = Movimiento->SaltosAereosUsados;
 			NormalParedGuardada = Movimiento->NormalPared;
 			DireccionCarreraParedGuardada = Movimiento->DireccionCarreraPared;
 			TiempoParedRestanteGuardado = Movimiento->TiempoParedRestante;
@@ -118,6 +121,7 @@ public:
 			Movimiento->EnfriamientoDashRestante = EnfriamientoDashRestanteGuardado;
 			Movimiento->DashesAereosUsados = DashesAereosUsadosGuardados;
 			Movimiento->SaltosParedUsados = SaltosParedUsadosGuardados;
+			Movimiento->SaltosAereosUsados = SaltosAereosUsadosGuardados;
 			Movimiento->NormalPared = NormalParedGuardada;
 			Movimiento->DireccionCarreraPared = DireccionCarreraParedGuardada;
 			Movimiento->TiempoParedRestante = TiempoParedRestanteGuardado;
@@ -137,6 +141,7 @@ private:
 	float EnfriamientoDashRestanteGuardado = 0.f;
 	int32 DashesAereosUsadosGuardados = 0;
 	int32 SaltosParedUsadosGuardados = 0;
+	int32 SaltosAereosUsadosGuardados = 0;
 	FVector NormalParedGuardada = FVector::ZeroVector;
 	FVector DireccionCarreraParedGuardada = FVector::ZeroVector;
 	float TiempoParedRestanteGuardado = 0.f;
@@ -411,6 +416,63 @@ void USAEVUSComponenteMovimiento::CalcVelocity(float DeltaTime, float Friction, 
 	Super::CalcVelocity(DeltaTime, Friction, bFluid, BrakingDeceleration);
 }
 
+int32 USAEVUSComponenteMovimiento::SaltosAereosRestantes() const
+{
+	return FMath::Max(0, ObtenerAjusteAire().MaxSaltosAereos - SaltosAereosUsados);
+}
+
+void USAEVUSComponenteMovimiento::RecargarRecursosAereos()
+{
+	DashesAereosUsados = 0;
+	SaltosAereosUsados = 0;
+}
+
+bool USAEVUSComponenteMovimiento::IntentarSaltoAereo()
+{
+	// Misma regla de pulsación que el salto de pared: solo la primera actualización de una pulsación
+	// nueva que no haya hecho ya un salto de suelo o coyote.
+	const bool bSaltoRecienPulsado = CharacterOwner && CharacterOwner->bPressedJump && CharacterOwner->JumpKeyHoldTime <= 0.f
+		&& !CharacterOwner->bWasJumping;
+	if (!bSaltoRecienPulsado || !IsFalling() || EnVentanaCoyote() || SaltosAereosRestantes() <= 0)
+	{
+		return false;
+	}
+	// Justo antes de aterrizar gana el buffer: sale un salto de suelo completo y el doble salto se conserva.
+	if (SueloDentroDelBuffer())
+	{
+		return false;
+	}
+	if (EstaEnDash())
+	{
+		TerminarDash();
+	}
+	Velocity.Z = ObtenerAjusteAire().VelocidadDobleSalto;
+	++SaltosAereosUsados;
+	// La pulsación se usó aquí; no debe ejecutarse también como salto en buffer al aterrizar.
+	TiempoBufferSaltoRestante = 0.f;
+	if (!CharacterOwner->bClientUpdating)
+	{
+		AlSaltoAereo.Broadcast();
+	}
+	return true;
+}
+
+bool USAEVUSComponenteMovimiento::SueloDentroDelBuffer() const
+{
+	const float Distancia = -Velocity.Z * ObtenerAjusteAire().TiempoBufferSalto;
+	if (Distancia <= 0.f || !HasValidData())
+	{
+		return false;
+	}
+	FCollisionQueryParams ParametrosConsulta(SCENE_QUERY_STAT(SAEVUSSueloBuffer), false, CharacterOwner);
+	FCollisionResponseParams ParametrosRespuesta;
+	InitCollisionParams(ParametrosConsulta, ParametrosRespuesta);
+	const FVector Inicio = UpdatedComponent->GetComponentLocation();
+	FHitResult Golpe;
+	return GetWorld()->SweepSingleByChannel(Golpe, Inicio, Inicio - FVector(0.f, 0.f, Distancia), FQuat::Identity, UpdatedComponent->GetCollisionObjectType(),
+		GetPawnCapsuleCollisionShape(SHRINK_None), ParametrosConsulta, ParametrosRespuesta) && IsWalkable(Golpe);
+}
+
 bool USAEVUSComponenteMovimiento::DoJump(bool bReplayingMoves, float DeltaTime)
 {
 	const bool bSalto = Super::DoJump(bReplayingMoves, DeltaTime);
@@ -458,7 +520,7 @@ void USAEVUSComponenteMovimiento::OnMovementModeChanged(EMovementMode PreviousMo
 
 	if (IsMovingOnGround())
 	{
-		DashesAereosUsados = 0;
+		RecargarRecursosAereos();
 		SaltosParedUsados = 0;
 		NormalUltimaCarreraPared = FVector::ZeroVector;
 		EscaladasUsadas = 0;
@@ -504,6 +566,7 @@ void USAEVUSComponenteMovimiento::UpdateCharacterStateBeforeMovement(float Delta
 	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 
 	const bool bSaltoPared = IntentarSaltoPared();
+	const bool bSaltoAereo = !bSaltoPared && IntentarSaltoAereo();
 
 	// La petición se consume siempre: un dash pulsado durante el enfriamiento no se guarda.
 	if (bQuiereDash)
@@ -516,7 +579,7 @@ void USAEVUSComponenteMovimiento::UpdateCharacterStateBeforeMovement(float Delta
 	}
 
 	// Llegar de frente escala; llegar en ángulo corre por la pared.
-	if (!bSaltoPared && !IntentarIniciarEscalada())
+	if (!bSaltoPared && !bSaltoAereo && !IntentarIniciarEscalada())
 	{
 		IntentarIniciarCarreraPared();
 	}

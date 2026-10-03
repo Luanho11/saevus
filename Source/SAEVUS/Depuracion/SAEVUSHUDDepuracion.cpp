@@ -33,7 +33,7 @@ void ASAEVUSHUDDepuracion::DrawHUD()
 		FString::Printf(TEXT("Modo: %s"), *Movimiento->GetMovementName()),
 		FString::Printf(TEXT("Dash: %s, dashes aéreos %d"), Movimiento->EstaEnDash() ? TEXT("activo") : (Movimiento->PuedeDash() ? TEXT("listo") : TEXT("bloqueado")),
 			Movimiento->DashesAereosRestantes()),
-		FString::Printf(TEXT("Saltos de pared %d, escaladas %d, en pared %.2f s"), Movimiento->SaltosParedRestantes(),
+		FString::Printf(TEXT("Dobles saltos %d, saltos de pared %d, escaladas %d, en pared %.2f s"), Movimiento->SaltosAereosRestantes(), Movimiento->SaltosParedRestantes(),
 			Movimiento->EscaladasRestantes(), Movimiento->TiempoEnParedRestante()),
 		FString::Printf(TEXT("Posición: %s"), *Personaje->GetActorLocation().ToCompactString()),
 	};

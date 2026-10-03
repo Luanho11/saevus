@@ -90,6 +90,14 @@ struct FSAEVUSAjusteMovimientoAire
 	/** Un salto pulsado hasta este tiempo antes de aterrizar se ejecuta al tocar suelo. 0 lo desactiva. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Asistencia de salto", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoBufferSalto = 0.12f;
+
+	/** Saltos en el aire (doble salto) antes de aterrizar. 0 los desactiva. Ver Documentos/movimiento.md. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ClampMin = "0"))
+	int32 MaxSaltosAereos = 1;
+
+	/** Velocidad vertical que fija el doble salto (sustituye a la de caída: siempre sube lo mismo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadDobleSalto = 650.f;
 };
 
 /**
@@ -178,6 +186,10 @@ struct FSAEVUSAjusteSaltoPared
 	/** Un salto de pared devuelve los dashes aéreos, así dash y salto de pared se encadenan. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto de pared")
 	bool bRecargaDashesAereos = true;
+
+	/** Un salto de pared devuelve también los dobles saltos. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto de pared")
+	bool bRecargaSaltosAereos = true;
 
 	/** Gira el cuerpo hacia la nueva dirección horizontal, para que se lea bien. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto de pared")

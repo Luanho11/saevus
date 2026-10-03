@@ -16,6 +16,7 @@ void USAEVUSComponenteEstelaDash::BeginPlay()
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		ManejadorDash = Movimiento->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash);
+		ManejadorSaltoAereo = Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo);
 	}
 }
 
@@ -24,6 +25,7 @@ void USAEVUSComponenteEstelaDash::EndPlay(const EEndPlayReason::Type EndPlayReas
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->AlIniciarDash.Remove(ManejadorDash);
+		Movimiento->AlSaltoAereo.Remove(ManejadorSaltoAereo);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -37,6 +39,13 @@ void USAEVUSComponenteEstelaDash::AlIniciarDash(const FVector& Direccion)
 {
 	AcumuladoEmision = 0.f;
 	EmitirRafaga(ObtenerPuntoEmision(), -Direccion * AjusteEstela.VelocidadRetroceso, AjusteEstela.ParticulasRafaga, AjusteEstela.Dispersion);
+}
+
+void USAEVUSComponenteEstelaDash::AlSaltoAereo()
+{
+	// Bocanada bajo los pies: el doble salto "pisa" el aire.
+	EmitirRafaga(GetOwner()->GetActorLocation() + FVector(0.f, 0.f, AjusteEstela.AlturaEmisionSaltoAereo), FVector::DownVector * AjusteEstela.VelocidadRetroceso,
+		AjusteEstela.ParticulasRafaga, AjusteEstela.Dispersion);
 }
 
 void USAEVUSComponenteEstelaDash::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

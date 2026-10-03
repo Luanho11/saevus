@@ -84,6 +84,7 @@ bool FSAEVUSPruebaTiempoCoyote::RunTest(const FString& Parameters)
 
 	USAEVUSAjustesMovimiento* SinCoyote = CrearAjustes();
 	SinCoyote->Aire.TiempoCoyote = 0.f;
+	SinCoyote->Aire.MaxSaltosAereos = 0;
 	TestFalse(TEXT("Sin tiempo coyote, el mismo salto se rechaza"), SaltoTrasSalirDelBorde(SinCoyote));
 	return true;
 }
@@ -137,6 +138,7 @@ bool FSAEVUSPruebaBufferSalto::RunTest(const FString& Parameters)
 
 	USAEVUSAjustesMovimiento* SinBuffer = CrearAjustes();
 	SinBuffer->Aire.TiempoBufferSalto = 0.f;
+	SinBuffer->Aire.MaxSaltosAereos = 0;
 	TestFalse(TEXT("Sin buffer de salto, la pulsación temprana se pierde"), SaltoAntesDeAterrizar(SinBuffer));
 	return true;
 }

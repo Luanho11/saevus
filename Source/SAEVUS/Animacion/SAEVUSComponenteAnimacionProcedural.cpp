@@ -178,6 +178,10 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	{
 		Armas->AlDisparar.AddUniqueDynamic(this, &ThisClass::AlDisparar);
 	}
+	if (Movimiento)
+	{
+		Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo);
+	}
 	if (!Malla)
 	{
 		FijarMalla(GetOwner()->FindComponentByClass<UPoseableMeshComponent>());
@@ -286,6 +290,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	}
 	bEstabaEnAire = bEnAire;
 	TiempoAterrizaje = FMath::Max(0.f, TiempoAterrizaje - DeltaTime);
+	TiempoRecogidaSaltoAereo = FMath::Max(0.f, TiempoRecogidaSaltoAereo - DeltaTime);
 
 	// Capa base del cuerpo.
 	if (Movimiento->EstaEscalando())
@@ -384,8 +389,12 @@ void USAEVUSComponenteAnimacionProcedural::PoseAire(FPose& Pose, float Velocidad
 	using namespace SAEVUSAnimacion;
 	// Mezcla entre "subiendo" (piernas recogidas) y "cayendo" (piernas estiradas, brazos arriba).
 	const float Subida = FMath::Clamp(0.5f + 0.5f * VelocidadVertical / VelocidadVerticalReferencia, 0.f, 1.f);
-	const float GiroMuslo = FMath::Lerp(12.f, 40.f, Subida);
-	const float Flexion = FMath::Lerp(20.f, 70.f, Subida);
+	// El doble salto recoge las piernas de golpe y las suelta: seno sobre la duración de la recogida.
+	const float Recogida = TiempoRecogidaSaltoAereo > 0.f
+		? Ajuste.RecogidaSaltoAereo * FMath::Sin(PI * TiempoRecogidaSaltoAereo / FMath::Max(Ajuste.DuracionRecogidaSaltoAereo, UE_KINDA_SMALL_NUMBER))
+		: 0.f;
+	const float GiroMuslo = FMath::Lerp(12.f, 40.f, Subida) + Recogida;
+	const float Flexion = FMath::Lerp(20.f, 70.f, Subida) + Recogida;
 	Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, Adelante, GiroMuslo) };
 	Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, Adelante, GiroMuslo * 0.5f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Flexion) };
@@ -539,6 +548,11 @@ void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad
 	const float Ondeo = 4.f * FMath::Sin(TiempoTotal * 3.1f);
 	Pose.Huesos[Indice(ESAEVUSHueso::Capa1)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.7f + Ondeo) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Capa2)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.5f + Ondeo * 1.5f) };
+}
+
+void USAEVUSComponenteAnimacionProcedural::AlSaltoAereo()
+{
+	TiempoRecogidaSaltoAereo = Ajuste.DuracionRecogidaSaltoAereo;
 }
 
 void USAEVUSComponenteAnimacionProcedural::AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado)

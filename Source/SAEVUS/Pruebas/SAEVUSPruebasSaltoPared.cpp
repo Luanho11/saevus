@@ -78,8 +78,10 @@ bool FSAEVUSPruebaSaltoParedSinPared::RunTest(const FString& Parameters)
 {
 	using namespace SAEVUSPruebasSaltoPared;
 
+	USAEVUSAjustesMovimiento* SinDobleSalto = CrearAjustes();
+	SinDobleSalto->Aire.MaxSaltosAereos = 0;
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
-	ASAEVUSPersonaje* Personaje = Preparar(MundoPrueba, PosicionLejosPared);
+	ASAEVUSPersonaje* Personaje = Preparar(MundoPrueba, PosicionLejosPared, SinDobleSalto);
 	const USAEVUSComponenteMovimiento* Movimiento = Personaje->ObtenerMovimiento();
 
 	TestTrue(TEXT("No hay pared al alcance"), Movimiento->BuscarNormalSaltoPared().IsNearlyZero());
@@ -102,6 +104,7 @@ bool FSAEVUSPruebaSaltoParedNoDesdeBorde::RunTest(const FString& Parameters)
 
 	USAEVUSAjustesMovimiento* Ajustes = CrearAjustes();
 	Ajustes->Aire.TiempoCoyote = 0.f;
+	Ajustes->Aire.MaxSaltosAereos = 0;
 
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
 	MundoPrueba.CrearBloque(CentroPlataforma, TamanoPlataforma);
@@ -152,6 +155,8 @@ bool FSAEVUSPruebaSaltoParedPresupuesto::RunTest(const FString& Parameters)
 
 	USAEVUSAjustesMovimiento* Ajustes = CrearAjustes();
 	Ajustes->SaltoPared.MaxSaltosPared = 1;
+	// Sin doble salto: la segunda pulsación solo podría ser un salto de pared.
+	Ajustes->Aire.MaxSaltosAereos = 0;
 
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
 	ASAEVUSPersonaje* Personaje = Preparar(MundoPrueba, PosicionJuntoPared, Ajustes);

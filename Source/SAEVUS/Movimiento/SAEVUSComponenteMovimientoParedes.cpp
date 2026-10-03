@@ -156,6 +156,10 @@ void USAEVUSComponenteMovimiento::ImpulsarDesdePared(const FVector& NormalEmpuje
 	{
 		DashesAereosUsados = 0;
 	}
+	if (Ajuste.bRecargaSaltosAereos)
+	{
+		SaltosAereosUsados = 0;
+	}
 	// La pulsación se usó aquí; no debe ejecutarse también como salto en buffer al aterrizar.
 	TiempoBufferSaltoRestante = 0.f;
 	TiempoCoyoteRestante = 0.f;

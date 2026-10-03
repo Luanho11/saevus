@@ -47,6 +47,17 @@ Técnicas genéricas de plataformas (no sacadas de GunZ), en `USAEVUSComponenteM
 - **Buffer de salto.** `ASAEVUSPersonaje::PedirSalto()` es la única entrada de salto. Pulsado en el aire y fuera de la ventana coyote, guarda un temporizador de `TiempoBufferSalto`. Cuando el modo pasa a `Walking` con el temporizador activo, el componente llama a `Jump()` después de que el motor reinicie el estado de salto, y el salto ocurre en la siguiente actualización.
 - Los temporizadores bajan en `OnMovementUpdated`: siguen el tiempo de simulación (también en las repeticiones), no el reloj.
 
+## Doble salto
+
+Mecánica tomada de Hollow Knight (alas de monarca), con números propios (`FSAEVUSAjusteMovimientoAire`):
+
+- Una pulsación **nueva** de salto en el aire, fuera de la ventana coyote, fija la velocidad vertical a `VelocidadDobleSalto` (650 cm/s; sustituye a la de caída, así siempre sube lo mismo). Hay `MaxSaltosAereos` (1) antes de aterrizar; 0 desactiva la mecánica.
+- Prioridades en la misma pulsación: salto de suelo/coyote → salto de pared (si hay pared al alcance) → doble salto. Un doble salto termina el dash en curso.
+- **Gana el buffer cerca del suelo:** cayendo, si un barrido de la cápsula encuentra suelo caminable a menos de `velocidad de caída × TiempoBufferSalto`, la pulsación queda en el buffer: sale un salto de suelo completo y el doble salto se conserva.
+- Recargas: al tocar suelo (`RecargarRecursosAereos()`, que también devuelve los dashes aéreos; lo usará el rebote del tajo hacia abajo) y con cada salto de pared (`bRecargaSaltosAereos`).
+- Efectos: el movimiento emite `AlSaltoAereo`; la estela suelta una bocanada de partículas bajo los pies y la animación recoge las piernas (`DuracionRecogidaSaltoAereo`, `RecogidaSaltoAereo`).
+- Red: el contador viaja en el movimiento guardado como los dashes aéreos; la pulsación es la de salto replicada.
+
 ## Dash
 
 Primera habilidad avanzada (objetivos en `investigacion/gunz.md`). En teclado: **doble toque** de una dirección (WASD); en mando: `IA_Dash` (botón derecho). Lo resuelve `USAEVUSComponenteMovimiento`:
@@ -143,7 +154,7 @@ Primer modo de movimiento personalizado: `MOVE_Custom` + `ESAEVUSModoMovimientoP
 
 ## Preparado para red
 
-`FSAEVUSMovimientoGuardado` guarda las peticiones de esprint y caminar, que viajan como `FLAG_Custom_0` (esprint) y `FLAG_Custom_1` (caminar) y se restauran en `UpdateFromCompressedFlags`. La petición de dash viaja como `FLAG_Custom_2`; el movimiento guardado también guarda el estado del dash al inicio (dirección, tiempo, enfriamiento, dashes aéreos usados) y lo restaura en `PrepMoveFor`, así una repetición tras una corrección simula el dash igual. El salto de pared no necesita bandera: lo mueve la pulsación de salto replicada (`FLAG_JumpPressed`; el servidor reinicia `JumpKeyHoldTime` en cada pulsación nueva). El estado de pared (normal, dirección, tiempo, última pared, escaladas) se guarda y restaura igual; el modo de movimiento lo replica el motor. `FLAG_Custom_3` sigue libre; las habilidades con más estado deberían usar la API de datos de red de CMC en vez de banderas.
+`FSAEVUSMovimientoGuardado` guarda las peticiones de esprint y caminar, que viajan como `FLAG_Custom_0` (esprint) y `FLAG_Custom_1` (caminar) y se restauran en `UpdateFromCompressedFlags`. La petición de dash viaja como `FLAG_Custom_2`; el movimiento guardado también guarda el estado del dash al inicio (dirección, tiempo, enfriamiento, dashes aéreos usados, dobles saltos usados) y lo restaura en `PrepMoveFor`, así una repetición tras una corrección simula el dash igual. El salto de pared no necesita bandera: lo mueve la pulsación de salto replicada (`FLAG_JumpPressed`; el servidor reinicia `JumpKeyHoldTime` en cada pulsación nueva). El estado de pared (normal, dirección, tiempo, última pared, escaladas) se guarda y restaura igual; el modo de movimiento lo replica el motor. `FLAG_Custom_3` sigue libre; las habilidades con más estado deberían usar la API de datos de red de CMC en vez de banderas.
 
 Límite conocido: el paso en el aire y los temporizadores coyote/buffer son estado local derivado de transiciones, fuera del movimiento guardado; tras una corrección pueden desfasarse una transición. El salto sigue el camino normal de `bPressedJump`, así el servidor manda.
 
@@ -167,6 +178,7 @@ Límite conocido: el paso en el aire y los temporizadores coyote/buffer son esta
 | `AsistenciaSalto.TiempoCoyote` | saltar justo tras salir de un borde funciona; con 0 se rechaza |
 | `AsistenciaSalto.BufferSalto` | salto pulsado a 15 cm del suelo se ejecuta al aterrizar; con 0 se pierde |
 | `AsistenciaSalto.BloqueoPasoAire` | esprint en el aire no sube el tope si está bloqueado; sí si no; un despegue con salto no abre coyote |
+| `DobleSalto.Basico` / `CercaDelSueloGanaBuffer` / `RecargaSaltoPared` | velocidad fijada, uno por estancia aérea, aterrizar recarga; cerca del suelo gana el buffer; el salto de pared tiene prioridad y la recarga devuelve doble salto y dash |
 | `DobleToque.Detector` / `Dash` / `Invulnerabilidad` | ventana, mantener no cuenta, direcciones separadas, W mantenida + D doble; dash hacia la dirección tocada con cámara bloqueada; invulnerable al inicio y luego no |
 | `Dash.Suelo` / `Direccion` / `Enfriamiento` / `PresupuestoAereo` / `CancelarConSalto` | velocidad, dirección, distancia (293 vs 288 cm), enfriamiento, presupuesto aéreo con gravedad suspendida, cancelación con salto |
 | `SaltoPared.Basico` / `SinPared` / `NoDesdeBorde` / `Tangencial` / `Presupuesto` / `RecargaDashAereo` | impulso, ausencia de pared, el borde no es pared, fracción tangencial, presupuesto, recarga |

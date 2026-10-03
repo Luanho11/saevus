@@ -33,11 +33,16 @@ struct FSAEVUSAjusteEstelaDash
 	/** Altura de emisión respecto al centro de la cápsula (negativa = cerca de los pies). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela", meta = (ForceUnits = "cm"))
 	float AlturaEmision = -70.f;
+
+	/** Altura de la bocanada del doble salto respecto al centro de la cápsula (bajo los pies). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ForceUnits = "cm"))
+	float AlturaEmisionSaltoAereo = -90.f;
 };
 
 /**
  * Estela de partículas del dash, al estilo GunZ: un estallido al empezar y un rastro mientras
- * dura. Escucha USAEVUSComponenteMovimiento::AlIniciarDash del personaje dueño.
+ * dura, y una bocanada bajo los pies en el doble salto. Escucha AlIniciarDash y AlSaltoAereo
+ * del USAEVUSComponenteMovimiento del personaje dueño.
  */
 UCLASS(ClassGroup = (SAEVUS), meta = (BlueprintSpawnableComponent))
 class SAEVUS_API USAEVUSComponenteEstelaDash : public USAEVUSComponenteParticulas
@@ -56,10 +61,12 @@ protected:
 
 private:
 	void AlIniciarDash(const FVector& Direccion);
+	void AlSaltoAereo();
 	FVector ObtenerPuntoEmision() const;
 	USAEVUSComponenteMovimiento* ObtenerMovimiento() const;
 
 	FDelegateHandle ManejadorDash;
+	FDelegateHandle ManejadorSaltoAereo;
 	/** Fracción de partícula pendiente entre fotogramas, así el ritmo no depende de los fps. */
 	float AcumuladoEmision = 0.f;
 };
