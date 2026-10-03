@@ -76,6 +76,18 @@ Values live in the asset script's `WEAPONS` table and on the Data Assets; first-
 
 No weapon models: external assets are not allowed yet, so firearms are invisible; `SAEVUS.Debug.Combat 1` draws each shot (red: hit). Weapon meshes come with the asset pipeline.
 
+## Health, death and respawn (Phase 7 groundwork)
+
+`USAEVUSHealthComponent` (`Combat/`) is the shared health model for the player now and enemies later.
+
+- Listens to the owner's engine damage (`OnTakeAnyDamage`), so sword hits and shots reach it without knowing about it. Damage whose causer is the owner is ignored (`bIgnoreSelfDamage`).
+- `MaxHealth` (100 for the player), `ApplyDamage`, `Heal` (capped at max), `ResetHealth`; `OnHealthChanged(delta, instigator)` and `OnDeath(killer)`, which fires once. Nothing changes while dead.
+- **Player death** (`ASAEVUSCharacter::HandleDeath`): trigger released, movement disabled, capsule collision off, ragdoll if the mesh has a physics asset (the template mannequin does), input disabled, and the game mode is told.
+- **Respawn** (`ASAEVUSGameMode`): after `RespawnDelay` (3 s) the controller leaves the body (which stays for `CorpseLifeSpan`, 10 s) and `RestartPlayer` spawns a fresh character at a player start.
+- Engine detail: `APawn` ignores damage when the world has no game mode, so unit tests drive the component directly or use a plain actor; the rendered smoke test covers the real path (hit → 90/100, lethal hit → dead, respawn at 100/100).
+
+Out of scope here: health UI, regeneration, damage types and resistances, invulnerability frames, enemies (Phase 7 proper).
+
 ## Networking
 
 Not yet. Combat and weapon state are local; the lunge and speed scale are not part of the saved move. Phase 9 moves attack, switch and fire requests into the predicted move data (the dash already works this way) and makes the server confirm hits; the spread stream will need a per-shot seed shared by client and server.
@@ -83,11 +95,11 @@ Not yet. Combat and weapon state are local; the lunge and speed scale are not pa
 ## Debug
 
 - F6 HUD: `Attack: <name> #<index> <phase> <time>` and `(buffered)`.
-- F6 HUD also shows `Weapon: <name> [slot/count] ammo n/m`, `(switching to n)`, `(reloading)`.
+- F6 HUD also shows `Weapon: <name> [slot/count] ammo n/m`, `(switching to n)`, `(reloading)`, and `Health: n/max` (`DEAD`).
 - `SAEVUS.Debug.Combat 1`: draws the hit sphere while active and each shot's trace (yellow: no hit, red: hit).
 - Sandbox: three dummies near the start (`Dummy_A` alone at X 6 m, `Dummy_B1` / `Dummy_B2` side by side).
 - Sandbox shooting range: dummies at 10, 20 and 30 m (X negative, Y = 10 m).
-- The rendered smoke test runs one attack and checks its duration against the data, then switches to slot 2 and fires once.
+- The rendered smoke test runs one attack and checks its duration against the data, switches to slot 2 and fires once, then takes a hit, dies and checks the respawn.
 
 ## Tests (`SAEVUS.Combat.*`)
 
@@ -100,6 +112,14 @@ Not yet. Combat and weapon state are local; the lunge and speed scale are not pa
 | `Movement` | attack faces the input; lunge distance ≈ speed × duration; slowed ground speed during the attack, full cap after |
 | `AirAttack` | an attack in the air uses the air chain and doesn't stop the jump |
 | `AttackEndsDash` | an attack pressed during a dash ends the dash |
+
+`SAEVUS.Health.*`:
+
+| Test | Checks |
+|---|---|
+| `Rules` | damage, heal capped at max, no negative damage, overkill removes only what's left, dead at zero, nothing while dead, reset |
+| `EngineDamage` | `ApplyDamage` on an actor reaches its health component; self damage ignored |
+| `CharacterDeath` | death without a game mode or controller is safe: movement stops, capsule stops colliding, inputs do nothing |
 
 `SAEVUS.Weapons.*`:
 

@@ -2,6 +2,7 @@
 
 #include "Debug/SAEVUSDebugHUD.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Combat/SAEVUSHealthComponent.h"
 #include "Weapons/SAEVUSWeaponComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/Engine.h"
@@ -70,6 +71,11 @@ void ASAEVUSDebugHUD::DrawHUD()
 		{
 			WeaponLine += TEXT(" (reloading)");
 		}
+	}
+
+	if (const USAEVUSHealthComponent* Health = Character->FindComponentByClass<USAEVUSHealthComponent>())
+	{
+		WeaponLine += FString::Printf(TEXT("   Health: %.0f/%.0f%s"), Health->GetHealth(), Health->GetMaxHealth(), Health->IsDead() ? TEXT(" DEAD") : TEXT(""));
 	}
 
 	FVector2D Cursor = ScreenOrigin;

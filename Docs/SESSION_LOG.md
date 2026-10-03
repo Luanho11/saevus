@@ -125,3 +125,8 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - `Tools/Pipeline/Run-PipelineProbe.ps1`: Blender 4.2 headless export (FBX + GLB) → UE 5.8 import (Interchange) → bounds logged → scratch deleted. Verified: real-size metres → cm, feet on Z = 0, Blender −Y front → UE +Y (mannequin convention).
 - Problem: Windows PowerShell 5.1 stopped on Blender's harmless stderr notice; the script now captures it.
 - Next: owner decisions; meanwhile Phase 7 groundwork.
+
+### Phase 7 groundwork — health, death, respawn (same session)
+- `USAEVUSHealthComponent` on the engine damage path; player death (ragdoll, input off) and game-mode respawn.
+- `APawn` ignores damage without a game mode, so unit tests use the component or a plain actor; the smoke test checks hit → death → respawn in the real game.
+- 49/49 tests, Verify-Bootstrap and smoke test pass.

@@ -42,6 +42,7 @@ private:
 		Dash,
 		Attack,
 		Shoot,
+		Respawn,
 		Screenshot,
 		Report,
 		Done
@@ -64,6 +65,11 @@ private:
 	float AttackDuration = 0.f;
 	bool bAttackStarted = false;
 	bool bTriggerPulled = false;
+	int32 ShotsFired = 0;
+	float HealthAfterHit = 0.f;
+	bool bDied = false;
+	bool bRespawned = false;
+	float RespawnHealth = 0.f;
 	bool bProfiledGPU = false;
 
 	/** Frame timing accumulated during the movement stages only (spawn and settle hitches excluded). */

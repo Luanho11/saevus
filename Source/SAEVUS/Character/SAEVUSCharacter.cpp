@@ -4,6 +4,11 @@
 #include "Camera/SAEVUSCameraComponent.h"
 #include "Character/SAEVUSInputConfig.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Combat/SAEVUSHealthComponent.h"
+#include "Core/SAEVUSGameMode.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "PhysicsEngine/PhysicsAsset.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
@@ -21,6 +26,9 @@ namespace SAEVUSCharacter
 
 	// Skeletal meshes face +Y; the actor faces +X.
 	const FRotator MeshFacingCorrection(0.f, -90.f, 0.f);
+
+	// Engine collision profile for ragdolls (BaseEngine.ini).
+	const FName RagdollProfile(TEXT("Ragdoll"));
 }
 
 ASAEVUSCharacter::ASAEVUSCharacter(const FObjectInitializer& ObjectInitializer)
@@ -36,6 +44,7 @@ ASAEVUSCharacter::ASAEVUSCharacter(const FObjectInitializer& ObjectInitializer)
 
 	Combat = CreateDefaultSubobject<USAEVUSCombatComponent>(TEXT("Combat"));
 	Weapons = CreateDefaultSubobject<USAEVUSWeaponComponent>(TEXT("Weapons"));
+	Health = CreateDefaultSubobject<USAEVUSHealthComponent>(TEXT("Health"));
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -58,6 +67,33 @@ void ASAEVUSCharacter::PostInitializeComponents()
 	// same frame's movement.
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Combat, Combat->PrimaryComponentTick);
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Weapons, Weapons->PrimaryComponentTick);
+
+	Health->OnDeath.AddUniqueDynamic(this, &ThisClass::HandleDeath);
+}
+
+void ASAEVUSCharacter::HandleDeath(USAEVUSHealthComponent* HealthComponent, AActor* Killer)
+{
+	UE_LOG(LogSAEVUS, Log, TEXT("%s killed by %s"), *GetName(), *GetNameSafe(Killer));
+	Weapons->SetTriggerHeld(false);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (GetMesh()->GetPhysicsAsset())
+	{
+		GetMesh()->SetCollisionProfileName(SAEVUSCharacter::RagdollProfile);
+		GetMesh()->SetSimulatePhysics(true);
+	}
+
+	AController* OwningController = GetController();
+	if (APlayerController* PlayerController = Cast<APlayerController>(OwningController))
+	{
+		DisableInput(PlayerController);
+	}
+	if (ASAEVUSGameMode* GameMode = GetWorld()->GetAuthGameMode<ASAEVUSGameMode>())
+	{
+		GameMode->HandlePlayerDeath(OwningController);
+	}
 }
 
 void ASAEVUSCharacter::RequestJump()

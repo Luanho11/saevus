@@ -3,6 +3,9 @@
 #include "Debug/SAEVUSSmokeTestSubsystem.h"
 #include "Character/SAEVUSCharacter.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Combat/SAEVUSHealthComponent.h"
+#include "GameFramework/DamageType.h"
+#include "Kismet/GameplayStatics.h"
 #include "Weapons/SAEVUSWeaponComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/World.h"
@@ -36,6 +39,10 @@ namespace SAEVUSSmokeTest
 	// Switch to the second loadout slot (a firearm in the default loadout) and fire once.
 	constexpr int32 FirearmSlot = 1;
 	constexpr float ShootStageDuration = 1.5f;
+	// Damage, death and respawn through the engine damage path (needs the game mode).
+	constexpr float SmokeDamage = 10.f;
+	constexpr float LethalDamage = 100000.f;
+	constexpr float RespawnTimeout = 8.f;
 	constexpr float ScreenshotDelay = 0.5f;
 	constexpr float PawnTimeout = 120.f;
 
@@ -193,6 +200,32 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		}
 		if (StageTime >= ShootStageDuration)
 		{
+			// Recorded now: the respawned pawn gets fresh components.
+			ShotsFired = Pawn->GetWeapons()->GetShotsFired();
+			UGameplayStatics::ApplyDamage(Pawn, SmokeDamage, nullptr, nullptr, UDamageType::StaticClass());
+			HealthAfterHit = Pawn->GetHealth()->GetHealth();
+			UGameplayStatics::ApplyDamage(Pawn, LethalDamage, nullptr, nullptr, UDamageType::StaticClass());
+			bDied = Pawn->GetHealth()->IsDead();
+			EnterStage(EStage::Respawn);
+		}
+		break;
+	}
+
+	case EStage::Respawn:
+	{
+		// The dead body stays (Character still points at it); wait for the controller's new pawn.
+		const APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+		ASAEVUSCharacter* NewPawn = Controller ? Cast<ASAEVUSCharacter>(Controller->GetPawn()) : nullptr;
+		if (NewPawn && NewPawn != Pawn)
+		{
+			bRespawned = true;
+			RespawnHealth = NewPawn->GetHealth()->GetHealth();
+			Character = NewPawn;
+			FScreenshotRequest::RequestScreenshot(ScreenshotName, true, false);
+			EnterStage(EStage::Screenshot);
+		}
+		else if (StageTime >= RespawnTimeout)
+		{
 			FScreenshotRequest::RequestScreenshot(ScreenshotName, true, false);
 			EnterStage(EStage::Screenshot);
 		}
@@ -215,7 +248,11 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		Check(TEXT("dash speed"), MaxDashSpeed, Movement->GetDashTuning().Speed, SpeedTolerance);
 		Check(TEXT("attack started"), bAttackStarted ? 1.f : 0.f, 1.f, 0.f);
 		Check(TEXT("attack duration"), AttackDuration, Pawn->GetCombat()->GetMoveset().GroundCombo[0].GetTotalTime(), AttackDurationTolerance);
-		Check(TEXT("shots fired"), static_cast<float>(Pawn->GetWeapons()->GetShotsFired()), 1.f, 0.f);
+		Check(TEXT("shots fired"), static_cast<float>(ShotsFired), 1.f, 0.f);
+		Check(TEXT("health after a hit"), HealthAfterHit, Pawn->GetHealth()->GetMaxHealth() - SmokeDamage, 0.f);
+		Check(TEXT("died"), bDied ? 1.f : 0.f, 1.f, 0.f);
+		Check(TEXT("respawned"), bRespawned ? 1.f : 0.f, 1.f, 0.f);
+		Check(TEXT("respawn health"), RespawnHealth, Pawn->GetHealth()->GetMaxHealth(), 0.f);
 		Finish();
 		break;
 	}
