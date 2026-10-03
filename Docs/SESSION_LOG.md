@@ -119,3 +119,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Test fix: equip waits ended exactly on the equip time and float error left the timer at +1e-8; tests now wait with a margin.
 - 46/46 tests, Verify-Bootstrap and smoke test pass.
 - Next: Phase 6 (asset pipeline design proposal).
+
+### Phase 6 — asset pipeline proposal (same session)
+- `Docs/asset-pipeline.md`: shading options (recommended: Default Lit + painted textures + light post-process), budgets, LODs, gameplay metrics for level art, naming and folders, texture formats, animation notes, six owner decisions.
+- `Tools/Pipeline/Run-PipelineProbe.ps1`: Blender 4.2 headless export (FBX + GLB) → UE 5.8 import (Interchange) → bounds logged → scratch deleted. Verified: real-size metres → cm, feet on Z = 0, Blender −Y front → UE +Y (mannequin convention).
+- Problem: Windows PowerShell 5.1 stopped on Blender's harmless stderr notice; the script now captures it.
+- Next: owner decisions; meanwhile Phase 7 groundwork.

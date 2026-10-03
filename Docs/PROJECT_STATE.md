@@ -16,6 +16,8 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 **Phase 3 — Advanced movement: DONE (2026-10-03), feel tuning pending.** Dash, wall jump, wall run, wall climb; all data-driven, tested, saved-move ready.
 
+**Phase 6 — Asset pipeline design: PROPOSAL WRITTEN (2026-10-03), owner decisions pending.** `Docs/asset-pipeline.md`; Blender → UE round trip verified (`Tools/Pipeline/Run-PipelineProbe.ps1`): 1.8 m Blender object → 180 cm on Z = 0, Blender −Y front → UE +Y (mannequin convention), FBX and glTF both via Interchange.
+
 **Phase 5 — Firearms and weapon switching: DONE (2026-10-03), feel tuning and weapon models pending.** `Docs/combat.md`: weapon definitions as Data Assets, loadout of 4 (sword, pistol, rifle, shotgun), switching with equip time and the shared cancel rules, hitscan with camera + muzzle traces on a Weapon trace channel, magazines and reload.
 
 **Phase 4 — Melee foundation: DONE (2026-10-03), feel tuning and animations pending.** `Docs/combat.md`: combat component, data-driven attack timelines, combo chain, input buffer, cancel windows, lunge, hit detection, training dummy.
@@ -57,7 +59,7 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 ## In Progress
 
-- Nothing running. Phase 6 (asset pipeline design) is next; see Next Step.
+- Nothing running. Phase 6 waits on the owner's decisions (end of `Docs/asset-pipeline.md`).
 
 ## Pending
 
@@ -98,6 +100,7 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 | `Source/SAEVUS/Tests/SAEVUSMovementTests.cpp` | `SAEVUS.Movement.*` automation tests |
 | `Tools/EditorScripts/saevus_bootstrap_assets.py` | Creates or updates the bootstrap assets and `L_Sandbox` |
 | `Tools/Run-Tests.ps1`, `Tools/Run-SmokeTest.ps1` | Headless automation tests; rendered smoke test with frame timing |
+| `Tools/Pipeline/Run-PipelineProbe.ps1` | Blender → UE import round trip check |
 | `Docs/performance.md` | Performance baseline and how to measure |
 
 ## Technical Decisions
@@ -137,7 +140,7 @@ Branch `main`, Git LFS for `.uasset`/`.umap` and source art. `user.name` is set 
 
 ## Next Step
 
-Phase 6 per the roadmap: asset pipeline design (stylized painted look on modest hardware, texture budgets, Blender → UE conventions, naming, LODs). It is mostly decisions for the owner, so it starts with a proposal document.
+Owner decisions are now the bottleneck: Phase 2 questions (`research/gunz.md`), Phase 6 decisions (`asset-pipeline.md`), roadmap approval, and a feel playtest. Next technical step without them: Phase 7 groundwork (shared health/damage model for player and enemies) per the roadmap.
 
 Owner, whenever available: play `L_Sandbox` (F6 HUD; LMB attack, Ctrl dash, jump at/along walls) and give feel feedback; answer the questions in `Docs/research/gunz.md`; approve or reorder `Docs/development-roadmap.md`.
 
