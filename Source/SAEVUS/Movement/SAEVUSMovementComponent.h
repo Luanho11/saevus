@@ -39,6 +39,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
 	float GetGaitSpeed(ESAEVUSGait Gait) const;
 
+	/** Gait whose speed caps air movement; the take-off gait while bLockGaitInAir is on. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	ESAEVUSGait GetAirGait() const;
+
+	/** True while falling shortly after walking off a ledge, when the ground jump is still allowed. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	bool IsInCoyoteWindow() const;
+
+	/** Remembers a jump pressed in the air so it fires on landing (see JumpBufferTime). */
+	void BufferJumpRequest();
+
 	const FSAEVUSGroundMovementTuning& GetGroundTuning() const;
 	const FSAEVUSAirMovementTuning& GetAirTuning() const;
 
@@ -46,10 +57,18 @@ public:
 	void SetMovementSettings(const USAEVUSMovementSettings* NewSettings);
 
 	//~ Begin UCharacterMovementComponent interface
+	using Super::DoJump;
 	virtual void InitializeComponent() override;
 	virtual float GetMaxSpeed() const override;
+	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+	//~ End UCharacterMovementComponent interface
+
+protected:
+	//~ Begin UCharacterMovementComponent interface
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
 	//~ End UCharacterMovementComponent interface
 
 protected:
@@ -65,4 +84,10 @@ private:
 
 	bool bWantsToSprint = false;
 	bool bWantsToWalk = false;
+
+	// Local simulation state derived from movement-mode transitions. Not part of the saved move:
+	// after a server correction it can be briefly off by one transition (acceptable for now).
+	ESAEVUSGait AirGait = ESAEVUSGait::Run;
+	float CoyoteTimeRemaining = 0.f;
+	float JumpBufferTimeRemaining = 0.f;
 };

@@ -75,6 +75,21 @@ struct FSAEVUSAirMovementTuning
 	/** Lateral deceleration while falling with no input. 0 keeps take-off momentum. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Air Control", meta = (ClampMin = "0", ForceUnits = "cm/s^2"))
 	float BrakingDecelerationFalling = 0.f;
+
+	/**
+	 * Keep the speed cap of the gait used at take-off while airborne, so sprint can't be
+	 * engaged (or dropped) mid-air. When off, the cap follows the current gait request.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Air Control")
+	bool bLockGaitInAir = true;
+
+	/** Grace period after walking off a ledge during which the ground jump is still allowed. 0 disables. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jump Assist", meta = (ClampMin = "0", ForceUnits = "s"))
+	float CoyoteTime = 0.12f;
+
+	/** A jump pressed up to this long before landing fires on touchdown. 0 disables. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jump Assist", meta = (ClampMin = "0", ForceUnits = "s"))
+	float JumpBufferTime = 0.12f;
 };
 
 /** Designer-editable movement profile assigned to USAEVUSMovementComponent. */

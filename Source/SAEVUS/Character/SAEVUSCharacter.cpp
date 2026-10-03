@@ -46,6 +46,22 @@ USAEVUSMovementComponent* ASAEVUSCharacter::GetSAEVUSMovement() const
 	return CastChecked<USAEVUSMovementComponent>(GetCharacterMovement());
 }
 
+void ASAEVUSCharacter::RequestJump()
+{
+	USAEVUSMovementComponent* Movement = GetSAEVUSMovement();
+	if (Movement->IsFalling() && !Movement->IsInCoyoteWindow())
+	{
+		Movement->BufferJumpRequest();
+	}
+	Jump();
+}
+
+bool ASAEVUSCharacter::CanJumpWhileFalling() const
+{
+	// Coyote time: the first (ground) jump stays available briefly after walking off a ledge.
+	return GetSAEVUSMovement()->IsInCoyoteWindow();
+}
+
 void ASAEVUSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -76,7 +92,7 @@ void ASAEVUSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	if (InputConfig->JumpAction)
 	{
-		Input->BindAction(InputConfig->JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		Input->BindAction(InputConfig->JumpAction, ETriggerEvent::Started, this, &ThisClass::RequestJump);
 		Input->BindAction(InputConfig->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
 	// Held actions: Triggered every frame while held (true), Completed on release (false).

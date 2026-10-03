@@ -1,107 +1,27 @@
 // Copyright SAEVUS. All Rights Reserved.
 
-#include "Misc/AutomationTest.h"
+#include "Tests/SAEVUSMovementTestWorld.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Character/SAEVUSCharacter.h"
-#include "Engine/Engine.h"
-#include "Engine/World.h"
-#include "EngineUtils.h"
-#include "Movement/SAEVUSMovementComponent.h"
 #include "Movement/SAEVUSMovementSettings.h"
 
 namespace SAEVUSMovementTests
 {
-	constexpr EAutomationTestFlags TestFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter;
-
-	constexpr float SimStep = 1.f / 60.f;
-
 	// High above an empty world, so the character is airborne with nothing to land on.
-	const FVector SpawnLocation(0.f, 0.f, 10000.f);
+	const FVector AirborneLocation(0.f, 0.f, 10000.f);
 
 	// Integration error allowed against the closed-form expectation.
 	constexpr float JumpApexTolerance = 0.02f;
 	constexpr float AirControlTolerance = 0.1f;
 	constexpr float AirControlDuration = 0.5f;
 	constexpr float MaxJumpSimTime = 3.f;
-
-	/** Throwaway game world for ticking a character outside of any map. */
-	class FScopedTestWorld
-	{
-	public:
-		FScopedTestWorld()
-		{
-			FWorldContext& Context = GEngine->CreateNewWorldContext(EWorldType::Game);
-			// Unique name: a previous test world may not be garbage-collected yet.
-			const FName WorldName = MakeUniqueObjectName(GetTransientPackage(), UWorld::StaticClass(), TEXT("SAEVUSMovementTestWorld"));
-			World = UWorld::CreateWorld(EWorldType::Game, false, WorldName, GetTransientPackage());
-			Context.SetCurrentWorld(World);
-			World->InitializeActorsForPlay(FURL());
-			World->BeginPlay();
-			// Without a game mode nothing dispatches BeginPlay, so actors would never register their ticks.
-			if (!World->GetBegunPlay())
-			{
-				World->GetWorldSettings()->NotifyBeginPlay();
-			}
-		}
-
-		~FScopedTestWorld()
-		{
-			for (AActor* Actor : FActorRange(World))
-			{
-				Actor->RouteEndPlay(EEndPlayReason::LevelTransition);
-			}
-			GEngine->ShutdownWorldNetDriver(World);
-			World->DestroyWorld(true);
-			World->SetPhysicsScene(nullptr);
-			GEngine->DestroyWorldContext(World);
-			World->RemoveFromRoot();
-		}
-
-		/** Spawns an uncontrolled character that still simulates, already falling. */
-		ASAEVUSCharacter* SpawnAirborneCharacter(const USAEVUSMovementSettings* Settings = nullptr)
-		{
-			FActorSpawnParameters Params;
-			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			ASAEVUSCharacter* Character = World->SpawnActor<ASAEVUSCharacter>(SpawnLocation, FRotator::ZeroRotator, Params);
-
-			USAEVUSMovementComponent* Movement = Character->GetSAEVUSMovement();
-			Movement->bRunPhysicsWithNoController = true;
-			Movement->SetMovementSettings(Settings);
-
-			// The engine only picks a default mode at spawn when the flag above was already set, so set it here.
-			Movement->SetMovementMode(MOVE_Falling);
-			Movement->Velocity = FVector::ZeroVector;
-			SimulatedMovement = Movement;
-			return Character;
-		}
-
-		/**
-		 * Advances the spawned character's movement by one fixed step. The component is ticked
-		 * directly: a world without a game mode or viewport does not run its tick groups reliably,
-		 * and a direct tick keeps the simulation deterministic.
-		 */
-		void Step()
-		{
-			check(SimulatedMovement);
-			SimulatedMovement->TickComponent(SimStep, LEVELTICK_All, &SimulatedMovement->PrimaryComponentTick);
-		}
-
-	private:
-		UWorld* World = nullptr;
-		USAEVUSMovementComponent* SimulatedMovement = nullptr;
-	};
-
-	int32 StepsFor(float Seconds)
-	{
-		return FMath::CeilToInt32(Seconds / SimStep);
-	}
 }
 
+using namespace SAEVUSTests;
 using namespace SAEVUSMovementTests;
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSGaitPriorityTest, "SAEVUS.Movement.Gait.Priority", SAEVUSMovementTests::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSGaitPriorityTest, "SAEVUS.Movement.Gait.Priority", SAEVUSTests::TestFlags)
 bool FSAEVUSGaitPriorityTest::RunTest(const FString& Parameters)
 {
 	USAEVUSMovementComponent* Movement = NewObject<USAEVUSMovementComponent>(GetTransientPackage());
@@ -120,7 +40,7 @@ bool FSAEVUSGaitPriorityTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSGaitSpeedsTest, "SAEVUS.Movement.Gait.Speeds", SAEVUSMovementTests::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSGaitSpeedsTest, "SAEVUS.Movement.Gait.Speeds", SAEVUSTests::TestFlags)
 bool FSAEVUSGaitSpeedsTest::RunTest(const FString& Parameters)
 {
 	USAEVUSMovementComponent* Movement = NewObject<USAEVUSMovementComponent>(GetTransientPackage());
@@ -133,7 +53,7 @@ bool FSAEVUSGaitSpeedsTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSSettingsApplyTest, "SAEVUS.Movement.Settings.Apply", SAEVUSMovementTests::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSSettingsApplyTest, "SAEVUS.Movement.Settings.Apply", SAEVUSTests::TestFlags)
 bool FSAEVUSSettingsApplyTest::RunTest(const FString& Parameters)
 {
 	USAEVUSMovementSettings* Settings = NewObject<USAEVUSMovementSettings>(GetTransientPackage());
@@ -157,11 +77,11 @@ bool FSAEVUSSettingsApplyTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSJumpApexTest, "SAEVUS.Movement.Air.JumpApex", SAEVUSMovementTests::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSJumpApexTest, "SAEVUS.Movement.Air.JumpApex", SAEVUSTests::TestFlags)
 bool FSAEVUSJumpApexTest::RunTest(const FString& Parameters)
 {
 	FScopedTestWorld TestWorld;
-	ASAEVUSCharacter* Character = TestWorld.SpawnAirborneCharacter();
+	ASAEVUSCharacter* Character = TestWorld.SpawnCharacter(AirborneLocation);
 	USAEVUSMovementComponent* Movement = Character->GetSAEVUSMovement();
 
 	// Same launch the character applies on jump (fixed-height jump: no hold time).
@@ -184,13 +104,13 @@ bool FSAEVUSJumpApexTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSAirControlTest, "SAEVUS.Movement.Air.AirControl", SAEVUSMovementTests::TestFlags)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSAirControlTest, "SAEVUS.Movement.Air.AirControl", SAEVUSTests::TestFlags)
 bool FSAEVUSAirControlTest::RunTest(const FString& Parameters)
 {
 	auto MeasureAirSpeed = [this](const USAEVUSMovementSettings* Settings, float& OutExpected) -> float
 	{
 		FScopedTestWorld TestWorld;
-		ASAEVUSCharacter* Character = TestWorld.SpawnAirborneCharacter(Settings);
+		ASAEVUSCharacter* Character = TestWorld.SpawnCharacter(AirborneLocation, Settings);
 		USAEVUSMovementComponent* Movement = Character->GetSAEVUSMovement();
 
 		const int32 Steps = StepsFor(AirControlDuration);

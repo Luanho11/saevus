@@ -1,6 +1,6 @@
 # SAEVUS movement
 
-Status: Bootstrap. Walk, run, sprint, jump and air control. Built on `UCharacterMovementComponent` (CMC).
+Status: Phase 1 (locomotion feel). Walk, run, sprint, jump, air control, coyote time, jump buffer. Built on `UCharacterMovementComponent` (CMC).
 
 ## Why CMC and not Mover
 
@@ -14,7 +14,7 @@ CMC is mature: it has client prediction, server correction, root motion and cust
 - walk requested → **Walk**;
 - neither → **Run** (the default).
 
-`GetMaxSpeed()` returns the gait speed while walking on the ground **and while falling**. The air speed cap matches the ground gait, so a sprint jump keeps its momentum instead of being clamped to run speed. `MaxWalkSpeed` mirrors the run speed for systems that don't know about gait (AI, navigation).
+`GetMaxSpeed()` returns the gait speed while walking on the ground **and while falling**, so a sprint jump keeps its momentum instead of being clamped to run speed. In the air the cap uses the **take-off gait** (`GetAirGait()`) while `bLockGaitInAir` is on (default): pressing or releasing sprint mid-air changes nothing until landing. `MaxWalkSpeed` mirrors the run speed for systems that don't know about gait (AI, navigation).
 
 ## Tuning
 
@@ -33,12 +33,25 @@ All values live in `Source/SAEVUS/Movement/SAEVUSMovementSettings.h`. The struct
 | AirControl | 0.35 | fraction of ground acceleration in the air |
 | AirControlBoostMultiplier / Threshold | 2 / 25 cm/s | easier direction change from a near-vertical jump |
 | FallingLateralFriction / BrakingDecelerationFalling | 0 / 0 | the take-off momentum is kept |
+| bLockGaitInAir | true | air speed cap = take-off gait |
+| CoyoteTime | 0.12 s | ground jump still allowed after walking off a ledge |
+| JumpBufferTime | 0.12 s | a jump pressed this long before landing fires on touchdown |
 
 These are first-pass values, not tuned by feel yet. Tuning happens in the editor on the Data Asset, not in code.
+
+## Jump assists
+
+Generic platformer techniques (not taken from GunZ), all in `USAEVUSMovementComponent` and tunable per Data Asset:
+
+- **Coyote time.** Walking off a ledge (leaving `Walking` for `Falling` without a jump press) opens a `CoyoteTime` window. `ASAEVUSCharacter::CanJumpWhileFalling()` (the engine hook for "first jump while falling") returns true inside it, so the normal jump path runs. A jump take-off never opens the window.
+- **Jump buffer.** `ASAEVUSCharacter::RequestJump()` is the single jump entry point (input binds to it). Pressed while airborne and outside the coyote window, it stores a `JumpBufferTime` timer. When the movement mode becomes `Walking` with the timer still running, the component calls `Jump()` after the engine has reset the jump state, and the jump fires on the next update.
+- Timers count down in `OnMovementUpdated`, so they follow simulation time (also during replays), not wall-clock time.
 
 ## Networking readiness
 
 `FSAEVUSSavedMove` stores the sprint and walk requests. They travel as `FLAG_Custom_0` (sprint) and `FLAG_Custom_1` (walk) in the compressed flags and are restored in `UpdateFromCompressedFlags`. Moves with different requests are never combined. When replication is turned on, gait stays client-predicted with no extra work. `FLAG_Custom_2` and `FLAG_Custom_3` are still free. Abilities that need more state should use the CMC move-container / network data API instead of flags.
+
+Known limitation: the air gait and the coyote/buffer timers are local simulation state derived from mode transitions, not part of the saved move. After a server correction they can be off for one transition. The jump itself still travels through the normal `bPressedJump` path, so the server stays authoritative.
 
 ## Future abilities (not implemented)
 
@@ -46,8 +59,9 @@ Wall run, wall jump, dash, sword-driven movement and aerial combat will be **cus
 
 ## Open design questions
 
-- **Sprint in the air:** the air speed cap follows the *current* gait, so pressing sprint mid-air raises the cap to sprint speed. Alternatives: latch the gait at take-off, or cap air speed at the take-off speed. Decide during the movement-feel pass.
-- **Sprint direction:** sprint currently works in any direction, including backwards. Restricting it to a forward cone is a feel decision for the same pass.
+- ~~Sprint in the air~~ — decided (Phase 1): the take-off gait is locked in the air (`bLockGaitInAir`, can be turned off).
+- **Sprint direction:** with orient-to-movement the body always faces where it runs, so there is no "backwards sprint" to restrict. Revisit if a strafing / aim mode is added (firearms phase).
+- **Landing recovery:** no landing slowdown yet. It needs landing animations to read well; left for the animation work.
 - **Animation:** the template `ABP_Unarmed` blend space tops out near jog speed, so sprint plays the run cycle faster and the feet slide. Proper gait animation belongs to the animation phase.
 
 ## Tests
@@ -61,8 +75,13 @@ Wall run, wall jump, dash, sword-driven movement and aerial combat will be **cus
 | `Settings.Apply` | a Data Asset overrides CMC values; null restores defaults |
 | `Air.JumpApex` | simulated apex height within 2 % of v² / 2g |
 | `Air.AirControl` | air acceleration ≈ MaxAcceleration × AirControl (±10 %); AirControl 0 keeps zero lateral speed |
+| `JumpAssist.CoyoteTime` | jump right after walking off a real ledge works; refused with CoyoteTime 0 |
+| `JumpAssist.JumpBuffer` | jump pressed 15 cm above the floor fires on landing; dropped with JumpBufferTime 0 |
+| `JumpAssist.AirGaitLock` | sprint mid-air keeps the run cap when locked, raises it when unlocked; a jump take-off opens no coyote window |
 
-The two `Air.*` tests tick a real `ASAEVUSCharacter` in a throwaway world (no map, no controller, `bRunPhysicsWithNoController`).
+The simulation tests tick a real `ASAEVUSCharacter` in a throwaway world (`Tests/SAEVUSMovementTestWorld.h`: no map, no controller, `bRunPhysicsWithNoController`, engine-cube platforms). The fixture ticks the movement component directly and advances world time itself, starting at 10 s: in editor builds CMC refuses to start falling during the first second of world time.
+
+In-game check: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -ResY=720 -SAEVUSSmokeTest` runs, sprints and jumps on its own, then logs `[SAEVUS smoke] PASSED/FAILED`, a frame-time summary and a screenshot.
 
 ## Sandbox (`/Game/SAEVUS/Maps/L_Sandbox`)
 

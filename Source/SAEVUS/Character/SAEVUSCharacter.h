@@ -33,6 +33,14 @@ public:
 	USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	USAEVUSCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	/** Jump press from any input source: jumps now, or buffers the press while airborne. */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Character")
+	void RequestJump();
+
+	//~ Begin ACharacter interface
+	virtual bool CanJumpWhileFalling() const override;
+	//~ End ACharacter interface
+
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 

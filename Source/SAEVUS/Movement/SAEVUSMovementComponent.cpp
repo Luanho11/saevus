@@ -143,14 +143,83 @@ void USAEVUSMovementComponent::SetMovementSettings(const USAEVUSMovementSettings
 	ApplyMovementSettings();
 }
 
+ESAEVUSGait USAEVUSMovementComponent::GetAirGait() const
+{
+	return GetAirTuning().bLockGaitInAir ? AirGait : GetCurrentGait();
+}
+
+bool USAEVUSMovementComponent::IsInCoyoteWindow() const
+{
+	return IsFalling() && CoyoteTimeRemaining > 0.f;
+}
+
+void USAEVUSMovementComponent::BufferJumpRequest()
+{
+	if (IsFalling())
+	{
+		JumpBufferTimeRemaining = GetAirTuning().JumpBufferTime;
+	}
+}
+
 float USAEVUSMovementComponent::GetMaxSpeed() const
 {
-	// Falling uses the gait cap too, so air control never drags a sprint jump down to run speed.
-	if ((IsMovingOnGround() || IsFalling()) && !IsCrouching())
+	if (IsCrouching())
+	{
+		return Super::GetMaxSpeed();
+	}
+	if (IsMovingOnGround())
 	{
 		return GetGaitSpeed(GetCurrentGait());
 	}
+	// Falling uses a gait cap too, so air control never drags a sprint jump down to run speed.
+	if (IsFalling())
+	{
+		return GetGaitSpeed(GetAirGait());
+	}
 	return Super::GetMaxSpeed();
+}
+
+bool USAEVUSMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
+{
+	const bool bJumped = Super::DoJump(bReplayingMoves, DeltaTime);
+	if (bJumped)
+	{
+		CoyoteTimeRemaining = 0.f;
+		JumpBufferTimeRemaining = 0.f;
+	}
+	return bJumped;
+}
+
+void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	// Super notifies the character, which resets its jump state on landing; buffered jumps go after it.
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+
+	const bool bLeftGround = IsFalling() && (PreviousMovementMode == MOVE_Walking || PreviousMovementMode == MOVE_NavWalking);
+	if (bLeftGround)
+	{
+		AirGait = GetCurrentGait();
+		// A jump take-off already used the ground jump; only walking off a ledge opens the window.
+		const bool bJumpedOff = CharacterOwner && CharacterOwner->bPressedJump;
+		CoyoteTimeRemaining = bJumpedOff ? 0.f : GetAirTuning().CoyoteTime;
+	}
+	else if (!IsFalling())
+	{
+		CoyoteTimeRemaining = 0.f;
+	}
+
+	if (IsMovingOnGround() && JumpBufferTimeRemaining > 0.f && CharacterOwner)
+	{
+		JumpBufferTimeRemaining = 0.f;
+		CharacterOwner->Jump();
+	}
+}
+
+void USAEVUSMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
+{
+	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
+	CoyoteTimeRemaining = FMath::Max(0.f, CoyoteTimeRemaining - DeltaSeconds);
+	JumpBufferTimeRemaining = FMath::Max(0.f, JumpBufferTimeRemaining - DeltaSeconds);
 }
 
 void USAEVUSMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
