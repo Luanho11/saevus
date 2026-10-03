@@ -19,5 +19,12 @@ public class SAEVUS : ModuleRules
 			"InputCore",
 			"EnhancedInput"
 		});
+
+		// Frame timing (game/render thread, GPU) for the debug smoke test.
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"RenderCore",
+			"RHI"
+		});
 	}
 }

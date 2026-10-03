@@ -1,6 +1,6 @@
 # SAEVUS PROJECT STATE
 
-_Last updated: 2026-10-03 (Session 2, night)_
+_Last updated: 2026-10-03 (Session 3)_
 
 ## Current Objective
 
@@ -10,7 +10,7 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 **Bootstrap: DONE (2026-10-03).** All acceptance criteria met: compiles clean, editor/game opens, character spawns, camera works, walk/run/sprint/jump/air control verified (automation tests + rendered smoke test), Sandbox map and Debug HUD exist, git has commits.
 
-**Phase 1 — Locomotion feel: IN PROGRESS.** Jump assists (coyote time, jump buffer), gait locked in the air, performance baseline.
+**Phase 1 — Locomotion feel: code work DONE, waiting on the owner's playtest.** Done: coyote time, jump buffer, take-off gait locked in the air, open movement questions decided or deferred (`movement.md`), performance baseline (`performance.md`). Left: the feel-tuning pass on `DA_MovementSettings_Default` / `DA_CameraSettings_Default`, which needs a human playing it.
 
 ## Completed
 
@@ -37,13 +37,17 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 - Git: repo with LFS; commits `4752e9f`, `b32600a`, plus the docs commit.
 - Docs: `architecture.md`, `movement.md`, `environment.md`, `development-roadmap.md` (**proposal**, needs the owner's approval).
 
+- Phase 1: coyote time, jump buffer and air-gait lock (`FSAEVUSAirMovementTuning`, character `RequestJump` / `CanJumpWhileFalling`), shared test fixture `Tests/SAEVUSMovementTestWorld.h`, 8/8 tests pass.
+- Phase 1: smoke test records game / render / GPU time; `Tools/Run-SmokeTest.ps1` (scalability / extra cvars / `-ProfileGPU`); scalability sweep recorded in `Docs/performance.md`.
+
 ## In Progress
 
-- Phase 1: coyote time + jump buffer + air-gait lock written (movement component, character `RequestJump` / `CanJumpWhileFalling`), tests being added (`Tests/SAEVUSMovementTestWorld.h` shared fixture).
+- Nothing. Phase 1 waits on the owner's playtest.
 
 ## Pending
 
-- Phase 1 remainder: performance baseline from a warm-DDC smoke run; Sandbox decision notes in `movement.md`.
+- Owner playtests `L_Sandbox` and tunes feel on the Data Assets (or reports what feels off).
+- Landing recovery and gait-correct animation (sprint foot sliding with the template blend space) are deferred until animation work; see `movement.md`.
 - Owner reviews `Docs/development-roadmap.md` (order of later phases).
 - `combat.md` and `asset-pipeline.md` belong to their own phases.
 
@@ -74,6 +78,8 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 | `Source/SAEVUS/Debug/` | Debug HUD, debug CVars |
 | `Source/SAEVUS/Tests/SAEVUSMovementTests.cpp` | `SAEVUS.Movement.*` automation tests |
 | `Tools/EditorScripts/saevus_bootstrap_assets.py` | Creates or updates the bootstrap assets and `L_Sandbox` |
+| `Tools/Run-Tests.ps1`, `Tools/Run-SmokeTest.ps1` | Headless automation tests; rendered smoke test with frame timing |
+| `Docs/performance.md` | Performance baseline and how to measure |
 
 ## Technical Decisions
 
@@ -97,8 +103,9 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 ## Testing
 
 - `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` → build, `SAEVUS.*` automation tests, asset script, asset verify. **All passed** (2026-10-03).
-- Automation results: Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 cm vs 142.9 expected), Air.AirControl (434 cm/s vs ~420 expected) — all Success.
-- Rendered smoke test: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -ResY=720 -SAEVUSSmokeTest` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.7 cm; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`. First run (cold shader cache): 25.7 fps average, worst frame 400 ms (shader compile hitches) — not a valid perf baseline yet.
+- `Tools\Run-Tests.ps1` → 8/8 `SAEVUS.Movement.*` pass (2026-10-03, Session 3): Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 vs 142.9 cm), Air.AirControl (434 vs ~420 cm/s), JumpAssist.CoyoteTime / JumpBuffer / AirGaitLock.
+- Rendered smoke test: `Tools\Run-SmokeTest.ps1 [-Scalability N]` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.8 cm; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`.
+- Performance baseline (720p, warm): Low 118 fps, Medium 55–68, High 45–49, Epic 37. GPU-bound; game thread 7–9 ms. Medium is the 60 fps tier on the Vega 8, mostly thanks to its sub-native resolution. Details in `Docs/performance.md`.
 - Simulation tests tick the movement component directly (a game-mode-less test world does not run its tick groups).
 - Engine noise to ignore: 14 × `LogAutomationTest: Error: Condition failed` during editor startup.
 
@@ -108,7 +115,7 @@ Branch `main`, Git LFS for `.uasset`/`.umap` and source art. `user.name` is set 
 
 ## Next Step
 
-Finish Phase 1: build + run the jump-assist tests, commit, then take a warm-cache performance baseline with the smoke test.
+Owner: play `L_Sandbox` (F6 for the debug HUD) and give feel feedback, and approve or reorder `Docs/development-roadmap.md`. After that: Phase 2 (GunZ research, documents only) per the roadmap.
 
 ## Notes
 

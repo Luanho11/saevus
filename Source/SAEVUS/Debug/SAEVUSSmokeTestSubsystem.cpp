@@ -7,13 +7,18 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/PlatformMisc.h"
 #include "Misc/CommandLine.h"
+#include "DynamicRHI.h"
+#include "Engine/Engine.h"
 #include "Movement/SAEVUSMovementComponent.h"
+#include "RenderTimer.h"
 #include "SAEVUS.h"
 #include "UnrealClient.h"
 
 namespace SAEVUSSmokeTest
 {
 	const TCHAR* const CommandLineSwitch = TEXT("SAEVUSSmokeTest");
+	// Optional: also capture one ProfileGPU frame mid-sprint (per-pass GPU timings in the log).
+	const TCHAR* const ProfileGPUSwitch = TEXT("SAEVUSSmokeProfileGPU");
 	const TCHAR* const ScreenshotName = TEXT("SAEVUS_SmokeTest.png");
 
 	// Stage lengths in seconds. Settling covers spawn, landing and first-frame hitches.
@@ -63,11 +68,9 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	using namespace SAEVUSSmokeTest;
 	StageTime += DeltaTime;
 
-	if (Stage != EStage::WaitForPawn && Stage != EStage::Done)
+	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump)
 	{
-		FrameTimeSum += DeltaTime;
-		WorstFrameTime = FMath::Max(WorstFrameTime, DeltaTime);
-		++FrameCount;
+		SampleFrameTiming(DeltaTime);
 	}
 
 	ASAEVUSCharacter* Pawn = Character.Get();
@@ -122,6 +125,11 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	case EStage::Sprint:
 		Pawn->AddMovementInput(FVector::ForwardVector, 1.f);
 		MaxSprintSpeed = FMath::Max(MaxSprintSpeed, static_cast<float>(Movement->Velocity.Size2D()));
+		if (!bProfiledGPU && StageTime >= SprintDuration * 0.5f && FParse::Param(FCommandLine::Get(), ProfileGPUSwitch))
+		{
+			bProfiledGPU = true;
+			GEngine->Exec(GetWorld(), TEXT("ProfileGPU"));
+		}
 		if (StageTime >= SprintDuration)
 		{
 			Movement->SetSprintRequested(false);
@@ -165,13 +173,24 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	}
 }
 
+void USAEVUSSmokeTestSubsystem::SampleFrameTiming(float DeltaTime)
+{
+	FrameTimeSum += DeltaTime;
+	WorstFrameTime = FMath::Max(WorstFrameTime, DeltaTime);
+	GameThreadMsSum += FPlatformTime::ToMilliseconds(GGameThreadTime);
+	RenderThreadMsSum += FPlatformTime::ToMilliseconds(GRenderThreadTime);
+	GPUMsSum += FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());
+	++FrameCount;
+}
+
 void USAEVUSSmokeTestSubsystem::Finish()
 {
 	if (FrameCount > 0)
 	{
 		const double AverageFrameTime = FrameTimeSum / FrameCount;
-		UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS smoke] frames %d, average %.2f ms (%.1f fps), worst %.2f ms"),
-			FrameCount, AverageFrameTime * 1000.0, AverageFrameTime > 0.0 ? 1.0 / AverageFrameTime : 0.0, WorstFrameTime * 1000.f);
+		UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS smoke] frames %d, average %.2f ms (%.1f fps), worst %.2f ms | game %.2f ms, render %.2f ms, GPU %.2f ms"),
+			FrameCount, AverageFrameTime * 1000.0, AverageFrameTime > 0.0 ? 1.0 / AverageFrameTime : 0.0, WorstFrameTime * 1000.f,
+			GameThreadMsSum / FrameCount, RenderThreadMsSum / FrameCount, GPUMsSum / FrameCount);
 	}
 	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS smoke] %s"), FailureCount == 0 ? TEXT("PASSED") : TEXT("FAILED"));
 	EnterStage(EStage::Done);

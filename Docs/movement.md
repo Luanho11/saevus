@@ -81,7 +81,7 @@ Wall run, wall jump, dash, sword-driven movement and aerial combat will be **cus
 
 The simulation tests tick a real `ASAEVUSCharacter` in a throwaway world (`Tests/SAEVUSMovementTestWorld.h`: no map, no controller, `bRunPhysicsWithNoController`, engine-cube platforms). The fixture ticks the movement component directly and advances world time itself, starting at 10 s: in editor builds CMC refuses to start falling during the first second of world time.
 
-In-game check: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -ResY=720 -SAEVUSSmokeTest` runs, sprints and jumps on its own, then logs `[SAEVUS smoke] PASSED/FAILED`, a frame-time summary and a screenshot.
+In-game check: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -ResY=720 -SAEVUSSmokeTest` runs, sprints and jumps on its own, then logs `[SAEVUS smoke] PASSED/FAILED`, a frame-time summary and a screenshot. `Tools\Run-SmokeTest.ps1` wraps it; frame-time numbers are in `performance.md`.
 
 ## Sandbox (`/Game/SAEVUS/Maps/L_Sandbox`)
 

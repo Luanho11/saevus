@@ -56,3 +56,24 @@ Continue Bootstrap from FASE 3 (verify UE 5.8).
 
 ### Next
 User turns Smart App Control off → `Tools\Verify-Bootstrap.ps1` → play `L_Sandbox` → commit the generated assets → owner reviews the roadmap.
+
+## 2026-10-03 — Session 3
+
+### Goal
+Finish Phase 1 (locomotion feel) code work.
+
+### Completed
+- Coyote time, jump buffer, take-off gait locked in the air, with tests (committed `d09ac17`; 8/8 tests pass after a fresh build).
+- Smoke test now records game / render / GPU time over the movement stages only; optional `-SAEVUSSmokeProfileGPU`. `Tools/Run-SmokeTest.ps1` wraps it.
+- Scalability sweep at 720p on the Vega 8, written up in `Docs/performance.md`.
+
+### Findings
+- GPU-bound; game thread flat at 7–9 ms. Medium ≈ 55–68 fps, High ≈ 45–49, Epic ≈ 37. Medium's gain is its sub-native resolution; no single scalability group dominates.
+- The first run after a rebuild is cold (400 ms hitches, game time 28 ms); only warm runs count.
+
+### Decisions
+- Landing recovery and gait-correct animation deferred until animation work (they need landing / sprint animations to read well).
+- Shipped default scalability is a settings-menu decision, not Phase 1.
+
+### Next
+Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap; then Phase 2 (GunZ research, documents only).

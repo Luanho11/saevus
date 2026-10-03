@@ -57,8 +57,15 @@ private:
 	float JumpStartZ = 0.f;
 	float JumpApexZ = 0.f;
 	bool bLeftGround = false;
+	bool bProfiledGPU = false;
+
+	/** Frame timing accumulated during the movement stages only (spawn and settle hitches excluded). */
+	void SampleFrameTiming(float DeltaTime);
 
 	double FrameTimeSum = 0.0;
+	double GameThreadMsSum = 0.0;
+	double RenderThreadMsSum = 0.0;
+	double GPUMsSum = 0.0;
 	float WorstFrameTime = 0.f;
 	int32 FrameCount = 0;
 	int32 FailureCount = 0;
