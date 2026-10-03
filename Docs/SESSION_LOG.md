@@ -47,5 +47,12 @@ Continue Bootstrap from FASE 3 (verify UE 5.8).
 - Sprint FOV follows actual speed, not the sprint request.
 - Combat and weapon components stay out of Bootstrap (not in its scope).
 
+### Night work (user asleep, Smart App Control still on)
+- Static review against the 5.8 sources. Fixed: test characters stuck in `MOVE_None`; mannequin mesh set via its setter (transient property); key names now fail loudly.
+- Validated the engine-only half of the asset script in a Blueprint-only scratch project: the input assets, the full `L_Sandbox` build and the saves all work.
+- Added `saevus_verify_assets.py` and `Tools/Verify-Bootstrap.ps1` (one-command build/test/assets/verify).
+- Git initialized with LFS; initial commit plus fixes.
+- Docs: architecture, movement, environment, development roadmap (proposal).
+
 ### Next
-User turns Smart App Control off → run the tests, run the asset script, play `L_Sandbox`, then git init + commit.
+User turns Smart App Control off → `Tools\Verify-Bootstrap.ps1` → play `L_Sandbox` → commit the generated assets → owner reviews the roadmap.

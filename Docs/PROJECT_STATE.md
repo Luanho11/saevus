@@ -10,7 +10,7 @@ Bootstrap: prepare the development environment and a compilable UE 5.8 C++ base.
 
 Bootstrap, **FASE 13 build ✅ / FASE 14 run ⛔**. Blocked: Windows **Smart App Control** (Enforce mode) won't load the locally built, unsigned `UnrealEditor-SAEVUS.dll` (`GetLastError=4551`, CodeIntegrity event 3077). The editor can't load the game module, so the tests, the asset script and the editor itself can't run. Waiting for the user to turn Smart App Control off.
 
-Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependencies ✅ · 3 verify UE 5.8 ✅ · 4 create project ✅ · 5 folders ✅ · 6 base classes ✅ (code) · 7 character ✅ (code) · 8 camera ✅ (code) · 9 walk/run/sprint ✅ (code) · 10 jump/air control ✅ (code) · 11 Sandbox ⏳ (script written, not run) · 12 Debug HUD ✅ (code) · 13 build ✅ · 14 run ⛔ · 15 commit.
+Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependencies ✅ · 3 verify UE 5.8 ✅ · 4 create project ✅ · 5 folders ✅ · 6 base classes ✅ (code) · 7 character ✅ (code) · 8 camera ✅ (code) · 9 walk/run/sprint ✅ (code) · 10 jump/air control ✅ (code) · 11 Sandbox ⏳ (script validated in a scratch project, not run in SAEVUS) · 12 Debug HUD ✅ (code) · 13 build ✅ · 14 run ⛔ · 15 commit ✅.
 
 ## Completed
 
@@ -29,17 +29,24 @@ Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependenci
   - the Session 1 movement code compiled with no changes;
   - automation tests `SAEVUS.Movement.*` (gait priority, gait speeds, settings apply, jump apex vs v²/2g, air control).
 - `Tools/EditorScripts/saevus_bootstrap_assets.py`: idempotent editor script that creates IA_Sprint/IA_Walk/IA_ToggleDebugHUD + IMC_SAEVUS, DA_InputConfig / DA_MovementSettings_Default / DA_CameraSettings_Default, BP_SAEVUSCharacter / BP_SAEVUSPlayerController / BP_SAEVUSGameMode and `L_Sandbox`.
+  - Engine-only parts (input assets, key mappings, BP creation + compile, the whole `L_Sandbox` build, game-mode override, save) **validated in UE 5.8** with a Blueprint-only scratch project, which Smart App Control doesn't block. The parts that use SAEVUS classes (Data Assets, BP CDO edits) still need the real run.
+- `Tools/EditorScripts/saevus_verify_assets.py`: fresh-process check that the saved BP defaults (mesh, anim class, settings, mapping contexts, pawn class) persisted.
+- `Tools/Verify-Bootstrap.ps1`: one command for build → tests → assets → verify. Fails fast with a clear message while Smart App Control blocks the DLL (checked live).
+- Static review against the 5.8 sources found and fixed: test characters stayed in `MOVE_None` (the engine skips the default mode when `bRunPhysicsWithNoController` is set after spawn), and the mannequin mesh must be set through `SetSkeletalMeshAsset` (the property is transient).
+- `DefaultEngine.ini`: `L_Sandbox` is the editor and game default map; `BP_SAEVUSGameMode` is the global game mode.
+- Git: repo with LFS; commits `4752e9f`, `b32600a`, plus the docs commit.
+- Docs: `architecture.md`, `movement.md`, `environment.md`, `development-roadmap.md` (**proposal**, needs the owner's approval).
 
 ## In Progress
 
-- The run is blocked by Smart App Control (see Known Problems). Nothing has run in the editor yet: the automation tests and the asset script are **untested**.
+- The run is blocked by Smart App Control (see Known Problems). The `SAEVUS.*` automation tests and the SAEVUS-class parts of the asset script have not run yet.
 
 ## Pending
 
-- User turns off Smart App Control. Then: run the `SAEVUS.*` automation tests; run `saevus_bootstrap_assets.py`; check the BP CDO edits persisted (mesh, anim class, settings assets); set `GameDefaultMap`/`EditorStartupMap` = `/Game/SAEVUS/Maps/L_Sandbox` and `GlobalDefaultGameMode` = `BP_SAEVUSGameMode` in `DefaultEngine.ini`.
-- Open the editor and play `L_Sandbox`: walk (LeftAlt) / run / sprint (LeftShift, L3), jump, air control, camera, F6 Debug HUD. Take a `-game` screenshot and check the log.
-- Docs: architecture, movement, combat, asset-pipeline, development-roadmap, environment.
-- `git init`, `.gitignore`, `.gitattributes` (LFS for `*.uasset`/`*.umap`), commit "Initial SAEVUS project".
+- User turns off Smart App Control. Then run `Tools\Verify-Bootstrap.ps1` and fix whatever fails.
+- Open the editor and play `L_Sandbox`: walk (LeftAlt) / run / sprint (LeftShift, L3), jump, air control, camera, F6 Debug HUD. Take a `-game` screenshot and check the log. Commit the generated assets.
+- Owner reviews `Docs/development-roadmap.md` and picks the phase after Bootstrap.
+- `combat.md` and `asset-pipeline.md` are deliberately not written: they belong to their own phases (see the roadmap).
 - Outside Bootstrap scope, so deliberately not written yet: `USAEVUSCombatComponent`, `USAEVUSWeaponComponent`.
 
 ## Architecture
@@ -86,21 +93,21 @@ Bootstrap phase order: 1 inspect environment ✅ · 2 install missing dependenci
 
 - **Smart App Control (Enforce) blocks the game DLL.** `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState = 1`. Windows refuses any unsigned, locally compiled DLL (error 4551, CodeIntegrity events 3077/3033), and self-signing doesn't help. The fix is turning Smart App Control off (Windows Security → App & browser control → Smart App Control settings → Off). That's the user's decision.
 - Dev hardware is below Epic's recommendation: 7 GB RAM vs 32 GB recommended, integrated GPU. UBT limits itself to 1 parallel compile, so a full module build takes about 3–4 min. Close other apps before building or opening the editor.
-- Git `user.name` isn't configured globally (only `user.email`).
+- Git `user.name` isn't configured globally (only `user.email`); the repo uses a local `Hostos`.
 
 ## Testing
 
 - Build: `Engine/Build/BatchFiles/Build.bat SAEVUSEditor Win64 Development -Project=<path>\SAEVUS.uproject -WaitMutex -NoHotReload` → **Succeeded, 0 warnings**.
-- Tests (not run yet, blocked): `UnrealEditor-Cmd.exe SAEVUS.uproject -ExecCmds="Automation RunTests SAEVUS;Quit" -TestExit="Automation Test Queue Empty" -unattended -nopause -nullrhi -nosplash -NoSound`.
-- Assets (not run yet, blocked): `UnrealEditor-Cmd.exe SAEVUS.uproject -ExecutePythonScript="Tools/EditorScripts/saevus_bootstrap_assets.py" -unattended -nullrhi`.
+- Everything else: `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` (build → `SAEVUS.*` tests → asset script → asset verify; logs in `Saved\Logs\Verify\`). Currently stops at step 2 with the Smart App Control message.
+- Engine noise to ignore: 14 × `LogAutomationTest: Error: Condition failed` during editor startup, before any project code runs (seen in an empty Blueprint-only project too).
 
 ## Git
 
-Repository not initialized yet. No commits.
+Branch `main`, Git LFS for `.uasset`/`.umap` and source art. `user.name` is set only in this repo (`Hostos`). Last commit: see `git log -1`.
 
 ## Next Step
 
-Once the user confirms Smart App Control is off: re-run the `SAEVUS.*` automation tests and fix any failures. Then run the asset script (FASE 11) and continue with FASE 14 (run in the editor) and FASE 15 (git).
+Once the user confirms Smart App Control is off: run `Tools\Verify-Bootstrap.ps1`, fix failures, play `L_Sandbox` in the editor, commit the generated assets, and close Bootstrap.
 
 ## Notes
 
