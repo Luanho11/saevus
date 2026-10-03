@@ -1,6 +1,6 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-03 (sesión 3b)_
+_Actualizado: 2026-10-03 (sesión 3c)_
 
 ## Objetivo actual
 
@@ -12,6 +12,8 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Render para hardware modesto:** sin Lumen/Nanite/RT/VSM/MegaLights/distance fields, TAA, SSR, iluminación dinámica.
 - **Movimiento** (`movimiento.md`): caminar/correr/esprint, salto con coyote y buffer, control aéreo, dash (suelo y aire), salto de pared, carrera por pared, escalada; listo para red con movimientos guardados.
 - **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, tajo aéreo), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
+- **Dash por doble toque** de WASD (`movimiento.md`): cámara bloqueada durante el dash, invulnerabilidad breve, estela de partículas (`USAEVUSComponenteEstelaDash`, partículas por CPU en mallas instanciadas).
+- **Caballero boceto** (`animacion.md`): malla + esqueleto propio de 24 huesos generados por script en Blender, importados por script; animación procedural en C++ (reposo, correr, aire, dash, pared, escalada, tajos por línea de tiempo, disparo, muerte, capa).
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
@@ -19,8 +21,8 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Verificación
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, 49/49 tests `SAEVUS.*`, creación y verificación de assets — todo superado.
-- `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (correr 550, esprint 850, cima 142,8 cm, dash 1600, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100).
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 59/59 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
 
@@ -40,8 +42,8 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - Máquina por debajo de lo recomendado (7 GB RAM, Vega 8): recompilación completa > 10 min, la primera ejecución con render es "en frío".
 - `loop.ps1` del dueño puede lanzar otra sesión de Claude; se coordina con el cerrojo de `PROGRESS.md`.
-- Todavía sin animación de ataque, sin modelo propio de personaje, sin tutorial ni enemigos.
+- Todavía sin sombreado propio (los materiales `M_Caballero_*` no sustituyen a los de Interchange), sin tutorial, enemigos ni interfaz de juego.
 
 ## Siguiente paso
 
-Tarea 3 de `PROGRESS.md`: dash por doble toque de WASD, cámara bloqueada durante el dash, invulnerabilidad breve y partículas.
+Tarea 5 de `PROGRESS.md`: sombreado tipo Hollow Knight (materiales oscuros asignados de verdad al caballero, contorno por post-proceso barato).

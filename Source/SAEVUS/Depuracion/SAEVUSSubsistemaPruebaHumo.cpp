@@ -1,7 +1,10 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Depuracion/SAEVUSSubsistemaPruebaHumo.h"
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Components/PoseableMeshComponent.h"
+#include "Engine/SkinnedAsset.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
@@ -27,6 +30,8 @@ namespace SAEVUSPruebaHumo
 	const TCHAR* const ParametroPerfilGPU = TEXT("SAEVUSPruebaHumoPerfilGPU");
 	const TCHAR* const NombreCaptura = TEXT("SAEVUS_PruebaHumo.png");
 	const TCHAR* const NombreCapturaDash = TEXT("SAEVUS_PruebaHumo_Dash.png");
+	const TCHAR* const NombreCapturaCorrer = TEXT("SAEVUS_PruebaHumo_Correr.png");
+	const TCHAR* const NombreCapturaAtaque = TEXT("SAEVUS_PruebaHumo_Ataque.png");
 
 	// Doble toque a la derecha: fotogramas pulsado, suelto y la segunda pulsación (dentro de la ventana a cualquier fps razonable).
 	constexpr int32 FotogramasPulsado = 3;
@@ -53,6 +58,8 @@ namespace SAEVUSPruebaHumo
 	constexpr float LimiteReaparicion = 8.f;
 	constexpr float RetardoCaptura = 0.5f;
 	constexpr float LimitePawn = 120.f;
+	/** Radio mínimo (cm) de los límites del cuerpo: un humanoide de pie mide bastante más. */
+	constexpr float RadioMinimoCuerpo = 60.f;
 
 	// Valores medidos frente a los ajustes del propio personaje.
 	constexpr float ToleranciaVelocidad = 0.05f;
@@ -134,12 +141,23 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		if (TiempoEtapa >= DuracionAsentar)
 		{
 			UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS humo] asentado, modo %s"), *Movimiento->GetMovementName());
+			if (UPoseableMeshComponent* Cuerpo = Pawn->ObtenerCuerpo())
+			{
+				RadioCuerpo = Cuerpo->Bounds.SphereRadius;
+				UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS humo] cuerpo: malla %s, esqueleto válido %d, radio de límites %.0f"),
+					*GetNameSafe(Cuerpo->GetSkinnedAsset()), Pawn->ObtenerAnimacion()->EsqueletoValido(), RadioCuerpo);
+			}
 			EntrarEtapa(EEtapa::Correr);
 		}
 		break;
 
 	case EEtapa::Correr:
 		Pawn->AddMovementInput(FVector::ForwardVector, 1.f);
+		if (!bCapturaCorrerHecha && TiempoEtapa >= DuracionCorrer * 0.75f)
+		{
+			bCapturaCorrerHecha = true;
+			FScreenshotRequest::RequestScreenshot(NombreCapturaCorrer, true, false);
+		}
 		VelocidadMaxCorrer = FMath::Max(VelocidadMaxCorrer, static_cast<float>(Movimiento->Velocity.Size2D()));
 		if (TiempoEtapa >= DuracionCorrer)
 		{
@@ -208,6 +226,11 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 	}
 
 	case EEtapa::Atacar:
+		if (!bCapturaAtaqueHecha && Pawn->ObtenerCombate()->ObtenerFaseAtaque() == ESAEVUSFaseAtaque::Activa)
+		{
+			bCapturaAtaqueHecha = true;
+			FScreenshotRequest::RequestScreenshot(NombreCapturaAtaque, true, false);
+		}
 		if (!Pawn->ObtenerCombate()->EstaAtacando() || TiempoEtapa >= DuracionMaxEtapaAtaque)
 		{
 			DuracionAtaque = TiempoEtapa;
@@ -271,6 +294,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 
 	case EEtapa::Informe:
 	{
+		Comprobar(TEXT("cuerpo animado con tamaño de personaje"), RadioCuerpo >= RadioMinimoCuerpo ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("velocidad al correr"), VelocidadMaxCorrer, Movimiento->ObtenerVelocidadPaso(ESAEVUSPaso::Correr), ToleranciaVelocidad);
 		Comprobar(TEXT("velocidad de esprint"), VelocidadMaxEsprint, Movimiento->ObtenerVelocidadPaso(ESAEVUSPaso::Esprint), ToleranciaVelocidad);
 		const float CimaEsperada = FMath::Square(Movimiento->JumpZVelocity) / (2.f * FMath::Abs(Movimiento->GetGravityZ()));

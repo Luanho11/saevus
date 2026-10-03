@@ -121,6 +121,9 @@ public:
 	/** Escaladas que quedan antes de aterrizar. */
 	int32 EscaladasRestantes() const;
 
+	/** Normal horizontal de la pared en la que corre o escala (alejándose de ella); cero fuera de una pared. */
+	FVector ObtenerNormalPared() const { return (EstaEnCarreraPared() || EstaEscalando()) ? NormalPared : FVector::ZeroVector; }
+
 	const FSAEVUSAjusteMovimientoSuelo& ObtenerAjusteSuelo() const;
 	const FSAEVUSAjusteMovimientoAire& ObtenerAjusteAire() const;
 	const FSAEVUSAjusteDash& ObtenerAjusteDash() const;

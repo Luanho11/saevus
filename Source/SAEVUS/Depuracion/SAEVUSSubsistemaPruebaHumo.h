@@ -66,6 +66,10 @@ private:
 	bool bDashEmpezo = false;
 	bool bCapturaDashHecha = false;
 	int32 ParticulasDash = 0;
+	bool bCapturaCorrerHecha = false;
+	bool bCapturaAtaqueHecha = false;
+	/** Radio de los límites del cuerpo animado al asentarse; si colapsa, el caballero no se ve. */
+	float RadioCuerpo = 0.f;
 	float DuracionAtaque = 0.f;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;

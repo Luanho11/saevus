@@ -33,3 +33,11 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - `loop.ps1` del dueño lanza `claude -p` cada 30 min: se añadió un cerrojo de sesión en `PROGRESS.md` para que no trabajen dos sesiones a la vez (detener el proceso desde la sesión no estaba permitido).
 - Migración completa al español de código, herramientas (`Herramientas/`), assets (`L_Pruebas`, `BP_SAEVUSPersonaje`...) y documentos (`Documentos/`). 49/49 tests, prueba de humo SUPERADA.
 - Investigación de Hollow Knight (borrador; la búsqueda web llegó a su límite) y lista de mecánicas objetivo.
+
+## 2026-10-03 — Sesión 3c (dash por doble toque y caballero boceto)
+
+- **Tarea 3:** dash por doble toque de WASD (detector puro `FSAEVUSDetectorDobleToque`, cuatro direcciones), cámara bloqueada durante el dash, invulnerabilidad breve, estela de partículas. La prueba de humo hace un doble toque real.
+- **Tarea 4:** caballero boceto generado en Blender por script (malla de piezas rígidas + esqueleto propio de 24 huesos), importado por script y animado por código (`USAEVUSComponenteAnimacionProcedural` sobre una malla poseable).
+- Problema: el caballero no se veía en juego aunque los tests de huesos pasaban. Diagnóstico en la prueba de humo (actor esquelético normal y poseable sin animar como control; sin TAA se veían puntitos donde debía estar) → la raíz del FBX trae escala 100 y la animación escribía escala 1. Arreglo: conservar la escala de reposo. Test de regresión `SAEVUS.Animacion.EscalaReposo` y comprobación de tamaño en la prueba de humo.
+- 59/59 tests, prueba de humo SUPERADA con capturas de correr, dash y ataque.
+

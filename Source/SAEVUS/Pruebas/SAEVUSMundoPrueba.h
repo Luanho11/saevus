@@ -6,6 +6,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
@@ -118,6 +119,7 @@ namespace SAEVUSPruebas
 			CombateSimulado = Personaje->ObtenerCombate();
 			ArmasSimuladas = Personaje->ObtenerArmas();
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
+			AnimacionSimulada = Personaje->ObtenerAnimacion();
 			return Personaje;
 		}
 
@@ -159,6 +161,10 @@ namespace SAEVUSPruebas
 			{
 				EstelaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &EstelaSimulada->PrimaryComponentTick);
 			}
+			if (AnimacionSimulada)
+			{
+				AnimacionSimulada->Actualizar(PasoSimulacion);
+			}
 		}
 
 	private:
@@ -167,6 +173,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteCombate* CombateSimulado = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
+		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;
 	};
 }
 

@@ -10,6 +10,8 @@ Ejecución sin interfaz:
   UnrealEditor-Cmd.exe SAEVUS.uproject -ExecutePythonScript="<este archivo>" -unattended -nullrhi
 """
 
+import os
+
 import unreal
 
 RAIZ = "/Game/SAEVUS"
@@ -17,6 +19,19 @@ DIR_ENTRADA = f"{RAIZ}/Entrada"
 DIR_DATOS = f"{RAIZ}/Datos"
 DIR_BLUEPRINTS = f"{RAIZ}/Blueprints"
 DIR_MATERIALES = f"{RAIZ}/Arte/Materiales"
+DIR_CABALLERO = f"{RAIZ}/Arte/Personajes/Caballero"
+# FBX que genera Herramientas/Arte/Generar-Caballero.ps1 (malla + esqueleto propio).
+FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballero", "SK_Caballero.fbx")
+
+# Colores del caballero boceto por ranura de material (nombres de material de Blender).
+# Tono Hollow Knight: cuerpo casi negro, máscara clara, capa azul oscuro, metal pálido.
+COLORES_CABALLERO = {
+    "Cuerpo": (0.02, 0.02, 0.025, 1.0),
+    "Mascara": (0.85, 0.85, 0.82, 1.0),
+    "Capa": (0.04, 0.05, 0.08, 1.0),
+    "Metal": (0.55, 0.58, 0.62, 1.0),
+    "Ojos": (0.0, 0.0, 0.0, 1.0),
+}
 RUTA_MAPA_PRUEBAS = f"{RAIZ}/Mapas/L_Pruebas"
 
 ACCIONES_PLANTILLA = "/Game/Input/Actions"
@@ -121,24 +136,65 @@ def cdo_blueprint(blueprint):
     return unreal.get_default_object(blueprint.generated_class())
 
 
-def crear_material_sin_luz(nombre, color):
-    """Material sin iluminación con un parámetro de color "Color"; apto para mallas instanciadas (partículas)."""
-    ruta = f"{DIR_MATERIALES}/{nombre}"
+def crear_material_color(nombre, color, sin_luz=False, directorio=DIR_MATERIALES):
+    """
+    Material de color plano con un parámetro "Color". Sin luz: emisivo (partículas). Con luz:
+    rugosidad 1 y poco especular, para un aspecto dibujado y nada plástico.
+    """
+    ruta = f"{directorio}/{nombre}"
     if eal.does_asset_exist(ruta):
         material = cargar(ruta)
     else:
-        material = herramientas_assets.create_asset(nombre, DIR_MATERIALES, unreal.Material, unreal.MaterialFactoryNew())
+        material = herramientas_assets.create_asset(nombre, directorio, unreal.Material, unreal.MaterialFactoryNew())
         registrar(f"creado {ruta}")
     edicion = unreal.MaterialEditingLibrary
     edicion.delete_all_material_expressions(material)
-    material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     material.set_editor_property("used_with_instanced_static_meshes", True)
+    material.set_editor_property("used_with_skeletal_mesh", True)
     parametro = edicion.create_material_expression(material, unreal.MaterialExpressionVectorParameter, -300, 0)
     parametro.set_editor_property("parameter_name", "Color")
     parametro.set_editor_property("default_value", unreal.LinearColor(*color))
-    edicion.connect_material_property(parametro, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if sin_luz:
+        material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+        edicion.connect_material_property(parametro, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    else:
+        material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
+        edicion.connect_material_property(parametro, "", unreal.MaterialProperty.MP_BASE_COLOR)
+        rugosidad = edicion.create_material_expression(material, unreal.MaterialExpressionConstant, -300, 200)
+        rugosidad.set_editor_property("r", 1.0)
+        edicion.connect_material_property(rugosidad, "", unreal.MaterialProperty.MP_ROUGHNESS)
+        especular = edicion.create_material_expression(material, unreal.MaterialExpressionConstant, -300, 300)
+        especular.set_editor_property("r", 0.2)
+        edicion.connect_material_property(especular, "", unreal.MaterialProperty.MP_SPECULAR)
     edicion.recompile_material(material)
     return material
+
+
+def importar_caballero():
+    """Importa (o reimporta) el caballero boceto y le pone los materiales de SAEVUS."""
+    if not os.path.exists(FBX_CABALLERO):
+        raise RuntimeError(f"Falta {FBX_CABALLERO}; ejecuta Herramientas/Arte/Generar-Caballero.ps1")
+    tarea = unreal.AssetImportTask()
+    tarea.filename = FBX_CABALLERO
+    tarea.destination_path = DIR_CABALLERO
+    tarea.automated = True
+    tarea.replace_existing = True
+    tarea.save = False
+    herramientas_assets.import_asset_tasks([tarea])
+    mallas = [unreal.load_asset(r) for r in tarea.imported_object_paths]
+    malla = next((m for m in mallas if isinstance(m, unreal.SkeletalMesh)), None)
+    if malla is None:
+        raise RuntimeError(f"La importación de {FBX_CABALLERO} no produjo una malla esquelética ({list(tarea.imported_object_paths)})")
+
+    materiales = malla.get_editor_property("materials")
+    for ranura in materiales:
+        nombre_ranura = str(ranura.get_editor_property("material_slot_name"))
+        for clave, color in COLORES_CABALLERO.items():
+            if nombre_ranura.lower().startswith(clave.lower()):
+                ranura.set_editor_property("material_interface", crear_material_color(f"M_Caballero_{clave}", color, directorio=DIR_CABALLERO))
+    malla.set_editor_property("materials", materiales)
+    registrar(f"caballero importado: {malla.get_path_name()} ({len(materiales)} materiales)")
+    return malla
 
 
 def crear_assets_entrada():
@@ -205,19 +261,23 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     bp_personaje = obtener_o_crear_blueprint("BP_SAEVUSPersonaje", unreal.SAEVUSPersonaje)
     personaje = cdo_blueprint(bp_personaje)
     personaje.set_editor_property("config_entrada", config_entrada)
+    # El maniquí de plantilla ya no se usa: el cuerpo visible es el caballero en la malla poseable.
     malla = personaje.get_editor_property("mesh")
-    # SkeletalMeshAsset es transitorio; solo el setter actualiza el asset serializado.
     if hasattr(malla, "set_skeletal_mesh_asset"):
-        malla.set_skeletal_mesh_asset(cargar(MALLA_MANIQUI))
-    else:
-        malla.set_skeletal_mesh(cargar(MALLA_MANIQUI), False)
-    malla.set_editor_property("anim_class", cargar(ANIM_BP_MANIQUI).generated_class())
+        malla.set_skeletal_mesh_asset(None)
+    malla.set_editor_property("anim_class", None)
+    cuerpo = personaje.get_editor_property("cuerpo")
+    caballero = importar_caballero()
+    try:
+        cuerpo.set_editor_property("skinned_asset", caballero)
+    except Exception:  # noqa: BLE001 - según versión, la propiedad solo se cambia con su setter
+        cuerpo.set_skinned_asset_and_update(caballero, True)
     personaje.get_editor_property("character_movement").set_editor_property("ajustes_movimiento", movimiento)
     personaje.get_editor_property("camara").set_editor_property("ajustes_camara", camara)
     personaje.get_editor_property("combate").set_editor_property("datos_repertorio", repertorio)
     personaje.get_editor_property("armas").set_editor_property("arsenal", armas)
     # Polvo claro y frío para la estela del dash: resalta sobre el escenario oscuro.
-    material_estela = crear_material_sin_luz("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0))
+    material_estela = crear_material_color("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0), sin_luz=True)
     personaje.get_editor_property("estela_dash").set_editor_property("override_materials", [material_estela])
 
     bp_controlador = obtener_o_crear_blueprint("BP_SAEVUSControladorJugador", unreal.SAEVUSControladorJugador)

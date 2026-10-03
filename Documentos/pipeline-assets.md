@@ -52,7 +52,7 @@ Verificado con `Herramientas/Pipeline/Ejecutar-SondaPipeline.ps1` (Blender 4.2 �
 - FBX con ejes por defecto de Blender (adelante −Z, arriba Y), *Apply Unit*, *FBX Units Scale None*. glTF también funciona igual.
 - **Orientación verificada:** un personaje que mira a −Y en Blender mira a **+Y** en UE, como el maniquí; la corrección de −90° del personaje sirve tal cual.
 - **Formato (decisión):** FBX para mallas esqueléticas y animación; FBX o glTF para estáticas.
-- **Esqueleto personalizado desde el principio** (decisión del dueño): básico y modificable, nombres de huesos en español, sin huesos hoja, solo huesos de deformación, armature a escala 1. Pendiente de una sonda esquelética antes del primer personaje.
+- **Esqueleto personalizado desde el principio** (decisión del dueño): básico y modificable, nombres de huesos en español, sin huesos hoja, solo huesos de deformación. Primer personaje: el caballero boceto (`animacion.md`). El armazón se llama `Armature`, así UE no lo añade como hueso. **Verificado:** la raíz llega con **escala 100** en la pose de reposo; quien escriba poses debe conservarla.
 - Origen en el centro de los pies (personajes, objetos) o en el punto de rejilla (piezas modulares). Aplicar transformaciones antes de exportar.
 - Archivos fuente (`.blend`, `.psd`, `.png`) en `ArteFuente/`, fuera de `Content/`, con LFS.
 
@@ -67,5 +67,5 @@ Carpeta por asset: `/Game/SAEVUS/Arte/<Categoría>/<Nombre>/` (`Personajes`, `En
 
 ## Validación
 
-- `Ejecutar-SondaPipeline.ps1` (hecho); falta la sonda esquelética.
+- `Ejecutar-SondaPipeline.ps1` (hecho). La importación esquelética se valida con el caballero: tests `SAEVUS.Animacion.*` y `saevus_verificar_assets.py`.
 - Más adelante: reglas de validación de datos (prefijos, presupuestos, colisión).

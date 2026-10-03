@@ -1,7 +1,9 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Personaje/SAEVUSPersonaje.h"
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Components/PoseableMeshComponent.h"
 #include "Camara/SAEVUSComponenteCamara.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
@@ -49,6 +51,12 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 
 	EstelaDash = CreateDefaultSubobject<USAEVUSComponenteEstelaDash>(TEXT("EstelaDash"));
 	EstelaDash->SetupAttachment(RootComponent);
+
+	// Cuerpo visible: hereda de la malla del personaje el desplazamiento a los pies y la corrección de -90°.
+	Cuerpo = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Cuerpo"));
+	Cuerpo->SetupAttachment(GetMesh());
+	Cuerpo->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Animacion = CreateDefaultSubobject<USAEVUSComponenteAnimacionProcedural>(TEXT("Animacion"));
 
 	BrazoCamara = CreateDefaultSubobject<USpringArmComponent>(TEXT("BrazoCamara"));
 	BrazoCamara->SetupAttachment(RootComponent);
@@ -108,7 +116,7 @@ void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AAct
 	GetCharacterMovement()->DisableMovement();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	if (GetMesh()->GetPhysicsAsset())
+	if (GetMesh()->GetSkeletalMeshAsset() && GetMesh()->GetPhysicsAsset())
 	{
 		GetMesh()->SetCollisionProfileName(SAEVUSPersonaje::PerfilRagdoll);
 		GetMesh()->SetSimulatePhysics(true);

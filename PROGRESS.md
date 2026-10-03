@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: SESIÓN INTERACTIVA ACTIVA**
-**Último latido: 2026-10-03 15:32** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 5)**
+**Último latido: 2026-10-03 16:33** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -32,7 +32,7 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 1. [x] ~~Migración al español: CLAUDE.md, Docs, código (clases, funciones, variables, comentarios), scripts, assets regenerados, tests verdes.~~
 2. [ ] Investigación Hollow Knight + ampliación GunZ → `Docs/investigacion/` y plan de mecánicas.
 3. [x] ~~Dash por doble toque WASD, cámara bloqueada, invulnerabilidad breve, partículas de dash.~~
-4. [ ] Caballero boceto: malla + esqueleto personalizado generados en Blender por script, importados; animación procedural en C++ (reposo, correr, saltar, caer, dash, wall run, escalar, ataques sincronizados con la línea de tiempo, disparo, muerte).
+4. [x] ~~Caballero boceto: malla + esqueleto personalizado generados en Blender por script, importados; animación procedural en C++ (reposo, correr, saltar, caer, dash, wall run, escalar, ataques sincronizados con la línea de tiempo, disparo, muerte).~~
 5. [ ] Sombreado tipo Hollow Knight (materiales oscuros, máscara clara, contorno por post-proceso barato).
 6. [ ] Mecánicas Hollow Knight: doble salto, ataque hacia arriba/abajo, rebote (pogo), retroceso al golpear, almas + curación.
 7. [ ] Enemigos simples (IA de estados) + mini jefe, datos en Data Assets.
@@ -41,6 +41,6 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 10. [ ] Después: nuevas tareas propuestas por Claude (pulido, efectos, tests, rendimiento).
 
 ## Estado del turno
-- Completado: tarea 3 (doble toque, cámara bloqueada, invulnerabilidad, estela; 53/53 tests; prueba de humo con doble toque real SUPERADA; captura `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_Dash.png`).
+- Completado: tarea 4 (caballero boceto con esqueleto propio y animación procedural; 59/59 tests; prueba de humo SUPERADA con el caballero visible; `Documentos/animacion.md`).
 - A medias: —
-- Siguiente paso exacto: tarea 4 — caballero boceto: script de Blender que genera malla + esqueleto personalizado (FBX), sonda esquelética, importación por script, y animación procedural en C++ (componente `USAEVUSComponenteAnimacionProcedural` con malla poseable).
+- Siguiente paso exacto: tarea 5 — sombreado tipo Hollow Knight: asignar de verdad los materiales `M_Caballero_*` (hoy quedan los de Interchange), material de personaje oscuro con borde/rim y máscara clara, y contorno por post-proceso barato (profundidad/normales) apto para la Vega 8.

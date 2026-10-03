@@ -31,6 +31,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Datos/DA_Arma_Escopeta",
     "/Game/SAEVUS/Mapas/L_Pruebas",
     "/Game/SAEVUS/Arte/Materiales/M_ParticulaPolvo",
+    "/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero",
 )
 
 PROPIEDADES_CONFIG_ENTRADA = (
@@ -66,9 +67,9 @@ def main():
 
     personaje = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSPersonaje")
     if personaje:
-        malla = personaje.get_editor_property("mesh")
-        comprobar("malla del personaje asignada", malla.get_editor_property("skeletal_mesh_asset") is not None)
-        comprobar("clase de animación asignada", malla.get_editor_property("anim_class") is not None)
+        cuerpo = personaje.get_editor_property("cuerpo")
+        activo = cuerpo.get_editor_property("skinned_asset") if cuerpo else None
+        comprobar("cuerpo del personaje = SK_Caballero", activo is not None and activo.get_name() == "SK_Caballero")
         comprobar("config de entrada asignada", personaje.get_editor_property("config_entrada") is not None)
         movimiento = personaje.get_editor_property("character_movement")
         comprobar("el movimiento es de SAEVUS", isinstance(movimiento, unreal.SAEVUSComponenteMovimiento))

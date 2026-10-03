@@ -1,4 +1,4 @@
-﻿# Compila SAEVUS, ejecuta los tests de automatización, crea los assets y los verifica.
+﻿# Compila SAEVUS, crea los assets, ejecuta los tests de automatización y verifica los assets.
 # Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets]
 # Los logs van a Saved\Logs\Verificacion\. Código de salida 0 solo si pasan todos los pasos.
 
@@ -30,16 +30,16 @@ Write-Host "== 1/4 Compilar SAEVUSEditor"
     Tee-Object -FilePath (Join-Path $DirLogs "compilacion.log") | Select-String -Pattern "error|warning C|Result:"
 if ($LASTEXITCODE -ne 0) { throw "La compilación falló (ver compilacion.log)" }
 
-Write-Host "== 2/4 Tests de automatización SAEVUS.*"
-& (Join-Path $PSScriptRoot "Ejecutar-Pruebas.ps1") -RaizMotor $RaizMotor
-if ($LASTEXITCODE -ne 0) { throw "Fallaron tests (ver pruebas.log)" }
-
 if (-not $SinAssets) {
-    Write-Host "== 3/4 Crear assets"
+    Write-Host "== 2/4 Crear assets (los tests de animación usan el caballero importado)"
     $logAssets = Invocar-Editor "assets" "-ExecutePythonScript=`"$(Join-Path $PSScriptRoot 'ScriptsEditor\saevus_crear_assets.py')`""
     Select-String -Path $logAssets -Pattern "\[SAEVUS assets\]" -Encoding UTF8 | ForEach-Object { "  " + ($_.Line -replace '^.*?\[SAEVUS', '[SAEVUS') }
     if (Select-String -Path $logAssets -Pattern "\[SAEVUS assets\] FALLO" -Quiet -Encoding UTF8) { throw "Falló el script de assets (ver assets.log)" }
 }
+
+Write-Host "== 3/4 Tests de automatización SAEVUS.*"
+& (Join-Path $PSScriptRoot "Ejecutar-Pruebas.ps1") -RaizMotor $RaizMotor
+if ($LASTEXITCODE -ne 0) { throw "Fallaron tests (ver pruebas.log)" }
 
 Write-Host "== 4/4 Verificar assets"
 $logVerificar = Invocar-Editor "verificar" "-ExecutePythonScript=`"$(Join-Path $PSScriptRoot 'ScriptsEditor\saevus_verificar_assets.py')`""

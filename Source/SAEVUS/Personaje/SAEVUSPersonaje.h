@@ -7,7 +7,9 @@
 #include "Personaje/SAEVUSDetectorDobleToque.h"
 #include "SAEVUSPersonaje.generated.h"
 
+class UPoseableMeshComponent;
 class USpringArmComponent;
+class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCamara;
 class USAEVUSComponenteCombate;
@@ -24,7 +26,8 @@ struct FInputActionValue;
  * USAEVUSComponenteCombate, el arsenal y las armas de fuego en USAEVUSComponenteArmas, la vida en
  * USAEVUSComponenteVida y la cámara en USAEVUSComponenteCamara. El personaje reparte la entrada
  * entre ellos y deja que el combate vete acciones de movimiento y cambios de arma a mitad de un ataque.
- * La malla y la animación se asignan en la subclase Blueprint, no en C++.
+ * El cuerpo visible es una malla poseable (`Cuerpo`, esqueleto propio) animada por
+ * USAEVUSComponenteAnimacionProcedural; la malla se asigna en la subclase Blueprint, no en C++.
  */
 UCLASS()
 class SAEVUS_API ASAEVUSPersonaje : public ACharacter
@@ -41,6 +44,8 @@ public:
 	USAEVUSComponenteArmas* ObtenerArmas() const { return Armas; }
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
 	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
+	UPoseableMeshComponent* ObtenerCuerpo() const { return Cuerpo; }
+	USAEVUSComponenteAnimacionProcedural* ObtenerAnimacion() const { return Animacion; }
 	USpringArmComponent* ObtenerBrazoCamara() const { return BrazoCamara; }
 	USAEVUSComponenteCamara* ObtenerCamara() const { return Camara; }
 
@@ -124,6 +129,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEstelaDash> EstelaDash;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UPoseableMeshComponent> Cuerpo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteAnimacionProcedural> Animacion;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> BrazoCamara;
