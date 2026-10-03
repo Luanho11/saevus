@@ -1,0 +1,47 @@
+# ESTADO DEL PROYECTO SAEVUS
+
+_Actualizado: 2026-10-03 (sesión 3b)_
+
+## Objetivo actual
+
+Que el juego **se vea y se sienta**: dash por doble toque con partículas, caballero boceto animado con esqueleto propio, sombreado tipo Hollow Knight, mecánicas de Hollow Knight, enemigos y mini jefe, mapa tutorial e interfaz. Orden y detalle en `PROGRESS.md` y `hoja-de-ruta.md`.
+
+## Hecho
+
+- **Entorno:** UE 5.8.3 (binario), VS 2022 Build Tools 17.14 / MSVC 14.44, SDK 10.0.26100, .NET 4.8 SDK, Blender 4.2.16, Git + LFS (`entorno.md`). Smart App Control desactivado.
+- **Render para hardware modesto:** sin Lumen/Nanite/RT/VSM/MegaLights/distance fields, TAA, SSR, iluminación dinámica.
+- **Movimiento** (`movimiento.md`): caminar/correr/esprint, salto con coyote y buffer, control aéreo, dash (suelo y aire), salto de pared, carrera por pared, escalada; listo para red con movimientos guardados.
+- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, tajo aéreo), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
+- **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
+- **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
+- **Todo en español:** código, herramientas, assets, documentos.
+- **Rendimiento** (`rendimiento.md`): Media ≈ 51–68 fps a 720p en la Vega 8; limitado por GPU.
+
+## Verificación
+
+- `Herramientas\Verificar-Arranque.ps1`: compilación, 49/49 tests `SAEVUS.*`, creación y verificación de assets — todo superado.
+- `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (correr 550, esprint 850, cima 142,8 cm, dash 1600, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100).
+
+## Arquitectura (resumen)
+
+`ASAEVUSPersonaje` compone `USAEVUSComponenteMovimiento` (CMC), `USAEVUSComponenteCombate`, `USAEVUSComponenteArmas`, `USAEVUSComponenteVida` y `USAEVUSComponenteCamara` sobre un brazo de cámara. Valores en structs de ajuste y Data Assets; los Blueprints y el mapa los crea `Herramientas/ScriptsEditor/saevus_crear_assets.py`. Detalle en `arquitectura.md`.
+
+## Decisiones técnicas
+
+- UE 5.8 binario; VS 2022 (no VS 2026).
+- CMC, no Mover; peticiones por movimientos guardados.
+- Dash como estado dentro de caminar/caer; carrera por pared y escalada como `MOVE_Custom`.
+- Cancelaciones como datos por ataque; la animación se deriva de la línea de tiempo.
+- Canal de traza propio "Arma".
+- Git LFS sin `lockable` (no hay servidor de bloqueos).
+- Prototipo de animación procedural en C++ sobre esqueleto propio generado en Blender.
+
+## Problemas conocidos
+
+- Máquina por debajo de lo recomendado (7 GB RAM, Vega 8): recompilación completa > 10 min, la primera ejecución con render es "en frío".
+- `loop.ps1` del dueño puede lanzar otra sesión de Claude; se coordina con el cerrojo de `PROGRESS.md`.
+- Todavía sin animación de ataque, sin modelo propio de personaje, sin tutorial ni enemigos.
+
+## Siguiente paso
+
+Tarea 3 de `PROGRESS.md`: dash por doble toque de WASD, cámara bloqueada durante el dash, invulnerabilidad breve y partículas.
