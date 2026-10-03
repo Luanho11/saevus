@@ -13,3 +13,11 @@ enum class ESAEVUSGait : uint8
 	Run,
 	Sprint
 };
+
+/** SAEVUS sub-modes of MOVE_Custom (UCharacterMovementComponent::CustomMovementMode). */
+UENUM(BlueprintType)
+enum class ESAEVUSCustomMovementMode : uint8
+{
+	None = 0 UMETA(Hidden),
+	WallRun
+};

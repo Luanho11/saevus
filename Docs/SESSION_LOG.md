@@ -93,3 +93,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Problem caught by the existing coyote test: the platform edge just walked off counted as a wall (free launch). Fixed by ignoring contacts on the capsule's lower hemisphere; added `WallJump.NotOffLedge`.
 - Sandbox: wall-jump chimney + 4.5 m ledge. 19/19 tests, Verify-Bootstrap and smoke test pass.
 - Next: wall run.
+
+### Phase 3 — wall run (same session)
+- Wall run as the first custom movement mode: entry while falling along a wall with steering input, held speed, reduced gravity, re-probes and follows the wall, exits on time/wall lost/input away/landing/blocked; jump off = wall jump. Same wall can't be re-run before landing (alternating walls works).
+- Wall code moved to `SAEVUSMovementComponentWalls.cpp`. Sandbox wall-run corridor.
+- 26/26 tests, Verify-Bootstrap and smoke test pass.
+- Next: wall climb.

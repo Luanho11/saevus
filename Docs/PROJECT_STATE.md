@@ -14,7 +14,7 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 **Phase 2 — GunZ research: DRAFT DONE (2026-10-03).** `Docs/research/gunz.md`: public-source summary, SAEVUS design goals, Phase 3 proposal and six questions for the owner.
 
-**Phase 3 — Advanced movement: IN PROGRESS.** Order: dash (**done**) → wall jump (**done**) → wall run → wall climb.
+**Phase 3 — Advanced movement: IN PROGRESS.** Order: dash (**done**) → wall jump (**done**) → wall run (**done**) → wall climb.
 
 ## Completed
 
@@ -45,11 +45,12 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 - Phase 1: smoke test records game / render / GPU time; `Tools/Run-SmokeTest.ps1` (scalability / extra cvars / `-ProfileGPU`); scalability sweep recorded in `Docs/performance.md`.
 - Phase 3 dash: `FSAEVUSDashTuning`, `RequestDash` / `CanDash` / `IsDashing` in the movement component, `IA_Dash` (Left Ctrl, mouse thumb, gamepad B), air-dash budget, jump-cancel, saved-move state (`FLAG_Custom_2`), HUD line, smoke-test stage, 5 new tests (13/13 pass).
 - Phase 3 wall jump: `FSAEVUSWallJumpTuning`, `TryWallJump` / `FindWallJumpNormal` (8 capsule sweeps, ignores foot-level ledges), budget + air-dash refill, saved-move state, HUD line, Sandbox chimney + 4.5 m ledge, 6 new tests (19/19 pass).
+- Phase 3 wall run: `MOVE_Custom` + `ESAEVUSCustomMovementMode::WallRun`, `FSAEVUSWallRunTuning`, entry/exit rules, same-wall rule, jump-off = wall jump; wall code split into `Movement/SAEVUSMovementComponentWalls.cpp`; Sandbox wall-run corridor; 7 new tests (26/26 pass).
 - `.gitattributes`: removed `lockable` from `.uasset`/`.umap` (no LFS lock server; it left assets read-only and the asset script could not save).
 
 ## In Progress
 
-- Phase 3: wall run (next).
+- Phase 3: wall climb (next).
 
 ## Pending
 
@@ -113,8 +114,8 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 ## Testing
 
 - `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` → build, `SAEVUS.*` automation tests, asset script, asset verify. **All passed** (2026-10-03).
-- `Tools\Run-Tests.ps1` → 19/19 `SAEVUS.Movement.*` pass (2026-10-03, Session 3): Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 vs 142.9 cm), Air.AirControl (434 vs ~420 cm/s), JumpAssist.CoyoteTime / JumpBuffer / AirGaitLock, Dash.Ground (293 vs 288 cm) / Direction / Cooldown / AirBudget / JumpCancel, WallJump.Basic / NoWall / NotOffLedge / Tangential / Budget / RefillsAirDash.
-- `Tools\Verify-Bootstrap.ps1` (build, tests, asset script, asset verify) → all passed after adding `IA_Dash` and the wall-jump chimney.
+- `Tools\Run-Tests.ps1` → 26/26 `SAEVUS.Movement.*` pass (2026-10-03, Session 3): Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 vs 142.9 cm), Air.AirControl (434 vs ~420 cm/s), JumpAssist.CoyoteTime / JumpBuffer / AirGaitLock, Dash.Ground (293 vs 288 cm) / Direction / Cooldown / AirBudget / JumpCancel, WallJump.Basic / NoWall / NotOffLedge / Tangential / Budget / RefillsAirDash, WallRun.Enter / EntryConditions / Duration (72 steps = 1.2 s) / Landing / WallEnds / JumpOff / Detach.
+- `Tools\Verify-Bootstrap.ps1` (build, tests, asset script, asset verify) → all passed after adding `IA_Dash`, the wall-jump chimney and the wall-run corridor.
 - Rendered smoke test: `Tools\Run-SmokeTest.ps1 [-Scalability N]` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.9 cm, dash 1600.0; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`.
 - Performance baseline (720p, warm): Low 118 fps, Medium 55–68, High 45–49, Epic 37. GPU-bound; game thread 7–9 ms. Medium is the 60 fps tier on the Vega 8, mostly thanks to its sub-native resolution. Details in `Docs/performance.md`.
 - Simulation tests tick the movement component directly (a game-mode-less test world does not run its tick groups).

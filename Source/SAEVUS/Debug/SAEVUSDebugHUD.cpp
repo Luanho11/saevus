@@ -30,7 +30,7 @@ void ASAEVUSDebugHUD::DrawHUD()
 		FString::Printf(TEXT("Mode: %s"), *Movement->GetMovementName()),
 		FString::Printf(TEXT("Dash: %s, air dashes left %d"), Movement->IsDashing() ? TEXT("active") : (Movement->CanDash() ? TEXT("ready") : TEXT("blocked")),
 			Movement->GetAirDashesRemaining()),
-		FString::Printf(TEXT("Wall jumps left: %d"), Movement->GetWallJumpsRemaining()),
+		FString::Printf(TEXT("Wall jumps left: %d, wall run %.2f s"), Movement->GetWallJumpsRemaining(), Movement->GetWallRunTimeRemaining()),
 		FString::Printf(TEXT("Location: %s"), *Character->GetActorLocation().ToCompactString()),
 	};
 

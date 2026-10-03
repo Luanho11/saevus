@@ -1,6 +1,6 @@
 # SAEVUS movement
 
-Status: Phase 3 (advanced movement) in progress. Walk, run, sprint, jump, air control, coyote time, jump buffer, dash, wall jump. Built on `UCharacterMovementComponent` (CMC).
+Status: Phase 3 (advanced movement) in progress. Walk, run, sprint, jump, air control, coyote time, jump buffer, dash, wall jump, wall run. Built on `UCharacterMovementComponent` (CMC).
 
 ## Why CMC and not Mover
 
@@ -93,15 +93,42 @@ Phase 3, second ability. No new input: it is the jump pressed while airborne nex
 
 First-pass values. In the Sandbox chimney (3 m gap) each hop gains about 1.5 m, so three wall jumps plus the ground jump reach the 4.5 m ledge.
 
+## Wall run
+
+Phase 3, third ability, and the first custom movement mode: `MOVE_Custom` + `ESAEVUSCustomMovementMode::WallRun`. Code in `SAEVUSMovementComponentWalls.cpp` (with wall detection and the wall jump). No new input.
+
+- **Entry** (`TryStartWallRun`, each update while falling, skipped while dashing or on the update of a wall jump): movement input present and not pointing away from the wall (`DetachInputDot`); a wall within `DetectionDistance` beside the motion or diagonally ahead (4 capsule sweeps, same wall rules as the wall jump); speed along it at least `MinEntrySpeed`; not falling faster than `MaxEntryFallSpeed`; not the wall last run on (see below).
+- **On entry.** Direction = the velocity along the wall. Falling speed is cancelled and upward speed capped to `MaxEntryUpSpeed`, so a jump into a wall gives a short rising arc. The body faces along the wall. Air dashes refill (`bRefillsAirDashes`).
+- **While running** (`PhysWallRun`): speed along the wall is held at `Speed`; gravity is the character's gravity × `GravityScale`; the wall is re-probed each update and its normal followed (curved walls), and the capsule is pulled back to a 1 cm gap from it.
+- **Exits.** Time (`MaxDuration`) → fall, keeping the run's speed. Wall ends or is lost → fall. Input away from the wall → fall. Coming down onto a floor → landing. Something blocking the way → fall. Jump → wall jump off the wall being run on (wall-jump tuning and budget; the run's speed along the wall counts as the tangential part).
+- **Same wall.** The wall last run on can't be run again until landing or running a different wall. Alternating between two facing walls works; climbing one wall forever doesn't.
+- No dash during a wall run (the dash needs walking or falling).
+- Animation: the template AnimBP doesn't know the custom mode, so it plays ground locomotion at the run speed. A proper wall-run pose belongs to the animation work.
+
+| Value (`FSAEVUSWallRunTuning`) | Default | Notes |
+|---|---|---|
+| Speed | 750 cm/s | |
+| MaxDuration | 1.2 s | 0 disables wall running |
+| GravityScale | 0.3 | of the character's gravity: falls about 3.7 m over a full run from rest |
+| MinEntrySpeed | 300 cm/s | along the wall |
+| MaxEntryUpSpeed | 300 cm/s | |
+| MaxEntryFallSpeed | 600 cm/s | |
+| DetectionDistance | 40 cm | |
+| MaxWallNormalZ | 0.3 | |
+| DetachInputDot | 0.7 | |
+| bRefillsAirDashes | true | |
+
+First-pass values, not tuned by feel.
+
 ## Networking readiness
 
-`FSAEVUSSavedMove` stores the sprint and walk requests. They travel as `FLAG_Custom_0` (sprint) and `FLAG_Custom_1` (walk) in the compressed flags and are restored in `UpdateFromCompressedFlags`. Moves with different requests are never combined. When replication is turned on, gait stays client-predicted with no extra work. The dash request travels as `FLAG_Custom_2`; the saved move also stores the dash state at the start of the move (direction, time left, cooldown, air dashes used) and restores it in `PrepMoveFor`, so a replay after a correction re-simulates the dash exactly. Moves that press dash or start/end a dash are never combined. The wall jump needs no flag: it is driven by the replicated jump press (`FLAG_JumpPressed`; the server resets `JumpKeyHoldTime` on each new press), and the wall-jump count is saved and restored like the dash state. `FLAG_Custom_3` is still free. Abilities that need more state should use the CMC move-container / network data API instead of flags.
+`FSAEVUSSavedMove` stores the sprint and walk requests. They travel as `FLAG_Custom_0` (sprint) and `FLAG_Custom_1` (walk) in the compressed flags and are restored in `UpdateFromCompressedFlags`. Moves with different requests are never combined. When replication is turned on, gait stays client-predicted with no extra work. The dash request travels as `FLAG_Custom_2`; the saved move also stores the dash state at the start of the move (direction, time left, cooldown, air dashes used) and restores it in `PrepMoveFor`, so a replay after a correction re-simulates the dash exactly. Moves that press dash or start/end a dash are never combined. The wall jump needs no flag: it is driven by the replicated jump press (`FLAG_JumpPressed`; the server resets `JumpKeyHoldTime` on each new press), and the wall-jump count is saved and restored like the dash state. The wall-run state (normal, direction, time left, last wall) is saved and restored the same way; the movement mode itself is engine-replicated. `FLAG_Custom_3` is still free. Abilities that need more state should use the CMC move-container / network data API instead of flags.
 
 Known limitation: the air gait and the coyote/buffer timers are local simulation state derived from mode transitions, not part of the saved move. After a server correction they can be off for one transition. The jump itself still travels through the normal `bPressedJump` path, so the server stays authoritative.
 
 ## Future abilities (not implemented)
 
-Wall run, wall jump, dash, sword-driven movement and aerial combat will be **custom movement modes** (`MOVE_Custom` + a SAEVUS sub-mode enum) inside `USAEVUSMovementComponent`, or small helper objects it owns, each with its own tuning struct. Their exact behaviour depends on the GunZ research phase. Nothing is designed from GunZ mechanics yet.
+Wall climb is next in Phase 3 (another `ESAEVUSCustomMovementMode`). Sword-driven movement and aerial combat come with the combat phases and will plug into the same component through the cancel rules described in `research/gunz.md`. Each gets its own tuning struct and tests.
 
 ## Open design questions
 
@@ -134,6 +161,13 @@ Wall run, wall jump, dash, sword-driven movement and aerial combat will be **cus
 | `WallJump.Tangential` | keeps TangentialSpeedKept of the speed along the wall |
 | `WallJump.Budget` | second jump refused with budget 1; landing refills |
 | `WallJump.RefillsAirDash` | ends the air dash; refills air dashes only when enabled |
+| `WallRun.Enter` | falling along a wall with input starts it; speed; facing; stays at the wall |
+| `WallRun.EntryConditions` | refused with no input, too slow, input away, falling too fast |
+| `WallRun.Duration` | lasts MaxDuration (72 steps); then falls; same wall not re-run |
+| `WallRun.Landing` | sliding down onto the floor lands |
+| `WallRun.WallEnds` | running off the end of the wall falls, keeping speed |
+| `WallRun.JumpOff` | jump = wall jump off the run wall, keeps half the run speed |
+| `WallRun.Detach` | input away from the wall drops off |
 | `JumpAssist.AirGaitLock` | sprint mid-air keeps the run cap when locked, raises it when unlocked; a jump take-off opens no coyote window |
 
 The simulation tests tick a real `ASAEVUSCharacter` in a throwaway world (`Tests/SAEVUSMovementTestWorld.h`: no map, no controller, `bRunPhysicsWithNoController`, engine-cube platforms). The fixture ticks the movement component directly and advances world time itself, starting at 10 s: in editor builds CMC refuses to start falling during the first second of world time.
@@ -148,6 +182,7 @@ In-game check: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -Res
 - slopes at 20°, 35° and 50° (the default walkable limit is about 44.8°);
 - 200 cm decks with gaps of 2–6 m for jump distance and air control;
 - a 30 m × 6 m wall reserved for wall running;
-- a wall-jump chimney at X = -30 m: two 7 m walls with a 3 m gap, and a 4.5 m ledge at its far end.
+- a wall-jump chimney at X = -30 m: two 7 m walls with a 3 m gap, and a 4.5 m ledge at its far end;
+- a wall-run corridor at Y = -30 m: two 20 m × 6 m walls, 5 m apart.
 
 Press F6 to show gait, speed, vertical speed, movement mode and location.

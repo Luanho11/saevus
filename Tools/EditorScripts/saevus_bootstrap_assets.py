@@ -210,6 +210,10 @@ def build_sandbox(game_mode_bp):
         spawn_block(actors, f"WallJump_Chimney{side}", unreal.Vector(-3000, y, 350), (600, 100, 700), dark)
     spawn_block(actors, "WallJump_Ledge450cm", unreal.Vector(-3500, 0, 225), (400, 400, 450), grid)
 
+    # Wall-run corridor: two 20 m x 6 m walls, 5 m apart, to chain wall runs from side to side.
+    for side, y in (("A", -3300), ("B", -2700)):
+        spawn_block(actors, f"WallRun_Corridor{side}", unreal.Vector(0, y, 300), (2000, 100, 600), dark)
+
     # Lighting: fully dynamic, no Lumen.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-50, yaw=-35))
     sun.set_actor_label("Sun")

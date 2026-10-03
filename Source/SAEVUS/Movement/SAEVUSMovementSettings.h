@@ -176,6 +176,56 @@ struct FSAEVUSWallJumpTuning
 	bool bFaceJumpDirection = true;
 };
 
+/**
+ * Wall run: airborne, moving along a wall with input not pointing away from it, the
+ * character runs along the wall for a limited time with reduced gravity. See Docs/movement.md.
+ */
+USTRUCT(BlueprintType)
+struct FSAEVUSWallRunTuning
+{
+	GENERATED_BODY()
+
+	/** Speed along the wall while wall running. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Run", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float Speed = 750.f;
+
+	/** Longest wall run; it ends in a fall after this. 0 disables wall running. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Run", meta = (ClampMin = "0", ForceUnits = "s"))
+	float MaxDuration = 1.2f;
+
+	/** Multiplier on the character's gravity while on the wall. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Run", meta = (ClampMin = "0"))
+	float GravityScale = 0.3f;
+
+	/** Speed along the wall needed to start a wall run. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float MinEntrySpeed = 300.f;
+
+	/** Upward speed kept when the wall run starts is capped to this; falling speed is cancelled. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float MaxEntryUpSpeed = 300.f;
+
+	/** Falling faster than this, the wall can't be caught. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float MaxEntryFallSpeed = 600.f;
+
+	/** Largest gap between the capsule and the wall to start or keep a wall run. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DetectionDistance = 40.f;
+
+	/** Surfaces whose normal Z is above this are not runnable walls. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ClampMax = "1"))
+	float MaxWallNormalZ = 0.3f;
+
+	/** Movement input pointing away from the wall more than this (dot with the wall normal) detaches. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Run", meta = (ClampMin = "0", ClampMax = "1"))
+	float DetachInputDot = 0.7f;
+
+	/** Starting a wall run gives back the air dashes. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Run")
+	bool bRefillsAirDashes = true;
+};
+
 /** Designer-editable movement profile assigned to USAEVUSMovementComponent. */
 UCLASS(BlueprintType, Const)
 class SAEVUS_API USAEVUSMovementSettings : public UPrimaryDataAsset
@@ -194,4 +244,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wall Jump")
 	FSAEVUSWallJumpTuning WallJump;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wall Run")
+	FSAEVUSWallRunTuning WallRun;
 };
