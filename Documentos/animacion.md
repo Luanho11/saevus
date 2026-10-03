@@ -39,6 +39,6 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 
 ## Pendiente
 
-- Los materiales `M_Caballero_*` no sustituyen a los que crea Interchange (`Cuerpo`, `Mascara`...). Se resuelve en la tarea 5 (sombreado).
+- ~~Los materiales `M_Caballero_*` no sustituyen a los que crea Interchange~~: resuelto en la tarea 5 con *overrides* `MI_Caballero_*` en el componente (`pipeline-assets.md`, Sombreado).
 - La escala 0 del arma oculta no la saca de los límites de física.
 - Pulido: anticipación y estela de los tajos, transiciones de cancelación más marcadas, cara mirando a la cámara en el reposo.

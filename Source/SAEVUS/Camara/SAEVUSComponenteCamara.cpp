@@ -37,6 +37,7 @@ void USAEVUSComponenteCamara::AplicarAjustes()
 {
 	const FSAEVUSAjusteCamara& Ajuste = ObtenerAjuste();
 	FieldOfView = Ajuste.CampoVisionBase;
+	AplicarEstilo(Ajuste);
 
 	USpringArmComponent* Brazo = Cast<USpringArmComponent>(GetAttachParent());
 	if (!Brazo)
@@ -49,6 +50,20 @@ void USAEVUSComponenteCamara::AplicarAjustes()
 	Brazo->bEnableCameraLag = Ajuste.bRetrasoPosicion;
 	Brazo->CameraLagSpeed = Ajuste.VelocidadRetrasoPosicion;
 	Brazo->CameraLagMaxDistance = Ajuste.DistanciaMaximaRetraso;
+}
+
+void USAEVUSComponenteCamara::AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste)
+{
+	PostProcessBlendWeight = 1.f;
+	PostProcessSettings.WeightedBlendables.Array.Reset();
+	if (Ajuste.MaterialContorno)
+	{
+		PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.f, Ajuste.MaterialContorno));
+	}
+	PostProcessSettings.bOverride_VignetteIntensity = true;
+	PostProcessSettings.VignetteIntensity = Ajuste.IntensidadVineta;
+	PostProcessSettings.bOverride_ColorSaturation = true;
+	PostProcessSettings.ColorSaturation = FVector4(Ajuste.Saturacion, Ajuste.Saturacion, Ajuste.Saturacion, 1.f);
 }
 
 float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const

@@ -32,6 +32,8 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Mapas/L_Pruebas",
     "/Game/SAEVUS/Arte/Materiales/M_ParticulaPolvo",
     "/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero",
+    "/Game/SAEVUS/Arte/Estilo/M_SAEVUS_PersonajeDibujado",
+    "/Game/SAEVUS/Arte/Estilo/M_PP_Contorno",
 )
 
 PROPIEDADES_CONFIG_ENTRADA = (
@@ -65,11 +67,19 @@ def main():
             comprobar(f"DA_ConfigEntrada.{propiedad} asignada", config_entrada.get_editor_property(propiedad) is not None)
         comprobar("4 acciones de ranura de arma", len(config_entrada.get_editor_property("acciones_ranura_arma")) == 4)
 
+    camara = eal.load_asset("/Game/SAEVUS/Datos/DA_AjustesCamara_Base")
+    comprobar("contorno asignado en DA_AjustesCamara_Base",
+              camara is not None and camara.get_editor_property("camara").get_editor_property("material_contorno") is not None)
+
     personaje = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSPersonaje")
     if personaje:
         cuerpo = personaje.get_editor_property("cuerpo")
         activo = cuerpo.get_editor_property("skinned_asset") if cuerpo else None
         comprobar("cuerpo del personaje = SK_Caballero", activo is not None and activo.get_name() == "SK_Caballero")
+        materiales = cuerpo.get_editor_property("override_materials") if cuerpo else []
+        comprobar("materiales dibujados en todas las ranuras del cuerpo",
+                  activo is not None and len(materiales) == len(activo.get_editor_property("materials"))
+                  and all(m is not None and m.get_name().startswith("MI_Caballero_") for m in materiales))
         comprobar("config de entrada asignada", personaje.get_editor_property("config_entrada") is not None)
         movimiento = personaje.get_editor_property("character_movement")
         comprobar("el movimiento es de SAEVUS", isinstance(movimiento, unreal.SAEVUSComponenteMovimiento))

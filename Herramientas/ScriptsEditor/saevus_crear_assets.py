@@ -23,15 +23,18 @@ DIR_CABALLERO = f"{RAIZ}/Arte/Personajes/Caballero"
 # FBX que genera Herramientas/Arte/Generar-Caballero.ps1 (malla + esqueleto propio).
 FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballero", "SK_Caballero.fbx")
 
-# Colores del caballero boceto por ranura de material (nombres de material de Blender).
-# Tono Hollow Knight: cuerpo casi negro, máscara clara, capa azul oscuro, metal pálido.
-COLORES_CABALLERO = {
-    "Cuerpo": (0.02, 0.02, 0.025, 1.0),
-    "Mascara": (0.85, 0.85, 0.82, 1.0),
-    "Capa": (0.04, 0.05, 0.08, 1.0),
-    "Metal": (0.55, 0.58, 0.62, 1.0),
-    "Ojos": (0.0, 0.0, 0.0, 1.0),
+# Piezas del caballero boceto por ranura de material (nombres de material de Blender) y sus
+# parámetros de M_SAEVUS_PersonajeDibujado. Tono Hollow Knight: cuerpo casi negro con borde frío,
+# máscara clara que brilla un poco para leerse en la oscuridad, capa azul oscuro, metal pálido.
+COLOR_BORDE_FRIO = (0.45, 0.6, 0.85, 1.0)
+PIEZAS_CABALLERO = {
+    "Cuerpo": {"Color": (0.02, 0.02, 0.025, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.5, "AutoIluminacion": 0.0},
+    "Mascara": {"Color": (0.85, 0.85, 0.82, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.15, "AutoIluminacion": 0.3},
+    "Capa": {"Color": (0.04, 0.05, 0.08, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.35, "AutoIluminacion": 0.0},
+    "Metal": {"Color": (0.55, 0.58, 0.62, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.2, "AutoIluminacion": 0.05},
+    "Ojos": {"Color": (0.0, 0.0, 0.0, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 0.0},
 }
+DIR_ESTILO = f"{RAIZ}/Arte/Estilo"
 RUTA_MAPA_PRUEBAS = f"{RAIZ}/Mapas/L_Pruebas"
 
 ACCIONES_PLANTILLA = "/Game/Input/Actions"
@@ -186,15 +189,160 @@ def importar_caballero():
     if malla is None:
         raise RuntimeError(f"La importación de {FBX_CABALLERO} no produjo una malla esquelética ({list(tarea.imported_object_paths)})")
 
-    materiales = malla.get_editor_property("materials")
-    for ranura in materiales:
-        nombre_ranura = str(ranura.get_editor_property("material_slot_name"))
-        for clave, color in COLORES_CABALLERO.items():
-            if nombre_ranura.lower().startswith(clave.lower()):
-                ranura.set_editor_property("material_interface", crear_material_color(f"M_Caballero_{clave}", color, directorio=DIR_CABALLERO))
-    malla.set_editor_property("materials", materiales)
-    registrar(f"caballero importado: {malla.get_path_name()} ({len(materiales)} materiales)")
+    registrar(f"caballero importado: {malla.get_path_name()}")
     return malla
+
+
+def materiales_caballero(malla, maestro):
+    """
+    Una instancia de M_SAEVUS_PersonajeDibujado por ranura de la malla, en orden de ranura.
+    Se aplican como override del componente: Interchange rehace los materiales del asset al reimportar.
+    """
+    resultado = []
+    for ranura in malla.get_editor_property("materials"):
+        nombre_ranura = str(ranura.get_editor_property("material_slot_name"))
+        clave = next((c for c in PIEZAS_CABALLERO if nombre_ranura.lower().startswith(c.lower())), None)
+        if clave is None:
+            raise RuntimeError(f"Ranura de material sin pieza conocida en el caballero: {nombre_ranura}")
+        resultado.append(crear_instancia_material(f"MI_Caballero_{clave}", DIR_CABALLERO, maestro, PIEZAS_CABALLERO[clave]))
+    registrar(f"materiales del caballero: {[m.get_name() for m in resultado]}")
+    return resultado
+
+
+# --- Estilo visual --------------------------------------------------------------
+
+def nodo(material, clase, x, y):
+    return unreal.MaterialEditingLibrary.create_material_expression(material, clase, x, y)
+
+
+def parametro_escalar(material, nombre, valor, x, y):
+    expresion = nodo(material, unreal.MaterialExpressionScalarParameter, x, y)
+    expresion.set_editor_property("parameter_name", nombre)
+    expresion.set_editor_property("default_value", valor)
+    return expresion
+
+
+def parametro_vector(material, nombre, color, x, y):
+    expresion = nodo(material, unreal.MaterialExpressionVectorParameter, x, y)
+    expresion.set_editor_property("parameter_name", nombre)
+    expresion.set_editor_property("default_value", unreal.LinearColor(*color))
+    return expresion
+
+
+def material_vacio(nombre, directorio):
+    ruta = f"{directorio}/{nombre}"
+    if eal.does_asset_exist(ruta):
+        material = cargar(ruta)
+    else:
+        material = herramientas_assets.create_asset(nombre, directorio, unreal.Material, unreal.MaterialFactoryNew())
+        registrar(f"creado {ruta}")
+    unreal.MaterialEditingLibrary.delete_all_material_expressions(material)
+    return material
+
+
+def crear_material_personaje():
+    """
+    M_SAEVUS_PersonajeDibujado: color plano sin brillo (rugosidad 1, poco especular), borde de luz
+    fría por Fresnel y un poco de autoiluminación opcional. Barato: sin texturas, un Fresnel.
+    """
+    edicion = unreal.MaterialEditingLibrary
+    material = material_vacio("M_SAEVUS_PersonajeDibujado", DIR_ESTILO)
+    material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
+    material.set_editor_property("used_with_skeletal_mesh", True)
+
+    color = parametro_vector(material, "Color", (0.5, 0.5, 0.5, 1.0), -900, 0)
+    edicion.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    edicion.connect_material_property(parametro_escalar(material, "Rugosidad", 1.0, -900, 150), "", unreal.MaterialProperty.MP_ROUGHNESS)
+    edicion.connect_material_property(parametro_escalar(material, "Especular", 0.15, -900, 250), "", unreal.MaterialProperty.MP_SPECULAR)
+
+    fresnel = nodo(material, unreal.MaterialExpressionFresnel, -600, 400)
+    edicion.connect_material_expressions(parametro_escalar(material, "ExponenteBorde", 3.0, -900, 400), "", fresnel, "ExponentIn")
+    borde = nodo(material, unreal.MaterialExpressionMultiply, -400, 400)
+    edicion.connect_material_expressions(fresnel, "", borde, "A")
+    edicion.connect_material_expressions(parametro_vector(material, "ColorBorde", COLOR_BORDE_FRIO, -900, 500), "", borde, "B")
+    borde_intensidad = nodo(material, unreal.MaterialExpressionMultiply, -250, 400)
+    edicion.connect_material_expressions(borde, "", borde_intensidad, "A")
+    edicion.connect_material_expressions(parametro_escalar(material, "IntensidadBorde", 0.4, -900, 650), "", borde_intensidad, "B")
+
+    propio = nodo(material, unreal.MaterialExpressionMultiply, -400, 150)
+    edicion.connect_material_expressions(color, "", propio, "A")
+    edicion.connect_material_expressions(parametro_escalar(material, "AutoIluminacion", 0.0, -900, 750), "", propio, "B")
+    emisivo = nodo(material, unreal.MaterialExpressionAdd, -100, 300)
+    edicion.connect_material_expressions(propio, "", emisivo, "A")
+    edicion.connect_material_expressions(borde_intensidad, "", emisivo, "B")
+    edicion.connect_material_property(emisivo, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    edicion.recompile_material(material)
+    return material
+
+
+def crear_instancia_material(nombre, directorio, padre, parametros):
+    edicion = unreal.MaterialEditingLibrary
+    instancia = obtener_o_crear(nombre, directorio, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    edicion.set_material_instance_parent(instancia, padre)
+    for nombre_parametro, valor in parametros.items():
+        if isinstance(valor, tuple):
+            edicion.set_material_instance_vector_parameter_value(instancia, nombre_parametro, unreal.LinearColor(*valor))
+        else:
+            edicion.set_material_instance_scalar_parameter_value(instancia, nombre_parametro, valor)
+    edicion.update_material_instance(instancia)
+    return instancia
+
+
+# Contorno por profundidad: laplaciano de la inversa de la profundidad (una superficie plana da 0 en
+# pantalla, así el suelo no se raya) en 4 vecinos. Siluetas y pliegues fuertes se oscurecen; se
+# desvanece con la distancia para no ensuciar el fondo.
+CODIGO_CONTORNO = """
+float d = max(Profundidad.r, 1.0);
+float il = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(-Grosor, 0)).r, 1.0);
+float ir = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(Grosor, 0)).r, 1.0);
+float iu = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(0, -Grosor)).r, 1.0);
+float id = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(0, Grosor)).r, 1.0);
+float laplaciano = (abs(il + ir - 2.0 / d) + abs(iu + id - 2.0 / d)) * d;
+float borde = saturate((laplaciano - Umbral) * Nitidez) * saturate(1.0 - d / DistanciaMaxima);
+return lerp(Escena.rgb, ColorBorde.rgb, borde * Intensidad);
+"""
+
+
+def entrada_personalizada(nombre):
+    entrada = unreal.CustomInput()
+    entrada.set_editor_property("input_name", nombre)
+    return entrada
+
+
+def crear_material_contorno():
+    edicion = unreal.MaterialEditingLibrary
+    material = material_vacio("M_PP_Contorno", DIR_ESTILO)
+    material.set_editor_property("material_domain", unreal.MaterialDomain.MD_POST_PROCESS)
+    material.set_editor_property("blendable_location", valor_enum(unreal.BlendableLocation, "BL_SCENE_COLOR_AFTER_DOF", "BL_AFTER_DOF"))
+
+    personalizado = nodo(material, unreal.MaterialExpressionCustom, -300, 0)
+    personalizado.set_editor_property("code", CODIGO_CONTORNO)
+    personalizado.set_editor_property("output_type", unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+    personalizado.set_editor_property("description", "Contorno")
+    entradas = ["Escena", "Profundidad", "Grosor", "Umbral", "Nitidez", "Intensidad", "DistanciaMaxima", "ColorBorde"]
+    personalizado.set_editor_property("inputs", [entrada_personalizada(nombre) for nombre in entradas])
+
+    escena = nodo(material, unreal.MaterialExpressionSceneTexture, -800, -200)
+    escena.set_editor_property("scene_texture_id", unreal.SceneTextureId.PPI_POST_PROCESS_INPUT0)
+    profundidad = nodo(material, unreal.MaterialExpressionSceneTexture, -800, -50)
+    profundidad.set_editor_property("scene_texture_id", unreal.SceneTextureId.PPI_SCENE_DEPTH)
+    edicion.connect_material_expressions(escena, "Color", personalizado, "Escena")
+    edicion.connect_material_expressions(profundidad, "Color", personalizado, "Profundidad")
+    valores = (("Grosor", 1.0), ("Umbral", 0.08), ("Nitidez", 6.0), ("Intensidad", 0.85), ("DistanciaMaxima", 6000.0))
+    for indice, (nombre, valor) in enumerate(valores):
+        edicion.connect_material_expressions(parametro_escalar(material, nombre, valor, -800, 100 + indice * 100), "", personalizado, nombre)
+    edicion.connect_material_expressions(parametro_vector(material, "ColorBorde", (0.01, 0.01, 0.015, 1.0), -800, 650), "", personalizado, "ColorBorde")
+    edicion.connect_material_property(personalizado, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    edicion.recompile_material(material)
+    return material
+
+
+def borrar_materiales_obsoletos():
+    """Los M_Caballero_* de color plano los sustituyen las instancias MI_Caballero_*."""
+    for clave in PIEZAS_CABALLERO:
+        ruta = f"{DIR_CABALLERO}/M_Caballero_{clave}"
+        if eal.does_asset_exist(ruta) and eal.delete_asset(ruta):
+            registrar(f"borrado {ruta}")
 
 
 def crear_assets_entrada():
@@ -236,6 +384,9 @@ def crear_data_assets(acciones):
     # Los valores se quedan en los del código hasta ajustarlos en el editor.
     movimiento = data_asset("DA_AjustesMovimiento_Base", unreal.SAEVUSAjustesMovimiento)
     camara = data_asset("DA_AjustesCamara_Base", unreal.SAEVUSAjustesCamara)
+    ajuste_camara = camara.get_editor_property("camara")
+    ajuste_camara.set_editor_property("material_contorno", crear_material_contorno())
+    camara.set_editor_property("camara", ajuste_camara)
     repertorio = data_asset("DA_RepertorioMelee_Base", unreal.SAEVUSDatosRepertorioMelee)
     armas = [crear_arma(data_asset, nombre, datos, repertorio) for nombre, datos in ARMAS.items()]
     return config_entrada, movimiento, camara, repertorio, armas
@@ -272,6 +423,8 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
         cuerpo.set_editor_property("skinned_asset", caballero)
     except Exception:  # noqa: BLE001 - según versión, la propiedad solo se cambia con su setter
         cuerpo.set_skinned_asset_and_update(caballero, True)
+    cuerpo.set_editor_property("override_materials", materiales_caballero(caballero, crear_material_personaje()))
+    borrar_materiales_obsoletos()
     personaje.get_editor_property("character_movement").set_editor_property("ajustes_movimiento", movimiento)
     personaje.get_editor_property("camara").set_editor_property("ajustes_camara", camara)
     personaje.get_editor_property("combate").set_editor_property("datos_repertorio", repertorio)

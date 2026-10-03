@@ -38,6 +38,9 @@ private:
 	/** Pasa el ajuste activo a esta cámara y a su brazo. */
 	void AplicarAjustes();
 
+	/** Contorno, viñeta y saturación del estilo visual en el post-proceso de esta cámara. */
+	void AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste);
+
 	/** Campo de visión base hasta la velocidad de carrera, mezclando hacia el de esprint a velocidad de esprint. */
 	float ObtenerCampoVisionObjetivo() const;
 };

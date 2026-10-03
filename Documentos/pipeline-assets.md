@@ -12,7 +12,15 @@ Estado: decidido (2026-10-03) con las respuestas del dueño; todo cambiable. Lo 
 
 ## Sombreado
 
-Default Lit + colores planos casi sin especular (rugosidad alta), paleta oscura con acentos claros (silueta negra, máscara blanca), niebla de altura para la profundidad, y un **contorno por post-proceso** barato (detección de bordes por profundidad), activable por escalabilidad. Materiales maestros pocos y con instancias; ≤ 4 muestras de textura por material opaco. Sin translucidez grande. Un modelo de sombreado propio (rampa toon) exigiría compilar el motor: descartado.
+Default Lit + colores planos casi sin especular (rugosidad alta), paleta oscura con acentos claros (silueta negra, máscara blanca), niebla de altura para la profundidad, y un **contorno por post-proceso** barato (detección de bordes por profundidad). Materiales maestros pocos y con instancias; ≤ 4 muestras de textura por material opaco. Sin translucidez grande. Un modelo de sombreado propio (rampa toon) exigiría compilar el motor: descartado.
+
+**Hecho (tarea 5)**, todo en `/Game/SAEVUS/Arte/Estilo/` y creado por `saevus_crear_assets.py`:
+- `M_SAEVUS_PersonajeDibujado`: maestro de personaje. Parámetros `Color`, `Rugosidad` (1), `Especular` (0,15), `ColorBorde` + `IntensidadBorde` + `ExponenteBorde` (borde de luz fría por Fresnel, separa la silueta oscura del fondo oscuro) y `AutoIluminacion` (la máscara brilla un poco). Sin texturas.
+- `MI_Caballero_{Cuerpo,Mascara,Capa,Metal,Ojos}`: instancias por pieza, aplicadas como *override* del componente `Cuerpo` (Interchange rehace los materiales del asset al reimportar).
+- `M_PP_Contorno`: post-proceso (después de DOF) con laplaciano de la **inversa** de la profundidad en 4 vecinos: una superficie plana da 0 en pantalla, así el suelo no se raya; siluetas y pliegues se oscurecen. Parámetros `Grosor`, `Umbral`, `Nitidez`, `Intensidad`, `DistanciaMaxima`, `ColorBorde`. 5 lecturas de textura.
+- La cámara lo aplica: `FSAEVUSAjusteCamara` → `MaterialContorno` (nulo = sin contorno), `IntensidadVineta` (0,55) y `Saturacion` (0,8), en `DA_AjustesCamara_Base`. Test `SAEVUS.Estilo.PostProcesoCamara`.
+- Coste medido: prueba de humo a 720p en Media, media de 63 fps (la línea base era 51–68).
+- Pendiente: iluminación oscura de los mapas (llega con `L_Tutorial`); bajar el contorno por escalabilidad si hace falta.
 
 ## Presupuestos (LOD0)
 

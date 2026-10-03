@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Materials/MaterialInterface.h"
 #include "SAEVUSAjustesCamara.generated.h"
 
 /**
@@ -46,6 +47,21 @@ struct FSAEVUSAjusteCamara
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Campo de visión", meta = (ClampMin = "0"))
 	float VelocidadInterpCampoVision = 6.f;
+
+	/**
+	 * Post-proceso de contorno dibujado (M_PP_Contorno, por profundidad: 5 lecturas, apto para la
+	 * Vega 8). Nulo = sin contorno. Grosor, umbral y color son parámetros del material.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo")
+	TObjectPtr<UMaterialInterface> MaterialContorno;
+
+	/** Oscurece los bordes de la pantalla: centra la mirada y da tono sombrío. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "1"))
+	float IntensidadVineta = 0.55f;
+
+	/** Saturación global (1 = sin cambio). Por debajo de 1, colores apagados de mundo en ruinas. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "2"))
+	float Saturacion = 0.8f;
 };
 
 /** Perfil de cámara editable asignado a USAEVUSComponenteCamara. */

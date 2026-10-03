@@ -142,10 +142,9 @@ namespace SAEVUSAnimacion
 	}
 }
 
-using namespace SAEVUSAnimacion;
-
 USAEVUSComponenteAnimacionProcedural::USAEVUSComponenteAnimacionProcedural()
 {
+	using namespace SAEVUSAnimacion;
 	PrimaryComponentTick.bCanEverTick = true;
 	// Después del movimiento, así anima el estado de este mismo fotograma.
 	PrimaryComponentTick.TickGroup = TG_PostPhysics;
@@ -159,11 +158,13 @@ USAEVUSComponenteAnimacionProcedural::USAEVUSComponenteAnimacionProcedural()
 
 FName USAEVUSComponenteAnimacionProcedural::NombreHueso(ESAEVUSHueso Hueso)
 {
+	using namespace SAEVUSAnimacion;
 	return FName(Definicion(Hueso).Nombre);
 }
 
 void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 {
+	using namespace SAEVUSAnimacion;
 	Super::BeginPlay();
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 	if (Personaje)
@@ -185,12 +186,14 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 
 void USAEVUSComponenteAnimacionProcedural::FijarMalla(UPoseableMeshComponent* NuevaMalla)
 {
+	using namespace SAEVUSAnimacion;
 	Malla = NuevaMalla;
 	PrepararEsqueleto();
 }
 
 void USAEVUSComponenteAnimacionProcedural::PrepararEsqueleto()
 {
+	using namespace SAEVUSAnimacion;
 	bEsqueletoValido = false;
 	bPoseIniciada = false;
 	if (!Malla || !Malla->GetSkinnedAsset())
@@ -224,6 +227,7 @@ void USAEVUSComponenteAnimacionProcedural::PrepararEsqueleto()
 
 FVector USAEVUSComponenteAnimacionProcedural::DireccionReposo(int32 Hueso) const
 {
+	using namespace SAEVUSAnimacion;
 	const FDefinicionHueso& Def = Definicion(static_cast<ESAEVUSHueso>(Hueso));
 	if (Def.Hijo == ESAEVUSHueso::Total)
 	{
@@ -235,12 +239,14 @@ FVector USAEVUSComponenteAnimacionProcedural::DireccionReposo(int32 Hueso) const
 
 void USAEVUSComponenteAnimacionProcedural::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	using namespace SAEVUSAnimacion;
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	Actualizar(DeltaTime);
 }
 
 void USAEVUSComponenteAnimacionProcedural::Actualizar(float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	if (!bEsqueletoValido || !Malla || DeltaTime <= 0.f)
 	{
 		return;
@@ -257,6 +263,7 @@ void USAEVUSComponenteAnimacionProcedural::Actualizar(float DeltaTime)
 
 void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	if (!Movimiento)
 	{
 		return;
@@ -323,6 +330,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 
 void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Velocidad, float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	const float Amplitud = Velocidad < VelocidadQuieto ? 0.f : FMath::Clamp(Velocidad / Ajuste.VelocidadReferencia, 0.f, 1.5f);
 	FaseCiclo = FMath::Fmod(FaseCiclo + Velocidad * DeltaTime / Ajuste.LongitudCiclo * UE_TWO_PI, UE_TWO_PI);
 	const float Seno = FMath::Sin(FaseCiclo);
@@ -373,6 +381,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 
 void USAEVUSComponenteAnimacionProcedural::PoseAire(FPose& Pose, float VelocidadVertical)
 {
+	using namespace SAEVUSAnimacion;
 	// Mezcla entre "subiendo" (piernas recogidas) y "cayendo" (piernas estiradas, brazos arriba).
 	const float Subida = FMath::Clamp(0.5f + 0.5f * VelocidadVertical / VelocidadVerticalReferencia, 0.f, 1.f);
 	const float GiroMuslo = FMath::Lerp(12.f, 40.f, Subida);
@@ -390,6 +399,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAire(FPose& Pose, float Velocidad
 
 void USAEVUSComponenteAnimacionProcedural::PoseDash(FPose& Pose)
 {
+	using namespace SAEVUSAnimacion;
 	// Cuerpo lanzado hacia delante, piernas en zancada, brazos atrás; la cabeza mira al frente.
 	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
@@ -405,6 +415,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseDash(FPose& Pose)
 
 void USAEVUSComponenteAnimacionProcedural::PoseCarreraPared(FPose& Pose, float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	PoseLocomocion(Pose, Movimiento->ObtenerAjusteCarreraPared().Velocidad, DeltaTime);
 	// Los pies hacia la pared: el cuerpo se inclina alejándose de ella.
 	const FVector NormalMalla = Malla->GetComponentTransform().InverseTransformVectorNoScale(Movimiento->ObtenerNormalPared()).GetSafeNormal2D();
@@ -416,6 +427,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseCarreraPared(FPose& Pose, float D
 
 void USAEVUSComponenteAnimacionProcedural::PoseEscalada(FPose& Pose, float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	FaseCiclo = FMath::Fmod(FaseCiclo + FMath::Abs(static_cast<float>(Movimiento->Velocity.Z)) * DeltaTime / Ajuste.LongitudCiclo * UE_TWO_PI, UE_TWO_PI);
 	const float Seno = FMath::Sin(FaseCiclo);
 	// Brazos alternando hacia arriba contra la pared, piernas empujando.
@@ -431,6 +443,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseEscalada(FPose& Pose, float Delta
 
 void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, float Tiempo)
 {
+	using namespace SAEVUSAnimacion;
 	const FTrayectoria Trayectoria = TrayectoriaAtaque(IndiceCombo, bAereo);
 	const FVector Guardia = (Adelante * 0.5f - Arriba * 0.7f + Derecha * 0.25f).GetSafeNormal();
 
@@ -484,6 +497,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 
 void USAEVUSComponenteAnimacionProcedural::PoseDisparo(FPose& Pose)
 {
+	using namespace SAEVUSAnimacion;
 	// Brazo derecho al frente a la altura del hombro; el retroceso lo levanta y vuelve.
 	const FVector Apunte = Dir(Adelante, Arriba, Retroceso);
 	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, Apunte };
@@ -496,6 +510,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseDisparo(FPose& Pose)
 
 void USAEVUSComponenteAnimacionProcedural::PoseMuerte(FPose& Pose, float DeltaTime)
 {
+	using namespace SAEVUSAnimacion;
 	TiempoMuerto += DeltaTime;
 	const float P = SuavizarCurva(TiempoMuerto / DuracionDesplome);
 	// Rodillas que ceden y caída hacia delante.
@@ -517,6 +532,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseMuerte(FPose& Pose, float DeltaTi
 
 void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical)
 {
+	using namespace SAEVUSAnimacion;
 	// La capa se va hacia atrás con la velocidad y se levanta al caer; su suavizado bajo la hace ondear.
 	const float Atras = FMath::Clamp(Velocidad / VelocidadCapaReferencia, 0.f, 1.5f) * 40.f
 		+ FMath::Clamp(-VelocidadVertical / VelocidadCaidaCapaReferencia, 0.f, 1.f) * 35.f + 4.f;
@@ -527,11 +543,13 @@ void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad
 
 void USAEVUSComponenteAnimacionProcedural::AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado)
 {
+	using namespace SAEVUSAnimacion;
 	Retroceso = Ajuste.RetrocesoDisparo;
 }
 
-void USAEVUSComponenteAnimacionProcedural::ResolverObjetivo(const FPose& Pose, FQuat (&OutRotaciones)[NumHuesos]) const
+void USAEVUSComponenteAnimacionProcedural::ResolverObjetivo(const FPose& Pose, FQuat (&OutRotaciones)[SAEVUSAnimacion::NumHuesos]) const
 {
+	using namespace SAEVUSAnimacion;
 	for (int32 Hueso = 0; Hueso < NumHuesos; ++Hueso)
 	{
 		const FQuat Reposo = ReposoComponente[Hueso].GetRotation();
@@ -556,8 +574,9 @@ void USAEVUSComponenteAnimacionProcedural::ResolverObjetivo(const FPose& Pose, F
 	}
 }
 
-void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, const FQuat (&Objetivo)[NumHuesos], float DeltaTime, bool bAccion)
+void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, const FQuat (&Objetivo)[SAEVUSAnimacion::NumHuesos], float DeltaTime, bool bAccion)
 {
+	using namespace SAEVUSAnimacion;
 	const float AlfaCuerpo = bPoseIniciada ? AlfaSuavizado(bAccion ? Ajuste.SuavizadoAccion : Ajuste.Suavizado, DeltaTime) : 1.f;
 	const float AlfaCapa = bPoseIniciada ? AlfaSuavizado(Ajuste.SuavizadoCapa, DeltaTime) : 1.f;
 	bPoseIniciada = true;
