@@ -16,7 +16,7 @@
  * through saved moves so they stay client-predicted when networking is enabled.
  *
  * Dash is a timed state inside walking / falling; wall jump is an instant launch
- * while falling; wall run is a custom movement mode (ESAEVUSCustomMovementMode).
+ * while falling; wall run and wall climb are custom movement modes (ESAEVUSCustomMovementMode).
  * Wall movement lives in SAEVUSMovementComponentWalls.cpp. See Docs/movement.md.
  */
 UCLASS(ClassGroup = (SAEVUS))
@@ -78,13 +78,21 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
 	bool IsWallRunning() const;
 
-	float GetWallRunTimeRemaining() const { return IsWallRunning() ? WallRunTimeRemaining : 0.f; }
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	bool IsWallClimbing() const;
+
+	/** Time left in the current wall run or wall climb; 0 when not on a wall. */
+	float GetWallTimeRemaining() const { return (IsWallRunning() || IsWallClimbing()) ? WallTimeRemaining : 0.f; }
+
+	/** Wall climbs left before landing. */
+	int32 GetWallClimbsRemaining() const;
 
 	const FSAEVUSGroundMovementTuning& GetGroundTuning() const;
 	const FSAEVUSAirMovementTuning& GetAirTuning() const;
 	const FSAEVUSDashTuning& GetDashTuning() const;
 	const FSAEVUSWallJumpTuning& GetWallJumpTuning() const;
 	const FSAEVUSWallRunTuning& GetWallRunTuning() const;
+	const FSAEVUSWallClimbTuning& GetWallClimbTuning() const;
 
 	/** Swaps the movement profile and re-applies it immediately. Null restores code defaults. */
 	void SetMovementSettings(const USAEVUSMovementSettings* NewSettings);
@@ -120,7 +128,7 @@ private:
 
 	/** Launches off the wall when the jump was just pressed in the air next to one. True if it did. */
 	bool TryWallJump();
-	void LaunchOffWall(const FVector& WallNormal);
+	void LaunchOffWall(const FVector& PushNormal);
 
 	/** Nearest near-vertical wall hit by capsule sweeps along Directions (horizontal, unit). */
 	bool FindNearestWall(TConstArrayView<FVector> Directions, float Distance, float MaxWallNormalZ, FHitResult& OutHit) const;
@@ -128,8 +136,20 @@ private:
 	/** Starts a wall run when falling along a wall with steering input. True if it did. */
 	bool TryStartWallRun();
 	void PhysWallRun(float DeltaTime, int32 Iterations);
+
+	/** Starts a climb when jumping at a wall head-on with input into it. True if it did. */
+	bool TryStartWallClimb();
+	void PhysWallClimb(float DeltaTime, int32 Iterations);
+
+	/** Re-finds the wall the character is on (behind -WallNormal) and follows its normal. */
+	bool ProbeCurrentWall(float DetectionDistance, float MaxWallNormalZ, FHitResult& OutWallHit);
+	/**
+	 * Moves by Velocity, pulled to a small gap from the wall in WallHit; lands if it touches
+	 * walkable floor while coming down. Returns the displacement.
+	 */
+	FVector MoveAlongWall(float DeltaTime, int32 Iterations, const FHitResult& WallHit, const FQuat& Facing);
 	/** Leaves the wall into a fall and simulates the rest of the update there. */
-	void EndWallRun(float RemainingTime, int32 Iterations);
+	void LeaveWall(float RemainingTime, int32 Iterations);
 
 	void StartDash();
 	/** Ends the dash: caps horizontal speed to ExitSpeed and starts the cooldown. */
@@ -148,12 +168,13 @@ private:
 	int32 AirDashesUsed = 0;
 	int32 WallJumpsUsed = 0;
 
-	// Wall run state, also saved and restored by FSAEVUSSavedMove.
-	FVector WallRunNormal = FVector::ZeroVector;
+	// Wall run / wall climb state, also saved and restored by FSAEVUSSavedMove.
+	FVector WallNormal = FVector::ZeroVector;
 	FVector WallRunDirection = FVector::ZeroVector;
-	float WallRunTimeRemaining = 0.f;
+	float WallTimeRemaining = 0.f;
 	/** Normal of the wall last run on; that wall can't be run again before landing. */
 	FVector LastWallRunNormal = FVector::ZeroVector;
+	int32 WallClimbsUsed = 0;
 
 	// Local simulation state derived from movement-mode transitions. Not part of the saved move:
 	// after a server correction it can be briefly off by one transition (acceptable for now).

@@ -226,6 +226,67 @@ struct FSAEVUSWallRunTuning
 	bool bRefillsAirDashes = true;
 };
 
+/**
+ * Wall climb: jumping at a wall head-on with input into it, the character runs up it for a
+ * limited time, then flips away from it, or steps onto the top if it reaches it. See Docs/movement.md.
+ */
+USTRUCT(BlueprintType)
+struct FSAEVUSWallClimbTuning
+{
+	GENERATED_BODY()
+
+	/** Upward speed while climbing; height is roughly Speed x MaxDuration. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Climb", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float Speed = 650.f;
+
+	/** Longest climb; then the character flips away from the wall. 0 disables wall climbing. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Climb", meta = (ClampMin = "0", ForceUnits = "s"))
+	float MaxDuration = 0.55f;
+
+	/** Climbs allowed per airborne period; refilled on landing. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Climb", meta = (ClampMin = "0"))
+	int32 MaxClimbs = 1;
+
+	/** Speed toward the wall needed to start a climb. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float MinEntrySpeed = 200.f;
+
+	/** How head-on motion and input must be (dot with the into-wall direction; 0.85 is about 32 deg). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ClampMax = "1"))
+	float MinHeadOnDot = 0.85f;
+
+	/** Falling faster than this, the wall can't be caught. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entry", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float MaxEntryFallSpeed = 600.f;
+
+	/** Largest gap between the capsule and the wall to start or keep climbing. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DetectionDistance = 40.f;
+
+	/** Surfaces whose normal Z is above this are not climbable walls. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ClampMax = "1"))
+	float MaxWallNormalZ = 0.3f;
+
+	/** Movement input pointing away from the wall more than this (dot with the wall normal) lets go. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Climb", meta = (ClampMin = "0", ClampMax = "1"))
+	float DetachInputDot = 0.7f;
+
+	/** Flip at the end of the climb: speed away from the wall and upward. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Exit", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float FlipAwaySpeed = 350.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Exit", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float FlipUpSpeed = 250.f;
+
+	/** Reaching the top of the wall: forward speed onto it (the climb's upward speed is kept). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Exit", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float LedgeForwardSpeed = 300.f;
+
+	/** Starting a climb gives back the air dashes. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Climb")
+	bool bRefillsAirDashes = true;
+};
+
 /** Designer-editable movement profile assigned to USAEVUSMovementComponent. */
 UCLASS(BlueprintType, Const)
 class SAEVUS_API USAEVUSMovementSettings : public UPrimaryDataAsset
@@ -247,4 +308,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wall Run")
 	FSAEVUSWallRunTuning WallRun;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wall Climb")
+	FSAEVUSWallClimbTuning WallClimb;
 };

@@ -15,6 +15,7 @@ namespace SAEVUSMovement
 	const FSAEVUSDashTuning DefaultDashTuning;
 	const FSAEVUSWallJumpTuning DefaultWallJumpTuning;
 	const FSAEVUSWallRunTuning DefaultWallRunTuning;
+	const FSAEVUSWallClimbTuning DefaultWallClimbTuning;
 }
 
 /**
@@ -37,10 +38,11 @@ public:
 		SavedDashCooldownRemaining = 0.f;
 		SavedAirDashesUsed = 0;
 		SavedWallJumpsUsed = 0;
-		SavedWallRunNormal = FVector::ZeroVector;
+		SavedWallNormal = FVector::ZeroVector;
 		SavedWallRunDirection = FVector::ZeroVector;
-		SavedWallRunTimeRemaining = 0.f;
+		SavedWallTimeRemaining = 0.f;
 		SavedLastWallRunNormal = FVector::ZeroVector;
+		SavedWallClimbsUsed = 0;
 	}
 
 	virtual uint8 GetCompressedFlags() const override
@@ -71,6 +73,7 @@ public:
 		// A dash press, or a move that starts or ends a dash, is never merged.
 		if (bSavedWantsToDash || Other->bSavedWantsToDash || SavedAirDashesUsed != Other->SavedAirDashesUsed
 			|| SavedWallJumpsUsed != Other->SavedWallJumpsUsed || !SavedLastWallRunNormal.Equals(Other->SavedLastWallRunNormal)
+			|| SavedWallClimbsUsed != Other->SavedWallClimbsUsed
 			|| (SavedDashTimeRemaining > 0.f) != (Other->SavedDashTimeRemaining > 0.f))
 		{
 			return false;
@@ -91,10 +94,11 @@ public:
 			SavedDashCooldownRemaining = Movement->DashCooldownRemaining;
 			SavedAirDashesUsed = Movement->AirDashesUsed;
 			SavedWallJumpsUsed = Movement->WallJumpsUsed;
-			SavedWallRunNormal = Movement->WallRunNormal;
+			SavedWallNormal = Movement->WallNormal;
 			SavedWallRunDirection = Movement->WallRunDirection;
-			SavedWallRunTimeRemaining = Movement->WallRunTimeRemaining;
+			SavedWallTimeRemaining = Movement->WallTimeRemaining;
 			SavedLastWallRunNormal = Movement->LastWallRunNormal;
+			SavedWallClimbsUsed = Movement->WallClimbsUsed;
 		}
 	}
 
@@ -111,10 +115,11 @@ public:
 			Movement->DashCooldownRemaining = SavedDashCooldownRemaining;
 			Movement->AirDashesUsed = SavedAirDashesUsed;
 			Movement->WallJumpsUsed = SavedWallJumpsUsed;
-			Movement->WallRunNormal = SavedWallRunNormal;
+			Movement->WallNormal = SavedWallNormal;
 			Movement->WallRunDirection = SavedWallRunDirection;
-			Movement->WallRunTimeRemaining = SavedWallRunTimeRemaining;
+			Movement->WallTimeRemaining = SavedWallTimeRemaining;
 			Movement->LastWallRunNormal = SavedLastWallRunNormal;
+			Movement->WallClimbsUsed = SavedWallClimbsUsed;
 		}
 	}
 
@@ -127,10 +132,11 @@ private:
 	float SavedDashCooldownRemaining = 0.f;
 	int32 SavedAirDashesUsed = 0;
 	int32 SavedWallJumpsUsed = 0;
-	FVector SavedWallRunNormal = FVector::ZeroVector;
+	FVector SavedWallNormal = FVector::ZeroVector;
 	FVector SavedWallRunDirection = FVector::ZeroVector;
-	float SavedWallRunTimeRemaining = 0.f;
+	float SavedWallTimeRemaining = 0.f;
 	FVector SavedLastWallRunNormal = FVector::ZeroVector;
+	int32 SavedWallClimbsUsed = 0;
 };
 
 class FSAEVUSNetworkPredictionData_Client : public FNetworkPredictionData_Client_Character
@@ -208,6 +214,11 @@ const FSAEVUSWallJumpTuning& USAEVUSMovementComponent::GetWallJumpTuning() const
 const FSAEVUSWallRunTuning& USAEVUSMovementComponent::GetWallRunTuning() const
 {
 	return MovementSettings ? MovementSettings->WallRun : SAEVUSMovement::DefaultWallRunTuning;
+}
+
+const FSAEVUSWallClimbTuning& USAEVUSMovementComponent::GetWallClimbTuning() const
+{
+	return MovementSettings ? MovementSettings->WallClimb : SAEVUSMovement::DefaultWallClimbTuning;
 }
 
 void USAEVUSMovementComponent::SetMovementSettings(const USAEVUSMovementSettings* NewSettings)
@@ -297,6 +308,10 @@ float USAEVUSMovementComponent::GetMaxSpeed() const
 	{
 		return GetWallRunTuning().Speed;
 	}
+	if (IsWallClimbing())
+	{
+		return GetWallClimbTuning().Speed;
+	}
 	if (IsCrouching())
 	{
 		return Super::GetMaxSpeed();
@@ -373,8 +388,11 @@ void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 	const bool bWasWallRunning = PreviousMovementMode == MOVE_Custom && PreviousCustomMode == static_cast<uint8>(ESAEVUSCustomMovementMode::WallRun);
 	if (bWasWallRunning && !IsWallRunning())
 	{
-		LastWallRunNormal = WallRunNormal;
-		WallRunTimeRemaining = 0.f;
+		LastWallRunNormal = WallNormal;
+	}
+	if (!IsWallRunning() && !IsWallClimbing())
+	{
+		WallTimeRemaining = 0.f;
 	}
 
 	if (IsMovingOnGround())
@@ -382,6 +400,7 @@ void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 		AirDashesUsed = 0;
 		WallJumpsUsed = 0;
 		LastWallRunNormal = FVector::ZeroVector;
+		WallClimbsUsed = 0;
 	}
 	else if (IsDashing() && !IsFalling())
 	{
@@ -432,7 +451,8 @@ void USAEVUSMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSec
 		}
 	}
 
-	if (!bWallJumped)
+	// A head-on approach climbs; a glancing one runs along the wall.
+	if (!bWallJumped && !TryStartWallClimb())
 	{
 		TryStartWallRun();
 	}
@@ -440,7 +460,11 @@ void USAEVUSMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSec
 
 FString USAEVUSMovementComponent::GetMovementName() const
 {
-	return IsWallRunning() ? TEXT("Wall Run") : Super::GetMovementName();
+	if (IsWallRunning())
+	{
+		return TEXT("Wall Run");
+	}
+	return IsWallClimbing() ? TEXT("Wall Climb") : Super::GetMovementName();
 }
 
 void USAEVUSMovementComponent::UpdateFromCompressedFlags(uint8 Flags)

@@ -99,3 +99,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Wall code moved to `SAEVUSMovementComponentWalls.cpp`. Sandbox wall-run corridor.
 - 26/26 tests, Verify-Bootstrap and smoke test pass.
 - Next: wall climb.
+
+### Phase 3 — wall climb, phase closed (same session)
+- Wall climb: head-on jump at a wall with input → constant-speed climb; flip away at timeout, steps onto the top if reached, let go on input away, jump-off = wall jump; 1 per airborne period. Shared wall helpers factored out of the wall run.
+- Test fix: the flip test kept steering into the wall, which air control turned into a smaller flip; the climb doesn't need input, so the test climbs without it.
+- Sandbox climb blocks. 33/33 tests, Verify-Bootstrap and smoke test pass.
+- **Phase 3 done** (feel tuning pending with the owner).

@@ -19,5 +19,6 @@ UENUM(BlueprintType)
 enum class ESAEVUSCustomMovementMode : uint8
 {
 	None = 0 UMETA(Hidden),
-	WallRun
+	WallRun,
+	WallClimb
 };

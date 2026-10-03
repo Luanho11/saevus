@@ -1,6 +1,6 @@
 # SAEVUS development roadmap — PROPOSAL
 
-> **Status: draft for the owner to approve, reorder or cut.** Nothing past Phase 0 has started. Per `CLAUDE.md`, work is done phase by phase. Each phase ends with build + tests + editor run + `PROJECT_STATE.md` update + commit, then stops for review.
+> **Status: draft for the owner to approve, reorder or cut.** Progress (2026-10-03): Phases 0–3 done (Phase 1 and 3 still need the owner's feel tuning; Phase 2 is a draft with open questions). Per `CLAUDE.md`, work is done phase by phase. Each phase ends with build + tests + editor run + `PROJECT_STATE.md` update + commit, then stops for review.
 
 Ordering principle: movement is the core of the game, so it gets solid and feels right before anything is layered on it. Every system is built so it can be replicated later, but real networking comes late, once the single-player rules are stable.
 

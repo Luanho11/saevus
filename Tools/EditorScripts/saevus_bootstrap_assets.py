@@ -214,6 +214,10 @@ def build_sandbox(game_mode_bp):
     for side, y in (("A", -3300), ("B", -2700)):
         spawn_block(actors, f"WallRun_Corridor{side}", unreal.Vector(0, y, 300), (2000, 100, 600), dark)
 
+    # Wall climb: a 3.5 m block to climb onto, and a 10 m wall that ends every climb in a flip.
+    spawn_block(actors, "WallClimb_Block350cm", unreal.Vector(3000, -1500, 175), (400, 800, 350), grid)
+    spawn_block(actors, "WallClimb_Tall", unreal.Vector(3000, -2600, 500), (100, 800, 1000), dark)
+
     # Lighting: fully dynamic, no Lumen.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-50, yaw=-35))
     sun.set_actor_label("Sun")
