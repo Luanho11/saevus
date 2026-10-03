@@ -52,6 +52,7 @@ private:
 	void HandleLook(const FInputActionValue& Value);
 	void HandleSprint(const FInputActionValue& Value);
 	void HandleWalk(const FInputActionValue& Value);
+	void HandleDash();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;

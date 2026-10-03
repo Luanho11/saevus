@@ -92,6 +92,48 @@ struct FSAEVUSAirMovementTuning
 	float JumpBufferTime = 0.12f;
 };
 
+/**
+ * Dash: a short burst at constant speed in the input direction (or facing, with no input),
+ * on the ground or in the air. See Docs/movement.md.
+ */
+USTRUCT(BlueprintType)
+struct FSAEVUSDashTuning
+{
+	GENERATED_BODY()
+
+	/** Horizontal speed held for the whole dash. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float Speed = 1600.f;
+
+	/** Dash length in time; distance is roughly Speed x Duration. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
+	float Duration = 0.18f;
+
+	/** Horizontal speed is capped to this when the dash ends (or is cancelled by a jump). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float ExitSpeed = 700.f;
+
+	/** Time after a dash ends before the next one can start. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
+	float Cooldown = 0.3f;
+
+	/** Snap the body to the dash direction at the start, so the move reads clearly. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
+	bool bFaceDashDirection = true;
+
+	/** Dashes allowed per airborne period; refilled on landing. 0 disables air dashes. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Air Dash", meta = (ClampMin = "0"))
+	int32 MaxAirDashes = 1;
+
+	/** Vertical speed set at the start of an air dash (0 = flat). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Air Dash", meta = (ForceUnits = "cm/s"))
+	float AirDashVerticalSpeed = 0.f;
+
+	/** Gravity is off while an air dash lasts, so the vertical speed above is held. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Air Dash")
+	bool bSuspendGravityDuringDash = true;
+};
+
 /** Designer-editable movement profile assigned to USAEVUSMovementComponent. */
 UCLASS(BlueprintType, Const)
 class SAEVUS_API USAEVUSMovementSettings : public UPrimaryDataAsset
@@ -104,4 +146,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Air")
 	FSAEVUSAirMovementTuning Air;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
+	FSAEVUSDashTuning Dash;
 };

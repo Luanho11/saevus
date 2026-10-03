@@ -81,3 +81,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 ### Phase 2 (same session)
 - `Docs/research/gunz.md` from public sources (Wikipedia, StrategyWiki/Fandom excerpts, critpoints.net analysis, MMOBomb on GunZ 2). Key finding: GunZ's depth came from unintended animation cancels; SAEVUS goal is a designed, data-driven cancel system with a low input floor.
 - Phase 3 order proposed: dash → wall jump → wall run → wall climb. Owner questions listed in the doc.
+
+### Phase 3 — dash (same session)
+- Dash in `USAEVUSMovementComponent` with `FSAEVUSDashTuning` (speed, duration, exit speed, cooldown, air budget, gravity suspension), `IA_Dash` input, HUD line, smoke-test stage. Saved move carries the request (`FLAG_Custom_2`) and the dash state.
+- Tests: 5 new `SAEVUS.Movement.Dash.*`, 13/13 pass. Verify-Bootstrap passed; rendered smoke test PASSED (dash 1600 cm/s).
+- Problem: the asset script could not save; Git LFS `lockable` had left every `.uasset`/`.umap` read-only. Removed `lockable` (no lock server) and cleared the flag.
+- Next: wall jump.

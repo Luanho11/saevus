@@ -26,6 +26,8 @@ namespace SAEVUSSmokeTest
 	constexpr float RunDuration = 2.f;
 	constexpr float SprintDuration = 2.f;
 	constexpr float MaxJumpDuration = 2.f;
+	// Covers the dash, its exit and the cooldown.
+	constexpr float DashStageDuration = 1.f;
 	constexpr float ScreenshotDelay = 0.5f;
 	constexpr float PawnTimeout = 120.f;
 
@@ -68,7 +70,7 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	using namespace SAEVUSSmokeTest;
 	StageTime += DeltaTime;
 
-	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump)
+	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump || Stage == EStage::Dash)
 	{
 		SampleFrameTiming(DeltaTime);
 	}
@@ -145,6 +147,15 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		bLeftGround |= Movement->IsFalling();
 		if ((bLeftGround && Movement->IsMovingOnGround()) || StageTime >= MaxJumpDuration)
 		{
+			Movement->RequestDash();
+			EnterStage(EStage::Dash);
+		}
+		break;
+
+	case EStage::Dash:
+		MaxDashSpeed = FMath::Max(MaxDashSpeed, static_cast<float>(Movement->Velocity.Size2D()));
+		if (StageTime >= DashStageDuration)
+		{
 			FScreenshotRequest::RequestScreenshot(ScreenshotName, true, false);
 			EnterStage(EStage::Screenshot);
 		}
@@ -163,6 +174,7 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		Check(TEXT("sprint speed"), MaxSprintSpeed, Movement->GetGaitSpeed(ESAEVUSGait::Sprint), SpeedTolerance);
 		const float ExpectedApex = FMath::Square(Movement->JumpZVelocity) / (2.f * FMath::Abs(Movement->GetGravityZ()));
 		Check(TEXT("jump apex"), JumpApexZ - JumpStartZ, ExpectedApex, JumpApexTolerance);
+		Check(TEXT("dash speed"), MaxDashSpeed, Movement->GetDashTuning().Speed, SpeedTolerance);
 		Finish();
 		break;
 	}

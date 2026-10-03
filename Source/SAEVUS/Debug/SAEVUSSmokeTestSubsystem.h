@@ -39,6 +39,7 @@ private:
 		Run,
 		Sprint,
 		Jump,
+		Dash,
 		Screenshot,
 		Report,
 		Done
@@ -57,6 +58,7 @@ private:
 	float JumpStartZ = 0.f;
 	float JumpApexZ = 0.f;
 	bool bLeftGround = false;
+	float MaxDashSpeed = 0.f;
 	bool bProfiledGPU = false;
 
 	/** Frame timing accumulated during the movement stages only (spawn and settle hitches excluded). */

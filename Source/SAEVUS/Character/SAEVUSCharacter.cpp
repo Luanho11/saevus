@@ -106,6 +106,10 @@ void ASAEVUSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Input->BindAction(InputConfig->WalkAction, ETriggerEvent::Triggered, this, &ThisClass::HandleWalk);
 		Input->BindAction(InputConfig->WalkAction, ETriggerEvent::Completed, this, &ThisClass::HandleWalk);
 	}
+	if (InputConfig->DashAction)
+	{
+		Input->BindAction(InputConfig->DashAction, ETriggerEvent::Started, this, &ThisClass::HandleDash);
+	}
 }
 
 void ASAEVUSCharacter::HandleMove(const FInputActionValue& Value)
@@ -135,4 +139,9 @@ void ASAEVUSCharacter::HandleSprint(const FInputActionValue& Value)
 void ASAEVUSCharacter::HandleWalk(const FInputActionValue& Value)
 {
 	GetSAEVUSMovement()->SetWalkRequested(Value.Get<bool>());
+}
+
+void ASAEVUSCharacter::HandleDash()
+{
+	GetSAEVUSMovement()->RequestDash();
 }

@@ -33,6 +33,7 @@ def main():
         "/Game/SAEVUS/Input/IMC_SAEVUS",
         "/Game/SAEVUS/Input/Actions/IA_Sprint",
         "/Game/SAEVUS/Input/Actions/IA_Walk",
+        "/Game/SAEVUS/Input/Actions/IA_Dash",
         "/Game/SAEVUS/Input/Actions/IA_ToggleDebugHUD",
         "/Game/SAEVUS/Data/DA_MovementSettings_Default",
         "/Game/SAEVUS/Data/DA_CameraSettings_Default",
@@ -43,7 +44,7 @@ def main():
     input_config = eal.load_asset("/Game/SAEVUS/Data/DA_InputConfig")
     check("DA_InputConfig exists", input_config is not None)
     if input_config:
-        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action"):
+        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action", "dash_action"):
             check(f"DA_InputConfig.{prop} set", input_config.get_editor_property(prop) is not None)
 
     character = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSCharacter")

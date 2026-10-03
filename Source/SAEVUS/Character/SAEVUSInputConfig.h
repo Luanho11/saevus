@@ -40,4 +40,8 @@ public:
 	/** Bool, held. */
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	TObjectPtr<UInputAction> WalkAction;
+
+	/** Bool, pressed. */
+	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
+	TObjectPtr<UInputAction> DashAction;
 };

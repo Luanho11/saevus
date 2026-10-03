@@ -8,12 +8,17 @@ namespace SAEVUSMovement
 	// Gait requests ride in the custom compressed-flag bits reserved for games.
 	constexpr uint8 FlagSprint = FSavedMove_Character::FLAG_Custom_0;
 	constexpr uint8 FlagWalk = FSavedMove_Character::FLAG_Custom_1;
+	constexpr uint8 FlagDash = FSavedMove_Character::FLAG_Custom_2;
 
 	const FSAEVUSGroundMovementTuning DefaultGroundTuning;
 	const FSAEVUSAirMovementTuning DefaultAirTuning;
+	const FSAEVUSDashTuning DefaultDashTuning;
 }
 
-/** Saved move carrying the gait requests so they replay correctly during client correction. */
+/**
+ * Saved move carrying the gait and dash requests, plus the dash state at the start of the
+ * move, so they replay correctly during client correction.
+ */
 class FSAEVUSSavedMove : public FSavedMove_Character
 {
 public:
@@ -24,6 +29,11 @@ public:
 		Super::Clear();
 		bSavedWantsToSprint = false;
 		bSavedWantsToWalk = false;
+		bSavedWantsToDash = false;
+		SavedDashDirection = FVector::ForwardVector;
+		SavedDashTimeRemaining = 0.f;
+		SavedDashCooldownRemaining = 0.f;
+		SavedAirDashesUsed = 0;
 	}
 
 	virtual uint8 GetCompressedFlags() const override
@@ -37,6 +47,10 @@ public:
 		{
 			Flags |= SAEVUSMovement::FlagWalk;
 		}
+		if (bSavedWantsToDash)
+		{
+			Flags |= SAEVUSMovement::FlagDash;
+		}
 		return Flags;
 	}
 
@@ -44,6 +58,12 @@ public:
 	{
 		const FSAEVUSSavedMove* Other = static_cast<const FSAEVUSSavedMove*>(NewMove.Get());
 		if (bSavedWantsToSprint != Other->bSavedWantsToSprint || bSavedWantsToWalk != Other->bSavedWantsToWalk)
+		{
+			return false;
+		}
+		// A dash press, or a move that starts or ends a dash, is never merged.
+		if (bSavedWantsToDash || Other->bSavedWantsToDash || SavedAirDashesUsed != Other->SavedAirDashesUsed
+			|| (SavedDashTimeRemaining > 0.f) != (Other->SavedDashTimeRemaining > 0.f))
 		{
 			return false;
 		}
@@ -57,6 +77,11 @@ public:
 		{
 			bSavedWantsToSprint = Movement->bWantsToSprint;
 			bSavedWantsToWalk = Movement->bWantsToWalk;
+			bSavedWantsToDash = Movement->bWantsToDash;
+			SavedDashDirection = Movement->DashDirection;
+			SavedDashTimeRemaining = Movement->DashTimeRemaining;
+			SavedDashCooldownRemaining = Movement->DashCooldownRemaining;
+			SavedAirDashesUsed = Movement->AirDashesUsed;
 		}
 	}
 
@@ -67,12 +92,22 @@ public:
 		{
 			Movement->bWantsToSprint = bSavedWantsToSprint;
 			Movement->bWantsToWalk = bSavedWantsToWalk;
+			Movement->bWantsToDash = bSavedWantsToDash;
+			Movement->DashDirection = SavedDashDirection;
+			Movement->DashTimeRemaining = SavedDashTimeRemaining;
+			Movement->DashCooldownRemaining = SavedDashCooldownRemaining;
+			Movement->AirDashesUsed = SavedAirDashesUsed;
 		}
 	}
 
 private:
 	bool bSavedWantsToSprint = false;
 	bool bSavedWantsToWalk = false;
+	bool bSavedWantsToDash = false;
+	FVector SavedDashDirection = FVector::ForwardVector;
+	float SavedDashTimeRemaining = 0.f;
+	float SavedDashCooldownRemaining = 0.f;
+	int32 SavedAirDashesUsed = 0;
 };
 
 class FSAEVUSNetworkPredictionData_Client : public FNetworkPredictionData_Client_Character
@@ -137,6 +172,11 @@ const FSAEVUSAirMovementTuning& USAEVUSMovementComponent::GetAirTuning() const
 	return MovementSettings ? MovementSettings->Air : SAEVUSMovement::DefaultAirTuning;
 }
 
+const FSAEVUSDashTuning& USAEVUSMovementComponent::GetDashTuning() const
+{
+	return MovementSettings ? MovementSettings->Dash : SAEVUSMovement::DefaultDashTuning;
+}
+
 void USAEVUSMovementComponent::SetMovementSettings(const USAEVUSMovementSettings* NewSettings)
 {
 	MovementSettings = NewSettings;
@@ -161,8 +201,65 @@ void USAEVUSMovementComponent::BufferJumpRequest()
 	}
 }
 
+int32 USAEVUSMovementComponent::GetAirDashesRemaining() const
+{
+	return FMath::Max(0, GetDashTuning().MaxAirDashes - AirDashesUsed);
+}
+
+bool USAEVUSMovementComponent::CanDash() const
+{
+	if (IsDashing() || DashCooldownRemaining > 0.f || GetDashTuning().Duration <= 0.f || IsCrouching())
+	{
+		return false;
+	}
+	if (IsMovingOnGround())
+	{
+		return true;
+	}
+	return IsFalling() && GetAirDashesRemaining() > 0;
+}
+
+void USAEVUSMovementComponent::StartDash()
+{
+	const FSAEVUSDashTuning& Tuning = GetDashTuning();
+
+	// Acceleration is the replicated input, so server and client pick the same direction.
+	const FVector InputDirection = Acceleration.GetSafeNormal2D();
+	DashDirection = InputDirection.IsNearlyZero() ? UpdatedComponent->GetForwardVector().GetSafeNormal2D() : InputDirection;
+	DashTimeRemaining = Tuning.Duration;
+
+	float VerticalSpeed = Velocity.Z;
+	if (IsFalling())
+	{
+		++AirDashesUsed;
+		VerticalSpeed = Tuning.AirDashVerticalSpeed;
+	}
+	Velocity = DashDirection * Tuning.Speed;
+	Velocity.Z = VerticalSpeed;
+
+	if (Tuning.bFaceDashDirection)
+	{
+		MoveUpdatedComponent(FVector::ZeroVector, DashDirection.ToOrientationQuat(), /*bSweep*/ false);
+	}
+}
+
+void USAEVUSMovementComponent::EndDash()
+{
+	const FSAEVUSDashTuning& Tuning = GetDashTuning();
+	DashTimeRemaining = 0.f;
+	DashCooldownRemaining = Tuning.Cooldown;
+
+	const FVector Horizontal = FVector(Velocity.X, Velocity.Y, 0.f).GetClampedToMaxSize(Tuning.ExitSpeed);
+	Velocity.X = Horizontal.X;
+	Velocity.Y = Horizontal.Y;
+}
+
 float USAEVUSMovementComponent::GetMaxSpeed() const
 {
+	if (IsDashing())
+	{
+		return GetDashTuning().Speed;
+	}
 	if (IsCrouching())
 	{
 		return Super::GetMaxSpeed();
@@ -179,6 +276,29 @@ float USAEVUSMovementComponent::GetMaxSpeed() const
 	return Super::GetMaxSpeed();
 }
 
+float USAEVUSMovementComponent::GetGravityZ() const
+{
+	if (IsDashing() && IsFalling() && GetDashTuning().bSuspendGravityDuringDash)
+	{
+		return 0.f;
+	}
+	return Super::GetGravityZ();
+}
+
+void USAEVUSMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
+{
+	// A dash holds its speed and direction: no input steering, friction or braking.
+	// Callers pass horizontal velocity here (walking and falling both handle Z themselves).
+	if (IsDashing() && HasValidData() && !HasAnimRootMotion())
+	{
+		const float VerticalSpeed = Velocity.Z;
+		Velocity = DashDirection * GetDashTuning().Speed;
+		Velocity.Z = VerticalSpeed;
+		return;
+	}
+	Super::CalcVelocity(DeltaTime, Friction, bFluid, BrakingDeceleration);
+}
+
 bool USAEVUSMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 {
 	const bool bJumped = Super::DoJump(bReplayingMoves, DeltaTime);
@@ -186,6 +306,11 @@ bool USAEVUSMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 	{
 		CoyoteTimeRemaining = 0.f;
 		JumpBufferTimeRemaining = 0.f;
+		// Jumping out of a ground dash cancels it; the jump keeps the dash's exit speed.
+		if (IsDashing())
+		{
+			EndDash();
+		}
 	}
 	return bJumped;
 }
@@ -208,6 +333,16 @@ void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 		CoyoteTimeRemaining = 0.f;
 	}
 
+	if (IsMovingOnGround())
+	{
+		AirDashesUsed = 0;
+	}
+	else if (IsDashing() && !IsFalling())
+	{
+		// Dash only runs in walking and falling; any other mode ends it.
+		EndDash();
+	}
+
 	if (IsMovingOnGround() && JumpBufferTimeRemaining > 0.f && CharacterOwner)
 	{
 		JumpBufferTimeRemaining = 0.f;
@@ -220,6 +355,34 @@ void USAEVUSMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVect
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 	CoyoteTimeRemaining = FMath::Max(0.f, CoyoteTimeRemaining - DeltaSeconds);
 	JumpBufferTimeRemaining = FMath::Max(0.f, JumpBufferTimeRemaining - DeltaSeconds);
+
+	if (IsDashing())
+	{
+		DashTimeRemaining = FMath::Max(0.f, DashTimeRemaining - DeltaSeconds);
+		if (!IsDashing())
+		{
+			EndDash();
+		}
+	}
+	else
+	{
+		DashCooldownRemaining = FMath::Max(0.f, DashCooldownRemaining - DeltaSeconds);
+	}
+}
+
+void USAEVUSMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
+{
+	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+
+	// The request is consumed either way: a dash pressed during cooldown is not queued.
+	if (bWantsToDash)
+	{
+		bWantsToDash = false;
+		if (CanDash())
+		{
+			StartDash();
+		}
+	}
 }
 
 void USAEVUSMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
@@ -227,6 +390,7 @@ void USAEVUSMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 	Super::UpdateFromCompressedFlags(Flags);
 	bWantsToSprint = (Flags & SAEVUSMovement::FlagSprint) != 0;
 	bWantsToWalk = (Flags & SAEVUSMovement::FlagWalk) != 0;
+	bWantsToDash = (Flags & SAEVUSMovement::FlagDash) != 0;
 }
 
 FNetworkPredictionData_Client* USAEVUSMovementComponent::GetPredictionData_Client() const

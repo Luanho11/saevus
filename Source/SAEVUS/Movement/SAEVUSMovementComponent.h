@@ -15,8 +15,8 @@
  * from USAEVUSMovementSettings to the base movement model. Gait requests travel
  * through saved moves so they stay client-predicted when networking is enabled.
  *
- * Future movement abilities (wall run, wall jump, dash) belong here as custom
- * movement modes; see Docs/movement.md.
+ * Dash is a timed state inside walking / falling. Future abilities (wall run,
+ * wall jump) belong here as custom movement modes; see Docs/movement.md.
  */
 UCLASS(ClassGroup = (SAEVUS))
 class SAEVUS_API USAEVUSMovementComponent : public UCharacterMovementComponent
@@ -50,8 +50,23 @@ public:
 	/** Remembers a jump pressed in the air so it fires on landing (see JumpBufferTime). */
 	void BufferJumpRequest();
 
+	/** Asks for a dash on the next movement update; dropped if a dash isn't allowed then. */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Movement")
+	void RequestDash() { bWantsToDash = true; }
+
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	bool IsDashing() const { return DashTimeRemaining > 0.f; }
+
+	/** Air dashes left before landing. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	int32 GetAirDashesRemaining() const;
+
+	/** True if a dash requested now would start (ignores the pending request itself). */
+	bool CanDash() const;
+
 	const FSAEVUSGroundMovementTuning& GetGroundTuning() const;
 	const FSAEVUSAirMovementTuning& GetAirTuning() const;
+	const FSAEVUSDashTuning& GetDashTuning() const;
 
 	/** Swaps the movement profile and re-applies it immediately. Null restores code defaults. */
 	void SetMovementSettings(const USAEVUSMovementSettings* NewSettings);
@@ -60,6 +75,8 @@ public:
 	using Super::DoJump;
 	virtual void InitializeComponent() override;
 	virtual float GetMaxSpeed() const override;
+	virtual float GetGravityZ() const override;
+	virtual void CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration) override;
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
@@ -69,6 +86,7 @@ protected:
 	//~ Begin UCharacterMovementComponent interface
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	//~ End UCharacterMovementComponent interface
 
 protected:
@@ -80,10 +98,21 @@ private:
 	/** Pushes the active tuning into the base movement properties. */
 	void ApplyMovementSettings();
 
+	void StartDash();
+	/** Ends the dash: caps horizontal speed to ExitSpeed and starts the cooldown. */
+	void EndDash();
+
 	friend class FSAEVUSSavedMove;
 
 	bool bWantsToSprint = false;
 	bool bWantsToWalk = false;
+	bool bWantsToDash = false;
+
+	// Dash state. Saved and restored by FSAEVUSSavedMove so replays after a correction match.
+	FVector DashDirection = FVector::ForwardVector;
+	float DashTimeRemaining = 0.f;
+	float DashCooldownRemaining = 0.f;
+	int32 AirDashesUsed = 0;
 
 	// Local simulation state derived from movement-mode transitions. Not part of the saved move:
 	// after a server correction it can be briefly off by one transition (acceptable for now).

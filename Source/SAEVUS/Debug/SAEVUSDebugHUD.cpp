@@ -28,6 +28,8 @@ void ASAEVUSDebugHUD::DrawHUD()
 		FString::Printf(TEXT("Speed: %.0f / %.0f cm/s"), Movement->Velocity.Size2D(), Movement->GetMaxSpeed()),
 		FString::Printf(TEXT("Vertical speed: %.0f cm/s"), Movement->Velocity.Z),
 		FString::Printf(TEXT("Mode: %s"), *Movement->GetMovementName()),
+		FString::Printf(TEXT("Dash: %s, air dashes left %d"), Movement->IsDashing() ? TEXT("active") : (Movement->CanDash() ? TEXT("ready") : TEXT("blocked")),
+			Movement->GetAirDashesRemaining()),
 		FString::Printf(TEXT("Location: %s"), *Character->GetActorLocation().ToCompactString()),
 	};
 

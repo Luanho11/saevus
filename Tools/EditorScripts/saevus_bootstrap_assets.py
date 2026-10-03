@@ -32,6 +32,8 @@ CUBE_MESH = "/Engine/BasicShapes/Cube"  # 100 cm, pivot at the centre
 SAEVUS_KEY_MAPPINGS = {
     "IA_Sprint": ["LeftShift", "Gamepad_LeftThumbstick"],
     "IA_Walk": ["LeftAlt"],
+    # Pressed (Started). Shift and Alt are taken by sprint and walk.
+    "IA_Dash": ["LeftControl", "ThumbMouseButton", "Gamepad_FaceButton_Right"],
     # F1-F5, F9 and F11 are engine debug bindings (BaseInput.ini).
     "IA_ToggleDebugHUD": ["F6"],
 }
@@ -111,6 +113,7 @@ def create_data_assets(actions):
     input_config.set_editor_property("jump_action", load(f"{TEMPLATE_ACTIONS}/IA_Jump"))
     input_config.set_editor_property("sprint_action", actions["IA_Sprint"])
     input_config.set_editor_property("walk_action", actions["IA_Walk"])
+    input_config.set_editor_property("dash_action", actions["IA_Dash"])
 
     # Values stay at the code defaults until tuned in the editor.
     movement = data_asset("DA_MovementSettings_Default", unreal.SAEVUSMovementSettings)
