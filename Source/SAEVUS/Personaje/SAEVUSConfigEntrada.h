@@ -45,6 +45,18 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movimiento")
 	TObjectPtr<UInputAction> AccionDash;
 
+	/** Dash con doble toque de una dirección de movimiento (WASD). */
+	UPROPERTY(EditDefaultsOnly, Category = "Movimiento|Doble toque")
+	bool bDashDobleToque = true;
+
+	/** Tiempo máximo entre las dos pulsaciones del doble toque. */
+	UPROPERTY(EditDefaultsOnly, Category = "Movimiento|Doble toque", meta = (ClampMin = "0.05", ClampMax = "1", ForceUnits = "s"))
+	float VentanaDobleToque = 0.25f;
+
+	/** Valor del eje de movimiento a partir del cual una dirección cuenta como pulsada. */
+	UPROPERTY(EditDefaultsOnly, Category = "Movimiento|Doble toque", meta = (ClampMin = "0.1", ClampMax = "1"))
+	float UmbralDobleToque = 0.5f;
+
 	/** Booleana, mantenida: ataque cuerpo a cuerpo, o gatillo del arma de fuego equipada. */
 	UPROPERTY(EditDefaultsOnly, Category = "Combate")
 	TObjectPtr<UInputAction> AccionAtacar;

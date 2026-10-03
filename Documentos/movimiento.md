@@ -57,6 +57,11 @@ Primera habilidad avanzada (objetivos en `investigacion/gunz.md`). En teclado: *
 - **Fin.** Tras `Duracion`, o cuando un salto cancela un dash de suelo: la velocidad horizontal se limita a `VelocidadSalida` y empieza el `Enfriamiento`.
 - **Presupuesto aéreo.** `MaxDashesAereos` por estancia en el aire; se recarga al aterrizar y (por defecto) con un salto de pared, una carrera por pared o una escalada.
 - **Cancelación diseñada.** Saltar durante un dash de suelo: termina el dash y el salto sale a `VelocidadSalida`.
+- **Doble toque** (`Personaje/SAEVUSDetectorDobleToque.h`): pulsar, soltar y volver a pulsar una dirección en menos de `VentanaDobleToque` (0,25 s, en `DA_ConfigEntrada`; umbral `UmbralDobleToque`). Cada dirección se sigue por separado: mantener W y tocar dos veces D da dash a la derecha. La dirección se pide explícitamente (`PedirDashEnDireccion`) relativa a la cámara.
+- **Cámara bloqueada** durante el dash (`bBloquearCamaraEnDash`), como en GunZ.
+- **Invulnerabilidad** desde el inicio (`DuracionInvulnerable` 0,15 s): el evento `AlIniciarDash` del movimiento llega al personaje, que la pide a `USAEVUSComponenteVida`.
+- **Estela** (`Efectos/SAEVUSComponenteEstelaDash`): estallido de polvo al empezar y rastro mientras dura, con partículas por CPU sobre mallas instanciadas (`Efectos/SAEVUSComponenteParticulas`, material sin luz `M_ParticulaPolvo`). Sin translucidez ni sombras: barato en la Vega 8.
+- Red: la dirección pedida se guarda para las repeticiones del cliente; enviarla al servidor necesita los datos de movimiento propios (fase de red). Los efectos no se repiten en las correcciones (`bClientUpdating`).
 
 | Valor (`FSAEVUSAjusteDash`) | Por defecto | Notas |
 |---|---|---|
@@ -162,6 +167,7 @@ Límite conocido: el paso en el aire y los temporizadores coyote/buffer son esta
 | `AsistenciaSalto.TiempoCoyote` | saltar justo tras salir de un borde funciona; con 0 se rechaza |
 | `AsistenciaSalto.BufferSalto` | salto pulsado a 15 cm del suelo se ejecuta al aterrizar; con 0 se pierde |
 | `AsistenciaSalto.BloqueoPasoAire` | esprint en el aire no sube el tope si está bloqueado; sí si no; un despegue con salto no abre coyote |
+| `DobleToque.Detector` / `Dash` / `Invulnerabilidad` | ventana, mantener no cuenta, direcciones separadas, W mantenida + D doble; dash hacia la dirección tocada con cámara bloqueada; invulnerable al inicio y luego no |
 | `Dash.Suelo` / `Direccion` / `Enfriamiento` / `PresupuestoAereo` / `CancelarConSalto` | velocidad, dirección, distancia (293 vs 288 cm), enfriamiento, presupuesto aéreo con gravedad suspendida, cancelación con salto |
 | `SaltoPared.Basico` / `SinPared` / `NoDesdeBorde` / `Tangencial` / `Presupuesto` / `RecargaDashAereo` | impulso, ausencia de pared, el borde no es pared, fracción tangencial, presupuesto, recarga |
 | `CarreraPared.Entrar` / `CondicionesEntrada` / `Duracion` / `Aterrizaje` / `FinPared` / `Saltar` / `Soltar` | entrada, rechazos, 72 pasos = 1,2 s, misma pared, aterrizaje, final de pared, salto, soltar |

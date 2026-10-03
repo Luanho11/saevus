@@ -5,6 +5,7 @@
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
+#include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "DynamicRHI.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -25,6 +26,13 @@ namespace SAEVUSPruebaHumo
 	// Opcional: captura también un fotograma de ProfileGPU a mitad del esprint (tiempos de GPU por pasada en el log).
 	const TCHAR* const ParametroPerfilGPU = TEXT("SAEVUSPruebaHumoPerfilGPU");
 	const TCHAR* const NombreCaptura = TEXT("SAEVUS_PruebaHumo.png");
+	const TCHAR* const NombreCapturaDash = TEXT("SAEVUS_PruebaHumo_Dash.png");
+
+	// Doble toque a la derecha: fotogramas pulsado, suelto y la segunda pulsación (dentro de la ventana a cualquier fps razonable).
+	constexpr int32 FotogramasPulsado = 3;
+	constexpr int32 FotogramasSuelto = 3;
+	// Fotogramas tras empezar el dash antes de la captura, para que se vea la estela.
+	constexpr int32 FotogramasHastaCapturaDash = 4;
 
 	// Duración de las etapas en segundos. El asentado cubre la aparición, el aterrizaje y los primeros tirones.
 	constexpr float DuracionAsentar = 2.f;
@@ -163,12 +171,32 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		bDejoSuelo |= Movimiento->IsFalling();
 		if ((bDejoSuelo && Movimiento->IsMovingOnGround()) || TiempoEtapa >= DuracionMaxSalto)
 		{
-			Movimiento->PedirDash();
+			FotogramaEtapa = 0;
 			EntrarEtapa(EEtapa::Dash);
 		}
 		break;
 
 	case EEtapa::Dash:
+	{
+		// Doble toque real por la misma vía que la entrada del jugador.
+		const FVector2D Derecha(1.f, 0.f);
+		if (FotogramaEtapa < FotogramasPulsado + FotogramasSuelto + 1)
+		{
+			const bool bPulsado = FotogramaEtapa < FotogramasPulsado || FotogramaEtapa == FotogramasPulsado + FotogramasSuelto;
+			Pawn->AplicarEntradaMovimiento(bPulsado ? Derecha : FVector2D::ZeroVector);
+		}
+		else if (FotogramaEtapa == FotogramasPulsado + FotogramasSuelto + 1)
+		{
+			Pawn->AplicarEntradaMovimiento(FVector2D::ZeroVector);
+		}
+		++FotogramaEtapa;
+		bDashEmpezo |= Movimiento->EstaEnDash();
+		if (bDashEmpezo && !bCapturaDashHecha && FotogramaEtapa >= FotogramasPulsado + FotogramasSuelto + 1 + FotogramasHastaCapturaDash)
+		{
+			bCapturaDashHecha = true;
+			ParticulasDash = Pawn->ObtenerEstelaDash()->ObtenerParticulasActivas();
+			FScreenshotRequest::RequestScreenshot(NombreCapturaDash, true, false);
+		}
 		VelocidadMaxDash = FMath::Max(VelocidadMaxDash, static_cast<float>(Movimiento->Velocity.Size2D()));
 		if (TiempoEtapa >= DuracionEtapaDash)
 		{
@@ -177,6 +205,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 			EntrarEtapa(EEtapa::Atacar);
 		}
 		break;
+	}
 
 	case EEtapa::Atacar:
 		if (!Pawn->ObtenerCombate()->EstaAtacando() || TiempoEtapa >= DuracionMaxEtapaAtaque)
@@ -246,7 +275,9 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("velocidad de esprint"), VelocidadMaxEsprint, Movimiento->ObtenerVelocidadPaso(ESAEVUSPaso::Esprint), ToleranciaVelocidad);
 		const float CimaEsperada = FMath::Square(Movimiento->JumpZVelocity) / (2.f * FMath::Abs(Movimiento->GetGravityZ()));
 		Comprobar(TEXT("cima del salto"), ZCimaSalto - ZInicioSalto, CimaEsperada, ToleranciaCimaSalto);
+		Comprobar(TEXT("dash por doble toque"), bDashEmpezo ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("velocidad del dash"), VelocidadMaxDash, Movimiento->ObtenerAjusteDash().Velocidad, ToleranciaVelocidad);
+		Comprobar(TEXT("estela del dash con partículas"), ParticulasDash > 0 ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("ataque empezado"), bAtaqueEmpezo ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("duración del ataque"), DuracionAtaque, Pawn->ObtenerCombate()->ObtenerRepertorio().ComboSuelo[0].ObtenerTiempoTotal(), ToleranciaDuracionAtaque);
 		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);

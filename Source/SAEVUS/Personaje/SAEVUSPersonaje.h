@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Personaje/SAEVUSDetectorDobleToque.h"
 #include "SAEVUSPersonaje.generated.h"
 
 class USpringArmComponent;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCamara;
 class USAEVUSComponenteCombate;
+class USAEVUSComponenteEstelaDash;
 class USAEVUSComponenteMovimiento;
 class USAEVUSComponenteVida;
 class USAEVUSConfigEntrada;
@@ -38,6 +40,7 @@ public:
 	USAEVUSComponenteCombate* ObtenerCombate() const { return Combate; }
 	USAEVUSComponenteArmas* ObtenerArmas() const { return Armas; }
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
+	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
 	USpringArmComponent* ObtenerBrazoCamara() const { return BrazoCamara; }
 	USAEVUSComponenteCamara* ObtenerCamara() const { return Camara; }
 
@@ -51,6 +54,18 @@ public:
 	/** Pulsación de dash desde cualquier entrada. Se descarta durante un ataque que todavía no se puede cancelar con un dash. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void PedirDash();
+
+	/** Dash en una dirección del mundo (horizontal), p. ej. la del doble toque. Mismas reglas que PedirDash. */
+	void PedirDashHacia(const FVector& Direccion);
+
+	/**
+	 * Entrada de movimiento en ejes locales a la cámara (X = derecha, Y = adelante): mueve al
+	 * personaje y alimenta el detector de doble toque. La usan la acción de mover y los tests.
+	 */
+	void AplicarEntradaMovimiento(const FVector2D& Eje);
+
+	/** Cierto mientras la cámara no debe girar (dash con bBloquearCamaraEnDash). */
+	bool CamaraBloqueada() const;
 
 	/** Pulsación de la acción principal: ataque cuerpo a cuerpo, o gatillo del arma de fuego equipada. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
@@ -83,9 +98,16 @@ protected:
 
 private:
 	void ManejarMover(const FInputActionValue& Valor);
+	void ManejarMoverSoltar(const FInputActionValue& Valor);
 	void ManejarMirar(const FInputActionValue& Valor);
 	void ManejarEsprint(const FInputActionValue& Valor);
 	void ManejarCaminar(const FInputActionValue& Valor);
+
+	/** Al empezar un dash: invulnerabilidad breve. */
+	void AlIniciarDash(const FVector& Direccion);
+
+	/** Rotación que orienta la entrada: la del controlador, o los ejes del mundo sin controlador (tests). */
+	FRotator ObtenerRotacionEntrada() const;
 
 	/** Detiene el cuerpo (ragdoll si la malla tiene asset de física), quita la entrada y pide la reaparición al modo de juego. */
 	UFUNCTION()
@@ -101,7 +123,12 @@ private:
 	TObjectPtr<USAEVUSComponenteVida> Vida;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteEstelaDash> EstelaDash;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> BrazoCamara;
+
+	FSAEVUSDetectorDobleToque DetectorDobleToque;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteCamara> Camara;

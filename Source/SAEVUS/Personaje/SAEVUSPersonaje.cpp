@@ -7,6 +7,7 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -46,6 +47,9 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	Armas = CreateDefaultSubobject<USAEVUSComponenteArmas>(TEXT("Armas"));
 	Vida = CreateDefaultSubobject<USAEVUSComponenteVida>(TEXT("Vida"));
 
+	EstelaDash = CreateDefaultSubobject<USAEVUSComponenteEstelaDash>(TEXT("EstelaDash"));
+	EstelaDash->SetupAttachment(RootComponent);
+
 	BrazoCamara = CreateDefaultSubobject<USpringArmComponent>(TEXT("BrazoCamara"));
 	BrazoCamara->SetupAttachment(RootComponent);
 	BrazoCamara->bUsePawnControlRotation = true;
@@ -69,6 +73,31 @@ void ASAEVUSPersonaje::PostInitializeComponents()
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Armas, Armas->PrimaryComponentTick);
 
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
+	ObtenerMovimiento()->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash);
+
+	if (ConfigEntrada)
+	{
+		DetectorDobleToque.Ventana = ConfigEntrada->VentanaDobleToque;
+		DetectorDobleToque.Umbral = ConfigEntrada->UmbralDobleToque;
+	}
+}
+
+void ASAEVUSPersonaje::AlIniciarDash(const FVector& Direccion)
+{
+	Vida->HacerInvulnerable(ObtenerMovimiento()->ObtenerAjusteDash().DuracionInvulnerable);
+}
+
+bool ASAEVUSPersonaje::CamaraBloqueada() const
+{
+	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
+	return Movimiento->EstaEnDash() && Movimiento->ObtenerAjusteDash().bBloquearCamaraEnDash;
+}
+
+FRotator ASAEVUSPersonaje::ObtenerRotacionEntrada() const
+{
+	// Sin controlador (tests, pawns sin dueño) se usan los ejes del mundo: el actor gira al moverse
+	// y la base de la entrada cambiaría entre pulsaciones.
+	return Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator;
 }
 
 void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor* Asesino)
@@ -135,6 +164,8 @@ void ASAEVUSPersonaje::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	if (ConfigEntrada->AccionMover)
 	{
 		Entrada->BindAction(ConfigEntrada->AccionMover, ETriggerEvent::Triggered, this, &ThisClass::ManejarMover);
+		// Al soltar, el detector de doble toque necesita ver el eje a cero.
+		Entrada->BindAction(ConfigEntrada->AccionMover, ETriggerEvent::Completed, this, &ThisClass::ManejarMoverSoltar);
 	}
 	if (ConfigEntrada->AccionMirar)
 	{
@@ -188,18 +219,42 @@ void ASAEVUSPersonaje::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void ASAEVUSPersonaje::ManejarMover(const FInputActionValue& Valor)
 {
-	if (!Controller)
+	AplicarEntradaMovimiento(Valor.Get<FVector2D>());
+}
+
+void ASAEVUSPersonaje::ManejarMoverSoltar(const FInputActionValue& Valor)
+{
+	AplicarEntradaMovimiento(FVector2D::ZeroVector);
+}
+
+void ASAEVUSPersonaje::AplicarEntradaMovimiento(const FVector2D& Eje)
+{
+	const FRotationMatrix MatrizGuinada(FRotator(0.f, ObtenerRotacionEntrada().Yaw, 0.f));
+	const FVector Adelante = MatrizGuinada.GetUnitAxis(EAxis::X);
+	const FVector Derecha = MatrizGuinada.GetUnitAxis(EAxis::Y);
+	if (!Eje.IsZero())
+	{
+		AddMovementInput(Adelante, Eje.Y);
+		AddMovementInput(Derecha, Eje.X);
+	}
+
+	if (ConfigEntrada && !ConfigEntrada->bDashDobleToque)
 	{
 		return;
 	}
-	const FVector2D Eje = Valor.Get<FVector2D>();
-	const FRotationMatrix MatrizGuinada(FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f));
-	AddMovementInput(MatrizGuinada.GetUnitAxis(EAxis::X), Eje.Y);
-	AddMovementInput(MatrizGuinada.GetUnitAxis(EAxis::Y), Eje.X);
+	const FVector2D Toque = DetectorDobleToque.Actualizar(Eje, GetWorld()->GetTimeSeconds());
+	if (!Toque.IsZero())
+	{
+		PedirDashHacia(Adelante * Toque.Y + Derecha * Toque.X);
+	}
 }
 
 void ASAEVUSPersonaje::ManejarMirar(const FInputActionValue& Valor)
 {
+	if (CamaraBloqueada())
+	{
+		return;
+	}
 	const FVector2D Eje = Valor.Get<FVector2D>();
 	AddControllerYawInput(Eje.X);
 	AddControllerPitchInput(Eje.Y);
@@ -220,6 +275,14 @@ void ASAEVUSPersonaje::PedirDash()
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
 		ObtenerMovimiento()->PedirDash();
+	}
+}
+
+void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
+{
+	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
+	{
+		ObtenerMovimiento()->PedirDashEnDireccion(Direccion);
 	}
 }
 

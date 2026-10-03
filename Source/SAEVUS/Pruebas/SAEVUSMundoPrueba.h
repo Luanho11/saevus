@@ -8,6 +8,7 @@
 
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
@@ -116,6 +117,7 @@ namespace SAEVUSPruebas
 			MovimientoSimulado = Movimiento;
 			CombateSimulado = Personaje->ObtenerCombate();
 			ArmasSimuladas = Personaje->ObtenerArmas();
+			EstelaSimulada = Personaje->ObtenerEstelaDash();
 			return Personaje;
 		}
 
@@ -153,6 +155,10 @@ namespace SAEVUSPruebas
 				CombateSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &CombateSimulado->PrimaryComponentTick);
 			}
 			MovimientoSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &MovimientoSimulado->PrimaryComponentTick);
+			if (EstelaSimulada)
+			{
+				EstelaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &EstelaSimulada->PrimaryComponentTick);
+			}
 		}
 
 	private:
@@ -160,6 +166,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteMovimiento* MovimientoSimulado = nullptr;
 		USAEVUSComponenteCombate* CombateSimulado = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
+		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
 	};
 }
 

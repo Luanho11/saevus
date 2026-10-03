@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Combate/SAEVUSComponenteVida.h"
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
 
 USAEVUSComponenteVida::USAEVUSComponenteVida()
@@ -36,7 +37,7 @@ void USAEVUSComponenteVida::ManejarDanioRecibido(AActor* ActorDaniado, float Dan
 
 float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
 {
-	if (bMuerto || Cantidad <= 0.f)
+	if (bMuerto || Cantidad <= 0.f || EstaInvulnerable())
 	{
 		return 0.f;
 	}
@@ -65,6 +66,20 @@ float USAEVUSComponenteVida::Curar(float Cantidad)
 		AlCambiarVida.Broadcast(this, Sumada, nullptr);
 	}
 	return Sumada;
+}
+
+void USAEVUSComponenteVida::HacerInvulnerable(float Duracion)
+{
+	if (const UWorld* Mundo = GetWorld())
+	{
+		InvulnerableHasta = FMath::Max(InvulnerableHasta, Mundo->GetTimeSeconds() + Duracion);
+	}
+}
+
+bool USAEVUSComponenteVida::EstaInvulnerable() const
+{
+	const UWorld* Mundo = GetWorld();
+	return Mundo && Mundo->GetTimeSeconds() < InvulnerableHasta;
 }
 
 void USAEVUSComponenteVida::RestablecerVida()

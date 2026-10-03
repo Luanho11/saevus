@@ -16,6 +16,7 @@ RAIZ = "/Game/SAEVUS"
 DIR_ENTRADA = f"{RAIZ}/Entrada"
 DIR_DATOS = f"{RAIZ}/Datos"
 DIR_BLUEPRINTS = f"{RAIZ}/Blueprints"
+DIR_MATERIALES = f"{RAIZ}/Arte/Materiales"
 RUTA_MAPA_PRUEBAS = f"{RAIZ}/Mapas/L_Pruebas"
 
 ACCIONES_PLANTILLA = "/Game/Input/Actions"
@@ -120,6 +121,26 @@ def cdo_blueprint(blueprint):
     return unreal.get_default_object(blueprint.generated_class())
 
 
+def crear_material_sin_luz(nombre, color):
+    """Material sin iluminación con un parámetro de color "Color"; apto para mallas instanciadas (partículas)."""
+    ruta = f"{DIR_MATERIALES}/{nombre}"
+    if eal.does_asset_exist(ruta):
+        material = cargar(ruta)
+    else:
+        material = herramientas_assets.create_asset(nombre, DIR_MATERIALES, unreal.Material, unreal.MaterialFactoryNew())
+        registrar(f"creado {ruta}")
+    edicion = unreal.MaterialEditingLibrary
+    edicion.delete_all_material_expressions(material)
+    material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    material.set_editor_property("used_with_instanced_static_meshes", True)
+    parametro = edicion.create_material_expression(material, unreal.MaterialExpressionVectorParameter, -300, 0)
+    parametro.set_editor_property("parameter_name", "Color")
+    parametro.set_editor_property("default_value", unreal.LinearColor(*color))
+    edicion.connect_material_property(parametro, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    edicion.recompile_material(material)
+    return material
+
+
 def crear_assets_entrada():
     acciones = {}
     for nombre in ASIGNACIONES_SAEVUS:
@@ -195,6 +216,9 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     personaje.get_editor_property("camara").set_editor_property("ajustes_camara", camara)
     personaje.get_editor_property("combate").set_editor_property("datos_repertorio", repertorio)
     personaje.get_editor_property("armas").set_editor_property("arsenal", armas)
+    # Polvo claro y frío para la estela del dash: resalta sobre el escenario oscuro.
+    material_estela = crear_material_sin_luz("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0))
+    personaje.get_editor_property("estela_dash").set_editor_property("override_materials", [material_estela])
 
     bp_controlador = obtener_o_crear_blueprint("BP_SAEVUSControladorJugador", unreal.SAEVUSControladorJugador)
     controlador = cdo_blueprint(bp_controlador)

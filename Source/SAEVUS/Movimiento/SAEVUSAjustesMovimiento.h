@@ -132,6 +132,14 @@ struct FSAEVUSAjusteDash
 	/** Sin gravedad mientras dura un dash aéreo, así se mantiene la velocidad vertical de arriba. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash aéreo")
 	bool bSuspenderGravedadEnDash = true;
+
+	/** La cámara no gira mientras dura el dash (como en GunZ); la dirección del dash queda fija. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
+	bool bBloquearCamaraEnDash = true;
+
+	/** Invulnerabilidad desde el inicio del dash (esquiva). 0 = ninguna. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionInvulnerable = 0.15f;
 };
 
 /**

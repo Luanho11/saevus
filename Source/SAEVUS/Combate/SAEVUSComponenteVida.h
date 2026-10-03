@@ -41,6 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
 	float Curar(float Cantidad);
 
+	/** Ignora todo daño durante Duracion segundos de tiempo de mundo (alarga una invulnerabilidad en curso, nunca la acorta). */
+	void HacerInvulnerable(float Duracion);
+
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Vida")
+	bool EstaInvulnerable() const;
+
 	/** Vida completa y vivo otra vez. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
 	void RestablecerVida();
@@ -69,4 +75,6 @@ private:
 
 	float Vida = 0.f;
 	bool bMuerto = false;
+	/** Tiempo de mundo hasta el que se ignora el daño. */
+	double InvulnerableHasta = 0.0;
 };

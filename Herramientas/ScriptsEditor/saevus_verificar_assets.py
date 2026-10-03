@@ -30,6 +30,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Datos/DA_Arma_Rifle",
     "/Game/SAEVUS/Datos/DA_Arma_Escopeta",
     "/Game/SAEVUS/Mapas/L_Pruebas",
+    "/Game/SAEVUS/Arte/Materiales/M_ParticulaPolvo",
 )
 
 PROPIEDADES_CONFIG_ENTRADA = (
@@ -78,6 +79,8 @@ def main():
         armas = personaje.get_editor_property("armas")
         arsenal = armas.get_editor_property("arsenal") if armas else []
         comprobar("el arsenal tiene 4 armas", len(arsenal) == 4 and all(arsenal))
+        estela = personaje.get_editor_property("estela_dash")
+        comprobar("material de la estela del dash asignado", estela is not None and len(estela.get_editor_property("override_materials")) > 0)
 
     controlador = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSControladorJugador")
     if controlador:

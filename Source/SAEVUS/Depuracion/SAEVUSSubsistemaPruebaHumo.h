@@ -62,6 +62,10 @@ private:
 	float ZCimaSalto = 0.f;
 	bool bDejoSuelo = false;
 	float VelocidadMaxDash = 0.f;
+	int32 FotogramaEtapa = 0;
+	bool bDashEmpezo = false;
+	bool bCapturaDashHecha = false;
+	int32 ParticulasDash = 0;
 	float DuracionAtaque = 0.f;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;

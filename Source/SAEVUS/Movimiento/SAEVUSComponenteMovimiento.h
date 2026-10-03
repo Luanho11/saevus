@@ -8,6 +8,9 @@
 #include "Movimiento/SAEVUSTiposMovimiento.h"
 #include "SAEVUSComponenteMovimiento.generated.h"
 
+/** Se emite al empezar un dash (no durante las repeticiones de corrección de red). Parámetro: dirección horizontal. */
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoDash, const FVector& /*Direccion*/);
+
 /**
  * Movimiento del personaje de SAEVUS.
  *
@@ -54,7 +57,19 @@ public:
 
 	/** Pide un dash para la próxima actualización de movimiento; se descarta si no se puede entonces. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Movimiento")
-	void PedirDash() { bQuiereDash = true; }
+	void PedirDash() { bQuiereDash = true; DireccionDashPedida = FVector::ZeroVector; }
+
+	/**
+	 * Pide un dash en una dirección concreta (horizontal, en el mundo), p. ej. la del doble toque.
+	 * Sin dirección válida se comporta como PedirDash (entrada de movimiento u orientación).
+	 */
+	void PedirDashEnDireccion(const FVector& Direccion) { bQuiereDash = true; DireccionDashPedida = Direccion.GetSafeNormal2D(); }
+
+	/** Dirección del dash en curso (o del último). */
+	FVector ObtenerDireccionDash() const { return DireccionDash; }
+
+	/** Se emite al empezar cada dash. */
+	FSAEVUSEventoDash AlIniciarDash;
 
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnDash() const { return TiempoDashRestante > 0.f; }
@@ -179,6 +194,8 @@ private:
 	bool bQuiereEsprint = false;
 	bool bQuiereCaminar = false;
 	bool bQuiereDash = false;
+	/** Dirección pedida explícitamente para el próximo dash; cero = usar la entrada de movimiento. */
+	FVector DireccionDashPedida = FVector::ZeroVector;
 
 	// Movimiento de acción dirigido por el combate. Estado local, todavía fuera del movimiento
 	// guardado (el combate no tiene red hasta la fase de red).

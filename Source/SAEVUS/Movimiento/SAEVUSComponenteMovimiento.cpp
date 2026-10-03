@@ -33,6 +33,7 @@ public:
 		bQuiereEsprintGuardado = false;
 		bQuiereCaminarGuardado = false;
 		bQuiereDashGuardado = false;
+		DireccionDashPedidaGuardada = FVector::ZeroVector;
 		DireccionDashGuardada = FVector::ForwardVector;
 		TiempoDashRestanteGuardado = 0.f;
 		EnfriamientoDashRestanteGuardado = 0.f;
@@ -89,6 +90,7 @@ public:
 			bQuiereEsprintGuardado = Movimiento->bQuiereEsprint;
 			bQuiereCaminarGuardado = Movimiento->bQuiereCaminar;
 			bQuiereDashGuardado = Movimiento->bQuiereDash;
+			DireccionDashPedidaGuardada = Movimiento->DireccionDashPedida;
 			DireccionDashGuardada = Movimiento->DireccionDash;
 			TiempoDashRestanteGuardado = Movimiento->TiempoDashRestante;
 			EnfriamientoDashRestanteGuardado = Movimiento->EnfriamientoDashRestante;
@@ -110,6 +112,7 @@ public:
 			Movimiento->bQuiereEsprint = bQuiereEsprintGuardado;
 			Movimiento->bQuiereCaminar = bQuiereCaminarGuardado;
 			Movimiento->bQuiereDash = bQuiereDashGuardado;
+			Movimiento->DireccionDashPedida = DireccionDashPedidaGuardada;
 			Movimiento->DireccionDash = DireccionDashGuardada;
 			Movimiento->TiempoDashRestante = TiempoDashRestanteGuardado;
 			Movimiento->EnfriamientoDashRestante = EnfriamientoDashRestanteGuardado;
@@ -127,6 +130,8 @@ private:
 	bool bQuiereEsprintGuardado = false;
 	bool bQuiereCaminarGuardado = false;
 	bool bQuiereDashGuardado = false;
+	// Solo en el cliente para sus repeticiones; enviarla al servidor necesita los datos de movimiento propios (fase de red).
+	FVector DireccionDashPedidaGuardada = FVector::ZeroVector;
 	FVector DireccionDashGuardada = FVector::ForwardVector;
 	float TiempoDashRestanteGuardado = 0.f;
 	float EnfriamientoDashRestanteGuardado = 0.f;
@@ -267,9 +272,18 @@ void USAEVUSComponenteMovimiento::IniciarDash()
 {
 	const FSAEVUSAjusteDash& Ajuste = ObtenerAjusteDash();
 
-	// Acceleration es la entrada replicada, así servidor y cliente eligen la misma dirección.
+	// Prioridad: dirección pedida (doble toque); si no, la entrada (Acceleration, que viaja con el
+	// movimiento, así servidor y cliente coinciden); si no, hacia delante.
 	const FVector DireccionEntrada = Acceleration.GetSafeNormal2D();
-	DireccionDash = DireccionEntrada.IsNearlyZero() ? UpdatedComponent->GetForwardVector().GetSafeNormal2D() : DireccionEntrada;
+	if (!DireccionDashPedida.IsNearlyZero())
+	{
+		DireccionDash = DireccionDashPedida;
+	}
+	else
+	{
+		DireccionDash = DireccionEntrada.IsNearlyZero() ? UpdatedComponent->GetForwardVector().GetSafeNormal2D() : DireccionEntrada;
+	}
+	DireccionDashPedida = FVector::ZeroVector;
 	TiempoDashRestante = Ajuste.Duracion;
 
 	float VelocidadVertical = Velocity.Z;
@@ -284,6 +298,12 @@ void USAEVUSComponenteMovimiento::IniciarDash()
 	if (Ajuste.bGirarHaciaDash)
 	{
 		MoveUpdatedComponent(FVector::ZeroVector, DireccionDash.ToOrientationQuat(), /*bSweep*/ false);
+	}
+
+	// Las repeticiones tras una corrección vuelven a simular el dash: sin efectos repetidos.
+	if (!(CharacterOwner && CharacterOwner->bClientUpdating))
+	{
+		AlIniciarDash.Broadcast(DireccionDash);
 	}
 }
 

@@ -1,0 +1,132 @@
+// Copyright SAEVUS. Todos los derechos reservados.
+
+#include "Efectos/SAEVUSComponenteParticulas.h"
+#include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
+
+namespace SAEVUSParticulas
+{
+	// Malla por defecto: el cubo del motor (12 triángulos). Se puede cambiar en el Blueprint.
+	const TCHAR* const RutaMallaPorDefecto = TEXT("/Engine/BasicShapes/Cube.Cube");
+}
+
+USAEVUSComponenteParticulas::USAEVUSComponenteParticulas()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickGroup = TG_PostPhysics;
+	SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetGenerateOverlapEvents(false);
+	CastShadow = false;
+	// Las instancias se colocan en el mundo; el componente no debe arrastrarlas al moverse el dueño.
+	SetUsingAbsoluteLocation(true);
+	SetUsingAbsoluteRotation(true);
+	SetUsingAbsoluteScale(true);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Malla(SAEVUSParticulas::RutaMallaPorDefecto);
+	if (Malla.Succeeded())
+	{
+		SetStaticMesh(Malla.Object);
+	}
+}
+
+void USAEVUSComponenteParticulas::BeginPlay()
+{
+	Super::BeginPlay();
+	SetWorldLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
+	Aleatorio.Initialize(GetUniqueID());
+	PrepararPool();
+}
+
+void USAEVUSComponenteParticulas::PrepararPool()
+{
+	if (Particulas.Num() == Ajuste.MaxParticulas)
+	{
+		return;
+	}
+	ClearInstances();
+	Particulas.SetNum(Ajuste.MaxParticulas);
+	Transformaciones.Init(FTransform(FQuat::Identity, FVector::ZeroVector, FVector::ZeroVector), Ajuste.MaxParticulas);
+	AddInstances(Transformaciones, false, true);
+	SiguienteHueco = 0;
+}
+
+void USAEVUSComponenteParticulas::Emitir(const FVector& Posicion, const FVector& Velocidad)
+{
+	PrepararPool();
+	// Buffer circular: si todo está vivo, la nueva reemplaza a la más vieja.
+	FParticula& Particula = Particulas[SiguienteHueco];
+	SiguienteHueco = (SiguienteHueco + 1) % Particulas.Num();
+
+	Particula.Posicion = Posicion;
+	Particula.Velocidad = Velocidad;
+	Particula.Rotacion = FRotator(Aleatorio.FRandRange(0.f, 360.f), Aleatorio.FRandRange(0.f, 360.f), Aleatorio.FRandRange(0.f, 360.f));
+	Particula.Giro = FRotator(Aleatorio.FRandRange(-1.f, 1.f), Aleatorio.FRandRange(-1.f, 1.f), Aleatorio.FRandRange(-1.f, 1.f)) * Ajuste.GiroMaximo;
+	Particula.Edad = 0.f;
+	Particula.bViva = true;
+	bInstanciasSucias = true;
+}
+
+void USAEVUSComponenteParticulas::EmitirRafaga(const FVector& Posicion, const FVector& VelocidadBase, int32 Cantidad, float Dispersion)
+{
+	for (int32 Indice = 0; Indice < Cantidad; ++Indice)
+	{
+		Emitir(Posicion, VelocidadBase + Aleatorio.GetUnitVector() * Aleatorio.FRandRange(0.f, Dispersion));
+	}
+}
+
+int32 USAEVUSComponenteParticulas::ObtenerParticulasActivas() const
+{
+	int32 Activas = 0;
+	for (const FParticula& Particula : Particulas)
+	{
+		Activas += Particula.bViva ? 1 : 0;
+	}
+	return Activas;
+}
+
+void USAEVUSComponenteParticulas::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	const float Frenado = FMath::Max(0.f, 1.f - Ajuste.Arrastre * DeltaTime);
+	for (FParticula& Particula : Particulas)
+	{
+		if (!Particula.bViva)
+		{
+			continue;
+		}
+		Particula.Edad += DeltaTime;
+		if (Particula.Edad >= Ajuste.Vida)
+		{
+			Particula.bViva = false;
+			bInstanciasSucias = true;
+			continue;
+		}
+		Particula.Velocidad *= Frenado;
+		Particula.Velocidad.Z += Ajuste.AceleracionVertical * DeltaTime;
+		Particula.Posicion += Particula.Velocidad * DeltaTime;
+		Particula.Rotacion += Particula.Giro * DeltaTime;
+		bInstanciasSucias = true;
+	}
+	if (bInstanciasSucias)
+	{
+		ActualizarInstancias();
+	}
+}
+
+void USAEVUSComponenteParticulas::ActualizarInstancias()
+{
+	bInstanciasSucias = false;
+	if (Transformaciones.Num() != Particulas.Num() || GetInstanceCount() != Particulas.Num())
+	{
+		return;
+	}
+	for (int32 Indice = 0; Indice < Particulas.Num(); ++Indice)
+	{
+		const FParticula& Particula = Particulas[Indice];
+		const float Alfa = Particula.bViva ? FMath::Clamp(Particula.Edad / Ajuste.Vida, 0.f, 1.f) : 1.f;
+		const float Escala = Particula.bViva ? FMath::Lerp(Ajuste.TamanoInicial, Ajuste.TamanoFinal, Alfa) : 0.f;
+		Transformaciones[Indice] = FTransform(Particula.Rotacion, Particula.Posicion, FVector(Escala));
+	}
+	BatchUpdateInstancesTransforms(0, Transformaciones, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+}
