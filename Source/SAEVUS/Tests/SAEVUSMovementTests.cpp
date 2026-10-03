@@ -33,10 +33,17 @@ namespace SAEVUSMovementTests
 		FScopedTestWorld()
 		{
 			FWorldContext& Context = GEngine->CreateNewWorldContext(EWorldType::Game);
-			World = UWorld::CreateWorld(EWorldType::Game, false, TEXT("SAEVUSMovementTestWorld"), GetTransientPackage());
+			// Unique name: a previous test world may not be garbage-collected yet.
+			const FName WorldName = MakeUniqueObjectName(GetTransientPackage(), UWorld::StaticClass(), TEXT("SAEVUSMovementTestWorld"));
+			World = UWorld::CreateWorld(EWorldType::Game, false, WorldName, GetTransientPackage());
 			Context.SetCurrentWorld(World);
 			World->InitializeActorsForPlay(FURL());
 			World->BeginPlay();
+			// Without a game mode nothing dispatches BeginPlay, so actors would never register their ticks.
+			if (!World->GetBegunPlay())
+			{
+				World->GetWorldSettings()->NotifyBeginPlay();
+			}
 		}
 
 		~FScopedTestWorld()
@@ -65,18 +72,25 @@ namespace SAEVUSMovementTests
 
 			// The engine only picks a default mode at spawn when the flag above was already set, so set it here.
 			Movement->SetMovementMode(MOVE_Falling);
-			Step();
 			Movement->Velocity = FVector::ZeroVector;
+			SimulatedMovement = Movement;
 			return Character;
 		}
 
+		/**
+		 * Advances the spawned character's movement by one fixed step. The component is ticked
+		 * directly: a world without a game mode or viewport does not run its tick groups reliably,
+		 * and a direct tick keeps the simulation deterministic.
+		 */
 		void Step()
 		{
-			World->Tick(LEVELTICK_All, SimStep);
+			check(SimulatedMovement);
+			SimulatedMovement->TickComponent(SimStep, LEVELTICK_All, &SimulatedMovement->PrimaryComponentTick);
 		}
 
 	private:
 		UWorld* World = nullptr;
+		USAEVUSMovementComponent* SimulatedMovement = nullptr;
 	};
 
 	int32 StepsFor(float Seconds)
