@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: SESIÓN INTERACTIVA ACTIVA**
-**Último latido: 2026-10-03 13:46** (la sesión interactiva lo actualiza en cada commit) (la sesión interactiva lo actualiza en cada commit)
+**Estado: LIBRE (la sesión interactiva terminó por límite de uso)**
+**Último latido: 2026-10-03 13:51** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -29,7 +29,7 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 - Presupuestos, formatos y fuentes externas: decide Claude, siempre cambiable.
 
 ## Cola de tareas (prioridad de arriba abajo)
-1. [ ] Migración al español: CLAUDE.md, Docs, código (clases, funciones, variables, comentarios), scripts, assets regenerados, tests verdes.
+1. [~] Migración al español (código, herramientas, assets, CLAUDE.md HECHOS; docs a medias): CLAUDE.md, Docs, código (clases, funciones, variables, comentarios), scripts, assets regenerados, tests verdes.
 2. [ ] Investigación Hollow Knight + ampliación GunZ → `Docs/investigacion/` y plan de mecánicas.
 3. [ ] Dash por doble toque WASD, cámara bloqueada, invulnerabilidad breve, partículas de dash.
 4. [ ] Caballero boceto: malla + esqueleto personalizado generados en Blender por script, importados; animación procedural en C++ (reposo, correr, saltar, caer, dash, wall run, escalar, ataques sincronizados con la línea de tiempo, disparo, muerte).
@@ -41,6 +41,6 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 10. [ ] Después: nuevas tareas propuestas por Claude (pulido, efectos, tests, rendimiento).
 
 ## Estado del turno
-- Completado: —
-- A medias: —
-- Siguiente paso exacto: tarea 1.
+- Completado: código, herramientas (`Herramientas/`), assets y config en español (commit 62c8e8f; 49/49 tests, prueba de humo SUPERADA). Documentos nuevos en `Documentos/`: arquitectura, entorno, movimiento, combate, rendimiento, investigacion/gunz, investigacion/hollow-knight, investigacion/mecanicas-objetivo.
+- A medias: quedan en `Docs/` (inglés) PROJECT_STATE.md, SESSION_LOG.md, development-roadmap.md, asset-pipeline.md. Pasarlos a `Documentos/ESTADO_PROYECTO.md`, `REGISTRO_SESIONES.md`, `hoja-de-ruta.md` (nuevas prioridades del dueño), `pipeline-assets.md` (decisiones del dueño: sombreado tipo Hollow Knight, esqueleto personalizado), y borrar `Docs/`. Ampliar `investigacion/hollow-knight.md` cuando haya búsqueda web.
+- Siguiente paso exacto: terminar la tarea 1 (documentos de arriba), luego tarea 3 (dash por doble toque de WASD en `ASAEVUSPersonaje::ManejarMover`, cámara bloqueada en dash, invulnerabilidad breve, partículas).
