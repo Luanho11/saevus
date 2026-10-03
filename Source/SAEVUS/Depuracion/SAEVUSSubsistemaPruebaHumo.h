@@ -42,6 +42,7 @@ private:
 		Dash,
 		Atacar,
 		Disparar,
+		Morir,
 		Reaparecer,
 		Captura,
 		Informe,
@@ -75,6 +76,8 @@ private:
 	bool bGatilloPulsado = false;
 	int32 DisparosRealizados = 0;
 	float VidaTrasGolpe = 0.f;
+	/** Vida tras un golpe letal durante la invulnerabilidad que sigue al primero (debe ignorarse). */
+	float VidaTrasGolpeInvulnerable = 0.f;
 	bool bMurio = false;
 	bool bReaparecio = false;
 	float VidaAlReaparecer = 0.f;

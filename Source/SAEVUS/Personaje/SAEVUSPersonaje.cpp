@@ -5,10 +5,12 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Camara/SAEVUSComponenteCamara.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Efectos/SAEVUSComponenteEfectosCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
@@ -32,6 +34,9 @@ namespace SAEVUSPersonaje
 
 	// Perfil de colisión del motor para ragdolls (BaseEngine.ini).
 	const FName PerfilRagdoll(TEXT("Ragdoll"));
+
+	// Invulnerabilidad del jugador tras recibir un golpe (los enemigos no la tienen).
+	constexpr float InvulnerabilidadTrasGolpe = 1.f;
 }
 
 ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
@@ -48,9 +53,13 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	Combate = CreateDefaultSubobject<USAEVUSComponenteCombate>(TEXT("Combate"));
 	Armas = CreateDefaultSubobject<USAEVUSComponenteArmas>(TEXT("Armas"));
 	Vida = CreateDefaultSubobject<USAEVUSComponenteVida>(TEXT("Vida"));
+	Vida->FijarInvulnerabilidadTrasGolpe(SAEVUSPersonaje::InvulnerabilidadTrasGolpe);
+	Alma = CreateDefaultSubobject<USAEVUSComponenteAlma>(TEXT("Alma"));
 
 	EstelaDash = CreateDefaultSubobject<USAEVUSComponenteEstelaDash>(TEXT("EstelaDash"));
 	EstelaDash->SetupAttachment(RootComponent);
+	EfectosCombate = CreateDefaultSubobject<USAEVUSComponenteEfectosCombate>(TEXT("EfectosCombate"));
+	EfectosCombate->SetupAttachment(RootComponent);
 
 	// Cuerpo visible: hereda de la malla del personaje el desplazamiento a los pies y la corrección de -90°.
 	Cuerpo = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Cuerpo"));
@@ -79,6 +88,7 @@ void ASAEVUSPersonaje::PostInitializeComponents()
 	// que fijen se aplica en el movimiento del mismo fotograma.
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Combate, Combate->PrimaryComponentTick);
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Armas, Armas->PrimaryComponentTick);
+	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Alma, Alma->PrimaryComponentTick);
 
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
 	ObtenerMovimiento()->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash);
@@ -139,6 +149,7 @@ void ASAEVUSPersonaje::PedirSalto()
 	{
 		return;
 	}
+	Alma->CancelarCuracion();
 	USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	if (Movimiento->IsFalling() && !Movimiento->EnVentanaCoyote())
 	{
@@ -207,6 +218,11 @@ void ASAEVUSPersonaje::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	{
 		Entrada->BindAction(ConfigEntrada->AccionAtacar, ETriggerEvent::Started, this, &ThisClass::PedirAtaque);
 		Entrada->BindAction(ConfigEntrada->AccionAtacar, ETriggerEvent::Completed, this, &ThisClass::SoltarAtaque);
+	}
+	if (ConfigEntrada->AccionCurar)
+	{
+		Entrada->BindAction(ConfigEntrada->AccionCurar, ETriggerEvent::Started, this, &ThisClass::ManejarCurar);
+		Entrada->BindAction(ConfigEntrada->AccionCurar, ETriggerEvent::Completed, this, &ThisClass::ManejarCurar);
 	}
 	if (ConfigEntrada->AccionRecargar)
 	{
@@ -282,6 +298,7 @@ void ASAEVUSPersonaje::PedirDash()
 {
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
+		Alma->CancelarCuracion();
 		ObtenerMovimiento()->PedirDash();
 	}
 }
@@ -290,8 +307,19 @@ void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
 {
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
+		Alma->CancelarCuracion();
 		ObtenerMovimiento()->PedirDashEnDireccion(Direccion);
 	}
+}
+
+void ASAEVUSPersonaje::FijarCuracion(bool bPulsada)
+{
+	Alma->FijarCuracionPedida(bPulsada);
+}
+
+void ASAEVUSPersonaje::ManejarCurar(const FInputActionValue& Valor)
+{
+	FijarCuracion(Valor.Get<bool>());
 }
 
 void ASAEVUSPersonaje::PedirAtaque()
@@ -302,6 +330,7 @@ void ASAEVUSPersonaje::PedirAtaque()
 	}
 	else if (!Armas->EstaCambiando())
 	{
+		Alma->CancelarCuracion();
 		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate). La inclinación de la
 		// cámara elige el tajo: arriba, de frente o abajo (en el aire).
 		const float Inclinacion = Controller ? static_cast<float>(FRotator::NormalizeAxis(GetControlRotation().Pitch)) : 0.f;

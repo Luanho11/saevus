@@ -2,6 +2,7 @@
 
 #include "Depuracion/SAEVUSHUDDepuracion.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
@@ -77,7 +78,14 @@ void ASAEVUSHUDDepuracion::DrawHUD()
 
 	if (const USAEVUSComponenteVida* Vida = Personaje->FindComponentByClass<USAEVUSComponenteVida>())
 	{
-		Lineas.Add(FString::Printf(TEXT("Vida: %.0f/%.0f%s"), Vida->ObtenerVida(), Vida->ObtenerVidaMaxima(), Vida->EstaMuerto() ? TEXT(" MUERTO") : TEXT("")));
+		Lineas.Add(FString::Printf(TEXT("Vida: %.0f/%.0f%s%s"), Vida->ObtenerVida(), Vida->ObtenerVidaMaxima(), Vida->EstaMuerto() ? TEXT(" MUERTO") : TEXT(""),
+			Vida->EstaInvulnerable() ? TEXT(" (invulnerable)") : TEXT("")));
+	}
+	if (const USAEVUSComponenteAlma* Alma = Personaje->FindComponentByClass<USAEVUSComponenteAlma>())
+	{
+		Lineas.Add(Alma->EstaCurando()
+			? FString::Printf(TEXT("Alma: %.0f/%.0f (curando %.0f %%)"), Alma->ObtenerAlma(), Alma->ObtenerAlmaMaxima(), Alma->ObtenerProgresoCuracion() * 100.f)
+			: FString::Printf(TEXT("Alma: %.0f/%.0f"), Alma->ObtenerAlma(), Alma->ObtenerAlmaMaxima()));
 	}
 
 	FVector2D Cursor = OrigenPantalla;

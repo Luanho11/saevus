@@ -47,6 +47,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Vida")
 	bool EstaInvulnerable() const;
 
+	/** Cierto durante la invulnerabilidad que sigue a recibir un golpe (no la del dash): la animación parpadea. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Vida")
+	bool EstaEnInvulnerabilidadTrasGolpe() const;
+
+	/** Segundos de invulnerabilidad tras cada golpe recibido. 0 = ninguna (enemigos). */
+	void FijarInvulnerabilidadTrasGolpe(float Duracion) { DuracionInvulnerableTrasGolpe = Duracion; }
+
 	/** Vida completa y vivo otra vez. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
 	void RestablecerVida();
@@ -69,6 +76,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Vida")
 	bool bIgnorarDanioPropio = true;
 
+	/** Invulnerabilidad tras recibir un golpe (Hollow Knight): da tiempo a salir del peligro. 0 = ninguna. */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Vida", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionInvulnerableTrasGolpe = 0.f;
+
 private:
 	UFUNCTION()
 	void ManejarDanioRecibido(AActor* ActorDaniado, float Danio, const UDamageType* TipoDanio, AController* InstigadoPor, AActor* Causante);
@@ -77,4 +88,6 @@ private:
 	bool bMuerto = false;
 	/** Tiempo de mundo hasta el que se ignora el daño. */
 	double InvulnerableHasta = 0.0;
+	/** Tiempo de mundo hasta el que dura la invulnerabilidad tras golpe. */
+	double InvulnerableTrasGolpeHasta = 0.0;
 };

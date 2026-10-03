@@ -43,6 +43,11 @@ float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
 	}
 	const float Quitada = FMath::Min(Cantidad, Vida);
 	Vida -= Quitada;
+	if (Vida > 0.f && DuracionInvulnerableTrasGolpe > 0.f)
+	{
+		HacerInvulnerable(DuracionInvulnerableTrasGolpe);
+		InvulnerableTrasGolpeHasta = GetWorld()->GetTimeSeconds() + DuracionInvulnerableTrasGolpe;
+	}
 	AlCambiarVida.Broadcast(this, -Quitada, Causante);
 	if (Vida <= 0.f)
 	{
@@ -80,6 +85,12 @@ bool USAEVUSComponenteVida::EstaInvulnerable() const
 {
 	const UWorld* Mundo = GetWorld();
 	return Mundo && Mundo->GetTimeSeconds() < InvulnerableHasta;
+}
+
+bool USAEVUSComponenteVida::EstaEnInvulnerabilidadTrasGolpe() const
+{
+	const UWorld* Mundo = GetWorld();
+	return Mundo && Mundo->GetTimeSeconds() < InvulnerableTrasGolpeHasta;
 }
 
 void USAEVUSComponenteVida::RestablecerVida()

@@ -9,7 +9,9 @@
 
 class UPoseableMeshComponent;
 class USpringArmComponent;
+class USAEVUSComponenteAlma;
 class USAEVUSComponenteAnimacionProcedural;
+class USAEVUSComponenteEfectosCombate;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCamara;
 class USAEVUSComponenteCombate;
@@ -43,6 +45,8 @@ public:
 	USAEVUSComponenteCombate* ObtenerCombate() const { return Combate; }
 	USAEVUSComponenteArmas* ObtenerArmas() const { return Armas; }
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
+	USAEVUSComponenteAlma* ObtenerAlma() const { return Alma; }
+	USAEVUSComponenteEfectosCombate* ObtenerEfectosCombate() const { return EfectosCombate; }
 	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
 	UPoseableMeshComponent* ObtenerCuerpo() const { return Cuerpo; }
 	USAEVUSComponenteAnimacionProcedural* ObtenerAnimacion() const { return Animacion; }
@@ -90,6 +94,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void PedirRecarga();
 
+	/** Acción de curar pulsada o soltada. */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
+	void FijarCuracion(bool bPulsada);
+
 	//~ Inicio de la interfaz de ACharacter
 	virtual bool CanJumpWhileFalling() const override;
 	//~ Fin de la interfaz de ACharacter
@@ -107,6 +115,7 @@ private:
 	void ManejarMirar(const FInputActionValue& Valor);
 	void ManejarEsprint(const FInputActionValue& Valor);
 	void ManejarCaminar(const FInputActionValue& Valor);
+	void ManejarCurar(const FInputActionValue& Valor);
 
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);
@@ -128,7 +137,13 @@ private:
 	TObjectPtr<USAEVUSComponenteVida> Vida;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteAlma> Alma;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEstelaDash> EstelaDash;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteEfectosCombate> EfectosCombate;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPoseableMeshComponent> Cuerpo;

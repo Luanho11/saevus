@@ -72,4 +72,8 @@ public:
 	/** Booleanas, pulsadas. El índice i elige la ranura i del arsenal. */
 	UPROPERTY(EditDefaultsOnly, Category = "Armas")
 	TArray<TObjectPtr<UInputAction>> AccionesRanuraArma;
+
+	/** Booleana, mantenida: gasta alma para curar (en el suelo). */
+	UPROPERTY(EditDefaultsOnly, Category = "Combate")
+	TObjectPtr<UInputAction> AccionCurar;
 };

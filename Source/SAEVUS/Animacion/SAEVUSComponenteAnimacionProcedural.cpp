@@ -2,6 +2,7 @@
 
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/PoseableMeshComponent.h"
@@ -184,6 +185,7 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
 	Armas = GetOwner()->FindComponentByClass<USAEVUSComponenteArmas>();
 	Vida = GetOwner()->FindComponentByClass<USAEVUSComponenteVida>();
+	Alma = GetOwner()->FindComponentByClass<USAEVUSComponenteAlma>();
 	if (Armas)
 	{
 		Armas->AlDisparar.AddUniqueDynamic(this, &ThisClass::AlDisparar);
@@ -285,6 +287,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	const float Velocidad = static_cast<float>(Movimiento->Velocity.Size2D());
 	const float VelocidadVertical = static_cast<float>(Movimiento->Velocity.Z);
 
+	AplicarParpadeo();
 	if (Vida && Vida->EstaMuerto())
 	{
 		PoseMuerte(Pose, DeltaTime);
@@ -318,6 +321,10 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	else if (bEnAire)
 	{
 		PoseAire(Pose, VelocidadVertical);
+	}
+	else if (Alma && Alma->EstaCurando())
+	{
+		PoseCuracion(Pose);
 	}
 	else
 	{
@@ -549,6 +556,41 @@ void USAEVUSComponenteAnimacionProcedural::PoseMuerte(FPose& Pose, float DeltaTi
 	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Adelante * 0.5f - Arriba * 0.8f - Derecha * 0.3f).GetSafeNormal() };
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 25.f * P) };
 	PoseCapa(Pose, 0.f, 0.f);
+}
+
+void USAEVUSComponenteAnimacionProcedural::PoseCuracion(FPose& Pose)
+{
+	using namespace SAEVUSAnimacion;
+	// Agachado y recogido, las manos juntas delante del pecho, la cabeza baja: concentra el alma.
+	Pose.DesplazamientoRaiz.Z = -Ajuste.BajadaCuracion;
+	for (const ESAEVUSHueso Muslo : { ESAEVUSHueso::MusloD, ESAEVUSHueso::MusloI })
+	{
+		Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Adelante, Ajuste.FlexionCuracion * 0.6f) };
+	}
+	for (const ESAEVUSHueso Pierna : { ESAEVUSHueso::PiernaD, ESAEVUSHueso::PiernaI })
+	{
+		Pose.Huesos[Indice(Pierna)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.FlexionCuracion) };
+	}
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Adelante * 0.7f - Arriba * 0.4f - Derecha * 0.15f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Adelante * 0.7f - Arriba * 0.4f + Derecha * 0.15f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoD)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 60.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 60.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 12.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 20.f) };
+}
+
+void USAEVUSComponenteAnimacionProcedural::AplicarParpadeo()
+{
+	if (!Malla)
+	{
+		return;
+	}
+	const bool bParpadeando = Vida && !Vida->EstaMuerto() && Vida->EstaEnInvulnerabilidadTrasGolpe();
+	const bool bVisible = !bParpadeando || FMath::Frac(TiempoTotal * Ajuste.FrecuenciaParpadeo) < 0.5f;
+	if (Malla->IsVisible() != bVisible)
+	{
+		Malla->SetVisibility(bVisible);
+	}
 }
 
 void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical)

@@ -257,12 +257,26 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 			DisparosRealizados = Armas->ObtenerDisparosRealizados();
 			UGameplayStatics::ApplyDamage(Pawn, DanioPrueba, nullptr, nullptr, UDamageType::StaticClass());
 			VidaTrasGolpe = Pawn->ObtenerVida()->ObtenerVida();
+			// Justo después del golpe el jugador es invulnerable: el golpe letal se ignora.
+			UGameplayStatics::ApplyDamage(Pawn, DanioLetal, nullptr, nullptr, UDamageType::StaticClass());
+			VidaTrasGolpeInvulnerable = Pawn->ObtenerVida()->ObtenerVida();
+			EntrarEtapa(EEtapa::Morir);
+		}
+		break;
+	}
+
+	case EEtapa::Morir:
+		if (!Pawn->ObtenerVida()->EstaInvulnerable())
+		{
 			UGameplayStatics::ApplyDamage(Pawn, DanioLetal, nullptr, nullptr, UDamageType::StaticClass());
 			bMurio = Pawn->ObtenerVida()->EstaMuerto();
 			EntrarEtapa(EEtapa::Reaparecer);
 		}
+		else if (TiempoEtapa >= LimiteReaparicion)
+		{
+			EntrarEtapa(EEtapa::Reaparecer);
+		}
 		break;
-	}
 
 	case EEtapa::Reaparecer:
 	{
@@ -306,6 +320,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("duración del ataque"), DuracionAtaque, Pawn->ObtenerCombate()->ObtenerRepertorio().ComboSuelo[0].ObtenerTiempoTotal(), ToleranciaDuracionAtaque);
 		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);
 		Comprobar(TEXT("vida tras un golpe"), VidaTrasGolpe, Pawn->ObtenerVida()->ObtenerVidaMaxima() - DanioPrueba, 0.f);
+		Comprobar(TEXT("golpe ignorado durante la invulnerabilidad"), VidaTrasGolpeInvulnerable, VidaTrasGolpe, 0.f);
 		Comprobar(TEXT("murió"), bMurio ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("reapareció"), bReaparecio ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("vida al reaparecer"), VidaAlReaparecer, Pawn->ObtenerVida()->ObtenerVidaMaxima(), 0.f);

@@ -32,6 +32,8 @@ bool FSAEVUSPruebaReglasVida::RunTest(const FString& Parameters)
 	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(PosicionDePie);
 	USAEVUSComponenteVida* Vida = Personaje->ObtenerVida();
 	const float Maxima = Vida->ObtenerVidaMaxima();
+	// Reglas base del componente; la invulnerabilidad tras golpe del jugador tiene su propio test.
+	Vida->FijarInvulnerabilidadTrasGolpe(0.f);
 
 	TestEqual(TEXT("Empieza con la vida completa"), Vida->ObtenerVida(), Maxima);
 	TestEqual(TEXT("El daño quita vida"), Vida->AplicarDanio(Golpe, nullptr), Golpe);

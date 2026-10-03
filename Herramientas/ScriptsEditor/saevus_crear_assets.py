@@ -54,6 +54,8 @@ ASIGNACIONES_SAEVUS = {
     "IA_Dash": ["Gamepad_FaceButton_Right"],
     "IA_Atacar": ["LeftMouseButton", "Gamepad_FaceButton_Left"],
     "IA_Recargar": ["R", "Gamepad_FaceButton_Top"],
+    # Mantener para gastar alma y curar (Hollow Knight).
+    "IA_Curar": ["Q", "Gamepad_LeftShoulder"],
     "IA_SiguienteArma": ["MouseScrollDown", "Gamepad_RightShoulder"],
     "IA_RanuraArma1": ["One"],
     "IA_RanuraArma2": ["Two"],
@@ -376,6 +378,7 @@ def crear_data_assets(acciones):
     config_entrada.set_editor_property("accion_dash", acciones["IA_Dash"])
     config_entrada.set_editor_property("accion_atacar", acciones["IA_Atacar"])
     config_entrada.set_editor_property("accion_recargar", acciones["IA_Recargar"])
+    config_entrada.set_editor_property("accion_curar", acciones["IA_Curar"])
     config_entrada.set_editor_property("accion_siguiente_arma", acciones["IA_SiguienteArma"])
     config_entrada.set_editor_property(
         "acciones_ranura_arma", [acciones[f"IA_RanuraArma{ranura}"] for ranura in range(1, len(ARMAS) + 1)]
@@ -432,6 +435,9 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     # Polvo claro y frío para la estela del dash: resalta sobre el escenario oscuro.
     material_estela = crear_material_color("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0), sin_luz=True)
     personaje.get_editor_property("estela_dash").set_editor_property("override_materials", [material_estela])
+    # Alma: blanco azulado, el mismo tono frío que el borde del caballero.
+    material_alma = crear_material_color("M_ParticulaAlma", (0.7, 0.85, 1.0, 1.0), sin_luz=True)
+    personaje.get_editor_property("efectos_combate").set_editor_property("override_materials", [material_alma])
 
     bp_controlador = obtener_o_crear_blueprint("BP_SAEVUSControladorJugador", unreal.SAEVUSControladorJugador)
     controlador = cdo_blueprint(bp_controlador)

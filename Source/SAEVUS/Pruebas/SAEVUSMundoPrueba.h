@@ -7,6 +7,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
@@ -117,6 +118,7 @@ namespace SAEVUSPruebas
 			Movimiento->Velocity = FVector::ZeroVector;
 			MovimientoSimulado = Movimiento;
 			CombateSimulado = Personaje->ObtenerCombate();
+			AlmaSimulada = Personaje->ObtenerAlma();
 			ArmasSimuladas = Personaje->ObtenerArmas();
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
 			AnimacionSimulada = Personaje->ObtenerAnimacion();
@@ -156,6 +158,10 @@ namespace SAEVUSPruebas
 			{
 				CombateSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &CombateSimulado->PrimaryComponentTick);
 			}
+			if (AlmaSimulada)
+			{
+				AlmaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &AlmaSimulada->PrimaryComponentTick);
+			}
 			MovimientoSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &MovimientoSimulado->PrimaryComponentTick);
 			if (EstelaSimulada)
 			{
@@ -171,6 +177,7 @@ namespace SAEVUSPruebas
 		UWorld* Mundo = nullptr;
 		USAEVUSComponenteMovimiento* MovimientoSimulado = nullptr;
 		USAEVUSComponenteCombate* CombateSimulado = nullptr;
+		USAEVUSComponenteAlma* AlmaSimulada = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
 		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;

@@ -15,7 +15,9 @@ Objetivos de diseño (`investigacion/gunz.md`): las cancelaciones son un **siste
 | Ganchos de `USAEVUSComponenteMovimiento` | `IniciarEstocada`, `FijarEscalaVelocidadAccion`, `GirarHacia`, `CancelarDash` |
 | `USAEVUSComponenteArmas` (`Armas/`) | Arsenal por ranuras, cambio con tiempo de equipado, cargador por ranura, gatillo, recarga, disparos hitscan |
 | `USAEVUSDefinicionArma` (`Armas/SAEVUSTiposArma.h`) | Un arma: cuerpo a cuerpo (con su repertorio) o de fuego (`FSAEVUSAjusteArmaFuego`), más tiempo de equipado |
-| `USAEVUSComponenteVida` (`Combate/`) | Vida compartida por jugador y enemigos |
+| `USAEVUSComponenteVida` (`Combate/`) | Vida compartida por jugador y enemigos; invulnerabilidad tras golpe opcional |
+| `USAEVUSComponenteAlma` (`Combate/`) | Alma ganada al golpear y curación mantenida (Hollow Knight) |
+| `USAEVUSComponenteEfectosCombate` (`Efectos/`) | Chispas al golpear, partículas que convergen al curar, destello al completar |
 | `ASAEVUSPersonaje` | Reparte la entrada; pregunta al combate antes de un dash, salto o cambio de arma |
 
 Entrada: `IA_Atacar` (clic izquierdo / botón izquierdo del mando) es la acción principal: ataque cuerpo a cuerpo, o gatillo del arma de fuego (mantener para fuego automático). `IA_Recargar` (R / botón superior), `IA_SiguienteArma` (rueda / hombro derecho), `IA_RanuraArma1..4` (1–4).
@@ -69,6 +71,18 @@ Mecánicas de Hollow Knight adaptadas a 3D, con números propios:
   - **Parada de golpe** `DuracionParadaGolpe` (0,06 s reales) a la escala `EscalaTiempoParada` (0,05) del repertorio: `FSAEVUSParadaGolpe` baja `CustomTimeDilation` del atacante y de los golpeados y la devuelve a 1, contando tiempo real.
 - Animación: trayectorias propias para arriba (cuerpo echado atrás) y abajo (volcado hacia el golpe).
 
+## Alma y curación (Hollow Knight)
+
+- Cada actor golpeado por un ataque cuerpo a cuerpo da `AlmaPorGolpe` (11) hasta `AlmaMaxima` (99) (`FSAEVUSAjusteAlma`).
+- **Curar**: mantener `IA_Curar` (Q / hombro izquierdo del mando) en el suelo, sin atacar ni hacer dash, con al menos `CosteCuracion` (33) de alma y vida por debajo del máximo. Tras `DuracionCuracion` (1 s) recupera `VidaPorCuracion` (25) y gasta el coste; mantenida, encadena otra mientras quede alma.
+- Mientras cura el personaje no avanza (escala de velocidad 0). Un golpe recibido, saltar, atacar o hacer dash la **cortan sin gastar alma**, y hay que volver a pulsar. En el aire o sin alma solo se pausa: mantenida, empieza en cuanto se pueda.
+- Animación: agachado con las manos juntas y la cabeza baja; partículas de alma que convergen hacia el cuerpo y un destello al completar.
+
+## Golpe recibido
+
+- `USAEVUSComponenteVida::DuracionInvulnerableTrasGolpe`: tras un golpe que no mata, ignora el daño ese tiempo (1 s el jugador, constante del personaje; 0 los enemigos y muñecos). El cuerpo parpadea (`FrecuenciaParpadeo`, 12 Hz) mientras dura; la invulnerabilidad del dash no parpadea.
+- Pendiente con los enemigos: retroceso del jugador al recibir un golpe.
+
 ## Armas y cambio
 
 El arsenal es una lista de `USAEVUSDefinicionArma` en el componente de armas. Por defecto (`BP_SAEVUSPersonaje`): 1 Espada, 2 Pistola, 3 Rifle, 4 Escopeta.
@@ -109,7 +123,8 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 
 `SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
 `SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Cambio`, `CambioCancela`, `RepertorioMelee`.
-`SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`.
+`SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`, `InvulnerableTrasGolpe`.
+`SAEVUS.Alma.*`: `GanarAlGolpear`, `Curacion` (no se mueve, cura y gasta), `CuracionInterrumpida` (golpe y salto la cortan sin gastar), `SinAlmaNoCura`.
 
 ## Pendiente
 

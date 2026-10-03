@@ -20,6 +20,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Entrada/Acciones/IA_Dash",
     "/Game/SAEVUS/Entrada/Acciones/IA_Atacar",
     "/Game/SAEVUS/Entrada/Acciones/IA_Recargar",
+    "/Game/SAEVUS/Entrada/Acciones/IA_Curar",
     "/Game/SAEVUS/Entrada/Acciones/IA_SiguienteArma",
     "/Game/SAEVUS/Entrada/Acciones/IA_AlternarHUD",
     "/Game/SAEVUS/Datos/DA_AjustesMovimiento_Base",
@@ -38,7 +39,7 @@ ASSETS_OBLIGATORIOS = (
 
 PROPIEDADES_CONFIG_ENTRADA = (
     "accion_mover", "accion_mirar", "accion_mirar_raton", "accion_saltar", "accion_esprint", "accion_caminar",
-    "accion_dash", "accion_atacar", "accion_recargar", "accion_siguiente_arma",
+    "accion_dash", "accion_atacar", "accion_recargar", "accion_siguiente_arma", "accion_curar",
 )
 
 
@@ -92,6 +93,8 @@ def main():
         comprobar("el arsenal tiene 4 armas", len(arsenal) == 4 and all(arsenal))
         estela = personaje.get_editor_property("estela_dash")
         comprobar("material de la estela del dash asignado", estela is not None and len(estela.get_editor_property("override_materials")) > 0)
+        efectos = personaje.get_editor_property("efectos_combate")
+        comprobar("material de los efectos de combate asignado", efectos is not None and len(efectos.get_editor_property("override_materials")) > 0)
 
     controlador = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSControladorJugador")
     if controlador:

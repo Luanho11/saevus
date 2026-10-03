@@ -7,6 +7,7 @@
 #include "SAEVUSComponenteAnimacionProcedural.generated.h"
 
 class UPoseableMeshComponent;
+class USAEVUSComponenteAlma;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCombate;
 class USAEVUSComponenteMovimiento;
@@ -99,6 +100,17 @@ struct FSAEVUSAjusteAnimacion
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas")
 	float RecuperacionRetroceso = 12.f;
+
+	/** Agachado de la curación: bajada de la raíz (cm) y flexión de rodillas (grados). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curación", meta = (ForceUnits = "cm"))
+	float BajadaCuracion = 14.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curación")
+	float FlexionCuracion = 50.f;
+
+	/** Parpadeos por segundo del cuerpo durante la invulnerabilidad tras un golpe. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
+	float FrecuenciaParpadeo = 12.f;
 };
 
 /**
@@ -169,6 +181,9 @@ private:
 	void PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, ESAEVUSDireccionAtaque Direccion, float Tiempo);
 	void PoseDisparo(FPose& Pose);
 	void PoseMuerte(FPose& Pose, float DeltaTime);
+	void PoseCuracion(FPose& Pose);
+	/** Oculta y muestra el cuerpo durante la invulnerabilidad tras un golpe. */
+	void AplicarParpadeo();
 	void PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical);
 
 	/** Compone la pose objetivo sobre la de reposo (FK): rotaciones objetivo en espacio de malla. */
@@ -191,6 +206,7 @@ private:
 	USAEVUSComponenteCombate* Combate = nullptr;
 	USAEVUSComponenteArmas* Armas = nullptr;
 	USAEVUSComponenteVida* Vida = nullptr;
+	USAEVUSComponenteAlma* Alma = nullptr;
 
 	bool bEsqueletoValido = false;
 	int32 IndiceMalla[static_cast<int32>(ESAEVUSHueso::Total)];
