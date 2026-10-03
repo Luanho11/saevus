@@ -123,7 +123,11 @@ def create_blueprints(actions, imc, input_config, movement, camera):
     character = blueprint_cdo(character_bp)
     character.set_editor_property("input_config", input_config)
     mesh = character.get_editor_property("mesh")
-    mesh.set_editor_property("skeletal_mesh_asset", load(MANNEQUIN_MESH))
+    # SkeletalMeshAsset is transient; only the setter updates the serialized skinned asset.
+    if hasattr(mesh, "set_skeletal_mesh_asset"):
+        mesh.set_skeletal_mesh_asset(load(MANNEQUIN_MESH))
+    else:
+        mesh.set_skeletal_mesh(load(MANNEQUIN_MESH), False)
     mesh.set_editor_property("anim_class", load(MANNEQUIN_ANIM_BP).generated_class())
     character.get_editor_property("character_movement").set_editor_property("movement_settings", movement)
     character.get_editor_property("follow_camera").set_editor_property("camera_settings", camera)

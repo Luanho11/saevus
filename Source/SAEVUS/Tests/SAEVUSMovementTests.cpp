@@ -63,7 +63,8 @@ namespace SAEVUSMovementTests
 			Movement->bRunPhysicsWithNoController = true;
 			Movement->SetMovementSettings(Settings);
 
-			// One step lets the default movement mode resolve to falling (no floor) before the test starts.
+			// The engine only picks a default mode at spawn when the flag above was already set, so set it here.
+			Movement->SetMovementMode(MOVE_Falling);
 			Step();
 			Movement->Velocity = FVector::ZeroVector;
 			return Character;
