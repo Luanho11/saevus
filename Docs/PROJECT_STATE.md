@@ -16,6 +16,8 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 
 **Phase 3 — Advanced movement: DONE (2026-10-03), feel tuning pending.** Dash, wall jump, wall run, wall climb; all data-driven, tested, saved-move ready.
 
+**Phase 5 — Firearms and weapon switching: DONE (2026-10-03), feel tuning and weapon models pending.** `Docs/combat.md`: weapon definitions as Data Assets, loadout of 4 (sword, pistol, rifle, shotgun), switching with equip time and the shared cancel rules, hitscan with camera + muzzle traces on a Weapon trace channel, magazines and reload.
+
 **Phase 4 — Melee foundation: DONE (2026-10-03), feel tuning and animations pending.** `Docs/combat.md`: combat component, data-driven attack timelines, combo chain, input buffer, cancel windows, lunge, hit detection, training dummy.
 
 ## Completed
@@ -50,11 +52,12 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 - Phase 3 wall run: `MOVE_Custom` + `ESAEVUSCustomMovementMode::WallRun`, `FSAEVUSWallRunTuning`, entry/exit rules, same-wall rule, jump-off = wall jump; wall code split into `Movement/SAEVUSMovementComponentWalls.cpp`; Sandbox wall-run corridor; 7 new tests (26/26 pass).
 - Phase 3 wall climb: `ESAEVUSCustomMovementMode::WallClimb`, `FSAEVUSWallClimbTuning`, head-on entry (checked before wall run), flip at timeout, step onto the top, let go, jump-off = wall jump, 1 per airborne period; shared wall helpers `ProbeCurrentWall` / `MoveAlongWall` / `LeaveWall`; Sandbox climb blocks; 7 new tests (33/33 pass).
 - Phase 4 melee: `USAEVUSCombatComponent`, `FSAEVUSAttackDefinition` / `FSAEVUSMeleeMoveset` / `USAEVUSMeleeMovesetAsset`, `ASAEVUSTrainingDummy`, movement hooks (lunge, action speed scale, snap facing, cancel dash), character gates dash/jump through combat, `IA_Attack` (LMB / gamepad X), `DA_MeleeMoveset_Default`, Sandbox dummies, `SAEVUS.Debug.Combat`, smoke-test attack stage, 7 tests `SAEVUS.Combat.*` (40/40 total pass).
+- Phase 5 weapons: `USAEVUSWeaponComponent`, `USAEVUSWeaponDefinition` / `FSAEVUSFirearmTuning`, `ESAEVUSCancelAction::WeaponSwitch` + `SwitchCancelFrom`, Weapon trace channel, character routing (primary action, slots, next, reload), `DA_Weapon_*` + `IA_Reload` / `IA_NextWeapon` / `IA_WeaponSlot1..4`, shooting-range dummies, HUD weapon line, smoke-test shoot stage, 6 tests `SAEVUS.Weapons.*` (46/46 total pass).
 - `.gitattributes`: removed `lockable` from `.uasset`/`.umap` (no LFS lock server; it left assets read-only and the asset script could not save).
 
 ## In Progress
 
-- Phase 5 (firearms and weapon switching) is next.
+- Nothing running. Phase 6 (asset pipeline design) is next; see Next Step.
 
 ## Pending
 
@@ -88,6 +91,7 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 | `Source/SAEVUS/Character/` | Character, input config Data Asset |
 | `Source/SAEVUS/Camera/` | Camera component, camera tuning + Data Asset |
 | `Source/SAEVUS/Combat/` | Combat component, attack/moveset data (`Docs/combat.md`) |
+| `Source/SAEVUS/Weapons/` | Weapon component, weapon definitions |
 | `Source/SAEVUS/World/` | Training dummy |
 | `Source/SAEVUS/Core/` | GameMode, PlayerController |
 | `Source/SAEVUS/Debug/` | Debug HUD, debug CVars |
@@ -120,9 +124,9 @@ Phase 1 — Locomotion feel (see `Docs/development-roadmap.md`). The user author
 ## Testing
 
 - `powershell -ExecutionPolicy Bypass -File Tools\Verify-Bootstrap.ps1` → build, `SAEVUS.*` automation tests, asset script, asset verify. **All passed** (2026-10-03).
-- `Tools\Run-Tests.ps1` → 40/40 pass (33 `SAEVUS.Movement.*` + 7 `SAEVUS.Combat.*`) (2026-10-03, Session 3): Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 vs 142.9 cm), Air.AirControl (434 vs ~420 cm/s), JumpAssist.CoyoteTime / JumpBuffer / AirGaitLock, Dash.Ground (293 vs 288 cm) / Direction / Cooldown / AirBudget / JumpCancel, WallJump.Basic / NoWall / NotOffLedge / Tangential / Budget / RefillsAirDash, WallRun.Enter / EntryConditions / Duration (72 steps = 1.2 s) / Landing / WallEnds / JumpOff / Detach, WallClimb.Enter / EntryConditions / Flip (340 vs 358 cm) / Ledge / OncePerAir / JumpOff / LetGo, Combat.Timeline / HitsDummy / Combo / Cancels / Movement (lunge 60 vs 54 cm) / AirAttack / AttackEndsDash.
-- `Tools\Verify-Bootstrap.ps1` (build, tests, asset script, asset verify) → all passed after adding `IA_Dash`, the wall-jump chimney, the wall-run corridor, the wall-climb blocks, `IA_Attack`, `DA_MeleeMoveset_Default` and the training dummies.
-- Rendered smoke test: `Tools\Run-SmokeTest.ps1 [-Scalability N]` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.9 cm, dash 1600.0, attack 0.5 s; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`.
+- `Tools\Run-Tests.ps1` → 46/46 pass (33 `SAEVUS.Movement.*` + 7 `SAEVUS.Combat.*` + 6 `SAEVUS.Weapons.*`) (2026-10-03, Session 3): Gait.Priority, Gait.Speeds, Settings.Apply, Air.JumpApex (142.8 vs 142.9 cm), Air.AirControl (434 vs ~420 cm/s), JumpAssist.CoyoteTime / JumpBuffer / AirGaitLock, Dash.Ground (293 vs 288 cm) / Direction / Cooldown / AirBudget / JumpCancel, WallJump.Basic / NoWall / NotOffLedge / Tangential / Budget / RefillsAirDash, WallRun.Enter / EntryConditions / Duration (72 steps = 1.2 s) / Landing / WallEnds / JumpOff / Detach, WallClimb.Enter / EntryConditions / Flip (340 vs 358 cm) / Ledge / OncePerAir / JumpOff / LetGo, Combat.Timeline / HitsDummy / Combo / Cancels / Movement (lunge 60 vs 54 cm) / AirAttack / AttackEndsDash, Weapons.Hitscan / FireModes (auto 10 shots/s) / Reload / Switch / SwitchCancels / MeleeMoveset.
+- `Tools\Verify-Bootstrap.ps1` (build, tests, asset script, asset verify) → all passed after adding `IA_Dash`, the wall-jump chimney, the wall-run corridor, the wall-climb blocks, `IA_Attack`, `DA_MeleeMoveset_Default`, the training dummies, the weapon assets/inputs and the shooting range.
+- Rendered smoke test: `Tools\Run-SmokeTest.ps1 [-Scalability N]` → **PASSED**: run 550.0, sprint 850.0, jump apex 142.9 cm, dash 1600.0, attack 0.5 s, 1 shot after switching to the pistol; screenshot `Saved/Screenshots/WindowsEditor/SAEVUS_SmokeTest.png`.
 - Performance baseline (720p, warm): Low 118 fps, Medium 55–68, High 45–49, Epic 37. GPU-bound; game thread 7–9 ms. Medium is the 60 fps tier on the Vega 8, mostly thanks to its sub-native resolution. Details in `Docs/performance.md`.
 - Simulation tests tick the movement component directly (a game-mode-less test world does not run its tick groups).
 - Engine noise to ignore: 14 × `LogAutomationTest: Error: Condition failed` during editor startup.
@@ -133,7 +137,7 @@ Branch `main`, Git LFS for `.uasset`/`.umap` and source art. `user.name` is set 
 
 ## Next Step
 
-Phase 5: `USAEVUSWeaponComponent`, weapon definitions as Data Assets, hitscan first, switching with cancel rules shared with melee.
+Phase 6 per the roadmap: asset pipeline design (stylized painted look on modest hardware, texture budgets, Blender → UE conventions, naming, LODs). It is mostly decisions for the owner, so it starts with a proposal document.
 
 Owner, whenever available: play `L_Sandbox` (F6 HUD; LMB attack, Ctrl dash, jump at/along walls) and give feel feedback; answer the questions in `Docs/research/gunz.md`; approve or reorder `Docs/development-roadmap.md`.
 

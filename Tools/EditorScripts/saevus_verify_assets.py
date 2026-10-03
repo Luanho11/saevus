@@ -36,6 +36,12 @@ def main():
         "/Game/SAEVUS/Input/Actions/IA_Dash",
         "/Game/SAEVUS/Input/Actions/IA_Attack",
         "/Game/SAEVUS/Data/DA_MeleeMoveset_Default",
+        "/Game/SAEVUS/Data/DA_Weapon_Sword",
+        "/Game/SAEVUS/Data/DA_Weapon_Pistol",
+        "/Game/SAEVUS/Data/DA_Weapon_Rifle",
+        "/Game/SAEVUS/Data/DA_Weapon_Shotgun",
+        "/Game/SAEVUS/Input/Actions/IA_Reload",
+        "/Game/SAEVUS/Input/Actions/IA_NextWeapon",
         "/Game/SAEVUS/Input/Actions/IA_ToggleDebugHUD",
         "/Game/SAEVUS/Data/DA_MovementSettings_Default",
         "/Game/SAEVUS/Data/DA_CameraSettings_Default",
@@ -46,7 +52,7 @@ def main():
     input_config = eal.load_asset("/Game/SAEVUS/Data/DA_InputConfig")
     check("DA_InputConfig exists", input_config is not None)
     if input_config:
-        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action", "dash_action", "attack_action"):
+        for prop in ("move_action", "look_action", "mouse_look_action", "jump_action", "sprint_action", "walk_action", "dash_action", "attack_action", "reload_action", "next_weapon_action"):
             check(f"DA_InputConfig.{prop} set", input_config.get_editor_property(prop) is not None)
 
     character = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSCharacter")
@@ -62,6 +68,11 @@ def main():
         check("camera settings set", camera.get_editor_property("camera_settings") is not None)
         combat = character.get_editor_property("combat")
         check("combat moveset set", combat is not None and combat.get_editor_property("moveset_asset") is not None)
+        weapons = character.get_editor_property("weapons")
+        loadout = weapons.get_editor_property("loadout") if weapons else []
+        check("weapon loadout has 4 weapons", len(loadout) == 4 and all(loadout))
+        if input_config:
+            check("4 weapon slot actions", len(input_config.get_editor_property("weapon_slot_actions")) == 4)
 
     controller = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSPlayerController")
     if controller:

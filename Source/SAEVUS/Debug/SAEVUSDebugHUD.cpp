@@ -2,6 +2,7 @@
 
 #include "Debug/SAEVUSDebugHUD.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Weapons/SAEVUSWeaponComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
@@ -50,6 +51,27 @@ void ASAEVUSDebugHUD::DrawHUD()
 		}
 	}
 
+	FString WeaponLine = TEXT("Weapon: none");
+	if (const USAEVUSWeaponComponent* Weapons = Character->FindComponentByClass<USAEVUSWeaponComponent>())
+	{
+		if (const USAEVUSWeaponDefinition* Weapon = Weapons->GetCurrentWeapon())
+		{
+			WeaponLine = FString::Printf(TEXT("Weapon: %s [%d/%d]"), *Weapon->DisplayName.ToString(), Weapons->GetCurrentSlot() + 1, Weapons->GetSlotCount());
+			if (Weapon->IsFirearm())
+			{
+				WeaponLine += FString::Printf(TEXT(" ammo %d/%d"), Weapons->GetCurrentAmmo(), Weapon->Firearm.MagazineSize);
+			}
+		}
+		if (Weapons->IsSwitching())
+		{
+			WeaponLine += FString::Printf(TEXT(" (switching to %d)"), Weapons->GetPendingSlot() + 1);
+		}
+		if (Weapons->IsReloading())
+		{
+			WeaponLine += TEXT(" (reloading)");
+		}
+	}
+
 	FVector2D Cursor = ScreenOrigin;
 	for (const FString& Line : Lines)
 	{
@@ -57,4 +79,6 @@ void ASAEVUSDebugHUD::DrawHUD()
 		Cursor.Y += LineHeight;
 	}
 	DrawText(AttackLine, TextColor, Cursor.X, Cursor.Y, GEngine->GetSmallFont(), TextScale);
+	Cursor.Y += LineHeight;
+	DrawText(WeaponLine, TextColor, Cursor.X, Cursor.Y, GEngine->GetSmallFont(), TextScale);
 }

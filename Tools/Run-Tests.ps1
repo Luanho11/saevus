@@ -20,7 +20,7 @@ Start-Process -FilePath (Join-Path $EngineRoot "Engine\Binaries\Win64\UnrealEdit
 
 $results = Select-String -Path $log -Pattern "Test Completed\. Result=\{(\w+)\}.*Path=\{([^}]+)\}"
 $results | ForEach-Object { "{0,-8} {1}" -f $_.Matches[0].Groups[1].Value, $_.Matches[0].Groups[2].Value }
-Select-String -Path $log -Pattern "LogAutomationController: (Error: Expected|Error: .*SAEVUS|.*((apex|speed|distance|height change|Climb height).*cm|After the climb|lasted .* steps))" |
+Select-String -Path $log -Pattern "LogAutomationController: (Error: Expected|Error: .*SAEVUS|.*((apex|speed|distance|height change|Climb height).*cm|After the climb|lasted .* steps|shots in))" |
     ForEach-Object { "  " + ($_.Line -replace '^.*?LogAutomationController: ', '') }
 if (Select-String -Path $log -Pattern "Critical error|Fatal error" -Quiet) { Write-Host "CRASH (see $log)"; exit 2 }
 if (-not $results) { Write-Host "No test results (see $log)"; exit 1 }

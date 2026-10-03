@@ -111,3 +111,11 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Character asks combat before a dash or jump goes through; an attack ends a dash. `IA_Attack` (LMB / gamepad X), `DA_MeleeMoveset_Default`, Sandbox dummies, `SAEVUS.Debug.Combat`, smoke-test attack stage.
 - `Docs/combat.md`. 40/40 tests, Verify-Bootstrap and smoke test pass.
 - Next: Phase 5 (firearms, weapon switching).
+
+### Phase 5 — firearms and weapon switching (same session)
+- `USAEVUSWeaponComponent` + `USAEVUSWeaponDefinition`: loadout by slot, equip time, per-slot magazines, semi/auto trigger, reload, pellets and spread, hitscan from camera then muzzle on a new Weapon trace channel (pawns ignore Visibility).
+- Weapon switch joins the attack cancel table (`SwitchCancelFrom`). Character routes the primary action to melee or trigger, slots 1–4, next weapon, reload.
+- Assets: 4 weapon Data Assets (sword, pistol, rifle, shotgun), weapon inputs, shooting range. Smoke test switches to the pistol and fires.
+- Test fix: equip waits ended exactly on the equip time and float error left the timer at +1e-8; tests now wait with a margin.
+- 46/46 tests, Verify-Bootstrap and smoke test pass.
+- Next: Phase 6 (asset pipeline design proposal).

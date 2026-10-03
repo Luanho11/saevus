@@ -3,6 +3,7 @@
 #include "Debug/SAEVUSSmokeTestSubsystem.h"
 #include "Character/SAEVUSCharacter.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Weapons/SAEVUSWeaponComponent.h"
 #include "Debug/SAEVUSDebugCVars.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -32,6 +33,9 @@ namespace SAEVUSSmokeTest
 	// Longer than any default attack.
 	constexpr float MaxAttackStageDuration = 2.f;
 	constexpr float AttackDurationTolerance = 0.15f;
+	// Switch to the second loadout slot (a firearm in the default loadout) and fire once.
+	constexpr int32 FirearmSlot = 1;
+	constexpr float ShootStageDuration = 1.5f;
 	constexpr float ScreenshotDelay = 0.5f;
 	constexpr float PawnTimeout = 120.f;
 
@@ -74,7 +78,7 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 	using namespace SAEVUSSmokeTest;
 	StageTime += DeltaTime;
 
-	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump || Stage == EStage::Dash || Stage == EStage::Attack)
+	if (Stage == EStage::Run || Stage == EStage::Sprint || Stage == EStage::Jump || Stage == EStage::Dash || Stage == EStage::Attack || Stage == EStage::Shoot)
 	{
 		SampleFrameTiming(DeltaTime);
 	}
@@ -170,10 +174,30 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		if (!Pawn->GetCombat()->IsAttacking() || StageTime >= MaxAttackStageDuration)
 		{
 			AttackDuration = StageTime;
+			Pawn->RequestWeaponSlot(FirearmSlot);
+			EnterStage(EStage::Shoot);
+		}
+		break;
+
+	case EStage::Shoot:
+	{
+		const USAEVUSWeaponComponent* Weapons = Pawn->GetWeapons();
+		if (bTriggerPulled)
+		{
+			Pawn->ReleaseAttack();
+		}
+		else if (!Weapons->IsSwitching() && Weapons->IsFirearmEquipped())
+		{
+			Pawn->RequestAttack();
+			bTriggerPulled = true;
+		}
+		if (StageTime >= ShootStageDuration)
+		{
 			FScreenshotRequest::RequestScreenshot(ScreenshotName, true, false);
 			EnterStage(EStage::Screenshot);
 		}
 		break;
+	}
 
 	case EStage::Screenshot:
 		if (StageTime >= ScreenshotDelay)
@@ -191,6 +215,7 @@ void USAEVUSSmokeTestSubsystem::Tick(float DeltaTime)
 		Check(TEXT("dash speed"), MaxDashSpeed, Movement->GetDashTuning().Speed, SpeedTolerance);
 		Check(TEXT("attack started"), bAttackStarted ? 1.f : 0.f, 1.f, 0.f);
 		Check(TEXT("attack duration"), AttackDuration, Pawn->GetCombat()->GetMoveset().GroundCombo[0].GetTotalTime(), AttackDurationTolerance);
+		Check(TEXT("shots fired"), static_cast<float>(Pawn->GetWeapons()->GetShotsFired()), 1.f, 0.f);
 		Finish();
 		break;
 	}

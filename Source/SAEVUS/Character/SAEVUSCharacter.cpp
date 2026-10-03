@@ -11,6 +11,7 @@
 #include "InputActionValue.h"
 #include "Movement/SAEVUSMovementComponent.h"
 #include "SAEVUS.h"
+#include "Weapons/SAEVUSWeaponComponent.h"
 
 namespace SAEVUSCharacter
 {
@@ -34,6 +35,7 @@ ASAEVUSCharacter::ASAEVUSCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationRoll = false;
 
 	Combat = CreateDefaultSubobject<USAEVUSCombatComponent>(TEXT("Combat"));
+	Weapons = CreateDefaultSubobject<USAEVUSWeaponComponent>(TEXT("Weapons"));
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -52,8 +54,10 @@ USAEVUSMovementComponent* ASAEVUSCharacter::GetSAEVUSMovement() const
 void ASAEVUSCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	// Combat ticks first, so a lunge or speed change it starts applies in the same frame's movement.
+	// Weapons and combat tick first, so a lunge, speed change or facing they set applies in the
+	// same frame's movement.
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Combat, Combat->PrimaryComponentTick);
+	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Weapons, Weapons->PrimaryComponentTick);
 }
 
 void ASAEVUSCharacter::RequestJump()
@@ -127,6 +131,22 @@ void ASAEVUSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	if (InputConfig->AttackAction)
 	{
 		Input->BindAction(InputConfig->AttackAction, ETriggerEvent::Started, this, &ThisClass::RequestAttack);
+		Input->BindAction(InputConfig->AttackAction, ETriggerEvent::Completed, this, &ThisClass::ReleaseAttack);
+	}
+	if (InputConfig->ReloadAction)
+	{
+		Input->BindAction(InputConfig->ReloadAction, ETriggerEvent::Started, this, &ThisClass::RequestReload);
+	}
+	if (InputConfig->NextWeaponAction)
+	{
+		Input->BindAction(InputConfig->NextWeaponAction, ETriggerEvent::Started, this, &ThisClass::RequestNextWeapon);
+	}
+	for (int32 Slot = 0; Slot < InputConfig->WeaponSlotActions.Num(); ++Slot)
+	{
+		if (InputConfig->WeaponSlotActions[Slot])
+		{
+			Input->BindAction(InputConfig->WeaponSlotActions[Slot], ETriggerEvent::Started, this, &ThisClass::RequestWeaponSlot, Slot);
+		}
 	}
 }
 
@@ -169,5 +189,36 @@ void ASAEVUSCharacter::RequestDash()
 
 void ASAEVUSCharacter::RequestAttack()
 {
-	Combat->RequestAttack();
+	if (Weapons->IsFirearmEquipped())
+	{
+		Weapons->SetTriggerHeld(true);
+	}
+	else if (!Weapons->IsSwitching())
+	{
+		// Melee weapon, or no loadout at all (combat's default moveset).
+		Combat->RequestAttack();
+	}
+}
+
+void ASAEVUSCharacter::ReleaseAttack()
+{
+	Weapons->SetTriggerHeld(false);
+}
+
+void ASAEVUSCharacter::RequestWeaponSlot(int32 Slot)
+{
+	if (Weapons->CanSwitchTo(Slot) && Combat->TryCancelForAction(ESAEVUSCancelAction::WeaponSwitch))
+	{
+		Weapons->RequestSwitch(Slot);
+	}
+}
+
+void ASAEVUSCharacter::RequestNextWeapon()
+{
+	RequestWeaponSlot(Weapons->GetNextSlot());
+}
+
+void ASAEVUSCharacter::RequestReload()
+{
+	Weapons->RequestReload();
 }

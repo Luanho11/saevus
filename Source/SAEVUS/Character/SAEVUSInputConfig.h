@@ -45,7 +45,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Locomotion")
 	TObjectPtr<UInputAction> DashAction;
 
-	/** Bool, pressed. */
+	/** Bool, held: melee attack, or the trigger of an equipped firearm. */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TObjectPtr<UInputAction> AttackAction;
+
+	/** Bool, pressed. */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons")
+	TObjectPtr<UInputAction> ReloadAction;
+
+	/** Bool, pressed. */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons")
+	TObjectPtr<UInputAction> NextWeaponAction;
+
+	/** Bool, pressed. Index i selects loadout slot i. */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons")
+	TArray<TObjectPtr<UInputAction>> WeaponSlotActions;
 };

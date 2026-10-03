@@ -8,6 +8,7 @@
 
 #include "Character/SAEVUSCharacter.h"
 #include "Combat/SAEVUSCombatComponent.h"
+#include "Weapons/SAEVUSWeaponComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -103,6 +104,7 @@ namespace SAEVUSTests
 			Movement->Velocity = FVector::ZeroVector;
 			SimulatedMovement = Movement;
 			SimulatedCombat = Character->GetCombat();
+			SimulatedWeapons = Character->GetWeapons();
 			return Character;
 		}
 
@@ -130,8 +132,8 @@ namespace SAEVUSTests
 		}
 
 		/**
-		 * Advances the spawned character by one fixed step: combat, then movement, as the tick
-		 * prerequisite orders them in game. Components are ticked directly: a world without a game
+		 * Advances the spawned character by one fixed step: weapons and combat, then movement, as
+		 * the tick prerequisites order them in game. Components are ticked directly: a world without a game
 		 * mode or viewport does not run its tick groups reliably, and a direct tick keeps the
 		 * simulation deterministic.
 		 */
@@ -141,6 +143,10 @@ namespace SAEVUSTests
 			World->TimeSeconds += SimStep;
 			World->UnpausedTimeSeconds += SimStep;
 			World->RealTimeSeconds += SimStep;
+			if (SimulatedWeapons)
+			{
+				SimulatedWeapons->TickComponent(SimStep, LEVELTICK_All, &SimulatedWeapons->PrimaryComponentTick);
+			}
 			if (SimulatedCombat)
 			{
 				SimulatedCombat->TickComponent(SimStep, LEVELTICK_All, &SimulatedCombat->PrimaryComponentTick);
@@ -152,6 +158,7 @@ namespace SAEVUSTests
 		UWorld* World = nullptr;
 		USAEVUSMovementComponent* SimulatedMovement = nullptr;
 		USAEVUSCombatComponent* SimulatedCombat = nullptr;
+		USAEVUSWeaponComponent* SimulatedWeapons = nullptr;
 	};
 }
 

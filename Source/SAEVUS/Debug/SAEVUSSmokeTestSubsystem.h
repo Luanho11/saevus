@@ -41,6 +41,7 @@ private:
 		Jump,
 		Dash,
 		Attack,
+		Shoot,
 		Screenshot,
 		Report,
 		Done
@@ -62,6 +63,7 @@ private:
 	float MaxDashSpeed = 0.f;
 	float AttackDuration = 0.f;
 	bool bAttackStarted = false;
+	bool bTriggerPulled = false;
 	bool bProfiledGPU = false;
 
 	/** Frame timing accumulated during the movement stages only (spawn and settle hitches excluded). */

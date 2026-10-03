@@ -35,8 +35,35 @@ SAEVUS_KEY_MAPPINGS = {
     # Pressed (Started). Shift and Alt are taken by sprint and walk.
     "IA_Dash": ["LeftControl", "ThumbMouseButton", "Gamepad_FaceButton_Right"],
     "IA_Attack": ["LeftMouseButton", "Gamepad_FaceButton_Left"],
+    "IA_Reload": ["R", "Gamepad_FaceButton_Top"],
+    "IA_NextWeapon": ["MouseScrollDown", "Gamepad_RightShoulder"],
+    "IA_WeaponSlot1": ["One"],
+    "IA_WeaponSlot2": ["Two"],
+    "IA_WeaponSlot3": ["Three"],
+    "IA_WeaponSlot4": ["Four"],
     # F1-F5, F9 and F11 are engine debug bindings (BaseInput.ini).
     "IA_ToggleDebugHUD": ["F6"],
+}
+
+# Loadout, in slot order (keys 1-4). First-pass values; tune them on the Data Assets.
+# Firearm fields are FSAEVUSFirearmTuning properties.
+WEAPONS = {
+    "DA_Weapon_Sword": {"display_name": "Sword", "kind": "melee", "equip_time": 0.2},
+    "DA_Weapon_Pistol": {
+        "display_name": "Pistol", "kind": "firearm", "equip_time": 0.25,
+        "firearm": {"damage": 20.0, "fire_interval": 0.25, "automatic": False, "magazine_size": 12,
+                    "reload_time": 1.2, "range": 5000.0, "spread_degrees": 0.5, "pellets_per_shot": 1},
+    },
+    "DA_Weapon_Rifle": {
+        "display_name": "Rifle", "kind": "firearm", "equip_time": 0.4,
+        "firearm": {"damage": 9.0, "fire_interval": 0.1, "automatic": True, "magazine_size": 30,
+                    "reload_time": 1.8, "range": 6000.0, "spread_degrees": 1.5, "pellets_per_shot": 1},
+    },
+    "DA_Weapon_Shotgun": {
+        "display_name": "Shotgun", "kind": "firearm", "equip_time": 0.45,
+        "firearm": {"damage": 7.0, "fire_interval": 0.8, "automatic": False, "magazine_size": 6,
+                    "reload_time": 2.0, "range": 2000.0, "spread_degrees": 6.0, "pellets_per_shot": 8},
+    },
 }
 
 asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -116,15 +143,37 @@ def create_data_assets(actions):
     input_config.set_editor_property("walk_action", actions["IA_Walk"])
     input_config.set_editor_property("dash_action", actions["IA_Dash"])
     input_config.set_editor_property("attack_action", actions["IA_Attack"])
+    input_config.set_editor_property("reload_action", actions["IA_Reload"])
+    input_config.set_editor_property("next_weapon_action", actions["IA_NextWeapon"])
+    input_config.set_editor_property(
+        "weapon_slot_actions", [actions[f"IA_WeaponSlot{slot}"] for slot in range(1, len(WEAPONS) + 1)]
+    )
 
     # Values stay at the code defaults until tuned in the editor.
     movement = data_asset("DA_MovementSettings_Default", unreal.SAEVUSMovementSettings)
     camera = data_asset("DA_CameraSettings_Default", unreal.SAEVUSCameraSettings)
     moveset = data_asset("DA_MeleeMoveset_Default", unreal.SAEVUSMeleeMovesetAsset)
-    return input_config, movement, camera, moveset
+    weapons = [create_weapon(data_asset, name, spec, moveset) for name, spec in WEAPONS.items()]
+    return input_config, movement, camera, moveset, weapons
 
 
-def create_blueprints(actions, imc, input_config, movement, camera, moveset):
+def create_weapon(data_asset, name, spec, moveset):
+    weapon = data_asset(name, unreal.SAEVUSWeaponDefinition)
+    weapon.set_editor_property("display_name", spec["display_name"])
+    weapon.set_editor_property("equip_time", spec["equip_time"])
+    if spec["kind"] == "melee":
+        weapon.set_editor_property("kind", unreal.SAEVUSWeaponKind.MELEE)
+        weapon.set_editor_property("moveset", moveset)
+        return weapon
+    weapon.set_editor_property("kind", unreal.SAEVUSWeaponKind.FIREARM)
+    firearm = weapon.get_editor_property("firearm")
+    for field, value in spec["firearm"].items():
+        firearm.set_editor_property(field, value)
+    weapon.set_editor_property("firearm", firearm)
+    return weapon
+
+
+def create_blueprints(actions, imc, input_config, movement, camera, moveset, weapons):
     character_bp = get_or_create_blueprint("BP_SAEVUSCharacter", unreal.SAEVUSCharacter)
     character = blueprint_cdo(character_bp)
     character.set_editor_property("input_config", input_config)
@@ -138,6 +187,7 @@ def create_blueprints(actions, imc, input_config, movement, camera, moveset):
     character.get_editor_property("character_movement").set_editor_property("movement_settings", movement)
     character.get_editor_property("follow_camera").set_editor_property("camera_settings", camera)
     character.get_editor_property("combat").set_editor_property("moveset_asset", moveset)
+    character.get_editor_property("weapons").set_editor_property("loadout", weapons)
 
     controller_bp = get_or_create_blueprint("BP_SAEVUSPlayerController", unreal.SAEVUSPlayerController)
     controller = blueprint_cdo(controller_bp)
@@ -232,6 +282,12 @@ def build_sandbox(game_mode_bp):
         dummy.set_actor_label(label)
         dummy.set_folder_path("Combat")
 
+    # Shooting range: dummies at 10, 20 and 30 m from the start, off to the side (+Y).
+    for distance in (1000, 2000, 3000):
+        dummy = actors.spawn_actor_from_class(unreal.SAEVUSTrainingDummy, unreal.Vector(-distance, 1000, 96))
+        dummy.set_actor_label(f"Dummy_Range{distance // 100}m")
+        dummy.set_folder_path("Combat")
+
     # Lighting: fully dynamic, no Lumen.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-50, yaw=-35))
     sun.set_actor_label("Sun")
@@ -262,8 +318,8 @@ def build_sandbox(game_mode_bp):
 
 def main():
     actions, imc = create_input_assets()
-    input_config, movement, camera, moveset = create_data_assets(actions)
-    game_mode_bp = create_blueprints(actions, imc, input_config, movement, camera, moveset)
+    input_config, movement, camera, moveset, weapons = create_data_assets(actions)
+    game_mode_bp = create_blueprints(actions, imc, input_config, movement, camera, moveset, weapons)
     build_sandbox(game_mode_bp)
     if not eal.save_directory(ROOT, only_if_is_dirty=False, recursive=True):
         raise RuntimeError("Saving /Game/SAEVUS failed")

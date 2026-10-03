@@ -24,7 +24,8 @@ UENUM(BlueprintType)
 enum class ESAEVUSCancelAction : uint8
 {
 	Dash,
-	Jump
+	Jump,
+	WeaponSwitch
 };
 
 /**
@@ -84,6 +85,10 @@ struct FSAEVUSAttackDefinition
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancels", meta = (ForceUnits = "s"))
 	float JumpCancelFrom = 0.18f;
 
+	/** From this time a weapon switch may cut the attack short. Negative: never. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancels", meta = (ForceUnits = "s"))
+	float SwitchCancelFrom = 0.18f;
+
 	float GetTotalTime() const { return StartupTime + ActiveTime + RecoveryTime; }
 
 	ESAEVUSAttackPhase GetPhaseAt(float Time) const
@@ -101,7 +106,16 @@ struct FSAEVUSAttackDefinition
 
 	float GetCancelFrom(ESAEVUSCancelAction Action) const
 	{
-		return Action == ESAEVUSCancelAction::Dash ? DashCancelFrom : JumpCancelFrom;
+		switch (Action)
+		{
+		case ESAEVUSCancelAction::Dash:
+			return DashCancelFrom;
+		case ESAEVUSCancelAction::Jump:
+			return JumpCancelFrom;
+		case ESAEVUSCancelAction::WeaponSwitch:
+		default:
+			return SwitchCancelFrom;
+		}
 	}
 };
 

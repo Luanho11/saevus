@@ -29,6 +29,7 @@ FSAEVUSMeleeMoveset::FSAEVUSMeleeMoveset()
 	Finisher.GroundMoveSpeedScale = 0.f;
 	Finisher.DashCancelFrom = 0.4f;
 	Finisher.JumpCancelFrom = -1.f;
+	Finisher.SwitchCancelFrom = 0.4f;
 
 	GroundCombo = { Slash1, Slash2, Finisher };
 
@@ -43,6 +44,7 @@ FSAEVUSMeleeMoveset::FSAEVUSMeleeMoveset()
 	AirSlash.LungeSpeed = 0.f;
 	AirSlash.ChainFrom = AirSlash.StartupTime + AirSlash.ActiveTime;
 	AirSlash.DashCancelFrom = AirSlash.ChainFrom;
+	AirSlash.SwitchCancelFrom = AirSlash.ChainFrom;
 
 	AirCombo = { AirSlash };
 }
