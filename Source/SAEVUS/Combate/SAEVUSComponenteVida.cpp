@@ -1,0 +1,79 @@
+// Copyright SAEVUS. Todos los derechos reservados.
+
+#include "Combate/SAEVUSComponenteVida.h"
+#include "GameFramework/Actor.h"
+
+USAEVUSComponenteVida::USAEVUSComponenteVida()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
+}
+
+void USAEVUSComponenteVida::InitializeComponent()
+{
+	Super::InitializeComponent();
+	// Válida antes de BeginPlay, así otros componentes la pueden leer al inicializarse.
+	Vida = VidaMaxima;
+}
+
+void USAEVUSComponenteVida::BeginPlay()
+{
+	Super::BeginPlay();
+	if (AActor* Duenio = GetOwner())
+	{
+		Duenio->OnTakeAnyDamage.AddUniqueDynamic(this, &ThisClass::ManejarDanioRecibido);
+	}
+}
+
+void USAEVUSComponenteVida::ManejarDanioRecibido(AActor* ActorDaniado, float Danio, const UDamageType* TipoDanio, AController* InstigadoPor, AActor* Causante)
+{
+	if (bIgnorarDanioPropio && Causante == GetOwner())
+	{
+		return;
+	}
+	AplicarDanio(Danio, Causante);
+}
+
+float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
+{
+	if (bMuerto || Cantidad <= 0.f)
+	{
+		return 0.f;
+	}
+	const float Quitada = FMath::Min(Cantidad, Vida);
+	Vida -= Quitada;
+	AlCambiarVida.Broadcast(this, -Quitada, Causante);
+	if (Vida <= 0.f)
+	{
+		Vida = 0.f;
+		bMuerto = true;
+		AlMorir.Broadcast(this, Causante);
+	}
+	return Quitada;
+}
+
+float USAEVUSComponenteVida::Curar(float Cantidad)
+{
+	if (bMuerto || Cantidad <= 0.f)
+	{
+		return 0.f;
+	}
+	const float Sumada = FMath::Min(Cantidad, VidaMaxima - Vida);
+	if (Sumada > 0.f)
+	{
+		Vida += Sumada;
+		AlCambiarVida.Broadcast(this, Sumada, nullptr);
+	}
+	return Sumada;
+}
+
+void USAEVUSComponenteVida::RestablecerVida()
+{
+	const float Delta = VidaMaxima - Vida;
+	Vida = VidaMaxima;
+	bMuerto = false;
+	if (Delta != 0.f)
+	{
+		AlCambiarVida.Broadcast(this, Delta, nullptr);
+	}
+}

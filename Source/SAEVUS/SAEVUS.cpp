@@ -1,4 +1,4 @@
-// Copyright SAEVUS. All Rights Reserved.
+// Copyright SAEVUS. Todos los derechos reservados.
 
 #include "SAEVUS.h"
 #include "Modules/ModuleManager.h"

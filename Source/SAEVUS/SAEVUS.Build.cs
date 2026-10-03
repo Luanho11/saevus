@@ -1,4 +1,4 @@
-// Copyright SAEVUS. All Rights Reserved.
+// Copyright SAEVUS. Todos los derechos reservados.
 
 using UnrealBuildTool;
 
@@ -8,7 +8,7 @@ public class SAEVUS : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		// Lets sources include by feature folder, e.g. "Movement/SAEVUSMovementComponent.h".
+		// Permite incluir por carpeta de función, p. ej. "Movimiento/SAEVUSComponenteMovimiento.h".
 		PublicIncludePaths.Add(ModuleDirectory);
 
 		PublicDependencyModuleNames.AddRange(new string[]
@@ -20,7 +20,7 @@ public class SAEVUS : ModuleRules
 			"EnhancedInput"
 		});
 
-		// Frame timing (game/render thread, GPU) for the debug smoke test.
+		// Tiempos por fotograma (hilo de juego/render, GPU) para la prueba de humo de depuración.
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"RenderCore",
