@@ -87,3 +87,9 @@ Owner playtests `L_Sandbox` and gives feel feedback; owner approves the roadmap;
 - Tests: 5 new `SAEVUS.Movement.Dash.*`, 13/13 pass. Verify-Bootstrap passed; rendered smoke test PASSED (dash 1600 cm/s).
 - Problem: the asset script could not save; Git LFS `lockable` had left every `.uasset`/`.umap` read-only. Removed `lockable` (no lock server) and cleared the flag.
 - Next: wall jump.
+
+### Phase 3 — wall jump (same session)
+- Wall jump on the airborne jump press next to a near-vertical wall: push away + up, keeps half the speed along the wall, 3 per airborne period, refills air dashes. Detection by 8 capsule sweeps.
+- Problem caught by the existing coyote test: the platform edge just walked off counted as a wall (free launch). Fixed by ignoring contacts on the capsule's lower hemisphere; added `WallJump.NotOffLedge`.
+- Sandbox: wall-jump chimney + 4.5 m ledge. 19/19 tests, Verify-Bootstrap and smoke test pass.
+- Next: wall run.

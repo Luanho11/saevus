@@ -15,8 +15,9 @@
  * from USAEVUSMovementSettings to the base movement model. Gait requests travel
  * through saved moves so they stay client-predicted when networking is enabled.
  *
- * Dash is a timed state inside walking / falling. Future abilities (wall run,
- * wall jump) belong here as custom movement modes; see Docs/movement.md.
+ * Dash is a timed state inside walking / falling; wall jump is an instant launch
+ * while falling. Wall run and wall climb will be custom movement modes; see
+ * Docs/movement.md.
  */
 UCLASS(ClassGroup = (SAEVUS))
 class SAEVUS_API USAEVUSMovementComponent : public UCharacterMovementComponent
@@ -64,9 +65,20 @@ public:
 	/** True if a dash requested now would start (ignores the pending request itself). */
 	bool CanDash() const;
 
+	/** Wall jumps left before landing. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movement")
+	int32 GetWallJumpsRemaining() const;
+
+	/**
+	 * Looks for a near-vertical wall within DetectionDistance of the capsule.
+	 * Returns its horizontal normal (pointing away from the wall), or zero if none.
+	 */
+	FVector FindWallJumpNormal() const;
+
 	const FSAEVUSGroundMovementTuning& GetGroundTuning() const;
 	const FSAEVUSAirMovementTuning& GetAirTuning() const;
 	const FSAEVUSDashTuning& GetDashTuning() const;
+	const FSAEVUSWallJumpTuning& GetWallJumpTuning() const;
 
 	/** Swaps the movement profile and re-applies it immediately. Null restores code defaults. */
 	void SetMovementSettings(const USAEVUSMovementSettings* NewSettings);
@@ -98,6 +110,10 @@ private:
 	/** Pushes the active tuning into the base movement properties. */
 	void ApplyMovementSettings();
 
+	/** Launches off the wall when the jump was just pressed in the air next to one. True if it did. */
+	bool TryWallJump();
+	void LaunchOffWall(const FVector& WallNormal);
+
 	void StartDash();
 	/** Ends the dash: caps horizontal speed to ExitSpeed and starts the cooldown. */
 	void EndDash();
@@ -113,6 +129,7 @@ private:
 	float DashTimeRemaining = 0.f;
 	float DashCooldownRemaining = 0.f;
 	int32 AirDashesUsed = 0;
+	int32 WallJumpsUsed = 0;
 
 	// Local simulation state derived from movement-mode transitions. Not part of the saved move:
 	// after a server correction it can be briefly off by one transition (acceptable for now).

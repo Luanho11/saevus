@@ -1,6 +1,6 @@
 # SAEVUS movement
 
-Status: Phase 3 (advanced movement) in progress. Walk, run, sprint, jump, air control, coyote time, jump buffer, dash. Built on `UCharacterMovementComponent` (CMC).
+Status: Phase 3 (advanced movement) in progress. Walk, run, sprint, jump, air control, coyote time, jump buffer, dash, wall jump. Built on `UCharacterMovementComponent` (CMC).
 
 ## Why CMC and not Mover
 
@@ -55,7 +55,7 @@ Phase 3, first ability (design goals in `research/gunz.md`). Input `IA_Dash` (Le
 - **Direction.** The movement input direction at that update (`Acceleration`, which is replicated with the move), or the facing with no input. Locked for the whole dash. With `bFaceDashDirection` the body snaps to it.
 - **During.** `CalcVelocity` holds horizontal velocity at `Speed`: no steering, friction or braking. `GetMaxSpeed()` returns `Speed`. In the air, `GetGravityZ()` returns 0 while `bSuspendGravityDuringDash` is on, so the vertical speed set at the start (`AirDashVerticalSpeed`, 0 = flat) is held. Walking off a ledge mid-dash keeps dashing across the gap.
 - **End.** After `Duration`, or when a jump cancels a ground dash: horizontal speed is capped to `ExitSpeed`, then `Cooldown` starts.
-- **Air budget.** `MaxAirDashes` per airborne period, refilled on landing. Whether wall contact also refills it is decided with wall movement.
+- **Air budget.** `MaxAirDashes` per airborne period, refilled on landing and (by default) by a wall jump.
 - **Designed cancel.** Jump during a ground dash: the dash ends and the jump leaves at `ExitSpeed`. This is the first entry of the cancel rules from the research doc; more come with combat.
 
 | Value (`FSAEVUSDashTuning`) | Default | Notes |
@@ -71,9 +71,31 @@ Phase 3, first ability (design goals in `research/gunz.md`). Input `IA_Dash` (Le
 
 First-pass values, not tuned by feel. Open owner questions that may change this: dedicated key vs double-tap, camera lock during a dash, whether air time should be unlimited for skilled play.
 
+## Wall jump
+
+Phase 3, second ability. No new input: it is the jump pressed while airborne next to a wall.
+
+- **Trigger.** `UpdateCharacterStateBeforeMovement` → `TryWallJump()`: the jump was pressed on this update (`bPressedJump` with `JumpKeyHoldTime` still 0, and the press didn't already do a normal or coyote jump), the character is falling, and wall jumps are left. Coyote time therefore wins over a wall jump, and a held jump key never repeats it.
+- **Wall detection.** `FindWallJumpNormal()`: eight horizontal capsule sweeps of `DetectionDistance`. A hit counts if its normal is near horizontal (`|Z| <= MaxWallNormalZ`) and it touches the capsule's straight side, not its lower hemisphere. That last rule keeps the edge you just walked off from counting as a wall (found by the coyote-time test). The nearest wall wins.
+- **Launch.** Velocity = wall normal × `AwaySpeed` + the speed along the wall × `TangentialSpeedKept`, vertical = `UpSpeed`. Ends a dash in progress, clears the jump buffer, snaps the body to the new direction (`bFaceJumpDirection`).
+- **Budget.** `MaxWallJumps` per airborne period, refilled on landing. With `bRefillsAirDashes` a wall jump gives the air dashes back, so jump → dash → wall jump → dash chains.
+
+| Value (`FSAEVUSWallJumpTuning`) | Default | Notes |
+|---|---|---|
+| AwaySpeed | 650 cm/s | |
+| UpSpeed | 750 cm/s | a bit more than the ground jump (700) |
+| TangentialSpeedKept | 0.5 | |
+| MaxWallJumps | 3 | 0 disables wall jumps |
+| DetectionDistance | 30 cm | gap between capsule and wall |
+| MaxWallNormalZ | 0.3 | about 72 deg; steeper surfaces are walls |
+| bRefillsAirDashes | true | |
+| bFaceJumpDirection | true | |
+
+First-pass values. In the Sandbox chimney (3 m gap) each hop gains about 1.5 m, so three wall jumps plus the ground jump reach the 4.5 m ledge.
+
 ## Networking readiness
 
-`FSAEVUSSavedMove` stores the sprint and walk requests. They travel as `FLAG_Custom_0` (sprint) and `FLAG_Custom_1` (walk) in the compressed flags and are restored in `UpdateFromCompressedFlags`. Moves with different requests are never combined. When replication is turned on, gait stays client-predicted with no extra work. The dash request travels as `FLAG_Custom_2`; the saved move also stores the dash state at the start of the move (direction, time left, cooldown, air dashes used) and restores it in `PrepMoveFor`, so a replay after a correction re-simulates the dash exactly. Moves that press dash or start/end a dash are never combined. `FLAG_Custom_3` is still free. Abilities that need more state should use the CMC move-container / network data API instead of flags.
+`FSAEVUSSavedMove` stores the sprint and walk requests. They travel as `FLAG_Custom_0` (sprint) and `FLAG_Custom_1` (walk) in the compressed flags and are restored in `UpdateFromCompressedFlags`. Moves with different requests are never combined. When replication is turned on, gait stays client-predicted with no extra work. The dash request travels as `FLAG_Custom_2`; the saved move also stores the dash state at the start of the move (direction, time left, cooldown, air dashes used) and restores it in `PrepMoveFor`, so a replay after a correction re-simulates the dash exactly. Moves that press dash or start/end a dash are never combined. The wall jump needs no flag: it is driven by the replicated jump press (`FLAG_JumpPressed`; the server resets `JumpKeyHoldTime` on each new press), and the wall-jump count is saved and restored like the dash state. `FLAG_Custom_3` is still free. Abilities that need more state should use the CMC move-container / network data API instead of flags.
 
 Known limitation: the air gait and the coyote/buffer timers are local simulation state derived from mode transitions, not part of the saved move. After a server correction they can be off for one transition. The jump itself still travels through the normal `bPressedJump` path, so the server stays authoritative.
 
@@ -106,6 +128,12 @@ Wall run, wall jump, dash, sword-driven movement and aerial combat will be **cus
 | `Dash.Cooldown` | no dash while dashing or during cooldown; allowed after it |
 | `Dash.AirBudget` | one air dash; height held (gravity off); second refused; landing refills |
 | `Dash.JumpCancel` | jump ends a ground dash and leaves at exit speed |
+| `WallJump.Basic` | wall found; pushed away at AwaySpeed; UpSpeed; faces away; one jump spent |
+| `WallJump.NoWall` | jump in open air does nothing |
+| `WallJump.NotOffLedge` | the ledge just walked off is not a wall (coyote time off) |
+| `WallJump.Tangential` | keeps TangentialSpeedKept of the speed along the wall |
+| `WallJump.Budget` | second jump refused with budget 1; landing refills |
+| `WallJump.RefillsAirDash` | ends the air dash; refills air dashes only when enabled |
 | `JumpAssist.AirGaitLock` | sprint mid-air keeps the run cap when locked, raises it when unlocked; a jump take-off opens no coyote window |
 
 The simulation tests tick a real `ASAEVUSCharacter` in a throwaway world (`Tests/SAEVUSMovementTestWorld.h`: no map, no controller, `bRunPhysicsWithNoController`, engine-cube platforms). The fixture ticks the movement component directly and advances world time itself, starting at 10 s: in editor builds CMC refuses to start falling during the first second of world time.
@@ -119,6 +147,7 @@ In-game check: `UnrealEditor.exe SAEVUS.uproject -game -windowed -ResX=1280 -Res
 - steps 50–250 cm for jump height;
 - slopes at 20°, 35° and 50° (the default walkable limit is about 44.8°);
 - 200 cm decks with gaps of 2–6 m for jump distance and air control;
-- a 30 m × 6 m wall reserved for later wall movement.
+- a 30 m × 6 m wall reserved for wall running;
+- a wall-jump chimney at X = -30 m: two 7 m walls with a 3 m gap, and a 4.5 m ledge at its far end.
 
 Press F6 to show gait, speed, vertical speed, movement mode and location.

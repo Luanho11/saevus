@@ -1,6 +1,8 @@
 // Copyright SAEVUS. All Rights Reserved.
 
 #include "Movement/SAEVUSMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/Character.h"
 
 namespace SAEVUSMovement
@@ -13,6 +15,12 @@ namespace SAEVUSMovement
 	const FSAEVUSGroundMovementTuning DefaultGroundTuning;
 	const FSAEVUSAirMovementTuning DefaultAirTuning;
 	const FSAEVUSDashTuning DefaultDashTuning;
+	const FSAEVUSWallJumpTuning DefaultWallJumpTuning;
+
+	// Wall probe: eight horizontal capsule sweeps. The probe capsule is shrunk a little so a
+	// capsule already touching the wall doesn't start the sweep in penetration.
+	constexpr int32 WallProbeDirections = 8;
+	constexpr float WallProbeSkin = 2.f;
 }
 
 /**
@@ -34,6 +42,7 @@ public:
 		SavedDashTimeRemaining = 0.f;
 		SavedDashCooldownRemaining = 0.f;
 		SavedAirDashesUsed = 0;
+		SavedWallJumpsUsed = 0;
 	}
 
 	virtual uint8 GetCompressedFlags() const override
@@ -63,6 +72,7 @@ public:
 		}
 		// A dash press, or a move that starts or ends a dash, is never merged.
 		if (bSavedWantsToDash || Other->bSavedWantsToDash || SavedAirDashesUsed != Other->SavedAirDashesUsed
+			|| SavedWallJumpsUsed != Other->SavedWallJumpsUsed
 			|| (SavedDashTimeRemaining > 0.f) != (Other->SavedDashTimeRemaining > 0.f))
 		{
 			return false;
@@ -82,6 +92,7 @@ public:
 			SavedDashTimeRemaining = Movement->DashTimeRemaining;
 			SavedDashCooldownRemaining = Movement->DashCooldownRemaining;
 			SavedAirDashesUsed = Movement->AirDashesUsed;
+			SavedWallJumpsUsed = Movement->WallJumpsUsed;
 		}
 	}
 
@@ -97,6 +108,7 @@ public:
 			Movement->DashTimeRemaining = SavedDashTimeRemaining;
 			Movement->DashCooldownRemaining = SavedDashCooldownRemaining;
 			Movement->AirDashesUsed = SavedAirDashesUsed;
+			Movement->WallJumpsUsed = SavedWallJumpsUsed;
 		}
 	}
 
@@ -108,6 +120,7 @@ private:
 	float SavedDashTimeRemaining = 0.f;
 	float SavedDashCooldownRemaining = 0.f;
 	int32 SavedAirDashesUsed = 0;
+	int32 SavedWallJumpsUsed = 0;
 };
 
 class FSAEVUSNetworkPredictionData_Client : public FNetworkPredictionData_Client_Character
@@ -175,6 +188,11 @@ const FSAEVUSAirMovementTuning& USAEVUSMovementComponent::GetAirTuning() const
 const FSAEVUSDashTuning& USAEVUSMovementComponent::GetDashTuning() const
 {
 	return MovementSettings ? MovementSettings->Dash : SAEVUSMovement::DefaultDashTuning;
+}
+
+const FSAEVUSWallJumpTuning& USAEVUSMovementComponent::GetWallJumpTuning() const
+{
+	return MovementSettings ? MovementSettings->WallJump : SAEVUSMovement::DefaultWallJumpTuning;
 }
 
 void USAEVUSMovementComponent::SetMovementSettings(const USAEVUSMovementSettings* NewSettings)
@@ -252,6 +270,99 @@ void USAEVUSMovementComponent::EndDash()
 	const FVector Horizontal = FVector(Velocity.X, Velocity.Y, 0.f).GetClampedToMaxSize(Tuning.ExitSpeed);
 	Velocity.X = Horizontal.X;
 	Velocity.Y = Horizontal.Y;
+}
+
+int32 USAEVUSMovementComponent::GetWallJumpsRemaining() const
+{
+	return FMath::Max(0, GetWallJumpTuning().MaxWallJumps - WallJumpsUsed);
+}
+
+FVector USAEVUSMovementComponent::FindWallJumpNormal() const
+{
+	if (!HasValidData())
+	{
+		return FVector::ZeroVector;
+	}
+	const FSAEVUSWallJumpTuning& Tuning = GetWallJumpTuning();
+	const FVector Start = UpdatedComponent->GetComponentLocation();
+	const FCollisionShape Probe = GetPawnCapsuleCollisionShape(SHRINK_RadiusCustom, SAEVUSMovement::WallProbeSkin);
+	const float ProbeDistance = Tuning.DetectionDistance + SAEVUSMovement::WallProbeSkin;
+
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(SAEVUSWallJumpProbe), false, CharacterOwner);
+	FCollisionResponseParams ResponseParams;
+	InitCollisionParams(QueryParams, ResponseParams);
+	const ECollisionChannel Channel = UpdatedComponent->GetCollisionObjectType();
+
+	// Contacts on the lower hemisphere are ledges at foot level (e.g. the edge just walked off),
+	// not walls: a wall has to touch the capsule's straight side.
+	const float LowestWallContactZ = Start.Z - Probe.GetCapsuleHalfHeight() + Probe.GetCapsuleRadius();
+
+	FVector BestNormal = FVector::ZeroVector;
+	float BestDistance = TNumericLimits<float>::Max();
+	for (int32 Index = 0; Index < SAEVUSMovement::WallProbeDirections; ++Index)
+	{
+		const float Yaw = 360.f * Index / SAEVUSMovement::WallProbeDirections;
+		const FVector Direction = FRotator(0.f, Yaw, 0.f).Vector();
+		FHitResult Hit;
+		if (!GetWorld()->SweepSingleByChannel(Hit, Start, Start + Direction * ProbeDistance, FQuat::Identity, Channel, Probe, QueryParams, ResponseParams)
+			|| Hit.bStartPenetrating || FMath::Abs(Hit.ImpactNormal.Z) > Tuning.MaxWallNormalZ || Hit.ImpactPoint.Z < LowestWallContactZ)
+		{
+			continue;
+		}
+		if (Hit.Distance < BestDistance)
+		{
+			BestDistance = Hit.Distance;
+			BestNormal = Hit.ImpactNormal.GetSafeNormal2D();
+		}
+	}
+	return BestNormal;
+}
+
+bool USAEVUSMovementComponent::TryWallJump()
+{
+	// Only the first update of a jump press counts (JumpKeyHoldTime is reset by Jump() and grows
+	// after each update), and not when that press already did a normal or coyote jump.
+	const bool bJumpJustPressed = CharacterOwner && CharacterOwner->bPressedJump && CharacterOwner->JumpKeyHoldTime <= 0.f
+		&& !CharacterOwner->bWasJumping;
+	if (!bJumpJustPressed || !IsFalling() || GetWallJumpsRemaining() <= 0)
+	{
+		return false;
+	}
+	const FVector WallNormal = FindWallJumpNormal();
+	if (WallNormal.IsNearlyZero())
+	{
+		return false;
+	}
+	LaunchOffWall(WallNormal);
+	return true;
+}
+
+void USAEVUSMovementComponent::LaunchOffWall(const FVector& WallNormal)
+{
+	const FSAEVUSWallJumpTuning& Tuning = GetWallJumpTuning();
+	if (IsDashing())
+	{
+		EndDash();
+	}
+
+	const FVector Horizontal(Velocity.X, Velocity.Y, 0.f);
+	const FVector AlongWall = Horizontal - WallNormal * FVector::DotProduct(Horizontal, WallNormal);
+	Velocity = WallNormal * Tuning.AwaySpeed + AlongWall * Tuning.TangentialSpeedKept;
+	Velocity.Z = Tuning.UpSpeed;
+
+	++WallJumpsUsed;
+	if (Tuning.bRefillsAirDashes)
+	{
+		AirDashesUsed = 0;
+	}
+	// The press was used here; it must not also fire as a buffered jump on landing.
+	JumpBufferTimeRemaining = 0.f;
+	CoyoteTimeRemaining = 0.f;
+
+	if (Tuning.bFaceJumpDirection)
+	{
+		MoveUpdatedComponent(FVector::ZeroVector, Velocity.GetSafeNormal2D().ToOrientationQuat(), /*bSweep*/ false);
+	}
 }
 
 float USAEVUSMovementComponent::GetMaxSpeed() const
@@ -336,6 +447,7 @@ void USAEVUSMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 	if (IsMovingOnGround())
 	{
 		AirDashesUsed = 0;
+		WallJumpsUsed = 0;
 	}
 	else if (IsDashing() && !IsFalling())
 	{
@@ -373,6 +485,8 @@ void USAEVUSMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVect
 void USAEVUSMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
 	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+
+	TryWallJump();
 
 	// The request is consumed either way: a dash pressed during cooldown is not queued.
 	if (bWantsToDash)

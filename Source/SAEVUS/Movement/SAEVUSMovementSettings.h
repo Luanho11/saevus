@@ -134,6 +134,48 @@ struct FSAEVUSDashTuning
 	bool bSuspendGravityDuringDash = true;
 };
 
+/**
+ * Wall jump: a jump pressed while airborne next to a near-vertical wall pushes the
+ * character away from it. See Docs/movement.md.
+ */
+USTRUCT(BlueprintType)
+struct FSAEVUSWallJumpTuning
+{
+	GENERATED_BODY()
+
+	/** Horizontal speed away from the wall, along its normal. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float AwaySpeed = 650.f;
+
+	/** Vertical speed set by the wall jump. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float UpSpeed = 750.f;
+
+	/** Fraction of the speed along the wall kept through the jump (0 = none, 1 = all). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump", meta = (ClampMin = "0", ClampMax = "1"))
+	float TangentialSpeedKept = 0.5f;
+
+	/** Wall jumps allowed per airborne period; refilled on landing. 0 disables wall jumps. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump", meta = (ClampMin = "0"))
+	int32 MaxWallJumps = 3;
+
+	/** Largest gap between the capsule and the wall that still counts as touching it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DetectionDistance = 30.f;
+
+	/** Surfaces whose normal Z is above this are floors or ramps, not walls (0.3 is about 72 deg). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Detection", meta = (ClampMin = "0", ClampMax = "1"))
+	float MaxWallNormalZ = 0.3f;
+
+	/** A wall jump gives back the air dashes, so dash and wall jump can chain. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump")
+	bool bRefillsAirDashes = true;
+
+	/** Snap the body to the new horizontal direction, so the move reads clearly. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wall Jump")
+	bool bFaceJumpDirection = true;
+};
+
 /** Designer-editable movement profile assigned to USAEVUSMovementComponent. */
 UCLASS(BlueprintType, Const)
 class SAEVUS_API USAEVUSMovementSettings : public UPrimaryDataAsset
@@ -149,4 +191,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
 	FSAEVUSDashTuning Dash;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wall Jump")
+	FSAEVUSWallJumpTuning WallJump;
 };

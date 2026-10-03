@@ -204,6 +204,12 @@ def build_sandbox(game_mode_bp):
     # Long, tall wall for later wall-movement experiments.
     spawn_block(actors, "Wall_Long", unreal.Vector(0, 3000, 300), (3000, 100, 600), dark)
 
+    # Wall-jump chimney: two 7 m walls with a 3 m gap, climbed by alternating wall jumps,
+    # and a 4.5 m ledge at the far end to finish on.
+    for side, y in (("L", -200), ("R", 200)):
+        spawn_block(actors, f"WallJump_Chimney{side}", unreal.Vector(-3000, y, 350), (600, 100, 700), dark)
+    spawn_block(actors, "WallJump_Ledge450cm", unreal.Vector(-3500, 0, 225), (400, 400, 450), grid)
+
     # Lighting: fully dynamic, no Lumen.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-50, yaw=-35))
     sun.set_actor_label("Sun")
