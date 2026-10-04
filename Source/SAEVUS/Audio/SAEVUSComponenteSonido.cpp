@@ -77,6 +77,17 @@ FSAEVUSAjusteSonidos::FSAEVUSAjusteSonidos()
 	Bloqueo.Volumen = 0.55f;
 	Bloqueo.Semilla = 83;
 
+	// Contraataque: campanada alta y limpia que sube.
+	Contraataque.Duracion = 0.45f;
+	Contraataque.FrecuenciaInicio = 1500.f;
+	Contraataque.FrecuenciaFin = 2100.f;
+	Contraataque.Aspereza = 0.15f;
+	Contraataque.MezclaRuido = 0.1f;
+	Contraataque.FiltroRuido = 0.9f;
+	Contraataque.Caida = 0.15f;
+	Contraataque.Volumen = 0.6f;
+	Contraataque.Semilla = 89;
+
 	// Dash: soplo más largo que el tajo.
 	Dash.Duracion = 0.3f;
 	Dash.MezclaRuido = 1.f;
@@ -113,6 +124,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	Preparar(EEfecto::Danio, Ajuste.Danio);
 	Preparar(EEfecto::Curacion, Ajuste.Curacion);
 	Preparar(EEfecto::Bloqueo, Ajuste.Bloqueo);
+	Preparar(EEfecto::Contraataque, Ajuste.Contraataque);
 	Preparar(EEfecto::Dash, Ajuste.Dash);
 	Preparar(EEfecto::DobleSalto, Ajuste.DobleSalto);
 
@@ -137,6 +149,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	if (USAEVUSComponenteGuardia* Guardia = Duenio->FindComponentByClass<USAEVUSComponenteGuardia>())
 	{
 		Manejadores.Emplace(Guardia, Guardia->AlBloquear.AddUObject(this, &ThisClass::AlBloquear));
+		Manejadores.Emplace(Guardia, Guardia->AlContraatacar.AddUObject(this, &ThisClass::AlContraatacar));
 	}
 	if (const ACharacter* Personaje = Cast<ACharacter>(Duenio))
 	{
@@ -164,6 +177,7 @@ void USAEVUSComponenteSonido::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		else if (USAEVUSComponenteGuardia* Guardia = Cast<USAEVUSComponenteGuardia>(Par.Key.Get()))
 		{
 			Guardia->AlBloquear.Remove(Par.Value);
+			Guardia->AlContraatacar.Remove(Par.Value);
 		}
 		else if (USAEVUSComponenteMovimiento* Movimiento = Cast<USAEVUSComponenteMovimiento>(Par.Key.Get()))
 		{
@@ -218,6 +232,11 @@ void USAEVUSComponenteSonido::AlCurar(float VidaRecuperada)
 void USAEVUSComponenteSonido::AlBloquear(AActor* Atacante, const FVector& PuntoContacto)
 {
 	Reproducir(EEfecto::Bloqueo, Ajuste.VolumenCombate);
+}
+
+void USAEVUSComponenteSonido::AlContraatacar(AActor* Atacante, const FVector& PuntoContacto)
+{
+	Reproducir(EEfecto::Contraataque, Ajuste.VolumenCombate);
 }
 
 void USAEVUSComponenteSonido::AlIniciarDash(const FVector& Direccion)

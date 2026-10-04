@@ -42,6 +42,19 @@ struct FSAEVUSAjusteGuardia
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bloqueo", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoEntreReacciones = 0.2f;
 
+	/**
+	 * Contraataque (parry): un golpe bloqueado en este tiempo desde que se levanta la guardia
+	 * aturde al atacante, da alma y un instante de invulnerabilidad. 0 = sin contraataque.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0", ForceUnits = "s"))
+	float VentanaContraataque = 0.15f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0"))
+	float AlmaPorContraataque = 22.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0", ForceUnits = "s"))
+	float InvulnerabilidadContraataque = 0.3f;
+
 	/** Distancia delante del cuerpo a la que salen las chispas del bloqueo. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bloqueo", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float DistanciaContacto = 60.f;
@@ -81,6 +94,11 @@ public:
 	/** Se emite al bloquear (como mucho una vez cada TiempoEntreReacciones). */
 	FSAEVUSEventoBloqueo AlBloquear;
 
+	/** Se emite en cada contraataque (bloqueo dentro de la ventana). */
+	FSAEVUSEventoBloqueo AlContraatacar;
+
+	int32 ObtenerContraataques() const { return Contraataques; }
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -97,6 +115,7 @@ private:
 	void Entrar();
 	void Salir();
 	void ReaccionarBloqueo(AActor* Atacante);
+	void Contraatacar(AActor* Atacante);
 	USAEVUSComponenteMovimiento* ObtenerMovimiento() const;
 
 	UPROPERTY()
@@ -113,4 +132,7 @@ private:
 	bool bOrientabaAlMovimiento = true;
 	double UltimaReaccion = -1.0e9;
 	int32 Bloqueos = 0;
+	int32 Contraataques = 0;
+	/** Tiempo de mundo en que se levantó la guardia (para la ventana de contraataque). */
+	double InicioGuardia = 0.0;
 };

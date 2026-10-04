@@ -2,7 +2,9 @@
 
 #include "Combate/SAEVUSComponenteGuardia.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
@@ -71,6 +73,7 @@ void USAEVUSComponenteGuardia::Entrar()
 		return;
 	}
 	bEnGuardia = true;
+	InicioGuardia = GetWorld()->GetTimeSeconds();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->FijarEscalaVelocidadAccion(Ajuste.EscalaVelocidad);
@@ -138,8 +141,32 @@ float USAEVUSComponenteGuardia::FiltrarDanio(float Cantidad, AActor* Causante)
 		return Cantidad;
 	}
 	++Bloqueos;
+	if (Ajuste.VentanaContraataque > 0.f && GetWorld()->GetTimeSeconds() - InicioGuardia <= Ajuste.VentanaContraataque)
+	{
+		Contraatacar(Causante);
+	}
 	ReaccionarBloqueo(Causante);
 	return Cantidad * (1.f - Ajuste.FraccionBloqueada);
+}
+
+void USAEVUSComponenteGuardia::Contraatacar(AActor* Atacante)
+{
+	++Contraataques;
+	// El atacante queda abierto (los jefes no se aturden); el jugador gana alma y un respiro.
+	if (USAEVUSComponenteIAEnemigo* IA = Atacante->FindComponentByClass<USAEVUSComponenteIAEnemigo>())
+	{
+		IA->Aturdir();
+	}
+	if (USAEVUSComponenteAlma* Alma = GetOwner()->FindComponentByClass<USAEVUSComponenteAlma>())
+	{
+		Alma->GanarAlma(Ajuste.AlmaPorContraataque);
+	}
+	if (Vida)
+	{
+		Vida->HacerInvulnerable(Ajuste.InvulnerabilidadContraataque);
+	}
+	const FVector HaciaAtacante = (Atacante->GetActorLocation() - GetOwner()->GetActorLocation()).GetSafeNormal2D();
+	AlContraatacar.Broadcast(Atacante, GetOwner()->GetActorLocation() + HaciaAtacante * Ajuste.DistanciaContacto);
 }
 
 void USAEVUSComponenteGuardia::ReaccionarBloqueo(AActor* Atacante)

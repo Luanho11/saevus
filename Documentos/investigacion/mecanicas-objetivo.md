@@ -20,14 +20,14 @@ Lista viva de mecánicas de SAEVUS, de dónde viene la idea y su estado. Diseño
 | Cancelaciones como técnica (tabla por datos) | GunZ (formalizado) | hecho para dash/salto/cambio; ampliar a bloqueo |
 | Cambio de arma instantáneo y cancelador | GunZ | hecho |
 | Armas de fuego (pistola, rifle, escopeta) | GunZ | hecho (sin modelos) |
-| Guardia / bloqueo frontal, cancela el tajo | GunZ | **siguiente** (tarea 11) |
+| Guardia / bloqueo frontal, cancela el tajo | GunZ | hecho |
 | Retroceso y pausa de impacto al golpear | HK | hecho |
 | Daño recibido: retroceso + invulnerabilidad + destello | HK | hecho (parpadeo, reacción del torso) |
 | Alma: ganar golpeando, curar concentrando | HK | hecho |
 | Hechizos | HK | más adelante |
 | Súper dash cargado | HK | más adelante |
 | Ataque cargado (arte del aguijón) | HK | más adelante |
-| Contraataque (parry) | HK | más adelante |
+| Contraataque (parry) | HK / GunZ | hecho (ventana al levantar la guardia) |
 | Enemigos simples + mini jefe con telegrafiado | HK | hecho |
 | Mapa tutorial que enseña todo | ambos | hecho (`L_Tutorial`) |
 | Dash con espada distinto del dash con arma de fuego | GunZ | hecho (voltereta con arma de fuego) |

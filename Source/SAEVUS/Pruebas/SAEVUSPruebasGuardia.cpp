@@ -60,7 +60,11 @@ bool FSAEVUSPruebaGuardiaBloqueo::RunTest(const FString& Parameters)
 
 	TestEqual(TEXT("Sin guardia, el golpe de frente entra"), Vida->AplicarDanio(Danio, Delante), Danio);
 	Mundo.Jugador->FijarGuardia(true);
-	Mundo.MundoPrueba.Paso();
+	// Pasada la ventana de contraataque (tiene su propio test): bloqueo normal.
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMovimiento); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+	}
 	if (!TestTrue(TEXT("En guardia"), Mundo.Guardia->EstaEnGuardia()))
 	{
 		return false;
@@ -151,6 +155,39 @@ bool FSAEVUSPruebaGuardiaCancelaTajo::RunTest(const FString& Parameters)
 		Mundo.MundoPrueba.Paso();
 	}
 	TestTrue(TEXT("Mantenida, la guardia vuelve"), Mundo.Guardia->EstaEnGuardia());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaGuardiaContraataque, "SAEVUS.Guardia.Contraataque", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaGuardiaContraataque::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasGuardia;
+
+	FMundoGuardia Mundo;
+	if (!TestTrue(TEXT("Asentado"), Mundo.bListo))
+	{
+		return false;
+	}
+	// Un enemigo delante, lejos para que no ataque por su cuenta: el golpe se aplica a mano.
+	ASAEVUSEnemigo* Enemigo = Mundo.MundoPrueba.CrearEnemigo(Mundo.Jugador->GetActorLocation() + FVector(DistanciaCausante, 0.f, 0.f), nullptr, nullptr);
+	USAEVUSComponenteVida* Vida = Mundo.Jugador->ObtenerVida();
+
+	// Golpe justo al levantar la guardia: contraataque.
+	Mundo.Jugador->FijarGuardia(true);
+	Mundo.MundoPrueba.Paso();
+	TestEqual(TEXT("Bloqueado"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
+	TestEqual(TEXT("Contraataque"), Mundo.Guardia->ObtenerContraataques(), 1);
+	TestEqual(TEXT("El atacante queda aturdido"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Aturdido);
+	TestTrue(TEXT("El contraataque da alma"), Mundo.Jugador->ObtenerAlma()->ObtenerAlma() > 0.f);
+	TestTrue(TEXT("Y un instante de invulnerabilidad"), Vida->EstaInvulnerable());
+
+	// Con la guardia ya levantada hace rato: bloqueo normal, sin contraataque.
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMovimiento); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+	}
+	TestEqual(TEXT("Bloqueado tarde"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
+	TestEqual(TEXT("Sin contraataque fuera de la ventana"), Mundo.Guardia->ObtenerContraataques(), 1);
 	return true;
 }
 

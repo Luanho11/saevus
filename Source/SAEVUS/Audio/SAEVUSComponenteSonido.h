@@ -46,6 +46,10 @@ struct SAEVUS_API FSAEVUSAjusteSonidos
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
 	FSAEVUSSonidoSintetizado Bloqueo;
 
+	/** Contraataque: campanada brillante, distinta del bloqueo normal. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
+	FSAEVUSSonidoSintetizado Contraataque;
+
 	/** Movimiento: dash y doble salto. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
 	FSAEVUSSonidoSintetizado Dash;
@@ -82,7 +86,7 @@ private:
 		float Duracion = 0.f;
 	};
 
-	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, Danio, Curacion, Bloqueo, Dash, DobleSalto, Total };
+	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Total };
 
 	void Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido);
 	void Reproducir(EEfecto Efecto, float VolumenCategoria);
@@ -92,6 +96,7 @@ private:
 	void AlSaltoAereo();
 	void AlCurar(float VidaRecuperada);
 	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
+	void AlContraatacar(AActor* Atacante, const FVector& PuntoContacto);
 
 	UFUNCTION()
 	void AlGolpear(AActor* ActorGolpeado, float Cantidad);

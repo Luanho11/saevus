@@ -80,6 +80,7 @@ La otra mitad de la "mariposa" de GunZ (salto → dash → tajo → guardia), di
 - El bloqueo pasa por el **filtro de daño** de la vida (`USAEVUSComponenteVida::FiltroDanio`): un golpe parado no da invulnerabilidad ni corta nada.
 - **Reacción** (como mucho cada 0,2 s): el jugador retrocede (300 cm/s), el atacante sale despedido (450 cm/s, escalado por su `EscalaEmpujeRecibido`), chispas y un choque metálico.
 - **Cancelación:** nueva acción `ESAEVUSAccionCancelacion::Guardia` con `CancelarConGuardiaDesde` en cada ataque (0,18 s en los tajos, 0,4 s en el remate, el final de la fase activa en los aéreos y direccionales). Pedida durante un tajo, la guardia entra en cuanto la ventana lo permite y corta el ataque. Atacar desde la guardia la suelta; si sigue pulsada, vuelve en la siguiente ventana: tajo → guardia → tajo.
+- **Contraataque (parry):** un golpe bloqueado en los primeros 0,15 s de la guardia (`VentanaContraataque`) aturde al atacante (los jefes no se aturden), da 22 de alma y 0,3 s de invulnerabilidad, con una campanada propia. Premia levantar la guardia en el momento justo en vez de mantenerla siempre.
 - En guardia: velocidad ×0,35, el cuerpo mira hacia la cámara, no se cura (pulsar guardia corta la curación). Con un arma de fuego o durante un dash no hay guardia.
 - Animación: brazos al frente y el aguijón cruzado en diagonal.
 - `DA_RepertorioMelee_Base` se reescribe con el repertorio del código en cada ejecución del script de assets (mientras no se ajuste a mano), así recibe los campos nuevos con sus valores de diseño.
@@ -137,7 +138,7 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 `SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
 `SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Cambio`, `CambioCancela`, `RepertorioMelee`.
 `SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`, `InvulnerableTrasGolpe`.
-`SAEVUS.Guardia.*`: `BloqueaDeFrente` (frente sí; espalda y sin causante no), `MovimientoYArma` (más lenta, sin curación, se suelta con arma de fuego), `CancelaTajo` (espera la ventana, corta el tajo, atacar la suelta y vuelve).
+`SAEVUS.Guardia.*`: `Contraataque` (dentro de la ventana aturde, da alma e invulnerabilidad; fuera, bloqueo normal), `BloqueaDeFrente` (frente sí; espalda y sin causante no), `MovimientoYArma` (más lenta, sin curación, se suelta con arma de fuego), `CancelaTajo` (espera la ventana, corta el tajo, atacar la suelta y vuelve).
 `SAEVUS.Alma.*`: `GanarAlGolpear`, `Curacion` (no se mueve, cura y gasta), `CuracionInterrumpida` (golpe y salto la cortan sin gastar), `SinAlmaNoCura`.
 
 ## Pendiente
