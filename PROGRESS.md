@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 61)**
-**Último latido: 2026-10-04 08:04** (la sesión activa lo actualiza en cada commit)
+**Estado: EN PAUSA (editor del dueño abierto)**
+**Último latido: 2026-10-04 08:19** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -101,4 +101,5 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado).
 - A medias: —
-- Siguiente paso exacto: tarea 61 — esquirlas (moneda).
+- A medias: tarea 61 (esquirlas y sombra) en `git stash` ("WIP tarea 61"): compila, sin verificar, porque el editor abierto bloqueaba la DLL. Para seguir: cerrar el editor, `git stash pop`, `Verificar-Arranque.ps1 -ConJuego`.
+- Siguiente paso exacto: terminar la tarea 61 cuando el editor esté cerrado.

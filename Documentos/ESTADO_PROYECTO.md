@@ -63,4 +63,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 61 de `PROGRESS.md` (esquirlas), después 62 (revisión de código); después, tareas propias (ver la cola en `PROGRESS.md`).
+En pausa: el dueño abrió el editor. La tarea 61 (esquirlas) está en `git stash`; para seguir, cerrar el editor, `git stash pop` y verificar. Después, 62 (revisión de código); después, tareas propias (ver la cola en `PROGRESS.md`).
