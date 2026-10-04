@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 26)**
-**Último latido: 2026-10-03 23:33** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 27)**
+**Último latido: 2026-10-03 23:34** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -60,9 +60,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 23. [x] ~~Revisión de código general (limpieza, comentarios, números mágicos que queden) y actualización de `arquitectura.md` con todos los sistemas nuevos.~~
 24. [x] ~~Cuerpos de enemigos generados en Blender (como el caballero, piezas rígidas sobre un esqueleto pequeño) en vez de formas del motor, con animación procedural sencilla (respirar, avisar, atacar).~~
 25. [x] ~~Escenario boceto del tutorial: piezas modulares generadas en Blender (bordes rotos, columnas, escombros) colocadas por el script del mapa; presupuesto de triángulos.~~
-26. [ ] Resumen para el dueño al volver: `Documentos/RESUMEN_PARA_EL_DUENO.md` con qué hay, cómo probarlo (controles, tutorial), capturas de referencia, decisiones tomadas y preguntas abiertas (empaquetado bloqueado, dirección de arte, números de equilibrio).
+26. [x] ~~Resumen para el dueño al volver: `Documentos/RESUMEN_PARA_EL_DUENO.md` con qué hay, cómo probarlo (controles, tutorial), capturas de referencia, decisiones tomadas y preguntas abiertas (empaquetado bloqueado, dirección de arte, números de equilibrio).~~
+27. [ ] Recorrido automático del tutorial completo en el juego real (prueba de humo `-SAEVUSRecorrido`): teletransporta al jugador a cada sección y comprueba avisos, puertas y que el jefe aparece; captura por sección.
 
 ## Estado del turno
-- Completado: tarea 24 (cuerpos de enemigos en Blender).
+- Completado: tarea 26 (`Documentos/RESUMEN_PARA_EL_DUENO.md` con capturas en `Documentos/capturas/`).
 - A medias: —
-- Siguiente paso exacto: tarea 26 — resumen para el dueño.
+- Siguiente paso exacto: tarea 27 — recorrido del tutorial en el juego real.

@@ -6,7 +6,7 @@ _Actualizado: 2026-10-03 (sesión 3c)_
 
 Que el juego **se vea y se sienta**: dash por doble toque con partículas, caballero boceto animado con esqueleto propio, sombreado tipo Hollow Knight, mecánicas de Hollow Knight, enemigos y mini jefe, mapa tutorial e interfaz. Orden y detalle en `PROGRESS.md` y `hoja-de-ruta.md`.
 
-Para jugar: abrir el proyecto y pulsar Play (arranca en `L_Tutorial`); teclas y técnicas en `controles.md`.
+**Al volver, empieza por `RESUMEN_PARA_EL_DUENO.md`.** Para jugar: abrir el proyecto y pulsar Play (arranca en `L_Tutorial`); teclas y técnicas en `controles.md`.
 
 ## Hecho
 
