@@ -8,7 +8,7 @@ Prototipo de nivel con lo que ya existe (movimiento, combate, enemigos, puntos d
 
 | Tramo | X (cm) | Altura del suelo | Qué hay |
 |---|---|---|---|
-| Z0 Entrada | −500 – 1200 | 0 | Inicio con el título de zona "Ruinas del Paso" y el aviso "Hacia el este" |
+| Z0 Entrada | −500 – 1200 | 0 | Inicio con el título de zona "Ruinas del Paso" y el aviso "Hacia el este"; detrás, a la derecha, el paso "<- Tutorial" (se llega junto al paso del final del tutorial) |
 | Z1 Descenso | 1200 – 4600 | −100, −200, −300 | Dos escalones de 1 m; encuentro 1: dos rastreros y un revoloteador |
 | Z2 Grieta | 4600 – 5500 | −300 | Foso de 9 m con dos plataformas; caer devuelve al borde |
 | Z3 Banco | 5500 – 6500 | −300 | Banco para sentarse (E), punto de control y aviso; a la derecha, la compuerta cerrada del atajo |
@@ -28,7 +28,7 @@ Redes de caída bajo el vacío (`ASAEVUSVolumenCaida`): si se cae antes del banc
 |---|---|---|
 | `ASAEVUSPalanca` | `Source/SAEVUS/Mundo/` | Base y brazo boceto, caja golpeable (`BlockAllDynamic`, la encuentran las esferas de golpe). Un tajo o un disparo la acciona una vez: el brazo gira, abre sus `Puertas` y muestra un aviso. Devuelve 0 de daño, así que no da alma ni munición. |
 | Compuerta | `ASAEVUSPuertaArena` sin enemigos | Una puerta de arena sin enemigos asignados se queda cerrada hasta que la abre una palanca (`TieneEnemigos()` las distingue). |
-| `ASAEVUSVolumenCambioMapa` | `Source/SAEVUS/Mundo/` | Volumen de jugador que abre otro mapa (`Mapa`, referencia blanda). |
+| `ASAEVUSVolumenCambioMapa` | `Source/SAEVUS/Mundo/` | Volumen de jugador que abre otro mapa (`Mapa`, referencia blanda). Con `Llegada`, pasa la opción `portal=<Llegada>` y UE coloca al jugador en el `APlayerStart` con esa etiqueta. `ASAEVUSModoJuego` elige el inicio sin etiqueta en el arranque normal; si se llega por un paso, no abre el menú principal y la llegada es el primer punto de control. Test `SAEVUS.Mundo.InicioJugador`. |
 | `ASAEVUSParedRompible` | `Source/SAEVUS/Mundo/` | Pared falsa (Hollow Knight): un bloque dinámico que tiembla con cada golpe y cae al tercero (`GolpesParaRomper`). No da alma ni munición. |
 | `ASAEVUSFragmentoMascara` | `Source/SAEVUS/Mundo/` | Se recoge al tocarlo. Cada `FragmentosPorMascara` (2) suma una máscara de vida (`FSAEVUSAjusteProgreso` en el personaje: +20 de vida máxima y vida llena). Se guarda por `Identificador`: los recogidos no vuelven a aparecer y las máscaras extra se aplican al empezar. Hay uno en la sala secreta de la Zona 1 y otro en lo alto del reto del tutorial. |
 | `ASAEVUSBanco` | `Source/SAEVUS/Mundo/` | Banco (Hollow Knight) con `ISAEVUSInteractuable`. Al entrar en su zona se anuncia al personaje y la interfaz muestra "E   Sentarse". Sentarse (`IA_Interactuar`, E o cruceta arriba) cura del todo, rellena la munición, fija el punto de control delante del banco y lo guarda, con una campanada; el caballero adopta la pose sentada. Moverse, saltar, atacar, hacer dash o volver a interactuar lo levanta. Hay bancos en el banco de la Zona 1 (Z3), en la antesala del jefe (Z6) y en el tutorial (S6 y S9). |
@@ -49,5 +49,5 @@ La diana de armas solo se prueba si el mapa tiene una.
 
 - Arte propio de la zona (piezas de ruina más variadas, fondo lejano) y una sala de banco con identidad.
 - Más tramos: secretos, un segundo atajo.
-- Volver de la Zona 1 al tutorial (ahora es solo ida).
+- Comprobar el paso entre mapas de punta a punta en una prueba en el juego (ahora: test del inicio elegido y lógica revisada).
 - Arte del banco (ahora dos cubos).

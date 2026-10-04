@@ -2,12 +2,22 @@
 
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Depuracion/SAEVUSHUDDepuracion.h"
+#include "EngineUtils.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSGuardado.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "TimerManager.h"
+
+namespace SAEVUSModoJuego
+{
+	// Opción de la URL con la que UE elige el inicio de llegada (InitNewPlayer → FindPlayerStart).
+	const TCHAR* const OpcionPaso = TEXT("portal");
+}
 
 ASAEVUSModoJuego::ASAEVUSModoJuego()
 {
@@ -17,8 +27,39 @@ ASAEVUSModoJuego::ASAEVUSModoJuego()
 	MapasConMenuPrincipal = { TEXT("L_Tutorial") };
 }
 
+bool ASAEVUSModoJuego::LlegoPorPaso() const
+{
+	return UGameplayStatics::HasOption(OptionsString, SAEVUSModoJuego::OpcionPaso);
+}
+
+AActor* ASAEVUSModoJuego::ChoosePlayerStart_Implementation(AController* Player)
+{
+	for (TActorIterator<APlayerStart> Inicio(GetWorld()); Inicio; ++Inicio)
+	{
+		if (Inicio->PlayerStartTag.IsNone())
+		{
+			return *Inicio;
+		}
+	}
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void ASAEVUSModoJuego::HandleStartingNewPlayer_Implementation(APlayerController* NuevoJugador)
+{
+	Super::HandleStartingNewPlayer_Implementation(NuevoJugador);
+	if (NuevoJugador && LlegoPorPaso() && NuevoJugador->StartSpot.IsValid())
+	{
+		FijarPuntoControl(NuevoJugador->StartSpot->GetActorTransform());
+	}
+}
+
 bool ASAEVUSModoJuego::DebeMostrarMenuPrincipal() const
 {
+	// Al llegar por un paso desde otro mapa ya se está jugando.
+	if (LlegoPorPaso())
+	{
+		return false;
+	}
 	for (const TCHAR* Parametro : { TEXT("SAEVUSPruebaHumo"), TEXT("SAEVUSRecorrido"), TEXT("SAEVUSSinMenu") })
 	{
 		if (FParse::Param(FCommandLine::Get(), Parametro))

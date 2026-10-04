@@ -35,6 +35,15 @@ public:
 	 * en el juego (-SAEVUSPruebaHumo, -SAEVUSRecorrido) o con -SAEVUSSinMenu.
 	 */
 	bool DebeMostrarMenuPrincipal() const;
+
+	/** Inicio normal: un APlayerStart sin etiqueta (los etiquetados son llegadas desde otros mapas). */
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	/** Si se llega por un paso de otro mapa, la llegada es el primer punto de control. */
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NuevoJugador) override;
+
+	/** Cierto si se entró en el mapa por un paso (opción "portal" en la URL). */
+	bool LlegoPorPaso() const;
 	const FTransform& ObtenerPuntoControl() const { return PuntoControl; }
 
 protected:

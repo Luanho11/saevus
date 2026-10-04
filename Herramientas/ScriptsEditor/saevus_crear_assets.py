@@ -1083,10 +1083,9 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
     crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
     crear_banco(actores, "S9_Banco", 20800, -280, 0, materiales)
-    portal = crear_volumen(actores, unreal.SAEVUSVolumenCambioMapa, "S9_PasoZona1", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 150),
-                           (80, 60, 200), "Tutorial")
-    portal.set_editor_property("mapa", unreal.load_asset(RUTA_MAPA_ZONA1))
-    crear_texto(actores, "Cartel_Zona1", "Zona 1  ->", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 330), tamano=50.0)
+    crear_paso(actores, "S9_PasoZona1", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 150), RUTA_MAPA_ZONA1, "", "Zona 1  ->")
+    # Llegada desde la Zona 1: junto al paso, mirando hacia el camino.
+    crear_llegada(actores, "Llegada_DesdeZona1", unreal.Vector(20900, 0, 100), 0.0, "DesdeZona1")
 
     # S10 Reto opcional: obstáculos ya probados (SAEVUS.Tutorial.Obstaculos.*) encadenados sin descanso.
     crear_punto_control(actores, "Control_Reto", 21300)
@@ -1145,6 +1144,24 @@ def crear_banco(actores, etiqueta, x, y, altura, materiales, guinada=0.0):
     return banco
 
 
+def crear_paso(actores, etiqueta, posicion, ruta_mapa, llegada, cartel):
+    """Paso a otro mapa (ASAEVUSVolumenCambioMapa) con su cartel; llegada = etiqueta del inicio de destino."""
+    paso = crear_volumen(actores, unreal.SAEVUSVolumenCambioMapa, etiqueta, posicion, (80, 60, 200), "Mundo")
+    paso.set_editor_property("mapa", unreal.load_asset(ruta_mapa))
+    if llegada:
+        paso.set_editor_property("llegada", llegada)
+    crear_texto(actores, f"Cartel_{etiqueta}", cartel, unreal.Vector(posicion.x, posicion.y, posicion.z + 180), tamano=50.0)
+    return paso
+
+
+def crear_llegada(actores, etiqueta, posicion, guinada, nombre_llegada):
+    """Inicio de llegada desde otro mapa (PlayerStart con etiqueta; el inicio normal no lleva)."""
+    inicio = actores.spawn_actor_from_class(unreal.PlayerStart, posicion, unreal.Rotator(0, 0, guinada))
+    inicio.set_actor_label(etiqueta)
+    inicio.set_editor_property("player_start_tag", nombre_llegada)
+    return inicio
+
+
 def crear_info_zona(actores, nombre, subtitulo):
     """Nombre de la zona que la interfaz muestra grande al entrar en el mapa."""
     info = actores.spawn_actor_from_class(unreal.SAEVUSInfoZona, unreal.Vector(0, 0, 0))
@@ -1193,6 +1210,8 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     crear_suelo(actores, "Z0_Suelo", -500, 1200, materiales)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
     crear_info_zona(actores, "Ruinas del Paso", "Zona 1")
+    # Vuelta al tutorial: detrás del inicio, a la derecha.
+    crear_paso(actores, "Z0_PasoTutorial", unreal.Vector(-350, ANCHO_PASILLO / 2 - 60, 150), RUTA_MAPA_TUTORIAL, "DesdeZona1", "<-  Tutorial")
     crear_aviso(actores, 100, "Hacia el este", "Zona 1 (boceto). Las ruinas bajan hacia el este.\nMás adelante, un banco guarda tu avance.")
 
     # Z1 Descenso en escalones de 1 m y primer encuentro abajo.
