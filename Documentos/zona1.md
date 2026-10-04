@@ -14,7 +14,9 @@ Prototipo de nivel con lo que ya existe (movimiento, combate, enemigos, puntos d
 | Z3 Banco | 5500 – 6500 | −300 | Punto de control (banco) con aviso; a la derecha, la compuerta cerrada del atajo |
 | Z4 Torre | 6500 – 9600 | muro de 4,5 m, después +150 | Se escala el muro; planta alta con el encuentro 2: saltador, revoloteador y escupidor |
 | Z5 Arena | 9600 – 12000 | +150 | Punto de control; arena de 20 m de ancho con dos rastreros, un saltador, un escupidor y dos revoloteadores; la puerta se abre al vaciarla |
-| Z6 Salida | 12000 – 13000 | +150 | Cartel de fin; por la derecha se baja a la galería |
+| Z6 Antesala | 12000 – 13000 | +150 | Aviso; por la derecha se baja a la galería |
+| Z7 Arena del jefe | 13000 – 16000 | +150 | Punto de control; **Madre Alada** (jefe volador: picados y abanicos de proyectiles, dos fases), muros de 7 m; la puerta se abre al derrotarla |
+| Z8 Fin | 16000 – 17000 | +150 | Cartel "Fin de la Zona 1 (boceto)" |
 | Galería del atajo | 6500 – 13000, Y 400 – 900 | −300 | Carril por debajo de la planta alta y de la arena; al fondo, junto al banco, una **palanca** abre la **compuerta** |
 
 Redes de caída bajo el vacío (`ASAEVUSVolumenCaida`): si se cae antes del banco se vuelve a la entrada; después, al banco.
@@ -40,6 +42,6 @@ La diana de armas solo se prueba si el mapa tiene una.
 ## Pendiente
 
 - Arte propio de la zona (piezas de ruina más variadas, fondo lejano) y una sala de banco con identidad.
-- Más tramos: secretos, un segundo atajo, un jefe de zona.
+- Más tramos: secretos, un segundo atajo.
 - Volver de la Zona 1 al tutorial (ahora es solo ida).
 - El cartel "Banco" sale dos veces (el del aviso y el del banco): unificar cuando el banco tenga arte.

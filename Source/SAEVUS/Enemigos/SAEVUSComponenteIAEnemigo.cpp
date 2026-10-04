@@ -419,9 +419,17 @@ void USAEVUSComponenteIAEnemigo::LanzarProyectil(const FSAEVUSAtaqueEnemigo& Ata
 	FActorSpawnParameters Parametros;
 	Parametros.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Parametros.Owner = Enemigo;
-	if (ASAEVUSProyectil* Proyectil = GetWorld()->SpawnActor<ASAEVUSProyectil>(Boca, FRotator::ZeroRotator, Parametros))
+	// En abanico: repartidos por igual en AperturaAbanico, girando en horizontal la dirección al objetivo.
+	const int32 Numero = FMath::Max(Ataque.NumeroProyectiles, 1);
+	const float Paso = Numero > 1 ? Ataque.AperturaAbanico / static_cast<float>(Numero - 1) : 0.f;
+	for (int32 Indice = 0; Indice < Numero; ++Indice)
 	{
-		Proyectil->Lanzar(Destino - Boca, Ataque.Velocidad * ObtenerFaseActual().EscalaVelocidad, Ataque.Danio, Enemigo, Enemigo->ObtenerMaterialProyectil());
+		const float Angulo = Numero > 1 ? -Ataque.AperturaAbanico * 0.5f + Paso * static_cast<float>(Indice) : 0.f;
+		const FVector Direccion = (Destino - Boca).RotateAngleAxis(Angulo, FVector::UpVector);
+		if (ASAEVUSProyectil* Proyectil = GetWorld()->SpawnActor<ASAEVUSProyectil>(Boca, FRotator::ZeroRotator, Parametros))
+		{
+			Proyectil->Lanzar(Direccion, Ataque.Velocidad * ObtenerFaseActual().EscalaVelocidad, Ataque.Danio, Enemigo, Enemigo->ObtenerMaterialProyectil());
+		}
 	}
 }
 

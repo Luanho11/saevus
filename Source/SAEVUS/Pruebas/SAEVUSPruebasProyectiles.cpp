@@ -86,6 +86,65 @@ bool FSAEVUSPruebaProyectilEscupidor::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaProyectilAbanico, "SAEVUS.Enemigo.Abanico", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaProyectilAbanico::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasProyectiles;
+
+	constexpr int32 Numero = 5;
+	constexpr float Apertura = 60.f;
+	constexpr float ToleranciaGrados = 1.f;
+	USAEVUSDatosEnemigo* Datos = NewObject<USAEVUSDatosEnemigo>(GetTransientPackage());
+	FSAEVUSAtaqueEnemigo Abanico;
+	Abanico.Tipo = ESAEVUSTipoAtaqueEnemigo::Proyectil;
+	Abanico.DistanciaMinima = 300.f;
+	Abanico.DistanciaMaxima = 1500.f;
+	Abanico.TiempoTelegrafiar = 0.3f;
+	Abanico.Duracion = 0.3f;
+	Abanico.Danio = Danio;
+	Abanico.Velocidad = VelocidadLenta;
+	Abanico.NumeroProyectiles = Numero;
+	Abanico.AperturaAbanico = Apertura;
+	Datos->Enemigo.Ataques = { Abanico };
+
+	FMundoProyectiles Mundo;
+	if (!TestTrue(TEXT("Jugador de pie"), Mundo.bListo))
+	{
+		return false;
+	}
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(Datos, Mundo.Jugador);
+	TArray<ASAEVUSProyectil*> Proyectiles;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax) && Proyectiles.IsEmpty(); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+		for (TActorIterator<ASAEVUSProyectil> Proyectil(Mundo.MundoPrueba.ObtenerMundo()); Proyectil; ++Proyectil)
+		{
+			Proyectiles.Add(*Proyectil);
+		}
+	}
+	if (!TestEqual(TEXT("Salen todos a la vez"), Proyectiles.Num(), Numero))
+	{
+		return false;
+	}
+	// Ángulos horizontales respecto a la dirección al jugador: de -Apertura/2 a +Apertura/2, uno al centro.
+	const FVector HaciaJugador = (Mundo.Jugador->GetActorLocation() - Enemigo->GetActorLocation()).GetSafeNormal2D();
+	float Minimo = TNumericLimits<float>::Max();
+	float Maximo = TNumericLimits<float>::Lowest();
+	bool bUnoAlCentro = false;
+	for (const ASAEVUSProyectil* Proyectil : Proyectiles)
+	{
+		const FVector Direccion = Proyectil->ObtenerVelocidad().GetSafeNormal2D();
+		const float Angulo = FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(HaciaJugador, Direccion).Z, FVector::DotProduct(HaciaJugador, Direccion)));
+		Minimo = FMath::Min(Minimo, Angulo);
+		Maximo = FMath::Max(Maximo, Angulo);
+		bUnoAlCentro |= FMath::Abs(Angulo) < ToleranciaGrados;
+	}
+	AddInfo(FString::Printf(TEXT("Abanico de %.1f a %.1f grados"), Minimo, Maximo));
+	TestEqual(TEXT("Apertura total del abanico"), Maximo - Minimo, Apertura, ToleranciaGrados);
+	TestTrue(TEXT("El del centro va al jugador"), bUnoAlCentro);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaProyectilGuardia, "SAEVUS.Guardia.BloqueaProyectil", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaProyectilGuardia::RunTest(const FString& Parameters)
 {

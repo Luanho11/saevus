@@ -88,6 +88,14 @@ struct FSAEVUSAtaqueEnemigo
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float AlcanceGolpe = 120.f;
+
+	/** Proyectil: cuántos salen a la vez, repartidos en abanico horizontal (1 = uno recto al objetivo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Proyectil", meta = (ClampMin = "1"))
+	int32 NumeroProyectiles = 1;
+
+	/** Proyectil: apertura total del abanico; el del centro va al objetivo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Proyectil", meta = (ClampMin = "0", ClampMax = "180", ForceUnits = "deg"))
+	float AperturaAbanico = 0.f;
 };
 
 /** Una fase de un enemigo (los jefes cambian de fase al perder vida). */

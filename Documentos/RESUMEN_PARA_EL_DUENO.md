@@ -6,7 +6,7 @@ Todo lo que pediste en tu mensaje está hecho, más lo que fui añadiendo al ter
 
 1. Abre `SAEVUS.uproject` (arranca en `L_Tutorial`) y pulsa **Play**: sale el menú principal (**Jugar**, o **Continuar** desde el último punto de control si ya jugaste).
 2. Teclas y técnicas: `controles.md`. Lo básico: WASD, Espacio (doble salto), **doble toque** de dirección (dash), clic izquierdo (tajos; mira arriba/abajo para tajos direccionales), **clic derecho** (guardia), **Q** mantenida (curar), **P** (pausa), F6 (datos de depuración).
-3. El tutorial enseña todo por secciones y acaba en el mini jefe; tras él hay un reto opcional y, a la derecha del cartel de fin, el paso a la **Zona 1** (ruinas con banco, tres encuentros y un atajo con palanca; `zona1.md`).
+3. El tutorial enseña todo por secciones y acaba en el mini jefe; tras él hay un reto opcional y, a la derecha del cartel de fin, el paso a la **Zona 1** (ruinas con banco, tres encuentros, un atajo con palanca y el jefe volador Madre Alada; `zona1.md`).
 
 Si algo no compila o falta un asset: `powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1` lo reconstruye todo (compila, crea assets, todos los tests, verificación). Con `-ConJuego` además juega la prueba de humo y recorre el tutorial solo (unos minutos).
 

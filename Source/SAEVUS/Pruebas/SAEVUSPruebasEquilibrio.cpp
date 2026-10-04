@@ -30,6 +30,7 @@ namespace SAEVUSPruebasEquilibrio
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Escupidor.DA_Enemigo_Escupidor"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Revoloteador.DA_Enemigo_Revoloteador"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian.DA_Jefe_Guardian"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_MadreAlada.DA_Jefe_MadreAlada"),
 	};
 
 	// Reglas de diseño de primera pasada (se revisan al equilibrar).

@@ -5,7 +5,7 @@ dos materiales ("Cuerpo" en la ranura 0, "Mascara" en la 1) que UE colorea por d
 Cada cuerpo llena la cápsula de su tipo (FSAEVUSAjusteEnemigo): origen en el centro de la cápsula
 (como el actor en UE), mirando a +X (llega a UE mirando a +X, el frente del actor). Formas simples
 y rotundas en la línea de Hollow Knight, con identidad propia: rastrero bajo y ancho, saltador con
-patas traseras grandes, escupidor con buche luminoso, revoloteador alado, Guardián acorazado con cuernos enormes.
+patas traseras grandes, escupidor con buche luminoso, revoloteador alado, Guardián acorazado con cuernos enormes, Madre Alada (jefe volador).
 
 Ejecución sin interfaz (Generar-Enemigos.ps1 lo hace):
   blender.exe --background --factory-startup --python blender_enemigos.py -- <directorio de salida>
@@ -107,6 +107,20 @@ def revoloteador():
     return piezas
 
 
+def madre_alada():
+    """Jefe volador (cápsula 0,70 × 0,70 m): cuerpo grande, máscara ancha, cuatro alas, corona de cuernos y aguijón."""
+    piezas = [esfera("Cuerpo", (0, 0, 0.0), (0.62, 0.55, 0.52), 16, 10), esfera("Mascara", (0.42, 0, 0.12), (0.26, 0.38, 0.3), 16, 10)]
+    for lado in (-1, 1):
+        # Alas mayores arriba y atrás, menores debajo.
+        piezas.append(esfera("Cuerpo", (-0.1, lado * 0.75, 0.32), (0.42, 0.52, 0.04), 14, 6))
+        piezas.append(esfera("Cuerpo", (-0.3, lado * 1.3, 0.55), (0.3, 0.36, 0.03), 12, 6))
+        piezas.append(esfera("Cuerpo", (-0.2, lado * 0.6, -0.22), (0.28, 0.36, 0.03), 12, 6))
+    piezas.append(segmento("Cuerpo", (-0.1, 0, -0.45), (-0.25, 0, -0.95), 0.12, 0.015, 8))
+    piezas += cuernos(0.28, 0.45, 0.14, 0.4, 0.06, 0.12)
+    piezas.append(segmento("Mascara", (0.15, 0, 0.5), (0.05, 0, 0.95), 0.06, 0.01, 6))
+    return piezas
+
+
 def guardian():
     """Mini jefe acorazado (cápsula 0,90 × 1,20 m): torso de barril, hombreras, máscara y cuernos enormes."""
     piezas = [
@@ -127,6 +141,7 @@ TIPOS = {
     "SM_Enemigo_Escupidor": escupidor,
     "SM_Enemigo_Revoloteador": revoloteador,
     "SM_Jefe_Guardian": guardian,
+    "SM_Jefe_MadreAlada": madre_alada,
 }
 
 

@@ -537,6 +537,27 @@ ENEMIGOS = {
         ],
     },
 }
+ENEMIGOS["DA_Jefe_MadreAlada"] = {
+    # Jefe de la Zona 1: volador grande. Picado y abanico de proyectiles; a media vida, más rápido y un abanico más amplio.
+    "nombre_visible": "Madre Alada", "vida_maxima": 300.0, "es_jefe": True, "radio_capsula": 70.0, "media_altura_capsula": 70.0,
+    "color_cuerpo": (0.03, 0.03, 0.06), "color_mascara": (0.55, 0.85, 1.0),
+    "velocidad_movimiento": 300.0, "radio_deteccion": 1600.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
+    "danio_contacto": 15.0, "escala_empuje_recibido": 0.2, "duracion_muerte": 1.5, "volador": True, "altura_vuelo": 320.0,
+    "ataques": [
+        {"nombre": "Picado", "tipo": "PICADO", "distancia_minima": 0.0, "distancia_maxima": 700.0,
+         "tiempo_telegrafiar": 0.75, "duracion": 0.8, "tiempo_recuperacion": 1.1, "danio": 25.0, "velocidad": 1100.0},
+        {"nombre": "Abanico", "tipo": "PROYECTIL", "distancia_minima": 300.0, "distancia_maxima": 1600.0,
+         "tiempo_telegrafiar": 0.8, "duracion": 0.4, "tiempo_recuperacion": 1.0, "danio": 20.0, "velocidad": 750.0,
+         "numero_proyectiles": 5, "apertura_abanico": 60.0},
+        {"nombre": "Abanico amplio", "tipo": "PROYECTIL", "distancia_minima": 0.0, "distancia_maxima": 1600.0,
+         "tiempo_telegrafiar": 0.6, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 20.0, "velocidad": 950.0,
+         "numero_proyectiles": 7, "apertura_abanico": 90.0},
+    ],
+    "fases": [
+        {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1]},
+        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "ataques": [0, 1, 2]},
+    ],
+}
 DIR_ENEMIGOS = f"{RAIZ}/Datos/Enemigos"
 DIR_ARTE_ENEMIGOS = f"{RAIZ}/Arte/Enemigos"
 # Cuerpo generado en Blender por tipo (Herramientas/Arte/Generar-Enemigos.ps1 → ArteFuente/Enemigos).
@@ -546,6 +567,7 @@ CUERPOS_ENEMIGOS = {
     "DA_Enemigo_Escupidor": "SM_Enemigo_Escupidor",
     "DA_Enemigo_Revoloteador": "SM_Enemigo_Revoloteador",
     "DA_Jefe_Guardian": "SM_Jefe_Guardian",
+    "DA_Jefe_MadreAlada": "SM_Jefe_MadreAlada",
 }
 
 
@@ -1155,10 +1177,20 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     crear_puerta(actores, "Z5_Puerta", 12000, 600, 400, enemigos_arena, materiales["Puerta"],
                  "Ruinas despejadas", "Sigue: a la derecha de la salida se baja a la galería del atajo.", altura=150)
 
-    # Z6 Salida; por la derecha se cae a la galería.
+    # Z6 Antesala; por la derecha se cae a la galería.
     crear_suelo(actores, "Z6_Suelo", 12000, 13000, materiales, altura=150)
-    crear_texto(actores, "Cartel_Fin", "Fin de la Zona 1 (boceto)", unreal.Vector(12850, 0, 450), tamano=80.0)
-    crear_aviso(actores, 12100, "Salida", "Fin de la zona boceto.\nA la derecha, una bajada lleva a la galería del atajo.", altura=150)
+    crear_aviso(actores, 12100, "Antesala", "A la derecha, una bajada lleva a la galería del atajo.\nAdelante espera la Madre Alada.", altura=150)
+
+    # Z7 Arena de la Madre Alada (jefe volador); su puerta lleva al final.
+    crear_punto_control(actores, "Control_Jefe", 13100, z=150)
+    crear_arena(actores, "Z7_Arena", 13000, 16000, 2400, 700, materiales, 600, altura=150)
+    jefe = enemigo("Z7_MadreAlada", "DA_Jefe_MadreAlada", 15000, 0, 150)
+    crear_puerta(actores, "Z7_Puerta", 16000, 600, 700, [jefe], materiales["Puerta"],
+                 "Zona 1 completada", "Has derrotado a la Madre Alada.", altura=150)
+
+    # Z8 Fin.
+    crear_suelo(actores, "Z8_Suelo", 16000, 17000, materiales, altura=150)
+    crear_texto(actores, "Cartel_Fin", "Fin de la Zona 1 (boceto)", unreal.Vector(16850, 0, 450), tamano=80.0)
 
     # Galería del atajo: de la salida al banco, por debajo; la compuerta junto al banco solo la abre su palanca.
     largo_galeria = 13000 - 6500
@@ -1178,7 +1210,7 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
 
     # Redes bajo el vacío: antes del banco se vuelve a la entrada; después, al banco.
     crear_caida_global(actores, "Caida_Entrada", -1000, 5500, unreal.Vector(300, 0, 100))
-    crear_caida_global(actores, "Caida_Banco", 5500, 14000, unreal.Vector(5700, 0, -200))
+    crear_caida_global(actores, "Caida_Banco", 5500, 18000, unreal.Vector(5700, 0, -200))
 
     # Decorado: columnas rotas a los lados y arcos en los cambios de tramo.
     mallas = importar_decorado(materiales["Acento"])

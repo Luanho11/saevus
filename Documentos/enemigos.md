@@ -29,7 +29,7 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
   - `Embestida`: carrera recta a `Velocidad` durante `Duracion`.
   - `Salto`: lanzamiento en arco (`Velocidad` horizontal, `VelocidadVertical`); termina al aterrizar.
   - `Golpe`: esfera de `RadioGolpe` a `AlcanceGolpe` delante.
-  - `Proyectil`: lanza un `ASAEVUSProyectil` hacia el objetivo a `Velocidad`, y se queda quieto `Duracion`.
+  - `Proyectil`: lanza un `ASAEVUSProyectil` hacia el objetivo a `Velocidad`, y se queda quieto `Duracion`. Con `NumeroProyectiles` > 1 salen a la vez en abanico horizontal de `AperturaAbanico` grados; el del centro va al objetivo.
   - `Picado` (voladores): línea recta en 3D hacia donde estaba el objetivo al acabar el aviso, a `Velocidad` durante `Duracion`.
 - **Recuperarse:** `TiempoRecuperacion` sin actuar: la ventana de castigo.
 - **Aturdido:** cada golpe recibido corta lo que hace durante `TiempoAturdido` (los jefes no se aturden).
@@ -47,6 +47,7 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
 | Saltador | 25 | 35 × 50 | 220 | 1100 | 10 | Salto 150–700 cm: aviso 0,45 s, 500 + 750 cm/s, 15 de daño, recuperación 0,7 s |
 | Escupidor | 20 | 38 × 55 | 200 | 1300 | 10 | Escupitajo 400–1200 cm: aviso 0,6 s, proyectil a 900 cm/s, 15 de daño, recuperación 1,1 s; retrocede si el jugador está a menos de 4 m |
 | Revoloteador (vuela) | 15 | 35 × 35 | 260 | 1000 | 10 | Picado 0–450 cm: aviso 0,6 s, 0,55 s a 950 cm/s, 15 de daño, recuperación 0,9 s; vuela a 2,2 m sobre el jugador |
+| Madre Alada (jefe de la Zona 1, vuela a 3,2 m) | 300 | 70 × 70 | 300 | 1600 | 15 | Picado 0–700 cm (25, 1100 cm/s), Abanico de 5 a 60° 300–1600 cm (20), Abanico amplio de 7 a 90° (20, solo fase 2); fase 2 a media vida: × 1,25 velocidad, avisos × 0,75 |
 | Guardián (jefe) | 250 | 90 × 120 | 260 | 1500 | 15 | Golpe 0–260 cm (25), Embestida 300–1200 cm a 1300 cm/s (25), Salto 200–900 cm (30, solo fase 2) |
 
 El Guardián apenas se mueve con los golpes (`EscalaEmpujeRecibido` 0,15) y tarda 1,5 s en deshacerse al morir.
@@ -85,7 +86,8 @@ Al morir: sin colisión ni movimiento, ráfaga de partículas, se encoge durante
 - `Muerte`: estado, aviso único, vida limitada, sin colisión, sin daño de contacto.
 - `FasesJefe`: cambio de fase al 50 %, el jefe no se aturde, velocidad de fase.
 - `Salto`: despega hacia el jugador y se recupera al aterrizar.
-- `Proyectil`: el escupidor dispara y el proyectil alcanza al jugador. Además `SAEVUS.Guardia.BloqueaProyectil` y `SAEVUS.Combate.DevolverProyectil`.
+- `Proyectil`: el escupidor dispara y el proyectil alcanza al jugador.
+- `Abanico`: cinco proyectiles a la vez, repartidos en 60°, el del centro hacia el jugador. Además `SAEVUS.Guardia.BloqueaProyectil` y `SAEVUS.Combate.DevolverProyectil`.
 
 La prueba de humo lleva al jugador junto al primer enemigo del mapa y comprueba que reacciona (captura `SAEVUS_PruebaHumo_Enemigos.png`). En `L_Pruebas` hay una zona de enemigos en Y ≈ −4300 (rastrero, saltador y Guardián), lejos de la ruta de la prueba.
 

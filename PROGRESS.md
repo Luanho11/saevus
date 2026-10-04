@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 46)**
-**Último latido: 2026-10-04 04:16** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 47)**
+**Último latido: 2026-10-04 04:30** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -80,10 +80,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 43. [x] ~~Menú principal boceto en C++ (Jugar, Continuar desde el punto de control, Opciones, Salir) sobre el tutorial en pausa, con la estética de la interfaz; prueba de humo.~~ Modo `Principal` del widget de pausa, al arrancar `L_Tutorial`; botones con estilo propio.
 44. [x] ~~Zona 1 boceto (`L_Zona1`, generado por script): ruinas tras el tutorial con plataformas, tres encuentros de enemigos mezclados, un banco (punto de control) y un atajo; recorrido propio.~~ `L_Zona1` con palanca y compuerta, paso desde el tutorial, recorrido generalizado (alturas, palancas) en `Verificar-Arranque -ConJuego`.
 45. [x] ~~Sonidos de mundo: palanca, compuerta/puerta que se abre, aleteo del revoloteador y chasquido del picado (síntesis, como el resto).~~ Palanca y puerta en `USAEVUSSubsistemaSonidoMundo`; aleteo de los voladores; el picado usa el sonido de ataque común.
-46. [ ] Jefe de la Zona 1 boceto: un segundo mini jefe con un patrón nuevo (p. ej. volador grande con picados y proyectiles en abanico), arena al final de la galería.
+46. [x] ~~Jefe de la Zona 1 boceto: un segundo mini jefe con un patrón nuevo (p. ej. volador grande con picados y proyectiles en abanico), arena al final de la galería.~~ Madre Alada (volador, picado, abanicos de 5 y 7 proyectiles, dos fases) en su arena tras la antesala; `NumeroProyectiles` y `AperturaAbanico` en los ataques.
 47. [ ] Mapa de la zona en la pausa: esquema 2D generado de la geometría (bloques vistos desde arriba) con la posición del jugador y los bancos.
 
 ## Estado del turno
-- Completado: tarea 45 (sonidos de mundo).
+- Completado: tarea 46 (jefe de la Zona 1).
 - A medias: —
-- Siguiente paso exacto: tarea 46 — jefe de la Zona 1.
+- Siguiente paso exacto: tarea 47 — mapa en la pausa.
