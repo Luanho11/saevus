@@ -98,6 +98,8 @@ void USAEVUSComponenteIAEnemigo::CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado)
 {
 	Estado = NuevoEstado;
 	TiempoEstado = 0.f;
+	// Fuera del reposo lejano, la IA vuelve a actualizarse cada fotograma.
+	SetComponentTickInterval(0.f);
 }
 
 void USAEVUSComponenteIAEnemigo::Aturdir()
@@ -204,9 +206,16 @@ void USAEVUSComponenteIAEnemigo::Actualizar(float DeltaTime)
 void USAEVUSComponenteIAEnemigo::ActualizarReposo()
 {
 	const FSAEVUSAjusteEnemigo& Ajuste = ObtenerAjuste();
-	if (DistanciaObjetivo() <= Ajuste.RadioDeteccion)
+	const float Distancia = DistanciaObjetivo();
+	if (Distancia <= Ajuste.RadioDeteccion)
 	{
 		CambiarEstado(ESAEVUSEstadoEnemigo::Perseguir);
+		return;
+	}
+	const bool bLejos = Distancia > Ajuste.RadioDeteccion * Ajuste.FactorDistanciaReposoLejos;
+	SetComponentTickInterval(bLejos ? Ajuste.IntervaloReposoLejos : 0.f);
+	if (bLejos)
+	{
 		return;
 	}
 	if (Ajuste.RadioPatrulla <= 0.f)

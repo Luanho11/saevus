@@ -25,6 +25,32 @@ namespace SAEVUSInterfaz
 	const FVector2D DesplazamientoSombra(1.5f, 1.5f);
 	const FLinearColor ColorSombra(0.f, 0.f, 0.f, 0.85f);
 
+	// Cambiar textos, barras o visibilidad invalida el diseño de Slate: solo se tocan si cambian.
+	void FijarTexto(UTextBlock* Texto, const FText& Nuevo)
+	{
+		if (!Texto->GetText().EqualTo(Nuevo))
+		{
+			Texto->SetText(Nuevo);
+		}
+	}
+
+	void FijarVisible(UWidget* Widget, bool bVisible)
+	{
+		const ESlateVisibility Nueva = bVisible ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
+		if (Widget->GetVisibility() != Nueva)
+		{
+			Widget->SetVisibility(Nueva);
+		}
+	}
+
+	void FijarPorcentaje(UProgressBar* Barra, float Fraccion)
+	{
+		if (!FMath::IsNearlyEqual(Barra->GetPercent(), Fraccion))
+		{
+			Barra->SetPercent(Fraccion);
+		}
+	}
+
 	/** Pincel redondeado sin textura: círculo o píldora (radio = media altura). */
 	FSlateBrush PincelRedondo(const FLinearColor& Color, const FLinearColor& Borde = FLinearColor::Transparent)
 	{
@@ -166,6 +192,7 @@ void USAEVUSWidgetInterfaz::AjustarMascaras(int32 Numero)
 
 void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 {
+	using namespace SAEVUSInterfaz;
 	if (!OrbeAlma)
 	{
 		return;
@@ -174,32 +201,36 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	for (int32 Indice = 0; Indice < Mascaras.Num(); ++Indice)
 	{
 		// Máscara partida: se mezcla entre vacía y llena.
-		Mascaras[Indice]->SetColorAndOpacity(FMath::Lerp(Ajuste.ColorMascaraVacia, Ajuste.ColorMascaraLlena, Estado.Mascaras[Indice]));
+		const FLinearColor Color = FMath::Lerp(Ajuste.ColorMascaraVacia, Ajuste.ColorMascaraLlena, Estado.Mascaras[Indice]);
+		if (!Mascaras[Indice]->GetColorAndOpacity().Equals(Color))
+		{
+			Mascaras[Indice]->SetColorAndOpacity(Color);
+		}
 	}
 
-	OrbeAlma->SetPercent(Estado.FraccionAlma);
+	FijarPorcentaje(OrbeAlma, Estado.FraccionAlma);
 	OrbeAlma->SetFillColorAndOpacity(Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma);
 	// Al curar el orbe late.
 	const float Latido = Estado.bCurando ? 1.f + 0.08f * FMath::Sin(GetWorld()->GetTimeSeconds() * 12.f) : 1.f;
 	OrbeAlma->SetRenderScale(FVector2D(Latido));
 
-	TextoArma->SetText(Estado.TextoArma);
-	TextoMunicion->SetText(Estado.TextoMunicion);
-	TextoMunicion->SetVisibility(Estado.TextoMunicion.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+	FijarTexto(TextoArma, Estado.TextoArma);
+	FijarTexto(TextoMunicion, Estado.TextoMunicion);
+	FijarVisible(TextoMunicion, !Estado.TextoMunicion.IsEmpty());
 
-	BloqueAviso->SetVisibility(Estado.bHayAviso ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	FijarVisible(BloqueAviso, Estado.bHayAviso);
 	if (Estado.bHayAviso)
 	{
-		TituloAviso->SetText(Estado.TituloAviso);
-		TextoAviso->SetText(Estado.TextoAviso);
+		FijarTexto(TituloAviso, Estado.TituloAviso);
+		FijarTexto(TextoAviso, Estado.TextoAviso);
 		BloqueAviso->SetRenderOpacity(Estado.OpacidadAviso);
 	}
 
-	BloqueJefe->SetVisibility(Estado.bJefeVisible ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	FijarVisible(BloqueJefe, Estado.bJefeVisible);
 	if (Estado.bJefeVisible)
 	{
-		NombreJefe->SetText(Estado.NombreJefe);
-		BarraJefe->SetPercent(Estado.FraccionVidaJefe);
+		FijarTexto(NombreJefe, Estado.NombreJefe);
+		FijarPorcentaje(BarraJefe, Estado.FraccionVidaJefe);
 	}
 }
 

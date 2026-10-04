@@ -51,6 +51,7 @@ Media, 720p, prueba de humo (una ejecución cada una, ruido de ±1–2 ms):
 
 - El tutorial cumple los 60 fps en Media; el mapa de pruebas queda justo (lo encarece la atmósfera del cielo).
 - El **hilo de juego** ha subido de 7–10 ms a 11–13 ms con animación procedural, IA, partículas por CPU e interfaz: es el siguiente cuello si se añaden muchos enemigos. Candidatos: animación procedural solo para mallas visibles y cercanas, IA a menos frecuencia lejos del jugador, interfaz que solo recalcule al cambiar.
+- **Intento sobre el hilo de juego (tarea 10f):** la interfaz solo toca textos, barras y visibilidad cuando cambian (cambiarlos invalida el diseño de Slate) y los enemigos en reposo lejos del jugador (más de 2,5 × su radio de detección) se quedan quietos con la IA cada 0,25 s. Resultado en `L_Tutorial`: 11,6–12,3 ms de hilo de juego, **sin cambio medible** (antes 11,3–12,5). El coste está en otra parte: la prueba corre con el binario del editor (`UnrealEditor -game`, Development), que añade trabajo propio del editor, y con el HUD de depuración activo. Siguiente paso para medir de verdad: un empaquetado Development y `stat game` / Unreal Insights.
 - `ProfileGPU` (`-PerfilGPU`) **no registra datos con este driver** (Vega 8, Adrenalin 21.20, 2021): el desglose por pasada sale vacío. Para medir pasadas habrá que usar otra herramienta (RenderDoc / Radeon GPU Profiler) o un driver más nuevo.
 
 ## Sin decidir

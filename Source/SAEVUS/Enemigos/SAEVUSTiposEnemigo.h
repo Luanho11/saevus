@@ -175,6 +175,16 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0", ForceUnits = "s"))
 	float DuracionMuerte = 0.6f;
 
+	/**
+	 * Rendimiento: en reposo y a más de RadioDeteccion × este factor del objetivo, el enemigo se
+	 * queda quieto y su IA se actualiza cada IntervaloReposoLejos (nadie lo ve patrullar).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "1"))
+	float FactorDistanciaReposoLejos = 2.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
+	float IntervaloReposoLejos = 0.25f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataques")
 	TArray<FSAEVUSAtaqueEnemigo> Ataques;
 
