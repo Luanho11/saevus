@@ -79,6 +79,7 @@ private:
 	float DuracionAtaque = 0.f;
 	bool bGuardiaActiva = false;
 	bool bMenuPausaVisto = false;
+	bool bCapturaMuerteHecha = false;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;
 	int32 DisparosRealizados = 0;

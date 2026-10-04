@@ -17,6 +17,8 @@
 FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const UWorld* Mundo, float VidaPorMascara, float FundidoAviso)
 {
 	FSAEVUSEstadoInterfaz Estado;
+	const USAEVUSComponenteVida* VidaJugador = Pawn ? Pawn->FindComponentByClass<USAEVUSComponenteVida>() : nullptr;
+	Estado.bJugadorMuerto = !Pawn || (VidaJugador && VidaJugador->EstaMuerto());
 	if (Pawn)
 	{
 		if (const USAEVUSComponenteVida* Vida = Pawn->FindComponentByClass<USAEVUSComponenteVida>(); Vida && VidaPorMascara > 0.f)

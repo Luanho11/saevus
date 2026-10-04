@@ -20,6 +20,8 @@ Boceto mejorable, sin dirección visual compleja todavía (decisión del dueño)
 
 Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de la pantalla; a 720p todo es dos tercios del tamaño a 1080p). Las medidas del struct están en unidades de 1080p.
 
+- **Pantalla de muerte:** sin pawn o con el pawn muerto (`FSAEVUSEstadoInterfaz::bJugadorMuerto`), un velo negro con "Has caído" se funde en 1 s; al reaparecer se aclara en 0,5 s (`OpacidadMuerte`, `FundidoMuerte`, `FundidoReaparicion`). La prueba de humo guarda `SAEVUS_PruebaHumo_Muerte.png`.
+
 ## Menú de pausa
 
 `USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
@@ -31,5 +33,5 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 ## Pendiente
 
 - Dirección de arte: iconos de máscara y orbe pintados, tipografía propia.
-- Opciones completas (resolución, controles, volumen), pantalla de muerte, menú principal.
+- Opciones completas (resolución, controles, volumen), menú principal.
 - Indicadores en el mundo (enemigos fuera de pantalla, interacción).

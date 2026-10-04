@@ -2,6 +2,7 @@
 
 #include "Interfaz/SAEVUSWidgetInterfaz.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/Border.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/HorizontalBox.h"
@@ -166,6 +167,20 @@ void USAEVUSWidgetInterfaz::Construir()
 	UVerticalBoxSlot* RanuraBarra = BloqueJefe->AddChildToVerticalBox(BarraJefe);
 	RanuraBarra->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
 	BloqueJefe->SetVisibility(ESlateVisibility::Collapsed);
+
+	// Pantalla de muerte: velo negro a pantalla completa con un texto, por encima de todo.
+	VeloMuerte = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("VeloMuerte"));
+	VeloMuerte->SetBrushColor(FLinearColor::Black);
+	VeloMuerte->SetHorizontalAlignment(HAlign_Center);
+	VeloMuerte->SetVerticalAlignment(VAlign_Center);
+	UCanvasPanelSlot* RanuraVelo = Lienzo->AddChildToCanvas(VeloMuerte);
+	RanuraVelo->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+	RanuraVelo->SetOffsets(FMargin(0.f));
+	TextoMuerte = CrearTexto(TEXT("TextoMuerte"), Ajuste.TamanoTextoMuerte, true);
+	TextoMuerte->SetText(NSLOCTEXT("SAEVUSInterfaz", "HasCaido", "Has caído"));
+	VeloMuerte->SetContent(TextoMuerte);
+	VeloMuerte->SetRenderOpacity(0.f);
+	VeloMuerte->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void USAEVUSWidgetInterfaz::AjustarMascaras(int32 Numero)
@@ -237,5 +252,15 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 void USAEVUSWidgetInterfaz::NativeTick(const FGeometry& Geometria, float DeltaTime)
 {
 	Super::NativeTick(Geometria, DeltaTime);
-	Aplicar(FSAEVUSEstadoInterfaz::Calcular(GetOwningPlayerPawn(), GetWorld(), Ajuste.VidaPorMascara, Ajuste.FundidoAviso));
+	const FSAEVUSEstadoInterfaz Estado = FSAEVUSEstadoInterfaz::Calcular(GetOwningPlayerPawn(), GetWorld(), Ajuste.VidaPorMascara, Ajuste.FundidoAviso);
+	if (VeloMuerte)
+	{
+		// Fundido a negro al caer, y de vuelta (más rápido) al reaparecer.
+		const float Objetivo = Estado.bJugadorMuerto ? Ajuste.OpacidadMuerte : 0.f;
+		const float Rapidez = Ajuste.OpacidadMuerte / (Estado.bJugadorMuerto ? Ajuste.FundidoMuerte : Ajuste.FundidoReaparicion);
+		OpacidadVelo = FMath::FInterpConstantTo(OpacidadVelo, Objetivo, DeltaTime, Rapidez);
+		VeloMuerte->SetRenderOpacity(OpacidadVelo);
+		SAEVUSInterfaz::FijarVisible(VeloMuerte, OpacidadVelo > 0.f);
+	}
+	Aplicar(Estado);
 }

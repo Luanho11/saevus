@@ -61,3 +61,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 17:** la cabeza del caballero mira al enemigo vivo más cercano (límites de giro e inclinación). 101/101 tests, humo SUPERADA en el tutorial.
 - **Tarea 19:** enemigo a distancia: ataque `Proyectil`, `ASAEVUSProyectil` (bloqueable con la guardia, devuelto por un tajo contra su lanzador), retirada por `DistanciaRetirada`, `DA_Enemigo_Escupidor` en la arena del tutorial. 104/104 tests, humo SUPERADA.
 - **Tarea 20:** menú de pausa en C++ (continuar, volver al punto de control, calidad, sensibilidad, salir) con `IA_Pausa` (P/Start, dispara en pausa); la prueba de humo lo abre en pausa. 105/105 tests, humo SUPERADA.
+- **Tarea 21:** pantalla de muerte (velo negro con "Has caído" y fundidos) en la interfaz; captura en la prueba de humo. 105/105 tests, humo SUPERADA.

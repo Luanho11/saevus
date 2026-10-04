@@ -38,6 +38,7 @@ bool FSAEVUSPruebaInterfazVitales::RunTest(const FString& Parameters)
 	// 70 de vida: tres llenas, una a media, una vacía.
 	Jugador->ObtenerVida()->AplicarDanio(30.f, nullptr);
 	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
+	TestFalse(TEXT("Vivo: sin pantalla de muerte"), Estado.bJugadorMuerto);
 	TestEqual(TEXT("Tercera llena"), Estado.Mascaras[2], 1.f, Tolerancia);
 	TestEqual(TEXT("Cuarta a media"), Estado.Mascaras[3], 0.5f, Tolerancia);
 	TestEqual(TEXT("Quinta vacía"), Estado.Mascaras[4], 0.f, Tolerancia);
@@ -56,6 +57,7 @@ bool FSAEVUSPruebaInterfazVitales::RunTest(const FString& Parameters)
 	Jugador->ObtenerArmas()->FijarArsenal({ Pistola });
 	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
 	TestEqual(TEXT("Nombre del arma"), Estado.TextoArma.ToString(), FString(TEXT("Pistola")));
+	TestTrue(TEXT("Sin pawn: pantalla de muerte"), FSAEVUSEstadoInterfaz::Calcular(nullptr, Mundo, VidaPorMascara, Fundido).bJugadorMuerto);
 	TestEqual(TEXT("Munición del cargador"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / %d"), Pistola->ArmaFuego.TamanoCargador, Pistola->ArmaFuego.TamanoCargador));
 	return true;
 }

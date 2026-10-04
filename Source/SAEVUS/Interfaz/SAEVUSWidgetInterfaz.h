@@ -7,6 +7,7 @@
 #include "Interfaz/SAEVUSEstadoInterfaz.h"
 #include "SAEVUSWidgetInterfaz.generated.h"
 
+class UBorder;
 class UCanvasPanel;
 class UHorizontalBox;
 class UImage;
@@ -74,6 +75,19 @@ struct FSAEVUSAjusteInterfaz
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
 	FLinearColor ColorVidaJefe = FLinearColor(0.85f, 0.35f, 0.12f);
+
+	/** Pantalla de muerte: opacidad del negro, y tiempos del fundido a negro y de vuelta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0", ClampMax = "1"))
+	float OpacidadMuerte = 0.85f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0.01", ForceUnits = "s"))
+	float FundidoMuerte = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0.01", ForceUnits = "s"))
+	float FundidoReaparicion = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "6"))
+	int32 TamanoTextoMuerte = 44;
 };
 
 /**
@@ -136,4 +150,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UProgressBar> BarraJefe;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UBorder> VeloMuerte;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoMuerte;
+
+	/** Opacidad actual del velo de muerte (sube y baja con los fundidos). */
+	float OpacidadVelo = 0.f;
 };

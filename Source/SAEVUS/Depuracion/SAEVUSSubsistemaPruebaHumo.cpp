@@ -59,6 +59,9 @@ namespace SAEVUSPruebaHumo
 	constexpr float DuracionEtapaGuardia = 0.5f;
 	const TCHAR* const NombreCapturaGuardia = TEXT("SAEVUS_PruebaHumo_Guardia.png");
 	constexpr float DuracionEtapaPausa = 0.5f;
+	// La pantalla de muerte ya está fundida a negro (el fundido dura 1 s) antes de reaparecer (3 s).
+	constexpr float RetardoCapturaMuerte = 1.5f;
+	const TCHAR* const NombreCapturaMuerte = TEXT("SAEVUS_PruebaHumo_Muerte.png");
 	const TCHAR* const NombreCapturaPausa = TEXT("SAEVUS_PruebaHumo_Pausa.png");
 	constexpr float DuracionEtapaDisparo = 1.5f;
 	// Daño, muerte y reaparición por la vía de daño del motor (necesita el modo de juego).
@@ -333,6 +336,11 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 	{
 		// El cuerpo muerto se queda (Personaje sigue apuntándolo); se espera al nuevo pawn del controlador.
 		const APlayerController* Controlador = GetWorld()->GetFirstPlayerController();
+		if (!bCapturaMuerteHecha && TiempoEtapa >= RetardoCapturaMuerte)
+		{
+			bCapturaMuerteHecha = true;
+			FScreenshotRequest::RequestScreenshot(NombreCapturaMuerte, true, false);
+		}
 		ASAEVUSPersonaje* NuevoPawn = Controlador ? Cast<ASAEVUSPersonaje>(Controlador->GetPawn()) : nullptr;
 		if (NuevoPawn && NuevoPawn != Pawn)
 		{

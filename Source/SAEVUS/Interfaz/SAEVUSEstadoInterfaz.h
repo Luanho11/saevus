@@ -30,6 +30,9 @@ struct SAEVUS_API FSAEVUSEstadoInterfaz
 	/** Opacidad del aviso con fundidos de entrada y salida. */
 	float OpacidadAviso = 0.f;
 
+	/** Sin pawn o con el pawn muerto (esperando la reaparición): pantalla de muerte. */
+	bool bJugadorMuerto = false;
+
 	bool bJefeVisible = false;
 	FText NombreJefe;
 	float FraccionVidaJefe = 0.f;
