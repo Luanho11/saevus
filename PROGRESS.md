@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 29)**
-**Último latido: 2026-10-04 00:03** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 30)**
+**Último latido: 2026-10-04 00:18** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -63,13 +63,13 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 26. [x] ~~Resumen para el dueño al volver: `Documentos/RESUMEN_PARA_EL_DUENO.md` con qué hay, cómo probarlo (controles, tutorial), capturas de referencia, decisiones tomadas y preguntas abiertas (empaquetado bloqueado, dirección de arte, números de equilibrio).~~
 27. [x] ~~Recorrido automático del tutorial completo en el juego real (prueba de humo `-SAEVUSRecorrido`): teletransporta al jugador a cada sección y comprueba avisos, puertas y que el jefe aparece; captura por sección.~~
 28. [x] ~~Añadir el recorrido a `Verificar-Arranque.ps1` como paso opcional (`-ConJuego`: prueba de humo + recorrido), para tener una sola orden que lo compruebe todo.~~
-29. [ ] Combo aéreo (GunZ): dos o tres tajos en el aire, con flotación breve (gravedad reducida durante el tajo aéreo) por datos; tests.
+29. [x] ~~Combo aéreo (GunZ): dos o tres tajos en el aire, con flotación breve (gravedad reducida durante el tajo aéreo) por datos; tests.~~
 30. [ ] Tajo en carrera (GunZ): atacar durante el dash da un tajo propio que conserva la velocidad del dash y hace más daño; tests.
 31. [ ] Ataque cargado (Hollow Knight, arte del aguijón): mantener ataque ~0,8 s y soltar → tajo giratorio amplio; aviso visual de carga; tests.
 32. [x] ~~Destello del enemigo al recibir un golpe (cuerpo y máscara en blanco un instante); test.~~
 33. [x] ~~Sacudida de cámara procedural (golpe dado, golpe recibido, bloqueo, aterrizaje fuerte), con intensidad por datos y opción de desactivarla.~~
 
 ## Estado del turno
-- Completado: tarea 33 (sacudida de cámara).
+- Completado: tarea 29 (combo aéreo con flotación).
 - A medias: —
-- Siguiente paso exacto: tarea 29 — combo aéreo con flotación.
+- Siguiente paso exacto: tarea 30 — tajo en carrera desde el dash.

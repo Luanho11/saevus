@@ -230,6 +230,15 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 	Movimiento->GirarHacia(Direccion);
 	Movimiento->IniciarEstocada(Direccion, Ataque.VelocidadEstocada, Ataque.DuracionEstocada);
 	Movimiento->FijarEscalaVelocidadAccion(Ataque.EscalaVelocidadSuelo);
+	if (Movimiento->IsFalling())
+	{
+		// Tajo aéreo: frena la caída y flota mientras dura (GunZ).
+		Movimiento->FijarEscalaGravedadAccion(Ataque.EscalaGravedadEnAire);
+		if (Movimiento->Velocity.Z < 0.f)
+		{
+			Movimiento->Velocity.Z *= Ataque.FraccionCaidaConservada;
+		}
+	}
 	AlIniciarAtaque.Broadcast();
 }
 
@@ -243,6 +252,7 @@ void USAEVUSComponenteCombate::TerminarAtaque()
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->FijarEscalaVelocidadAccion(1.f);
+		Movimiento->FijarEscalaGravedadAccion(1.f);
 	}
 }
 

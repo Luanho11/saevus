@@ -93,6 +93,9 @@ public:
 	/** Escala el tope de velocidad en el suelo mientras una acción (p. ej. un ataque) compromete al personaje. 1 = nada. */
 	void FijarEscalaVelocidadAccion(float Escala) { EscalaVelocidadAccion = Escala; }
 
+	/** Escala la gravedad mientras una acción lo pide (tajos aéreos que flotan). 1 = nada. */
+	void FijarEscalaGravedadAccion(float Escala) { EscalaGravedadAccion = Escala; }
+
 	/** Gira el cuerpo de golpe hacia Direccion (horizontal). */
 	void GirarHacia(const FVector& Direccion);
 
@@ -230,6 +233,7 @@ private:
 	float VelocidadEstocada = 0.f;
 	float TiempoEstocadaRestante = 0.f;
 	float EscalaVelocidadAccion = 1.f;
+	float EscalaGravedadAccion = 1.f;
 
 	// Estado del dash. Lo guarda y restaura FSAEVUSMovimientoGuardado para que las repeticiones tras una corrección coincidan.
 	FVector DireccionDash = FVector::ForwardVector;

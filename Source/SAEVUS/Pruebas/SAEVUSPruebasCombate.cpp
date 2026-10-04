@@ -321,4 +321,46 @@ bool FSAEVUSPruebaAtaqueTerminaDash::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaComboAereo, "SAEVUS.Combate.ComboAereo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaComboAereo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasCombate;
+
+	FMundoCombate Mundo;
+	if (!TestTrue(TEXT("Personaje asentado"), Mundo.bListo))
+	{
+		return false;
+	}
+	const TArray<FSAEVUSDefinicionAtaque>& Cadena = Mundo.Combate->ObtenerRepertorio().ComboAire;
+	if (!TestTrue(TEXT("La cadena aérea tiene tres tajos"), Cadena.Num() == 3))
+	{
+		return false;
+	}
+	// Salta y espera a estar cayendo.
+	Mundo.Personaje->PedirSalto();
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMaxAtaque) && !(Mundo.Movimiento->IsFalling() && Mundo.Movimiento->Velocity.Z < -200.f); ++Indice)
+	{
+		Mundo.Paso();
+	}
+	const float CaidaAntes = static_cast<float>(Mundo.Movimiento->Velocity.Z);
+	Mundo.Personaje->PedirAtaque();
+	TestTrue(TEXT("Empieza la cadena aérea"), Mundo.Combate->EsCadenaAerea());
+	TestTrue(TEXT("El tajo aéreo frena la caída"), Mundo.Movimiento->Velocity.Z > CaidaAntes * 0.5f);
+	const float GravedadNormal = Mundo.Movimiento->GetWorld()->GetGravityZ() * Mundo.Movimiento->GravityScale;
+	TestEqual(TEXT("Y flota (gravedad reducida)"), Mundo.Movimiento->GetGravityZ(), GravedadNormal * Cadena[0].EscalaGravedadEnAire, 1.f);
+
+	// Encadena los tres en el aire.
+	int32 Maximo = 0;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMaxAtaque) && Mundo.Movimiento->IsFalling(); ++Indice)
+	{
+		Mundo.Personaje->PedirAtaque();
+		Mundo.Paso();
+		Maximo = FMath::Max(Maximo, Mundo.Combate->ObtenerIndiceCombo() + 1);
+	}
+	AddInfo(FString::Printf(TEXT("Tajos aéreos encadenados antes de aterrizar: %d"), Maximo));
+	TestEqual(TEXT("Los tres tajos caben en el aire"), Maximo, 3);
+	TestEqual(TEXT("Al acabar, gravedad normal"), Mundo.Movimiento->GetGravityZ(), GravedadNormal, 1.f);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

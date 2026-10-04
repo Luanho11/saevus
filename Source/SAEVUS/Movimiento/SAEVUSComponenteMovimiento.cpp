@@ -397,7 +397,7 @@ float USAEVUSComponenteMovimiento::GetGravityZ() const
 	{
 		return 0.f;
 	}
-	return Super::GetGravityZ();
+	return Super::GetGravityZ() * EscalaGravedadAccion;
 }
 
 void USAEVUSComponenteMovimiento::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)

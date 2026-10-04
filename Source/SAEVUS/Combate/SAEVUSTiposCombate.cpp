@@ -47,8 +47,22 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoAereo.CancelarConDashDesde = TajoAereo.EncadenarDesde;
 	TajoAereo.CancelarConCambioArmaDesde = TajoAereo.EncadenarDesde;
 	TajoAereo.CancelarConGuardiaDesde = TajoAereo.EncadenarDesde;
+	// Flota un poco mientras tajea: la cadena aérea se puede completar antes de caer.
+	TajoAereo.EscalaGravedadEnAire = 0.35f;
+	TajoAereo.FraccionCaidaConservada = 0.25f;
 
-	ComboAire = { TajoAereo };
+	// Cadena aérea de tres (GunZ): revés y un remate que empuja hacia abajo y ya no flota.
+	FSAEVUSDefinicionAtaque TajoAereo2 = TajoAereo;
+	TajoAereo2.Nombre = TEXT("TajoAereo2");
+	FSAEVUSDefinicionAtaque RemateAereo = TajoAereo;
+	RemateAereo.Nombre = TEXT("RemateAereo");
+	RemateAereo.Danio = 18.f;
+	RemateAereo.TiempoRecuperacion = 0.35f;
+	RemateAereo.RadioGolpe = 75.f;
+	RemateAereo.EscalaGravedadEnAire = 1.f;
+	RemateAereo.FraccionCaidaConservada = 1.f;
+
+	ComboAire = { TajoAereo, TajoAereo2, RemateAereo };
 
 	// Tajo hacia arriba: esfera sobre la cabeza, sin estocada ni retroceso (no se empuja contra el techo).
 	TajoArriba.Nombre = TEXT("TajoArriba");

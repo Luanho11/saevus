@@ -25,6 +25,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 - **Proyectiles:** la guardia los para; un tajo los devuelve contra quien los lanzó.
 - **Contraataque:** levanta la guardia justo cuando llega el golpe: el enemigo queda aturdido y ganas alma.
 - **Tajo → guardia:** con la guardia pulsada, cada tajo vuelve a la guardia en cuanto su ventana lo permite (la "mariposa" de GunZ, a la manera de SAEVUS).
+- **Combo aéreo:** tres tajos en el aire; los dos primeros frenan la caída y te dejan flotando un momento.
 - **Cancelaciones:** dash, salto, guardia y cambio de arma cortan un tajo desde su ventana (los tajos rápidos pronto; el remate tarde). Un ataque durante un dash lo termina.
 - **Paredes:** salta contra una pared para rebotar; corre de frente para escalarla; llega en diagonal para correr por ella. Un salto de pared devuelve el doble salto y el dash aéreo.
 - **Salto en buffer:** pulsar salto justo antes de aterrizar salta al tocar el suelo (y conserva el doble salto).

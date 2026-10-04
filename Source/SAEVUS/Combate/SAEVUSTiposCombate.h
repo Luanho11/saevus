@@ -100,6 +100,14 @@ struct FSAEVUSDefinicionAtaque
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadRebote = 0.f;
 
+	/** En el aire: multiplica la gravedad mientras dura el ataque (menos de 1 = flota, GunZ). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aire", meta = (ClampMin = "0"))
+	float EscalaGravedadEnAire = 1.f;
+
+	/** En el aire: fracción de la velocidad de caída que se conserva al empezar el ataque (1 = toda). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aire", meta = (ClampMin = "0", ClampMax = "1"))
+	float FraccionCaidaConservada = 1.f;
+
 	/** Desde este tiempo, una pulsación de ataque en buffer inicia el siguiente ataque de la cadena. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones", meta = (ForceUnits = "s"))
 	float EncadenarDesde = 0.18f;
