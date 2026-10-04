@@ -16,4 +16,4 @@ $ErrorActionPreference = "Continue"
 $salidaBlender = & $Blender --background --factory-startup --python (Join-Path $PSScriptRoot "blender_enemigos.py") -- $Salida 2>&1 | ForEach-Object { "$_" }
 $ErrorActionPreference = "Stop"
 $salidaBlender | Select-String -Pattern "\[SAEVUS arte\]|Error|Traceback"
-if (-not (Test-Path (Join-Path $Salida "SM_Jefe_Guardian.fbx"))) { throw "Blender no generó los cuerpos de los enemigos" }
+if (-not (Test-Path (Join-Path $Salida "SM_Jefe_ReyGoblin.fbx"))) { throw "Blender no generó los cuerpos de los enemigos" }

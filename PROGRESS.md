@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tareas 75-76, fase "Rehacer como GunZ")**
-**Último latido: 2026-10-04 12:18** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (cierre de la fase "Rehacer como GunZ")**
+**Último latido: 2026-10-04 12:38** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -122,11 +122,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 72. [x] Interfaz y menús: tipografía (Roboto con contorno, espaciado y pesos), menús limpios (Tutorial, Mazmorra, Opciones, Salir), avisos con las teclas resaltadas; quitar lo genérico.
 73. [x] Personaje: caballero mejorado en Blender (proporciones, capa, máscara, espada clara) y alcance de la espada visible e intuitivo (estela = zona de golpe).
 74. [x] Partículas: estela y polvo direccional del dash, aterrizaje, carrera por pared, salto de pared, arcos de los tajos.
-75. [ ] Goblins estilo GunZ (Blender, mejorados): tipos con ataques variados y avisos claros, sin daño por contacto, golpeables con claridad; sala de goblins en el tutorial.
-76. [ ] Jefe goblin (rey goblin) con patrones claros.
-77. [ ] Ejecutable: empaquetado que quepa en la memoria de la máquina (cocinar solo los mapas del juego) y prueba de arranque del .exe.
+75. [x] Goblins estilo GunZ (Blender, mejorados): tipos con ataques variados y avisos claros, sin daño por contacto, golpeables con claridad; sala de goblins en el tutorial.
+76. [x] Jefe goblin (rey goblin) con patrones claros.
+77. [~] (preparado: `Empaquetar.ps1` seguro de memoria y `Probar-Ejecutable.ps1`; lo ejecuta el dueño) Ejecutable: empaquetado que quepa en la memoria de la máquina (cocinar solo los mapas del juego) y prueba de arranque del .exe.
 
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- Siguiente paso exacto: tareas 75 y 76 — goblins y Rey Goblin.
+- Siguiente paso exacto: fase "Rehacer como GunZ" completa salvo el empaquetado (lo lanza el dueño). Siguiente: proponer pulido (ver RESUMEN_PARA_EL_DUENO.md).

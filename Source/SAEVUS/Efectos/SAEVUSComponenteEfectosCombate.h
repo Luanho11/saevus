@@ -66,11 +66,11 @@ struct FSAEVUSAjusteEfectosCombate
 	 * dentro), barriéndolo en el sentido del tajo. Dibuja exactamente lo que golpea.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0"))
-	int32 ParticulasArcoPorPaso = 4;
+	int32 ParticulasArcoPorPaso = 5;
 
 	/** Pasos de ángulo por grado de barrido (el arco no deja huecos aunque el fotograma sea largo). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0.05"))
-	float PasosArcoPorGrado = 0.25f;
+	float PasosArcoPorGrado = 0.45f;
 
 	/** Desde qué fracción del alcance hacia fuera se dibuja el arco (1 = solo el borde). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0", ClampMax = "1"))

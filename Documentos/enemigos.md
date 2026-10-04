@@ -1,6 +1,23 @@
 # Enemigos de SAEVUS
 
-Prototipo de enemigos para el tutorial: mini enemigos y un mini jefe, todo por datos. Estilo Hollow Knight (contacto que hace daño, avisos claros, castigo tras atacar), con números propios.
+Enemigos por datos sobre una IA de estados común. **Desde el 2026-10-04 en los mapas solo hay goblins** (estilo GunZ, ver abajo). Los enemigos de antes (rastrero, saltador, escupidor, revoloteador, acorazado, Guardián, Madre Alada) siguen en los datos y en los tests, fuera de los mapas (`ENEMIGOS_EN_MAPAS` en el script de assets es la lista de tipos que se colocan).
+
+## Goblins (tareas 75 y 76)
+
+Como los del modo misión de GunZ, con diseño propio. El dueño pidió que no castiguen solo por acercarse, que se puedan golpear con claridad y que tengan ataques variados:
+- **sin daño por contacto** (`DanioContacto` 0): solo hacen daño sus ataques (en la embestida y el salto, el cuerpo es el ataque);
+- **avisos legibles:** el arma y los ojos van en la ranura de la máscara, así que al avisar (se agachan y la máscara brilla) **se enciende el arma** que va a golpear;
+- recuperaciones en las que cabe castigar (lo comprueba `SAEVUS.Equilibrio.Enemigos`, que ahora los incluye);
+- cuerpos generados en Blender (`blender_enemigos.py`: `SM_Goblin`, `SM_Goblin_Maza`, `SM_Goblin_Hondero`, `SM_Jefe_ReyGoblin`, unos 1 000–1 200 triángulos); render de presentación en `Documentos/capturas/Goblins.png` (`Herramientas/Arte/blender_render_enemigos.py`).
+
+| Tipo | Vida | Cápsula (r × media altura) | Ataques |
+|---|---|---|---|
+| Goblin (cuchillo) | 30 | 38 × 60 | Tajo delante (0–190 cm, aviso 0,45 s, 10) y estocada en carrera (250–550 cm, aviso 0,55 s, 12) |
+| Goblin de maza | 60 | 50 × 75 | Mazazo amplio (0–260 cm, aviso 0,8 s, 22) y salto con la maza (300–800 cm, aviso 0,7 s, 20); recibe la mitad de empuje |
+| Goblin hondero | 20 | 35 × 55 | Piedra con la honda (450–1300 cm, aviso 0,6 s, 10; se para con la guardia y se devuelve con un tajo), manotazo de cerca (8); se aleja si te acercas |
+| **Rey Goblin** (jefe) | 320 | 90 × 130 | Cuchillazo amplio (25), embestida (25), salto aplastante (25) y, a media vida (más rápido, avisos ×0,75), lluvia de cinco piedras en abanico de 70° |
+
+Dónde están: tres en el gran salón del tutorial (uno de cada clase, con el aviso "Goblins"); en la Mazmorra, cuatro en el salón central (uno en el balcón), dos en la galería y el Rey en la sala del trono, al sur del final de la galería; en `L_Pruebas`, uno de cada para la prueba de humo (comprueba que reaccionan al jugador).
 
 ## Piezas
 

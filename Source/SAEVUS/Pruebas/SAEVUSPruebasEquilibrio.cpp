@@ -32,6 +32,10 @@ namespace SAEVUSPruebasEquilibrio
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Acorazado.DA_Enemigo_Acorazado"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian.DA_Jefe_Guardian"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_MadreAlada.DA_Jefe_MadreAlada"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Goblin.DA_Goblin"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Goblin_Maza.DA_Goblin_Maza"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Goblin_Hondero.DA_Goblin_Hondero"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_ReyGoblin.DA_Jefe_ReyGoblin"),
 	};
 
 	// Reglas de diseño de primera pasada (se revisan al equilibrar).

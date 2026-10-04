@@ -624,6 +624,78 @@ ENEMIGOS["DA_Jefe_MadreAlada"] = {
         {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "ataques": [0, 1, 2]},
     ],
 }
+
+# Goblins (fase "Rehacer como GunZ"): enemigos del modo misión de GunZ, a nuestra manera. Sin daño por
+# contacto (acercarse no castiga), avisos claros (el arma brilla y se agachan), ataques variados y
+# recuperaciones en las que cabe castigar. Más fáciles de golpear que de esquivar: cápsulas anchas.
+ENEMIGOS["DA_Goblin"] = {
+    "nombre_visible": "Goblin", "vida_maxima": 30.0, "radio_capsula": 38.0, "media_altura_capsula": 60.0,
+    "color_cuerpo": (0.06, 0.09, 0.05), "color_mascara": (1.0, 0.75, 0.3),
+    "velocidad_movimiento": 330.0, "radio_deteccion": 1100.0, "radio_perdida": 2000.0, "radio_patrulla": 200.0,
+    "danio_contacto": 0.0,
+    "ataques": [
+        # Tajo corto con el cuchillo y, desde más lejos, una estocada en carrera.
+        {"nombre": "Tajo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 190.0,
+         "tiempo_telegrafiar": 0.45, "duracion": 0.2, "tiempo_recuperacion": 0.7, "danio": 10.0,
+         "radio_golpe": 80.0, "alcance_golpe": 100.0},
+        {"nombre": "Estocada", "tipo": "EMBESTIDA", "distancia_minima": 250.0, "distancia_maxima": 550.0,
+         "tiempo_telegrafiar": 0.55, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 12.0, "velocidad": 1000.0},
+    ],
+}
+ENEMIGOS["DA_Goblin_Maza"] = {
+    "nombre_visible": "Goblin de maza", "vida_maxima": 60.0, "radio_capsula": 50.0, "media_altura_capsula": 75.0,
+    "color_cuerpo": (0.07, 0.08, 0.05), "color_mascara": (1.0, 0.5, 0.2),
+    "velocidad_movimiento": 220.0, "radio_deteccion": 1000.0, "radio_perdida": 1800.0, "radio_patrulla": 150.0,
+    "danio_contacto": 0.0, "escala_empuje_recibido": 0.5,
+    "ataques": [
+        # Mazazo lento y amplio (aviso largo) y un salto con la maza desde lejos.
+        {"nombre": "Mazazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 260.0,
+         "tiempo_telegrafiar": 0.8, "duracion": 0.3, "tiempo_recuperacion": 1.0, "danio": 22.0,
+         "radio_golpe": 130.0, "alcance_golpe": 140.0},
+        {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 300.0, "distancia_maxima": 800.0,
+         "tiempo_telegrafiar": 0.7, "duracion": 1.6, "tiempo_recuperacion": 1.0, "danio": 20.0,
+         "velocidad": 550.0, "velocidad_vertical": 800.0},
+    ],
+}
+ENEMIGOS["DA_Goblin_Hondero"] = {
+    "nombre_visible": "Goblin hondero", "vida_maxima": 20.0, "radio_capsula": 35.0, "media_altura_capsula": 55.0,
+    "color_cuerpo": (0.05, 0.08, 0.06), "color_mascara": (0.9, 0.85, 0.4),
+    "velocidad_movimiento": 260.0, "radio_deteccion": 1400.0, "radio_perdida": 2200.0, "radio_patrulla": 120.0,
+    "danio_contacto": 0.0, "distancia_retirada": 450.0,
+    "ataques": [
+        # Piedra con la honda desde lejos (se bloquea con la guardia y se devuelve con un tajo) y un manotazo de cerca.
+        {"nombre": "Piedra", "tipo": "PROYECTIL", "distancia_minima": 450.0, "distancia_maxima": 1300.0,
+         "tiempo_telegrafiar": 0.6, "duracion": 0.3, "tiempo_recuperacion": 1.0, "danio": 10.0, "velocidad": 1100.0},
+        {"nombre": "Manotazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 170.0,
+         "tiempo_telegrafiar": 0.4, "duracion": 0.2, "tiempo_recuperacion": 0.8, "danio": 8.0,
+         "radio_golpe": 70.0, "alcance_golpe": 90.0},
+    ],
+}
+ENEMIGOS["DA_Jefe_ReyGoblin"] = {
+    # Jefe de la Mazmorra: enorme y lento. Cuchillazo amplio, embestida, salto aplastante y una lluvia de piedras;
+    # a media vida, más rápido y añade la lluvia.
+    "nombre_visible": "Rey Goblin", "vida_maxima": 320.0, "es_jefe": True, "radio_capsula": 90.0, "media_altura_capsula": 130.0,
+    "color_cuerpo": (0.07, 0.09, 0.05), "color_mascara": (1.0, 0.7, 0.25),
+    "velocidad_movimiento": 240.0, "radio_deteccion": 1500.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
+    "danio_contacto": 0.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5,
+    "ataques": [
+        {"nombre": "Cuchillazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 300.0,
+         "tiempo_telegrafiar": 0.7, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 25.0,
+         "radio_golpe": 170.0, "alcance_golpe": 170.0},
+        {"nombre": "Embestida", "tipo": "EMBESTIDA", "distancia_minima": 350.0, "distancia_maxima": 1300.0,
+         "tiempo_telegrafiar": 0.75, "duracion": 0.7, "tiempo_recuperacion": 1.1, "danio": 25.0, "velocidad": 1250.0},
+        {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 250.0, "distancia_maxima": 900.0,
+         "tiempo_telegrafiar": 0.7, "duracion": 2.0, "tiempo_recuperacion": 1.0, "danio": 25.0,
+         "velocidad": 600.0, "velocidad_vertical": 900.0},
+        {"nombre": "Lluvia de piedras", "tipo": "PROYECTIL", "distancia_minima": 300.0, "distancia_maxima": 1600.0,
+         "tiempo_telegrafiar": 0.8, "duracion": 0.4, "tiempo_recuperacion": 1.0, "danio": 15.0, "velocidad": 900.0,
+         "numero_proyectiles": 5, "apertura_abanico": 70.0},
+    ],
+    "fases": [
+        {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1, 2]},
+        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "ataques": [0, 1, 2, 3]},
+    ],
+}
 DIR_ENEMIGOS = f"{RAIZ}/Datos/Enemigos"
 DIR_ARTE_ENEMIGOS = f"{RAIZ}/Arte/Enemigos"
 # Cuerpo generado en Blender por tipo (Herramientas/Arte/Generar-Enemigos.ps1 → ArteFuente/Enemigos).
@@ -635,6 +707,10 @@ CUERPOS_ENEMIGOS = {
     "DA_Enemigo_Acorazado": "SM_Enemigo_Acorazado",
     "DA_Jefe_Guardian": "SM_Jefe_Guardian",
     "DA_Jefe_MadreAlada": "SM_Jefe_MadreAlada",
+    "DA_Goblin": "SM_Goblin",
+    "DA_Goblin_Maza": "SM_Goblin_Maza",
+    "DA_Goblin_Hondero": "SM_Goblin_Hondero",
+    "DA_Jefe_ReyGoblin": "SM_Jefe_ReyGoblin",
 }
 
 
@@ -698,14 +774,15 @@ def crear_datos_enemigos(material_base, material_particulas):
     return resultado
 
 
-# Decisión del dueño (2026-10-04): sin enemigos ni jefes en los mapas hasta los goblins de GunZ.
-ENEMIGOS_EN_MAPAS = False
+# Decisión del dueño (2026-10-04): de los enemigos solo van a los mapas los goblins (GunZ); los de antes
+# (Hollow Knight) se quedan en los datos, fuera de los mapas.
+ENEMIGOS_EN_MAPAS = {"DA_Goblin", "DA_Goblin_Maza", "DA_Goblin_Hondero", "DA_Jefe_ReyGoblin"}
 
 
 def crear_enemigo(actores, etiqueta, datos, posicion):
     """De pie en el suelo (posicion.z = altura del suelo); los voladores, a su altura de vuelo sobre él.
-    Con ENEMIGOS_EN_MAPAS apagado no crea nada y devuelve None."""
-    if not ENEMIGOS_EN_MAPAS:
+    Si el tipo no está en ENEMIGOS_EN_MAPAS no crea nada y devuelve None."""
+    if datos.get_name() not in ENEMIGOS_EN_MAPAS:
         return None
     ajuste = datos.get_editor_property("enemigo")
     altura = ajuste.get_editor_property("media_altura_capsula")
@@ -827,10 +904,10 @@ def construir_mapa_pruebas(bp_modo_juego, datos_enemigos):
         crear_muneco(actores, f"Muneco_Tiro{distancia // 100}m", unreal.Vector(-distancia, 1000, 96))
 
     # Zona de enemigos, lejos de la ruta de la prueba de humo (que va hacia +X cerca de Y = 0).
-    crear_enemigo(actores, "Enemigo_Rastrero", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(-1500, -4300, 0))
-    crear_enemigo(actores, "Enemigo_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(0, -4300, 0))
-    crear_enemigo(actores, "Enemigo_Revoloteador", datos_enemigos["DA_Enemigo_Revoloteador"], unreal.Vector(1000, -4300, 0))
-    crear_enemigo(actores, "Jefe_Guardian", datos_enemigos["DA_Jefe_Guardian"], unreal.Vector(2000, -4300, 0))
+    crear_enemigo(actores, "Goblin", datos_enemigos["DA_Goblin"], unreal.Vector(-1500, -4300, 0))
+    crear_enemigo(actores, "Goblin_Maza", datos_enemigos["DA_Goblin_Maza"], unreal.Vector(0, -4300, 0))
+    crear_enemigo(actores, "Goblin_Hondero", datos_enemigos["DA_Goblin_Hondero"], unreal.Vector(1000, -4300, 0))
+    crear_enemigo(actores, "Jefe_ReyGoblin", datos_enemigos["DA_Jefe_ReyGoblin"], unreal.Vector(2600, -4300, 0))
 
     crear_iluminacion(actores)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
@@ -881,9 +958,9 @@ AVISOS_TUTORIAL = [
     (12650, "Alma", "Cada golpe llena el alma (orbe arriba a la izquierda).\n"
                     "Mantén [Q] en el suelo para gastarla y curarte.\n"
                     "Siéntate en el banco con [E]: te cura del todo y guarda tu avance."),
-    (14450, "Gran salón", "Sala libre: sube por las escaleras a los balcones,\n"
-                          "corre por las paredes y salta entre columnas.\n"
-                          "Todo se combina con todo: practica antes de seguir."),
+    (14450, "Goblins", "Avisan antes de atacar: se agachan y su arma brilla.\n"
+                       "Esquiva con dash o bloquea con [Clic der.], y castiga mientras se recuperan.\n"
+                       "Tocarlos no hace daño: acércate sin miedo. El de la honda lanza piedras: devuélvelas con un tajo."),
     (20450, "Reto (opcional)", "Foso con pinchos, carrera por pared y cornisa, sin descanso.\n"
                                "Arriba espera un fragmento de máscara."),
 ]
@@ -1212,6 +1289,10 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
         for lado, y in (("I", -600), ("D", 600)):
             crear_columna(actores, f"S7_Columna{lado}{indice}", x, y, 1100, materiales)
     crear_bloque(actores, "S7_Estrado", unreal.Vector(16800, 0, 20), (800, 800, 40), materiales["Acento"])
+    # Tres goblins, uno de cada clase, al fondo del salón: se ven al entrar y se acercan.
+    crear_enemigo(actores, "S7_Goblin", datos_enemigos["DA_Goblin"], unreal.Vector(17600, -500, 0))
+    crear_enemigo(actores, "S7_GoblinMaza", datos_enemigos["DA_Goblin_Maza"], unreal.Vector(18300, 300, 0))
+    crear_enemigo(actores, "S7_GoblinHondero", datos_enemigos["DA_Goblin_Hondero"], unreal.Vector(18600, -1000, 0))
     for indice, (x, y) in enumerate(((14700, -1350), (18700, 1350), (18700, -1350))):
         crear_decorado(actores, f"S7_ColumnaRota{indice}", mallas["SM_ColumnaRota"], unreal.Vector(x, y, 0), guinada=indice * 70, escala=1.3)
     antorchas_puerta(actores, "S7_Antorcha", 19000, 3000, materiales)
@@ -1308,7 +1389,7 @@ def crear_balcon(actores, etiqueta, x0, x1, y0, y1, materiales, eje_apoyos, bord
         crear_columna(actores, f"{etiqueta}_Apoyo{indice}", x, y, alto_apoyo, materiales, grosor=80.0)
 
 
-def construir_mapa_mazmorra(bp_modo_juego, material_base):
+def construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, material_base):
     editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_MAZMORRA)
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
@@ -1330,6 +1411,11 @@ def construir_mapa_mazmorra(bp_modo_juego, material_base):
     for indice, (x, y) in enumerate(((1200, 0), (-1200, 0), (0, 1200), (0, -1200), (850, 850), (-850, 850), (850, -850), (-850, -850))):
         crear_columna(actores, f"Salon_Columna{indice}", x, y, ALTO_SALON - 100, materiales, grosor=200.0)
     crear_bloque(actores, "Salon_Estrado", unreal.Vector(0, 0, 60), (1000, 1000, 120), materiales["Acento"])
+    enemigo = lambda etiqueta, tipo, x, y, z=0.0: crear_enemigo(actores, etiqueta, datos_enemigos[tipo], unreal.Vector(x, y, z))
+    enemigo("Salon_Goblin1", "DA_Goblin", 900, -1300)
+    enemigo("Salon_Goblin2", "DA_Goblin", 1300, 1200)
+    enemigo("Salon_GoblinMaza", "DA_Goblin_Maza", 0, 0, 120)
+    enemigo("Salon_GoblinHondero", "DA_Goblin_Hondero", 1700, 1800, ALTURA_BALCON)
     for indice, (x, y) in enumerate(((-1940, 1000), (1940, -1000), (1000, 1940), (-1000, -1940))):
         crear_antorcha(actores, f"Salon_Antorcha{indice}", unreal.Vector(x, y, 1050), materiales)
 
@@ -1349,7 +1435,7 @@ def construir_mapa_mazmorra(bp_modo_juego, material_base):
     # Galería (este): foso de 9 m junto al muro derecho (carrera por pared), suelo, foso de 8 m (dash);
     # al fondo, un muro agrietado (pared falsa) da a una sala secreta.
     crear_recinto(actores, "Galeria", 2000, 6000, -800, 800, 1000, materiales,
-                  {"ymin": [], "ymax": [], "xmax": [(0.0, 400.0, 400.0)]}, suelo=False)
+                  {"ymin": [(5600.0, 600.0, 700.0)], "ymax": [], "xmax": [(0.0, 400.0, 400.0)]}, suelo=False)
     crear_suelo(actores, "Galeria_Suelo0", 2000, 2600, materiales, ancho=1600)
     crear_foso(actores, "Galeria_Foso9", 2600, 3500, unreal.Vector(2300, 0, 100), materiales)
     crear_suelo(actores, "Galeria_Suelo1", 3500, 4400, materiales, ancho=1600)
@@ -1362,6 +1448,16 @@ def construir_mapa_mazmorra(bp_modo_juego, material_base):
     crear_recinto(actores, "Secreto", 6100, 6900, -300, 300, 500, materiales, {"ymin": [], "ymax": [], "xmax": []})
     crear_fragmento(actores, "Secreto_Fragmento", unreal.Vector(6600, 0, 100), "Mazmorra_Secreto", materiales["Puerta"])
     crear_antorcha(actores, "Galeria_Antorcha", unreal.Vector(5800, -760, 320), materiales)
+    enemigo("Galeria_Goblin", "DA_Goblin", 3900, 300)
+    enemigo("Galeria_GoblinHondero", "DA_Goblin_Hondero", 5600, 400)
+
+    # Sala del Rey (al sur del final de la galería, bajo su muro): el jefe de la Mazmorra, lejos de la puerta.
+    crear_recinto(actores, "Trono", 4200, 6000, -3600, -800, 1200, materiales, {"xmin": [], "xmax": [], "ymin": []})
+    enemigo("Trono_ReyGoblin", "DA_Jefe_ReyGoblin", 5100, -3000)
+    crear_texto(actores, "Cartel_Trono", "El trono", unreal.Vector(5100, -900, 900), tamano=90.0)
+    for indice, x in enumerate((4500, 5700)):
+        crear_antorcha(actores, f"Trono_Antorcha{indice}", unreal.Vector(x, -3500, 420), materiales)
+        crear_columna(actores, f"Trono_Columna{indice}", x, -1400, 1100, materiales, grosor=200.0)
 
     # Pozo (norte): chimenea de paredes a 3 m hasta una cornisa de 9 m; o el ascensor junto a ella.
     crear_recinto(actores, "Pozo", -800, 800, 2000, 5000, 1600, materiales, {"xmin": [], "xmax": [], "ymax": []})
@@ -1486,7 +1582,7 @@ def main():
     # del final del tutorial apunta a ella).
     if eal.does_asset_exist(RUTA_MAPA_ZONA1_RETIRADA) and eal.delete_asset(RUTA_MAPA_ZONA1_RETIRADA):
         registrar(f"borrado {RUTA_MAPA_ZONA1_RETIRADA}")
-    construir_mapa_mazmorra(bp_modo_juego, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
+    construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
     construir_mapa_tutorial(bp_modo_juego, datos_enemigos, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
     if not eal.save_directory(RAIZ, only_if_is_dirty=False, recursive=True):
         raise RuntimeError(f"Falló el guardado de {RAIZ}")

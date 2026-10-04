@@ -9,10 +9,10 @@
 namespace SAEVUSEfectosCombate
 {
 	// Partículas finas y breves: chispas, estela y alma (el polvo del dash usa otro emisor).
-	constexpr float TamanoParticula = 0.07f;
+	constexpr float TamanoParticula = 0.09f;
 	constexpr float VidaParticula = 0.3f;
 	constexpr float ArrastreParticula = 6.f;
-	constexpr int32 MaxParticulas = 320;
+	constexpr int32 MaxParticulas = 512;
 }
 
 USAEVUSComponenteEfectosCombate::USAEVUSComponenteEfectosCombate()
