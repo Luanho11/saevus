@@ -80,6 +80,19 @@ Nuestro código de juego cuesta unos 2,5 ms; el resto es el motor (Slate, pintad
 
 **Siguiente:** medir en un empaquetado Development (bloqueado por memoria, tarea 14) con `stat unit` y `-PerfilJuego`.
 
+## Recorridos (tarea 51, 2026-10-04)
+
+El recorrido (`Ejecutar-Recorrido.ps1`) escribe al terminar una línea `[SAEVUS recorrido] rendimiento: …` con los fotogramas desde que aparece el jugador: media, peor, hilo de juego y GPU. Es informativa, no un umbral. Incluye los teletransportes y las capturas de pantalla, que pesan, así que sale algo peor que la prueba de humo.
+
+Media, 720p, dos pasadas por mapa:
+
+| Mapa | Fotograma medio | Juego | GPU | Notas |
+|---|---|---|---|---|
+| `L_Tutorial` | 19,2–19,4 ms (≈ 52 fps) | 12,4–12,6 ms | 11,5–11,6 ms | 1250 fotogramas; 6 enemigos y el Guardián |
+| `L_Zona1` | 19,0 ms (≈ 52,7 fps) | 12,2 ms | 11,9–12,0 ms | 760 fotogramas; 13 enemigos (5 voladores) y la Madre Alada |
+
+La Zona 1 cuesta lo mismo que el tutorial pese a tener el doble de enemigos: los que están lejos duermen (IA y movimiento a intervalos). El peor fotograma (≥ 400 ms, recortado) son las capturas y la primera vista de cada zona en el binario del editor.
+
 ## Sin decidir
 
 - Escalabilidad y resolución por defecto del juego final, y si ejecutar el benchmark del motor al primer arranque (es parte del menú de ajustes).

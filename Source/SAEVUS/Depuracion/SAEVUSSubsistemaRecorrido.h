@@ -75,4 +75,11 @@ private:
 	TArray<TWeakObjectPtr<ASAEVUSPalanca>> Palancas;
 	TArray<TWeakObjectPtr<ASAEVUSBanco>> Bancos;
 	int32 Fallos = 0;
+
+	/** Rendimiento durante el recorrido (desde que aparece el jugador): fotogramas, tiempos y peor fotograma. */
+	int32 Fotogramas = 0;
+	double SumaSegundos = 0.0;
+	float PeorSegundos = 0.f;
+	double SumaMsJuego = 0.0;
+	double SumaMsGPU = 0.0;
 };

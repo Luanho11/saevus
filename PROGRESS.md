@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 51)**
-**Último latido: 2026-10-04 05:29** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 52)**
+**Último latido: 2026-10-04 05:40** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -85,11 +85,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 48. [x] ~~Bancos de verdad (Hollow Knight): `IA_Interactuar` (E / botón inferior derecho del mando); sentarse en un banco cura del todo, rellena la munición, fija el punto de control y guarda; el caballero se sienta (pose procedural). En la Zona 1 y al final de las arenas del tutorial.~~ `ASAEVUSBanco` + `ISAEVUSInteractuable`, aviso "E   Sentarse", pose sentada, campanada; el recorrido se sienta en cada banco.
 49. [x] ~~Fundido y título al entrar en un mapa ("Ruinas del Paso" grande que aparece y se va), también al reaparecer en un banco.~~ Título de zona con fundido (`ASAEVUSInfoZona`); la reaparición ya tenía su fundido (pantalla de muerte).
 50. [x] ~~Poner al día `RESUMEN_PARA_EL_DUENO.md` con todo lo nuevo (Zona 1, jefes, menús, guardado, mapa) y capturas frescas.~~
-51. [ ] Medir el rendimiento en los recorridos: fotogramas medio y peor por mapa (tutorial y Zona 1, con sus 13 enemigos y el jefe), escrito en el log y en `rendimiento.md`.
+51. [x] ~~Medir el rendimiento en los recorridos: fotogramas medio y peor por mapa (tutorial y Zona 1, con sus 13 enemigos y el jefe), escrito en el log y en `rendimiento.md`.~~ ≈ 52 fps en los dos mapas, en Media.
 52. [ ] Volumen general en los menús (0–100 % en pasos), guardado con las demás opciones.
 53. [ ] Menús con mando y teclado: foco en el primer botón al abrir, navegación con la cruceta y confirmar con el botón inferior; prueba de humo.
 
 ## Estado del turno
-- Completado: tarea 50 (resumen para el dueño).
+- Completado: tarea 51 (rendimiento en los recorridos).
 - A medias: —
-- Siguiente paso exacto: tarea 51 — rendimiento en los recorridos.
+- Siguiente paso exacto: tarea 52 — volumen general.

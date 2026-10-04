@@ -3,6 +3,7 @@
 #include "Depuracion/SAEVUSSubsistemaRecorrido.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteVida.h"
+#include "DynamicRHI.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
 #include "Engine/World.h"
@@ -15,6 +16,7 @@
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Mundo/SAEVUSPalanca.h"
 #include "Personaje/SAEVUSPersonaje.h"
+#include "RenderTimer.h"
 #include "SAEVUS.h"
 #include "Tutorial/SAEVUSPuertaArena.h"
 #include "Tutorial/SAEVUSSubsistemaTutorial.h"
@@ -76,6 +78,13 @@ void USAEVUSSubsistemaRecorrido::Comprobar(const FString& Descripcion, bool bBie
 
 void USAEVUSSubsistemaRecorrido::Terminar()
 {
+	// Informativo (depende de la máquina): no cuenta como fallo.
+	if (Fotogramas > 0)
+	{
+		const double Media = SumaSegundos / Fotogramas;
+		UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] rendimiento: %d fotogramas, media %.2f ms (%.1f fps), peor %.2f ms | juego %.2f ms, GPU %.2f ms"),
+			Fotogramas, Media * 1000.0, Media > 0.0 ? 1.0 / Media : 0.0, PeorSegundos * 1000.f, SumaMsJuego / Fotogramas, SumaMsGPU / Fotogramas);
+	}
 	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %s"), Fallos == 0 ? TEXT("SUPERADO") : TEXT("FALLIDO"));
 	Paso = EPaso::Hecho;
 	FPlatformMisc::RequestExit(false, TEXT("Recorrido SAEVUS"));
@@ -139,6 +148,14 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 	}
 	TiempoPaso += DeltaTime;
 	TiempoTotal += DeltaTime;
+	if (Paso != EPaso::EsperarJugador)
+	{
+		++Fotogramas;
+		SumaSegundos += DeltaTime;
+		PeorSegundos = FMath::Max(PeorSegundos, DeltaTime);
+		SumaMsJuego += FPlatformTime::ToMilliseconds(GGameThreadTime);
+		SumaMsGPU += FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());
+	}
 	const APlayerController* Controlador = GetWorld()->GetFirstPlayerController();
 	ASAEVUSPersonaje* Jugador = Controlador ? Cast<ASAEVUSPersonaje>(Controlador->GetPawn()) : nullptr;
 
