@@ -62,4 +62,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 52 de `PROGRESS.md` (volumen), después 53 (menús con mando); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 53 de `PROGRESS.md` (menús con mando); después, tareas propias (ver la cola en `PROGRESS.md`).

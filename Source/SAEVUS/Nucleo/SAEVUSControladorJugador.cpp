@@ -163,11 +163,26 @@ void ASAEVUSControladorJugador::BeginPlay()
 	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
 		Sensibilidad = Guardado->ObtenerSensibilidad();
+		Volumen = Guardado->ObtenerVolumen();
+	}
+	if (IsLocalPlayerController())
+	{
+		SAEVUSGuardado::AplicarVolumen(GetWorld(), Volumen);
 	}
 	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
 	if (IsLocalPlayerController() && ModoJuego && ModoJuego->DebeMostrarMenuPrincipal())
 	{
 		MostrarMenuPrincipal();
+	}
+}
+
+void ASAEVUSControladorJugador::FijarVolumen(float Nuevo)
+{
+	Volumen = FMath::Clamp(Nuevo, 0.f, 1.f);
+	SAEVUSGuardado::AplicarVolumen(GetWorld(), Volumen);
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarVolumen(Volumen);
 	}
 }
 

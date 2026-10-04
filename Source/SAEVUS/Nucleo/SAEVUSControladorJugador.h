@@ -39,6 +39,10 @@ public:
 	float ObtenerSensibilidad() const { return Sensibilidad; }
 	void FijarSensibilidad(float Nueva);
 
+	/** Volumen general (0–1). Se aplica al audio y se guarda entre sesiones. */
+	float ObtenerVolumen() const { return Volumen; }
+	void FijarVolumen(float Nuevo);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -71,4 +75,5 @@ private:
 	TObjectPtr<USAEVUSWidgetPausa> MenuPausa;
 
 	float Sensibilidad = 1.f;
+	float Volumen = 1.f;
 };

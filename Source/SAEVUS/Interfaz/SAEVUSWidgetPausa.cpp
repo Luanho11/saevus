@@ -22,6 +22,7 @@
 namespace SAEVUSPausa
 {
 	const float Sensibilidades[] = { 0.5f, 0.75f, 1.f, 1.5f, 2.f };
+	constexpr float PasoVolumen = 0.25f;
 	constexpr int32 NumeroCalidades = 3;
 	constexpr int32 TamanoTitulo = 40;
 	// Separación entre la columna de opciones y el mapa.
@@ -52,6 +53,13 @@ namespace SAEVUSPausa
 			}
 		}
 		return Sensibilidades[0];
+	}
+
+	float SiguienteVolumen(float Actual)
+	{
+		// Al paso más cercano y uno más; pasado el 100 % vuelve a 0.
+		const float Siguiente = FMath::RoundToFloat(Actual / PasoVolumen) * PasoVolumen + PasoVolumen;
+		return Siguiente > 1.f + KINDA_SMALL_NUMBER ? 0.f : Siguiente;
 	}
 
 	FText NombreCalidad(int32 Nivel)
@@ -171,6 +179,8 @@ void USAEVUSWidgetPausa::Construir()
 	TextoCalidad = Texto;
 	CrearBoton(Columna, TEXT("Sensibilidad"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarSensibilidad);
 	TextoSensibilidad = Texto;
+	CrearBoton(Columna, TEXT("Volumen"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarVolumen);
+	TextoVolumen = Texto;
 	CrearBoton(Columna, TEXT("Salir"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlSalir);
 	TextoSalir = Texto;
 }
@@ -191,6 +201,8 @@ void USAEVUSWidgetPausa::ActualizarTextos()
 	const ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer());
 	const float Sensibilidad = Controlador ? Controlador->ObtenerSensibilidad() : 1.f;
 	TextoSensibilidad->SetText(FText::Format(LOCTEXT("Sensibilidad", "Sensibilidad del ratón: {0}"), FText::AsNumber(Sensibilidad)));
+	const float Volumen = Controlador ? Controlador->ObtenerVolumen() : 1.f;
+	TextoVolumen->SetText(FText::Format(LOCTEXT("Volumen", "Volumen: {0} %"), FText::AsNumber(FMath::RoundToInt32(Volumen * 100.f))));
 	TextoSalir->SetText(LOCTEXT("Salir", "Salir del juego"));
 }
 
@@ -242,6 +254,15 @@ void USAEVUSWidgetPausa::AlCambiarSensibilidad()
 	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
 	{
 		Controlador->FijarSensibilidad(SAEVUSPausa::SiguienteSensibilidad(Controlador->ObtenerSensibilidad()));
+	}
+	ActualizarTextos();
+}
+
+void USAEVUSWidgetPausa::AlCambiarVolumen()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->FijarVolumen(SAEVUSPausa::SiguienteVolumen(Controlador->ObtenerVolumen()));
 	}
 	ActualizarTextos();
 }

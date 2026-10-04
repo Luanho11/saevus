@@ -20,6 +20,10 @@ public:
 	UPROPERTY()
 	float Sensibilidad = 1.f;
 
+	/** Volumen general (0–1). */
+	UPROPERTY()
+	float Volumen = 1.f;
+
 	UPROPERTY()
 	bool bTienePuntoControl = false;
 
@@ -42,6 +46,9 @@ namespace SAEVUSGuardado
 
 	/** Nombre corto del mapa de Mundo, igual en PIE y en el juego. */
 	SAEVUS_API FName NombreMapa(const UWorld* Mundo);
+
+	/** Volumen general del dispositivo de audio del mundo (0–1). */
+	SAEVUS_API void AplicarVolumen(const UWorld* Mundo, float Volumen);
 }
 
 /**
@@ -61,6 +68,9 @@ public:
 
 	float ObtenerSensibilidad() const { return Partida->Sensibilidad; }
 	void GuardarSensibilidad(float Sensibilidad);
+
+	float ObtenerVolumen() const { return Partida->Volumen; }
+	void GuardarVolumen(float Volumen);
 
 	void GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto);
 	/** Cierto si hay un punto de control guardado para el mapa de Mundo. */

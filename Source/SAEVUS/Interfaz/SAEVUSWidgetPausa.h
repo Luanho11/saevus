@@ -21,6 +21,9 @@ namespace SAEVUSPausa
 	SAEVUS_API float SiguienteSensibilidad(float Actual);
 
 	SAEVUS_API FText NombreCalidad(int32 Nivel);
+
+	/** Volumen siguiente en la rotación 0 → 25 → 50 → 75 → 100 % → 0. */
+	SAEVUS_API float SiguienteVolumen(float Actual);
 }
 
 /** Para qué se abre el menú: la pausa en partida o el menú principal al arrancar. */
@@ -76,6 +79,9 @@ private:
 	void AlCambiarSensibilidad();
 
 	UFUNCTION()
+	void AlCambiarVolumen();
+
+	UFUNCTION()
 	void AlSalir();
 
 	UPROPERTY(Transient)
@@ -89,6 +95,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoSensibilidad;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoVolumen;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoSalir;

@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Nucleo/SAEVUSGuardado.h"
+#include "AudioDevice.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -35,6 +36,14 @@ namespace SAEVUSGuardado
 	{
 		return Mundo ? FName(*UGameplayStatics::GetCurrentLevelName(Mundo, true)) : NAME_None;
 	}
+
+	void AplicarVolumen(const UWorld* Mundo, float Volumen)
+	{
+		if (FAudioDevice* Dispositivo = Mundo ? Mundo->GetAudioDeviceRaw() : nullptr)
+		{
+			Dispositivo->SetTransientPrimaryVolume(FMath::Clamp(Volumen, 0.f, 1.f));
+		}
+	}
 }
 
 void USAEVUSSubsistemaGuardado::Initialize(FSubsystemCollectionBase& Coleccion)
@@ -54,6 +63,12 @@ USAEVUSSubsistemaGuardado* USAEVUSSubsistemaGuardado::Obtener(const UObject* Con
 void USAEVUSSubsistemaGuardado::GuardarSensibilidad(float Sensibilidad)
 {
 	Partida->Sensibilidad = Sensibilidad;
+	Guardar();
+}
+
+void USAEVUSSubsistemaGuardado::GuardarVolumen(float Volumen)
+{
+	Partida->Volumen = Volumen;
 	Guardar();
 }
 

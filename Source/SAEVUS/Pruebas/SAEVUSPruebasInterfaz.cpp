@@ -128,6 +128,10 @@ bool FSAEVUSPruebaInterfazPausaOpciones::RunTest(const FString& Parameters)
 	TestEqual(TEXT("1 → 1,5"), SAEVUSPausa::SiguienteSensibilidad(1.f), 1.5f);
 	TestEqual(TEXT("2 → 0,5 (vuelta)"), SAEVUSPausa::SiguienteSensibilidad(2.f), 0.5f);
 	TestFalse(TEXT("Cada calidad tiene nombre"), SAEVUSPausa::NombreCalidad(2).IsEmpty());
+	TestEqual(TEXT("Volumen 0 → 25 %"), SAEVUSPausa::SiguienteVolumen(0.f), 0.25f);
+	TestEqual(TEXT("Volumen 75 → 100 %"), SAEVUSPausa::SiguienteVolumen(0.75f), 1.f);
+	TestEqual(TEXT("Volumen 100 % → 0 (vuelta)"), SAEVUSPausa::SiguienteVolumen(1.f), 0.f);
+	TestEqual(TEXT("Un volumen suelto va al paso siguiente"), SAEVUSPausa::SiguienteVolumen(0.3f), 0.5f);
 	return true;
 }
 
