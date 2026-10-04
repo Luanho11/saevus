@@ -85,6 +85,10 @@ La otra mitad de la "mariposa" de GunZ (salto → dash → tajo → guardia), di
 - Animación: brazos al frente y el aguijón cruzado en diagonal.
 - `DA_RepertorioMelee_Base` se reescribe con el repertorio del código en cada ejecución del script de assets (mientras no se ajuste a mano), así recibe los campos nuevos con sus valores de diseño.
 
+## Sacudida de cámara
+
+`USAEVUSComponenteCamara` escucha a su dueño y suma "trauma" (0..1) en cada impacto: golpe dado 0,3, golpe recibido 0,65, bloqueo 0,4. La sacudida es el trauma al cuadrado (los golpes pequeños apenas mueven, los grandes sacuden), con ruido Perlin en desplazamiento (máx. 10 cm) y giro (máx. 2°), y se calma a 2,5 por segundo. Todo en `FSAEVUSAjusteCamara` (`bSacudida` la desactiva). Test `SAEVUS.Estilo.SacudidaCamara`.
+
 ## Alma y curación (Hollow Knight)
 
 - Cada actor golpeado por un ataque cuerpo a cuerpo da `AlmaPorGolpe` (11) hasta `AlmaMaxima` (99) (`FSAEVUSAjusteAlma`).

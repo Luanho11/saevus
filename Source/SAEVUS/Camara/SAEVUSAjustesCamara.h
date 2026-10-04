@@ -62,6 +62,34 @@ struct FSAEVUSAjusteCamara
 	/** Saturación global (1 = sin cambio). Por debajo de 1, colores apagados de mundo en ruinas. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "2"))
 	float Saturacion = 0.8f;
+
+	/** Sacudida de cámara en los impactos (modelo de "trauma": cada evento suma; la sacudida es su cuadrado). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida")
+	bool bSacudida = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ForceUnits = "cm", EditCondition = "bSacudida"))
+	float DesplazamientoMaxSacudida = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ForceUnits = "deg", EditCondition = "bSacudida"))
+	float GiroMaxSacudida = 2.f;
+
+	/** Trauma que se pierde por segundo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", EditCondition = "bSacudida"))
+	float RecuperacionSacudida = 2.5f;
+
+	/** Rapidez del ruido de la sacudida (ciclos por segundo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", EditCondition = "bSacudida"))
+	float FrecuenciaSacudida = 25.f;
+
+	/** Trauma por evento (0..1). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
+	float SacudidaGolpeDado = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
+	float SacudidaGolpeRecibido = 0.65f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
+	float SacudidaBloqueo = 0.4f;
 };
 
 /** Perfil de cámara editable asignado a USAEVUSComponenteCamara. */

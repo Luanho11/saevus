@@ -1,6 +1,9 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Camara/SAEVUSComponenteCamara.h"
+#include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
+#include "Combate/SAEVUSComponenteVida.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
@@ -31,6 +34,75 @@ void USAEVUSComponenteCamara::GetCameraView(float DeltaTime, FMinimalViewInfo& D
 {
 	FieldOfView = FMath::FInterpTo(FieldOfView, ObtenerCampoVisionObjetivo(), DeltaTime, ObtenerAjuste().VelocidadInterpCampoVision);
 	Super::GetCameraView(DeltaTime, DesiredView);
+	ActualizarSacudida(DeltaTime);
+	if (Trauma > 0.f)
+	{
+		DesiredView.Location += DesiredView.Rotation.RotateVector(DesplazamientoSacudida);
+		DesiredView.Rotation += GiroSacudida;
+	}
+}
+
+void USAEVUSComponenteCamara::BeginPlay()
+{
+	Super::BeginPlay();
+	// La cámara escucha los impactos de su dueño: golpes dados, recibidos y bloqueos.
+	AActor* Duenio = GetOwner();
+	if (USAEVUSComponenteCombate* Combate = Duenio->FindComponentByClass<USAEVUSComponenteCombate>())
+	{
+		Combate->AlGolpear.AddUniqueDynamic(this, &ThisClass::AlGolpear);
+	}
+	if (USAEVUSComponenteVida* Vida = Duenio->FindComponentByClass<USAEVUSComponenteVida>())
+	{
+		Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::AlCambiarVida);
+	}
+	if (USAEVUSComponenteGuardia* Guardia = Duenio->FindComponentByClass<USAEVUSComponenteGuardia>())
+	{
+		Guardia->AlBloquear.AddUObject(this, &ThisClass::AlBloquear);
+	}
+}
+
+void USAEVUSComponenteCamara::AlGolpear(AActor* ActorGolpeado, float Danio)
+{
+	Sacudir(ObtenerAjuste().SacudidaGolpeDado);
+}
+
+void USAEVUSComponenteCamara::AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
+{
+	if (Delta < 0.f)
+	{
+		Sacudir(ObtenerAjuste().SacudidaGolpeRecibido);
+	}
+}
+
+void USAEVUSComponenteCamara::AlBloquear(AActor* Atacante, const FVector& PuntoContacto)
+{
+	Sacudir(ObtenerAjuste().SacudidaBloqueo);
+}
+
+void USAEVUSComponenteCamara::Sacudir(float NuevoTrauma)
+{
+	if (ObtenerAjuste().bSacudida)
+	{
+		Trauma = FMath::Clamp(Trauma + NuevoTrauma, 0.f, 1.f);
+	}
+}
+
+void USAEVUSComponenteCamara::ActualizarSacudida(float DeltaTime)
+{
+	const FSAEVUSAjusteCamara& Ajuste = ObtenerAjuste();
+	Trauma = FMath::Max(0.f, Trauma - Ajuste.RecuperacionSacudida * DeltaTime);
+	if (Trauma <= 0.f)
+	{
+		DesplazamientoSacudida = FVector::ZeroVector;
+		GiroSacudida = FRotator::ZeroRotator;
+		return;
+	}
+	// Ruido suave (Perlin) en vez de aleatorio puro: tiembla sin saltos bruscos. Cada eje con su semilla.
+	TiempoSacudida += DeltaTime * Ajuste.FrecuenciaSacudida;
+	const float Sacudida = Trauma * Trauma;
+	auto Ruido = [this](float Semilla) { return FMath::PerlinNoise1D(TiempoSacudida + Semilla); };
+	DesplazamientoSacudida = FVector(0.f, Ruido(11.f), Ruido(29.f)) * Ajuste.DesplazamientoMaxSacudida * Sacudida;
+	GiroSacudida = FRotator(Ruido(47.f), Ruido(71.f), Ruido(97.f)) * (Ajuste.GiroMaxSacudida * Sacudida);
 }
 
 void USAEVUSComponenteCamara::AplicarAjustes()

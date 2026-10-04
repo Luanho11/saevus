@@ -24,8 +24,19 @@ public:
 	/** Cambia el perfil de cámara y lo aplica en el acto. Nulo vuelve a los valores del código. */
 	void FijarAjustesCamara(const USAEVUSAjustesCamara* NuevosAjustes);
 
+	/** Suma trauma (0..1) a la sacudida. Sin efecto si la sacudida está desactivada. */
+	void Sacudir(float Trauma);
+
+	float ObtenerTrauma() const { return Trauma; }
+
+	/** Baja el trauma y calcula el desplazamiento y giro de la sacudida (lo llama la vista; los tests, a mano). */
+	void ActualizarSacudida(float DeltaTime);
+
+	const FVector& ObtenerDesplazamientoSacudida() const { return DesplazamientoSacudida; }
+
 	//~ Inicio de la interfaz de UCameraComponent
 	virtual void OnRegister() override;
+	virtual void BeginPlay() override;
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 	//~ Fin de la interfaz de UCameraComponent
 
@@ -40,6 +51,19 @@ private:
 
 	/** Contorno, viñeta y saturación del estilo visual en el post-proceso de esta cámara. */
 	void AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste);
+
+	UFUNCTION()
+	void AlGolpear(AActor* ActorGolpeado, float Danio);
+
+	UFUNCTION()
+	void AlCambiarVida(class USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
+
+	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
+
+	float Trauma = 0.f;
+	float TiempoSacudida = 0.f;
+	FVector DesplazamientoSacudida = FVector::ZeroVector;
+	FRotator GiroSacudida = FRotator::ZeroRotator;
 
 	/** Campo de visión base hasta la velocidad de carrera, mezclando hacia el de esprint a velocidad de esprint. */
 	float ObtenerCampoVisionObjetivo() const;

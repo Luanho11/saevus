@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Camara/SAEVUSComponenteCamara.h"
+#include "Combate/SAEVUSComponenteVida.h"
 #include "Materials/Material.h"
 
 namespace SAEVUSPruebasEstilo
@@ -43,6 +44,33 @@ bool FSAEVUSPruebaEstiloCamara::RunTest(const FString& Parameters)
 	Camara->FijarAjustesCamara(Ajustes);
 	Camara->FijarAjustesCamara(Ajustes);
 	TestEqual(TEXT("Sin material no hay contorno"), Camara->PostProcessSettings.WeightedBlendables.Array.Num(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaSacudidaCamara, "SAEVUS.Estilo.SacudidaCamara", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaSacudidaCamara::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEstilo;
+
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(PosicionPersonaje);
+	USAEVUSComponenteCamara* Camara = Personaje->ObtenerCamara();
+	TestEqual(TEXT("Sin trauma al empezar"), Camara->ObtenerTrauma(), 0.f);
+
+	// Un golpe recibido sacude la cámara (la cámara escucha la vida de su dueño).
+	Personaje->ObtenerVida()->AplicarDanio(10.f, nullptr);
+	TestTrue(TEXT("Recibir un golpe sacude"), Camara->ObtenerTrauma() > 0.f);
+	Camara->ActualizarSacudida(SAEVUSPruebas::PasoSimulacion);
+	TestFalse(TEXT("La cámara se desplaza"), Camara->ObtenerDesplazamientoSacudida().IsNearlyZero());
+
+	Camara->Sacudir(10.f);
+	TestEqual(TEXT("El trauma no pasa de 1"), Camara->ObtenerTrauma(), 1.f, Tolerancia);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(1.f); ++Indice)
+	{
+		Camara->ActualizarSacudida(SAEVUSPruebas::PasoSimulacion);
+	}
+	TestEqual(TEXT("Se calma sola"), Camara->ObtenerTrauma(), 0.f, Tolerancia);
+	TestTrue(TEXT("Y vuelve a su sitio"), Camara->ObtenerDesplazamientoSacudida().IsNearlyZero());
 	return true;
 }
 

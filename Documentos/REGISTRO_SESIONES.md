@@ -70,3 +70,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 27:** recorrido del tutorial en el juego real (`USAEVUSSubsistemaRecorrido`, `Ejecutar-Recorrido.ps1`): 11 avisos, 2 arenas con sus puertas y el jefe activo. SUPERADO.
 - **Tarea 28:** `Verificar-Arranque.ps1 -ConJuego` añade la prueba de humo y el recorrido del tutorial: una orden lo comprueba todo (compilación, assets, 105 tests, verificación, humo, recorrido). Todo en verde.
 - **Tarea 32:** destello blanco de los enemigos al recibir daño (0,12 s). 105/105 tests.
+- **Tarea 33:** sacudida de cámara por trauma (golpe dado, recibido, bloqueo), ruido Perlin, desactivable. 106/106 tests, humo SUPERADA.

@@ -32,7 +32,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorrido del tutorial).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 105/105 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 106/106 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
