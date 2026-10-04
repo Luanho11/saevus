@@ -139,6 +139,7 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 
 - HUD F6: `Ataque: <nombre> #<índice> <fase> <tiempo>` y `(en buffer)`; `Arma: <nombre> [ranura/total] munición n/m reserva r` (−1 = infinita), `(cambiando a n)`, `(recargando)`; `Vida: n/max`.
 - `SAEVUS.Depuracion.Combate 1`: dibuja la esfera de golpe activa y cada traza de disparo (amarillo: sin golpe, rojo: golpe).
+- `SAEVUS.Depuracion.NumerosDanio 1`: números de daño flotantes sobre quien recibe el golpe, que suben y se desvanecen en 0,9 s (claros: enemigos y muñecos; rojos: el jugador). La vida y los muñecos los apuntan en `USAEVUSSubsistemaNumerosDanio`, y el HUD los dibuja. Apagado no cuesta nada. Test `SAEVUS.Depuracion.NumerosDanio`.
 - Mapa de pruebas: tres muñecos cerca del inicio y una galería de tiro a 10, 20 y 30 m.
 
 ## Tests

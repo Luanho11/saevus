@@ -35,6 +35,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Depuracion")
 	FLinearColor ColorTexto = FLinearColor(0.2f, 1.f, 0.4f);
 
+	/** Números de daño (SAEVUS.Depuracion.NumerosDanio): daño hecho y daño recibido por el jugador. */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Depuracion")
+	FLinearColor ColorNumeroDanio = FLinearColor(1.f, 0.95f, 0.8f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Depuracion")
+	FLinearColor ColorNumeroDanioJugador = FLinearColor(1.f, 0.25f, 0.2f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Depuracion", meta = (ClampMin = "0"))
+	float EscalaNumeroDanio = 1.5f;
+
 	/** Interfaz de juego que se añade a la pantalla al empezar. */
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Interfaz")
 	TSubclassOf<USAEVUSWidgetInterfaz> ClaseInterfaz;
@@ -43,6 +53,7 @@ protected:
 
 private:
 	void DibujarDepuracion();
+	void DibujarNumerosDanio();
 
 	UPROPERTY(Transient)
 	TObjectPtr<USAEVUSWidgetInterfaz> Interfaz;

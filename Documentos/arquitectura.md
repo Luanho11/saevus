@@ -21,7 +21,7 @@ Un módulo de juego, `SAEVUS` (`Source/SAEVUS/`), dividido en carpetas por funci
 | `Tutorial/` | `USAEVUSSubsistemaTutorial`, volúmenes (aviso, punto de control, caída), `ASAEVUSPeligro`, `ASAEVUSPuertaArena` |
 | `Interfaz/` | `FSAEVUSEstadoInterfaz`, `USAEVUSWidgetInterfaz`, `USAEVUSWidgetPausa` (UMG construida en C++) |
 | `Mundo/` | `ASAEVUSMunecoEntrenamiento` |
-| `Depuracion/` | `ASAEVUSHUDDepuracion` (crea la interfaz; texto de depuración con F6), variables de consola, `USAEVUSSubsistemaPruebaHumo` |
+| `Depuracion/` | `ASAEVUSHUDDepuracion` (crea la interfaz; texto de depuración con F6), variables de consola, `USAEVUSSubsistemaPruebaHumo`, `USAEVUSSubsistemaNumerosDanio` (números de daño flotantes) |
 | `Pruebas/` | 105 tests `SAEVUS.*` y el fixture `SAEVUSMundoPrueba.h` |
 
 ## Mapa de clases
@@ -31,7 +31,7 @@ ASAEVUSModoJuego (AGameModeBase)          reaparición (RetardoReaparicion), pun
  └─ BP_SAEVUSModoJuego                    pone BP_SAEVUSPersonaje, BP_SAEVUSControladorJugador
 
 ASAEVUSControladorJugador                 contextos de entrada, IA_AlternarHUD, IA_Pausa → USAEVUSWidgetPausa, sensibilidad
-ASAEVUSHUDDepuracion (AHUD)               crea USAEVUSWidgetInterfaz; texto de depuración con F6
+ASAEVUSHUDDepuracion (AHUD)               crea USAEVUSWidgetInterfaz; texto de depuración con F6; números de daño
 
 ASAEVUSPersonaje (ACharacter)             reparte la entrada y coordina; sin reglas propias salvo el empuje al recibir golpes
  ├─ USAEVUSComponenteMovimiento (CMC)     ← USAEVUSAjustesMovimiento

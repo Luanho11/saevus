@@ -7,6 +7,7 @@
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
+#include "Depuracion/SAEVUSSubsistemaNumerosDanio.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
@@ -33,6 +34,37 @@ void ASAEVUSHUDDepuracion::DrawHUD()
 	if (SAEVUSDepuracion::HUDActivo())
 	{
 		DibujarDepuracion();
+	}
+	if (SAEVUSDepuracion::NumerosDanioActivos())
+	{
+		DibujarNumerosDanio();
+	}
+}
+
+void ASAEVUSHUDDepuracion::DibujarNumerosDanio()
+{
+	USAEVUSSubsistemaNumerosDanio* Subsistema = GetWorld()->GetSubsystem<USAEVUSSubsistemaNumerosDanio>();
+	if (!Subsistema || !Canvas)
+	{
+		return;
+	}
+	UFont* Fuente = GEngine->GetMediumFont();
+	for (const FSAEVUSNumeroDanio& Numero : Subsistema->ObtenerNumeros())
+	{
+		// Sube y se desvanece a lo largo de su vida.
+		const float Edad = Subsistema->ObtenerEdad(Numero);
+		const FVector Pantalla = Project(Numero.Posicion + FVector::UpVector * SAEVUSNumerosDanio::Subida * Edad);
+		if (Pantalla.Z <= 0.f)
+		{
+			continue;
+		}
+		const FString Texto = FString::Printf(TEXT("%.0f"), Numero.Danio);
+		float Ancho = 0.f;
+		float Alto = 0.f;
+		GetTextSize(Texto, Ancho, Alto, Fuente, EscalaNumeroDanio);
+		FLinearColor Color = Numero.bAlJugador ? ColorNumeroDanioJugador : ColorNumeroDanio;
+		Color.A = 1.f - Edad;
+		DrawText(Texto, Color, Pantalla.X - Ancho * 0.5f, Pantalla.Y - Alto * 0.5f, Fuente, EscalaNumeroDanio);
 	}
 }
 

@@ -13,4 +13,8 @@ namespace SAEVUSDepuracion
 
 	/** SAEVUS.Depuracion.Combate: dibuja las esferas de golpe y las trazas de disparo. */
 	SAEVUS_API bool DibujoCombateActivo();
+
+	/** SAEVUS.Depuracion.NumerosDanio: números de daño flotantes sobre quien recibe el golpe. */
+	SAEVUS_API bool NumerosDanioActivos();
+	SAEVUS_API void ActivarNumerosDanio(bool bActivo);
 }

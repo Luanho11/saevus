@@ -17,6 +17,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 | Armas | 1–4, rueda del ratón | botón superior derecho |
 | Pausa (opciones) | P | Start |
 | Datos de depuración | F6 | — |
+| Números de daño (consola, tecla `º`/`~`) | `SAEVUS.Depuracion.NumerosDanio 1` | — |
 
 ## Técnicas
 

@@ -17,6 +17,12 @@ namespace SAEVUSDepuracion
 		TEXT("Dibuja las esferas de golpe activas y las trazas de disparo (amarillo: sin golpe, rojo: golpe)."),
 		ECVF_Default);
 
+	static TAutoConsoleVariable<bool> CVarNumerosDanio(
+		TEXT("SAEVUS.Depuracion.NumerosDanio"),
+		false,
+		TEXT("Muestra números de daño flotantes sobre quien recibe el golpe (blancos: enemigos y muñecos; rojos: el jugador)."),
+		ECVF_Default);
+
 	bool HUDActivo()
 	{
 		return CVarHUD.GetValueOnGameThread();
@@ -31,5 +37,15 @@ namespace SAEVUSDepuracion
 	bool DibujoCombateActivo()
 	{
 		return CVarCombate.GetValueOnGameThread();
+	}
+
+	bool NumerosDanioActivos()
+	{
+		return CVarNumerosDanio.GetValueOnGameThread();
+	}
+
+	void ActivarNumerosDanio(bool bActivo)
+	{
+		CVarNumerosDanio->Set(bActivo, ECVF_SetByConsole);
 	}
 }

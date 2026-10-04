@@ -1,8 +1,10 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Combate/SAEVUSComponenteVida.h"
+#include "Depuracion/SAEVUSSubsistemaNumerosDanio.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 
 USAEVUSComponenteVida::USAEVUSComponenteVida()
 {
@@ -55,6 +57,12 @@ float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
 	{
 		HacerInvulnerable(DuracionInvulnerableTrasGolpe);
 		InvulnerableTrasGolpeHasta = GetWorld()->GetTimeSeconds() + DuracionInvulnerableTrasGolpe;
+	}
+	if (const AActor* Duenio = GetOwner())
+	{
+		const APawn* Pawn = Cast<APawn>(Duenio);
+		USAEVUSSubsistemaNumerosDanio::Registrar(this, Duenio->GetActorLocation() + FVector::UpVector * Duenio->GetSimpleCollisionHalfHeight(),
+			Quitada, Pawn && Pawn->IsPlayerControlled());
 	}
 	AlCambiarVida.Broadcast(this, -Quitada, Causante);
 	if (Vida <= 0.f)

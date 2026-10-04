@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Depuracion/SAEVUSSubsistemaNumerosDanio.h"
 #include "Engine/StaticMesh.h"
 #include "SAEVUS.h"
 #include "UObject/ConstructorHelpers.h"
@@ -62,6 +63,7 @@ float ASAEVUSMunecoEntrenamiento::TakeDamage(float DamageAmount, const FDamageEv
 	++Golpes;
 	UltimoDanio = DamageAmount;
 	DanioTotal += DamageAmount;
+	USAEVUSSubsistemaNumerosDanio::Registrar(this, GetActorLocation() + FVector::UpVector * GetSimpleCollisionHalfHeight(), DamageAmount, false);
 	UE_LOG(LogSAEVUS, Verbose, TEXT("%s golpeado por %s con %.1f (golpes %d, total %.1f)"), *GetName(), *GetNameSafe(DamageCauser), DamageAmount, Golpes, DanioTotal);
 	ActualizarLectura();
 	return Aplicado;
