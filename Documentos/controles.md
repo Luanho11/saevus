@@ -15,6 +15,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 | Curar (gasta alma) | Q (mantener, en el suelo) | botón superior izquierdo |
 | Recargar | R | Y |
 | Armas | 1–4, rueda del ratón | botón superior derecho |
+| Pausa (opciones) | P | Start |
 | Datos de depuración | F6 | — |
 
 ## Técnicas

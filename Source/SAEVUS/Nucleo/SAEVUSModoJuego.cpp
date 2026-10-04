@@ -46,6 +46,27 @@ void ASAEVUSModoJuego::ReaparecerJugador(TWeakObjectPtr<AController> Controlador
 	}
 }
 
+void ASAEVUSModoJuego::ReiniciarJugador(AController* Controlador)
+{
+	if (!Controlador)
+	{
+		return;
+	}
+	if (APawn* PawnActual = Controlador->GetPawn())
+	{
+		Controlador->UnPossess();
+		PawnActual->Destroy();
+	}
+	if (bTienePuntoControl)
+	{
+		RestartPlayerAtTransform(Controlador, PuntoControl);
+	}
+	else
+	{
+		RestartPlayer(Controlador);
+	}
+}
+
 void ASAEVUSModoJuego::FijarPuntoControl(const FTransform& Punto)
 {
 	PuntoControl = Punto;

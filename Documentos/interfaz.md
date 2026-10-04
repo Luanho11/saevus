@@ -20,12 +20,16 @@ Boceto mejorable, sin dirección visual compleja todavía (decisión del dueño)
 
 Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de la pantalla; a 720p todo es dos tercios del tamaño a 1080p). Las medidas del struct están en unidades de 1080p.
 
+## Menú de pausa
+
+`USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
+
 ## Tests
 
-`SAEVUS.Interfaz.VidaAlmaArma` (máscaras con 100 y 70 de vida, alma, arma por defecto y pistola con munición) y `SAEVUS.Interfaz.AvisoYJefe` (aviso con fundido; la barra del jefe solo con el jefe activo y vivo, con su fracción de vida). La prueba de humo guarda capturas con la interfaz.
+`SAEVUS.Interfaz.VidaAlmaArma` (máscaras con 100 y 70 de vida, alma, arma por defecto y pistola con munición) y `SAEVUS.Interfaz.AvisoYJefe` (aviso con fundido; la barra del jefe solo con el jefe activo y vivo, con su fracción de vida) y `SAEVUS.Interfaz.OpcionesPausa` (rotación de calidad y sensibilidad). La prueba de humo abre el menú (juego en pausa) y guarda `SAEVUS_PruebaHumo_Pausa.png`. La prueba de humo guarda capturas con la interfaz.
 
 ## Pendiente
 
 - Dirección de arte: iconos de máscara y orbe pintados, tipografía propia.
-- Menú de pausa, opciones (escalabilidad, sensibilidad, controles), pantalla de muerte.
+- Opciones completas (resolución, controles, volumen), pantalla de muerte, menú principal.
 - Indicadores en el mundo (enemigos fuera de pantalla, interacción).

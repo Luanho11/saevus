@@ -65,6 +65,8 @@ ASIGNACIONES_SAEVUS = {
     "IA_RanuraArma4": ["Four"],
     # F1-F5, F9 y F11 son atajos de depuración del motor (BaseInput.ini).
     "IA_AlternarHUD": ["F6"],
+    # Esc detiene el Play en el editor: la pausa va en P (y Start en el mando).
+    "IA_Pausa": ["P", "Gamepad_Special_Right"],
 }
 
 # Arsenal, en orden de ranura (teclas 1-4). Valores de primera pasada; se ajustan en los Data Assets.
@@ -354,6 +356,8 @@ def crear_assets_entrada():
     for nombre in ASIGNACIONES_SAEVUS:
         accion = obtener_o_crear(nombre, f"{DIR_ENTRADA}/Acciones", unreal.InputAction, unreal.InputAction_Factory())
         accion.set_editor_property("value_type", unreal.InputActionValueType.BOOLEAN)
+        # La pausa tiene que poder cerrarse estando en pausa.
+        accion.set_editor_property("trigger_when_paused", nombre == "IA_Pausa")
         acciones[nombre] = accion
 
     imc = obtener_o_crear("IMC_SAEVUS", DIR_ENTRADA, unreal.InputMappingContext, unreal.InputMappingContext_Factory())
@@ -449,6 +453,7 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     controlador = cdo_blueprint(bp_controlador)
     controlador.set_editor_property("contextos_entrada", [cargar(IMC_PLANTILLA), cargar(IMC_PLANTILLA_RATON), imc])
     controlador.set_editor_property("accion_alternar_hud", acciones["IA_AlternarHUD"])
+    controlador.set_editor_property("accion_pausa", acciones["IA_Pausa"])
 
     bp_modo_juego = obtener_o_crear_blueprint("BP_SAEVUSModoJuego", unreal.SAEVUSModoJuego)
     modo_juego = cdo_blueprint(bp_modo_juego)

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 20)**
-**Último latido: 2026-10-03 22:32** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 21)**
+**Último latido: 2026-10-03 22:44** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -54,9 +54,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 17. [x] ~~Cabeza que mira al enemigo cercano o al objetivo de la cámara (animación), con límites de giro.~~
 18. [x] ~~Contraataque (parry, Hollow Knight/GunZ): guardia pulsada justo antes del golpe → el atacante queda aturdido y el jugador gana alma; ventana por datos.~~
 19. [x] ~~Enemigo a distancia (escupidor): nuevo tipo de ataque `Proyectil` (actor `ASAEVUSProyectil` simple, bloqueable con la guardia, se puede devolver con un tajo), Data Asset y uno en la arena del tutorial; tests.~~
-20. [ ] Menú de pausa básico (UMG en C++): Esc pausa; continuar, reiniciar en el último punto de control, salir; opción de escalabilidad (Baja/Media/Alta) y sensibilidad del ratón.
+20. [x] ~~Menú de pausa básico (UMG en C++): Esc pausa; continuar, reiniciar en el último punto de control, salir; opción de escalabilidad (Baja/Media/Alta) y sensibilidad del ratón.~~
+21. [ ] Pantalla de muerte simple (fundido a negro + "Has caído" durante la espera de reaparición) y fundido de entrada al reaparecer.
 
 ## Estado del turno
-- Completado: tarea 19 (escupidor y proyectiles).
+- Completado: tarea 20 (menú de pausa).
 - A medias: —
-- Siguiente paso exacto: tarea 20 — menú de pausa básico.
+- Siguiente paso exacto: tarea 21 — pantalla de muerte y fundidos.

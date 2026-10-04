@@ -8,6 +8,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class USAEVUSWidgetPausa;
 
 /** Añade los contextos de entrada del jugador local y atiende la entrada propia del controlador (no del pawn). */
 UCLASS()
@@ -15,8 +16,30 @@ class SAEVUS_API ASAEVUSControladorJugador : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	ASAEVUSControladorJugador();
+
+	/** Abre o cierra el menú de pausa (pausa el juego y muestra el cursor). */
+	void AlternarPausa();
+
+	bool EstaEnMenuPausa() const;
+
+	/** Vuelve al último punto de control (o al inicio) y quita la pausa. */
+	void ReiniciarEnPuntoControl();
+
+	/** Multiplicador de la entrada de mirar (ratón y stick). */
+	float ObtenerSensibilidad() const { return Sensibilidad; }
+	void FijarSensibilidad(float Nueva) { Sensibilidad = Nueva; }
+
 protected:
 	virtual void SetupInputComponent() override;
+
+	/** Abre y cierra el menú de pausa. Debe disparar también en pausa (bTriggerWhenPaused). */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Entrada")
+	TObjectPtr<UInputAction> AccionPausa;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Interfaz")
+	TSubclassOf<USAEVUSWidgetPausa> ClaseMenuPausa;
 
 	/** Se añaden en orden, con prioridad 0, para el jugador local. */
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Entrada")
@@ -28,4 +51,9 @@ protected:
 
 private:
 	void AlternarHUDDepuracion();
+
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSWidgetPausa> MenuPausa;
+
+	float Sensibilidad = 1.f;
 };

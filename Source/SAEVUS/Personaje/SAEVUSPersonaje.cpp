@@ -20,6 +20,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
+#include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Personaje/SAEVUSConfigEntrada.h"
 #include "PhysicsEngine/PhysicsAsset.h"
@@ -312,7 +313,8 @@ void ASAEVUSPersonaje::ManejarMirar(const FInputActionValue& Valor)
 	{
 		return;
 	}
-	const FVector2D Eje = Valor.Get<FVector2D>();
+	const ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(Controller);
+	const FVector2D Eje = Valor.Get<FVector2D>() * (Controlador ? Controlador->ObtenerSensibilidad() : 1.f);
 	AddControllerYawInput(Eje.X);
 	AddControllerPitchInput(Eje.Y);
 }

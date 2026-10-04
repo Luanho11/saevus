@@ -22,6 +22,9 @@ public:
 	/** Lo llama un personaje al morir. Programa la reaparición de su controlador (si tiene). */
 	void NotificarMuerteJugador(AController* Controlador);
 
+	/** Reaparición inmediata en el último punto de control (menú de pausa): el cuerpo actual desaparece. */
+	void ReiniciarJugador(AController* Controlador);
+
 	/** Desde ahora los jugadores reaparecen en Punto (puntos de control del tutorial). */
 	void FijarPuntoControl(const FTransform& Punto);
 

@@ -29,6 +29,8 @@ public:
 	//~ Inicio de la interfaz de FTickableGameObject
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
+	/** Sigue avanzando con el juego en pausa (comprueba el menú de pausa). */
+	virtual bool IsTickableWhenPaused() const override { return true; }
 	//~ Fin de la interfaz de FTickableGameObject
 
 private:
@@ -42,6 +44,7 @@ private:
 		Dash,
 		Atacar,
 		Guardia,
+		Pausa,
 		Disparar,
 		Morir,
 		Reaparecer,
@@ -75,6 +78,7 @@ private:
 	float RadioCuerpo = 0.f;
 	float DuracionAtaque = 0.f;
 	bool bGuardiaActiva = false;
+	bool bMenuPausaVisto = false;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;
 	int32 DisparosRealizados = 0;
