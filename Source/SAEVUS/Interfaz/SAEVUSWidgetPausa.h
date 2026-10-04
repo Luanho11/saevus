@@ -7,6 +7,7 @@
 #include "SAEVUSWidgetPausa.generated.h"
 
 class UButton;
+class USAEVUSWidgetMapa;
 class UTextBlock;
 class UVerticalBox;
 
@@ -91,6 +92,10 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoSalir;
+
+	/** Mapa de la zona (solo en la pausa). */
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSWidgetMapa> Mapa;
 
 	ESAEVUSModoMenu Modo = ESAEVUSModoMenu::Pausa;
 };

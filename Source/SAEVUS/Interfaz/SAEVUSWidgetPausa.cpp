@@ -4,11 +4,14 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
+#include "Interfaz/SAEVUSMapa.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSGuardado.h"
@@ -21,6 +24,8 @@ namespace SAEVUSPausa
 	const float Sensibilidades[] = { 0.5f, 0.75f, 1.f, 1.5f, 2.f };
 	constexpr int32 NumeroCalidades = 3;
 	constexpr int32 TamanoTitulo = 40;
+	// Separación entre la columna de opciones y el mapa.
+	constexpr float SeparacionMapa = 48.f;
 	constexpr int32 TamanoTituloPrincipal = 96;
 	constexpr int32 TamanoSubtitulo = 18;
 	// El menú principal tapa el juego algo más que la pausa.
@@ -76,6 +81,10 @@ void USAEVUSWidgetPausa::NativeConstruct()
 {
 	Super::NativeConstruct();
 	ActualizarTextos();
+	if (Mapa)
+	{
+		Mapa->Refrescar();
+	}
 }
 
 UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, UTextBlock*& OutTexto)
@@ -106,7 +115,21 @@ void USAEVUSWidgetPausa::Construir()
 	WidgetTree->RootWidget = Velo;
 
 	UVerticalBox* Columna = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Opciones"));
-	Velo->SetContent(Columna);
+	if (bPrincipal)
+	{
+		Velo->SetContent(Columna);
+	}
+	else
+	{
+		// Pausa: opciones a la izquierda y el mapa de la zona a la derecha.
+		UHorizontalBox* Fila = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Fila"));
+		Velo->SetContent(Fila);
+		Fila->AddChildToHorizontalBox(Columna)->SetVerticalAlignment(VAlign_Center);
+		Mapa = CreateWidget<USAEVUSWidgetMapa>(this, USAEVUSWidgetMapa::StaticClass(), TEXT("Mapa"));
+		UHorizontalBoxSlot* RanuraMapa = Fila->AddChildToHorizontalBox(Mapa);
+		RanuraMapa->SetPadding(FMargin(SeparacionMapa, 0.f, 0.f, 0.f));
+		RanuraMapa->SetVerticalAlignment(VAlign_Center);
+	}
 
 	UTextBlock* Titulo = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("Titulo"));
 	Titulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", bPrincipal ? TamanoTituloPrincipal : TamanoTitulo));

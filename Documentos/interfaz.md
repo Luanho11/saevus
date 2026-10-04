@@ -26,6 +26,10 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 
 `USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
 
+## Mapa en la pausa
+
+`USAEVUSWidgetMapa` (`Interfaz/SAEVUSMapa`), a la derecha de las opciones de la pausa: una vista cenital de la zona generada de la geometría al abrir la pausa. Cada malla estática con colisión es un rectángulo, más claro cuanto más alta es su cara de arriba. Las puertas cerradas salen en naranja, los puntos de control en cian y el jugador es un punto blanco. Los fondos de los fosos llevan la etiqueta `SinMapa` (`crear_foso`) y no salen, así el foso se lee como un hueco. El cálculo está aparte del widget y se prueba sin pantalla: `SAEVUSMapa::RecogerBloques` y `Encuadrar` (escala uniforme, centrado, margen), con el test `SAEVUS.Interfaz.Mapa`. La captura de la pausa de la prueba de humo lo muestra.
+
 ## Menú principal
 
 Los botones de los dos menús usan `SAEVUSEstilo::EstiloBotonMenu` (`SAEVUSEstiloInterfaz`, compartido con la interfaz): píldora oscura translúcida con borde, que se aclara al pasar por encima.

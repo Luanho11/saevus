@@ -838,7 +838,9 @@ def crear_foso(actores, etiqueta, x_inicio, x_fin, retorno, materiales, altura=0
     """Hueco entre x_inicio y x_fin con fondo y volumen de caída que devuelve a retorno."""
     largo = x_fin - x_inicio
     centro_x = (x_inicio + x_fin) / 2.0
-    crear_bloque(actores, f"{etiqueta}_Fondo", unreal.Vector(centro_x, 0, altura + FONDO_FOSO - 50), (largo, ANCHO_PASILLO * 2, 100), materiales["Piedra"])
+    fondo = crear_bloque(actores, f"{etiqueta}_Fondo", unreal.Vector(centro_x, 0, altura + FONDO_FOSO - 50), (largo, ANCHO_PASILLO * 2, 100), materiales["Piedra"])
+    # El fondo no sale en el mapa de la pausa (SAEVUSMapa::EtiquetaSinMapa): el foso se lee como hueco.
+    fondo.set_editor_property("tags", [unreal.Name("SinMapa")])
     caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, f"{etiqueta}_Caida", unreal.Vector(centro_x, 0, altura + FONDO_FOSO + 150),
                           (largo / 2, ANCHO_PASILLO, 150), "Tutorial")
     caida.set_editor_property("punto_retorno", retorno - caida.get_actor_location())
