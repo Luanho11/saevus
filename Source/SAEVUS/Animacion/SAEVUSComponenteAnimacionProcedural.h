@@ -263,7 +263,7 @@ private:
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
 
 	void AlSaltoAereo();
-	void AlSaltoPared();
+	void AlSaltoPared(const FVector& NormalPared);
 
 	/** Dirección horizontal del mundo pasada al espacio de la malla (unitaria); al frente si es nula. */
 	FVector DireccionMalla(const FVector& DireccionMundo) const;

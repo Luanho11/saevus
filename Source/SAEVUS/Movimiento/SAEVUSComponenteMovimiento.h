@@ -11,6 +11,7 @@
 /** Se emite al empezar un dash (no durante las repeticiones de corrección de red). Parámetro: dirección horizontal. */
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoDash, const FVector& /*Direccion*/);
 DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoSaltoAereo);
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoSaltoPared, const FVector& /*NormalPared*/);
 
 /**
  * Movimiento del personaje de SAEVUS.
@@ -75,8 +76,8 @@ public:
 	/** Se emite al hacer un doble salto (no en las repeticiones de corrección del cliente). */
 	FSAEVUSEventoSaltoAereo AlSaltoAereo;
 
-	/** Se emite al saltar desde una pared (no en las repeticiones de corrección del cliente). */
-	FSAEVUSEventoSaltoAereo AlSaltoPared;
+	/** Se emite al saltar desde una pared, con su normal (no en las repeticiones de corrección del cliente). */
+	FSAEVUSEventoSaltoPared AlSaltoPared;
 
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnDash() const { return TiempoDashRestante > 0.f; }

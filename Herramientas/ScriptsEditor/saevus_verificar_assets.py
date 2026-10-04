@@ -120,6 +120,8 @@ def main():
         comprobar("el arsenal tiene solo la espada", len(arsenal) == 1 and all(arsenal))
         estela = personaje.get_editor_property("estela_dash")
         comprobar("material de la estela del dash asignado", estela is not None and len(estela.get_editor_property("override_materials")) > 0)
+        polvo = personaje.get_editor_property("polvo_movimiento")
+        comprobar("material del polvo de movimiento asignado", polvo is not None and len(polvo.get_editor_property("override_materials")) > 0)
         efectos = personaje.get_editor_property("efectos_combate")
         comprobar("material de los efectos de combate asignado", efectos is not None and len(efectos.get_editor_property("override_materials")) > 0)
 

@@ -40,6 +40,10 @@ Como el cuerpo mira siempre a la cámara (`movimiento.md`, Orientación), la ani
 - **Aterrizaje según la caída:** la flexión se escala con la velocidad de caída (`VelocidadCaidaAterrizaje`, 900 cm/s = flexión completa; entre 0,35 y 1,3).
 - Test `SAEVUS.Animacion.Direccional`: correr de lado mueve los pies de lado (64 cm) y el dash lateral baja la cabeza (voltereta).
 
+## Polvo del movimiento (tarea 74)
+
+`USAEVUSComponentePolvoMovimiento` (`Efectos/`, partículas por CPU en mallas instanciadas con `M_ParticulaPolvo`, como la estela del dash): anillo de polvo a los pies al aterrizar, más grande cuanto más rápida la caída (`VelocidadCaidaReferencia`; por debajo de `VelocidadCaidaMinima` nada, así bajar un escalón no levanta polvo); rastro donde los pies pisan la pared al correr por ella o escalar; estallido contra la pared en el salto de pared (el evento `AlSaltoPared` lleva ahora la normal de la pared); polvo a ras de suelo, hacia atrás, en el dash por el suelo. Todo en `FSAEVUSAjustePolvoMovimiento`. Test `SAEVUS.Efectos.PolvoAterrizaje`.
+
 ## Ajustes
 
 `FSAEVUSAjusteAnimacion` (en el componente): longitud de ciclo, amplitudes de muslo, rodilla y brazo, inclinación al correr, en el dash y en la pared, respiración, suavizados, aterrizaje y retroceso. Todo editable sin compilar.

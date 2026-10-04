@@ -86,9 +86,9 @@ struct FSAEVUSAjusteInterfaz
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "6"))
 	int32 TamanoTituloZona = 64;
 
-	/** Altura del título de zona como fracción de la pantalla (desde arriba). */
+	/** Altura del título de zona como fracción de la pantalla (desde arriba); por debajo del aviso del tutorial. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0", ClampMax = "1"))
-	float AlturaTituloZona = 0.3f;
+	float AlturaTituloZona = 0.45f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
 	FLinearColor ColorVidaJefe = FLinearColor(0.85f, 0.35f, 0.12f);

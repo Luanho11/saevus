@@ -14,6 +14,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Efectos/SAEVUSComponentePolvoMovimiento.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -68,6 +69,8 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 
 	EstelaDash = CreateDefaultSubobject<USAEVUSComponenteEstelaDash>(TEXT("EstelaDash"));
 	EstelaDash->SetupAttachment(RootComponent);
+	PolvoMovimiento = CreateDefaultSubobject<USAEVUSComponentePolvoMovimiento>(TEXT("PolvoMovimiento"));
+	PolvoMovimiento->SetupAttachment(RootComponent);
 	EfectosCombate = CreateDefaultSubobject<USAEVUSComponenteEfectosCombate>(TEXT("EfectosCombate"));
 	EfectosCombate->SetupAttachment(RootComponent);
 	Sonido = CreateDefaultSubobject<USAEVUSComponenteSonido>(TEXT("Sonido"));

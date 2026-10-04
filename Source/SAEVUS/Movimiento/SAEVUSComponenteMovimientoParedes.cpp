@@ -137,7 +137,7 @@ bool USAEVUSComponenteMovimiento::IntentarSaltoPared()
 	ImpulsarDesdePared(NormalEmpuje);
 	if (!CharacterOwner->bClientUpdating)
 	{
-		AlSaltoPared.Broadcast();
+		AlSaltoPared.Broadcast(NormalEmpuje);
 	}
 	return true;
 }

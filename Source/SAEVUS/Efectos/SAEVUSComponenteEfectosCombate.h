@@ -60,6 +60,21 @@ struct FSAEVUSAjusteEfectosCombate
 	/** Velocidad aleatoria pequeña de la estela: se queda casi quieta y dibuja el arco. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float DispersionEstela = 15.f;
+
+	/**
+	 * Arco del tajo: durante la fase activa, partículas sobre el abanico de golpe (de su alcance hacia
+	 * dentro), barriéndolo en el sentido del tajo. Dibuja exactamente lo que golpea.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0"))
+	int32 ParticulasArcoPorPaso = 4;
+
+	/** Pasos de ángulo por grado de barrido (el arco no deja huecos aunque el fotograma sea largo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0.05"))
+	float PasosArcoPorGrado = 0.25f;
+
+	/** Desde qué fracción del alcance hacia fuera se dibuja el arco (1 = solo el borde). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0", ClampMax = "1"))
+	float FraccionInteriorArco = 0.6f;
 };
 
 /**
@@ -93,6 +108,10 @@ private:
 
 	/** Partículas a lo largo de la hoja mientras el tajo está en su fase activa. */
 	void EmitirEstelaArma();
+	void EmitirArcoTajo();
+	/** Ángulo (grados, desde el frente) por el que iba el barrido del arco el fotograma anterior. */
+	float AnguloArcoAnterior = 0.f;
+	bool bArcoActivo = false;
 
 	/** Partículas que se juntan en la hoja mientras se carga el ataque cargado. */
 	void EmitirCarga(float DeltaTime);

@@ -18,6 +18,7 @@ class USAEVUSComponenteArmas;
 class USAEVUSComponenteCamara;
 class USAEVUSComponenteCombate;
 class USAEVUSComponenteEstelaDash;
+class USAEVUSComponentePolvoMovimiento;
 class USAEVUSComponenteMovimiento;
 class USAEVUSComponenteVida;
 class USAEVUSConfigEntrada;
@@ -79,6 +80,7 @@ public:
 	USAEVUSComponenteGuardia* ObtenerGuardia() const { return Guardia; }
 	USAEVUSComponenteEfectosCombate* ObtenerEfectosCombate() const { return EfectosCombate; }
 	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
+	USAEVUSComponentePolvoMovimiento* ObtenerPolvoMovimiento() const { return PolvoMovimiento; }
 	UPoseableMeshComponent* ObtenerCuerpo() const { return Cuerpo; }
 	USAEVUSComponenteAnimacionProcedural* ObtenerAnimacion() const { return Animacion; }
 	USpringArmComponent* ObtenerBrazoCamara() const { return BrazoCamara; }
@@ -223,6 +225,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEstelaDash> EstelaDash;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponentePolvoMovimiento> PolvoMovimiento;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEfectosCombate> EfectosCombate;

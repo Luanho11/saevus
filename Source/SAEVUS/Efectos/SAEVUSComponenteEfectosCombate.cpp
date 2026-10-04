@@ -12,6 +12,7 @@ namespace SAEVUSEfectosCombate
 	constexpr float TamanoParticula = 0.07f;
 	constexpr float VidaParticula = 0.3f;
 	constexpr float ArrastreParticula = 6.f;
+	constexpr int32 MaxParticulas = 320;
 }
 
 USAEVUSComponenteEfectosCombate::USAEVUSComponenteEfectosCombate()
@@ -20,6 +21,8 @@ USAEVUSComponenteEfectosCombate::USAEVUSComponenteEfectosCombate()
 	Ajuste.Vida = SAEVUSEfectosCombate::VidaParticula;
 	Ajuste.Arrastre = SAEVUSEfectosCombate::ArrastreParticula;
 	Ajuste.AceleracionVertical = 0.f;
+	// El arco del tajo deja un par de cientos de partículas por golpe.
+	Ajuste.MaxParticulas = SAEVUSEfectosCombate::MaxParticulas;
 }
 
 void USAEVUSComponenteEfectosCombate::BeginPlay()
@@ -95,6 +98,38 @@ void USAEVUSComponenteEfectosCombate::EmitirEstelaArma()
 	}
 }
 
+void USAEVUSComponenteEfectosCombate::EmitirArcoTajo()
+{
+	FVector Origen;
+	FVector Frente;
+	float Avance = 0.f;
+	float Sentido = 1.f;
+	const FSAEVUSDefinicionAtaque* Ataque = Combate ? Combate->ObtenerAtaqueActual() : nullptr;
+	if (!Ataque || !Combate->ObtenerAbanicoActivo(Origen, Frente, Avance, Sentido))
+	{
+		bArcoActivo = false;
+		return;
+	}
+	// El barrido va de un borde del abanico al otro durante la fase activa (positivo = a la derecha).
+	const float Angulo = Sentido * Ataque->AnguloAbanico * (1.f - 2.f * Avance);
+	const float Desde = bArcoActivo ? AnguloArcoAnterior : Sentido * Ataque->AnguloAbanico;
+	AnguloArcoAnterior = Angulo;
+	bArcoActivo = true;
+	const FVector Derecha = FVector::CrossProduct(FVector::UpVector, Frente);
+	const int32 Pasos = FMath::Max(1, FMath::CeilToInt32(FMath::Abs(Angulo - Desde) * AjusteEfectos.PasosArcoPorGrado));
+	for (int32 Paso = 1; Paso <= Pasos; ++Paso)
+	{
+		const float Radianes = FMath::DegreesToRadians(FMath::Lerp(Desde, Angulo, static_cast<float>(Paso) / Pasos));
+		const FVector Radial = Frente * FMath::Cos(Radianes) + Derecha * FMath::Sin(Radianes);
+		for (int32 Indice = 0; Indice < AjusteEfectos.ParticulasArcoPorPaso; ++Indice)
+		{
+			// Más densas hacia el borde: el filo del arco es el alcance.
+			const float Fraccion = FMath::Lerp(AjusteEfectos.FraccionInteriorArco, 1.f, FMath::Sqrt(Aleatorio.FRand()));
+			Emitir(Origen + Radial * Ataque->AlcanceAbanico * Fraccion, Radial * AjusteEfectos.DispersionEstela);
+		}
+	}
+}
+
 void USAEVUSComponenteEfectosCombate::EmitirCarga(float DeltaTime)
 {
 	FVector Base;
@@ -120,6 +155,7 @@ void USAEVUSComponenteEfectosCombate::EmitirCarga(float DeltaTime)
 void USAEVUSComponenteEfectosCombate::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	EmitirEstelaArma();
+	EmitirArcoTajo();
 	EmitirCarga(DeltaTime);
 	if (Alma && Alma->EstaCurando())
 	{

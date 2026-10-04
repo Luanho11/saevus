@@ -804,7 +804,7 @@ void USAEVUSComponenteAnimacionProcedural::AlSaltoAereo()
 	TiempoRecogidaSaltoAereo = Ajuste.DuracionRecogidaSaltoAereo;
 }
 
-void USAEVUSComponenteAnimacionProcedural::AlSaltoPared()
+void USAEVUSComponenteAnimacionProcedural::AlSaltoPared(const FVector& NormalPared)
 {
 	TiempoGiroSaltoPared = Ajuste.DuracionGiroSaltoPared;
 }

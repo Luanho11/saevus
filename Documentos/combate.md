@@ -61,6 +61,15 @@ Lectura: los tajos rápidos se pueden dejar en cuanto golpean (fin de la fase ac
 
 Pares de cancelación diseñados: ataque → dash/salto/cambio de arma (tabla), dash → ataque (`bAtaqueTerminaDash`), salto durante un dash de suelo y salto de pared durante un dash (movimiento).
 
+## Alcance en abanico (GunZ, tarea 73)
+
+El dueño pidió un alcance de espada intuitivo y limpio. Los tajos ya no golpean con una esfera escondida delante: golpean en un **abanico** horizontal desde el centro del cuerpo, y el **arco del tajo** dibuja exactamente ese abanico. Lo que se ve es lo que golpea.
+- Datos por ataque (`FSAEVUSDefinicionAtaque`): `AlcanceAbanico` (170 cm por defecto; remate 190, tajo en carrera 210, ataque cargado 190), `AnguloAbanico` (±75°; remate ±60°, tajo en carrera ±55°, ataque cargado 180° = todo alrededor) y `MitadAlturaAbanico` (±70 cm desde `AlturaGolpe`). Con `AnguloAbanico` 0 el ataque usa la esfera de antes (`RadioGolpe`, `DesplazamientoFrontalGolpe`): así queda el tajo hacia arriba.
+- Detección: esfera que contiene el abanico y, de cada objetivo, su punto de colisión más cercano al origen tiene que caer dentro (`USAEVUSComponenteCombate::DentroDelAbanico`, función pura). Con `SAEVUS.Depuracion.Combate` se dibuja como un cono.
+- Arco del tajo (`USAEVUSComponenteEfectosCombate::EmitirArcoTajo`): durante la fase activa, partículas del alcance hacia dentro que barren el abanico de un borde al otro en el sentido del tajo (`ObtenerAbanicoActivo`), sin huecos aunque el fotograma sea largo (`PasosArcoPorGrado`).
+- El abanico se mide desde donde está el personaje en la fase activa, ya adelantado por la estocada (unos 54 cm el primer tajo).
+- Test `SAEVUS.Combate.Abanico`: la función pura (delante, diagonal, fuera de alcance, de lado, detrás, por encima, 180°) y en el mundo el primer tajo alcanza un muñeco a 1,6 m y no a 3,2 m.
+
 ## Tajos direccionales e impacto
 
 Mecánicas de Hollow Knight adaptadas a 3D, con números propios:

@@ -500,6 +500,8 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     # Polvo claro y frío para la estela del dash: resalta sobre el escenario oscuro.
     material_estela = crear_material_color("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0), sin_luz=True)
     personaje.get_editor_property("estela_dash").set_editor_property("override_materials", [material_estela])
+    # El polvo del movimiento (aterrizajes, paredes, dash a ras de suelo) usa el mismo polvo claro.
+    personaje.get_editor_property("polvo_movimiento").set_editor_property("override_materials", [material_estela])
     # Alma: blanco azulado, el mismo tono frío que el borde del caballero.
     material_alma = crear_material_color("M_ParticulaAlma", (0.7, 0.85, 1.0, 1.0), sin_luz=True)
     personaje.get_editor_property("efectos_combate").set_editor_property("override_materials", [material_alma])

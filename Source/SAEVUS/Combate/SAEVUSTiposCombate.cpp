@@ -24,6 +24,8 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	Remate.Danio = 25.f;
 	Remate.RadioGolpe = 75.f;
 	Remate.DesplazamientoFrontalGolpe = 100.f;
+	Remate.AlcanceAbanico = 190.f;
+	Remate.AnguloAbanico = 60.f;
 	Remate.VelocidadEstocada = 650.f;
 	Remate.DuracionEstocada = 0.18f;
 	Remate.EscalaVelocidadSuelo = 0.f;
@@ -59,6 +61,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	RemateAereo.Danio = 18.f;
 	RemateAereo.TiempoRecuperacion = 0.35f;
 	RemateAereo.RadioGolpe = 75.f;
+	RemateAereo.AlcanceAbanico = 185.f;
 	RemateAereo.EscalaGravedadEnAire = 1.f;
 	RemateAereo.FraccionCaidaConservada = 1.f;
 
@@ -70,6 +73,8 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoArriba.TiempoActivo = 0.1f;
 	TajoArriba.TiempoRecuperacion = 0.25f;
 	TajoArriba.Danio = 12.f;
+	// Sobre la cabeza: esfera, no abanico.
+	TajoArriba.AnguloAbanico = 0.f;
 	TajoArriba.RadioGolpe = 70.f;
 	TajoArriba.DesplazamientoFrontalGolpe = 25.f;
 	TajoArriba.AlturaGolpe = 130.f;
@@ -90,6 +95,8 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoEnCarrera.TiempoRecuperacion = 0.3f;
 	TajoEnCarrera.Danio = 16.f;
 	TajoEnCarrera.RadioGolpe = 80.f;
+	TajoEnCarrera.AlcanceAbanico = 210.f;
+	TajoEnCarrera.AnguloAbanico = 55.f;
 	TajoEnCarrera.DesplazamientoFrontalGolpe = 100.f;
 	TajoEnCarrera.VelocidadEstocada = 1100.f;
 	TajoEnCarrera.DuracionEstocada = 0.16f;
@@ -108,6 +115,9 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	AtaqueCargado.TiempoRecuperacion = 0.4f;
 	AtaqueCargado.Danio = 30.f;
 	AtaqueCargado.RadioGolpe = 170.f;
+	// Giro completo: el abanico es todo el círculo.
+	AtaqueCargado.AlcanceAbanico = 190.f;
+	AtaqueCargado.AnguloAbanico = 180.f;
 	AtaqueCargado.DesplazamientoFrontalGolpe = 0.f;
 	AtaqueCargado.AlturaGolpe = 0.f;
 	AtaqueCargado.VelocidadEstocada = 0.f;

@@ -316,6 +316,43 @@ void USAEVUSComponenteCombate::TerminarAtaque()
 	}
 }
 
+bool USAEVUSComponenteCombate::DentroDelAbanico(const FSAEVUSDefinicionAtaque& Ataque, const FVector& Origen, const FVector& Frente, const FVector& Punto)
+{
+	const FVector Delta = Punto - Origen;
+	if (FMath::Abs(Delta.Z) > Ataque.MitadAlturaAbanico)
+	{
+		return false;
+	}
+	const FVector Horizontal(Delta.X, Delta.Y, 0.f);
+	const double Distancia = Horizontal.Size();
+	if (Distancia > Ataque.AlcanceAbanico)
+	{
+		return false;
+	}
+	// Pegado al cuerpo cuenta en cualquier dirección.
+	if (Distancia < UE_KINDA_SMALL_NUMBER || Ataque.AnguloAbanico >= 180.f)
+	{
+		return true;
+	}
+	const double Coseno = FVector::DotProduct(Horizontal / Distancia, Frente.GetSafeNormal2D());
+	return Coseno >= FMath::Cos(FMath::DegreesToRadians(Ataque.AnguloAbanico));
+}
+
+bool USAEVUSComponenteCombate::ObtenerAbanicoActivo(FVector& OutOrigen, FVector& OutFrente, float& OutAvance, float& OutSentido) const
+{
+	const AActor* Duenio = GetOwner();
+	if (!AtaqueActual || !Duenio || AtaqueActual->AnguloAbanico <= 0.f || ObtenerFaseAtaque() != ESAEVUSFaseAtaque::Activa)
+	{
+		return false;
+	}
+	OutOrigen = Duenio->GetActorLocation() + FVector::UpVector * AtaqueActual->AlturaGolpe;
+	OutFrente = Duenio->GetActorForwardVector().GetSafeNormal2D();
+	OutAvance = FMath::Clamp((TiempoAtaque - AtaqueActual->TiempoPreparacion) / FMath::Max(AtaqueActual->TiempoActivo, UE_KINDA_SMALL_NUMBER), 0.f, 1.f);
+	// Como la animación: el primer tajo va de derecha a izquierda, el revés al contrario.
+	OutSentido = (!bCadenaAerea && IndiceCombo == 1) ? -1.f : 1.f;
+	return true;
+}
+
 void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ataque)
 {
 	AActor* Duenio = GetOwner();
@@ -324,7 +361,13 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 	{
 		return;
 	}
-	const FVector Centro = Duenio->GetActorLocation() + Duenio->GetActorForwardVector() * Ataque.DesplazamientoFrontalGolpe + FVector::UpVector * Ataque.AlturaGolpe;
+	const bool bAbanico = Ataque.AnguloAbanico > 0.f;
+	const FVector Origen = Duenio->GetActorLocation() + FVector::UpVector * Ataque.AlturaGolpe;
+	const FVector Frente = Duenio->GetActorForwardVector().GetSafeNormal2D();
+	// Abanico: la consulta es la esfera que lo contiene y luego se filtra por el punto más cercano de cada uno.
+	const FVector Centro = bAbanico ? Origen
+		: Duenio->GetActorLocation() + Duenio->GetActorForwardVector() * Ataque.DesplazamientoFrontalGolpe + FVector::UpVector * Ataque.AlturaGolpe;
+	const float Radio = bAbanico ? FMath::Sqrt(FMath::Square(Ataque.AlcanceAbanico) + FMath::Square(Ataque.MitadAlturaAbanico)) : Ataque.RadioGolpe;
 
 	FCollisionObjectQueryParams TiposObjeto;
 	TiposObjeto.AddObjectTypesToQuery(ECC_Pawn);
@@ -333,11 +376,20 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 	FCollisionQueryParams ParametrosConsulta(SCENE_QUERY_STAT(SAEVUSAtaque), false, Duenio);
 
 	TArray<FOverlapResult> Solapes;
-	Mundo->OverlapMultiByObjectType(Solapes, Centro, FQuat::Identity, TiposObjeto, FCollisionShape::MakeSphere(Ataque.RadioGolpe), ParametrosConsulta);
+	Mundo->OverlapMultiByObjectType(Solapes, Centro, FQuat::Identity, TiposObjeto, FCollisionShape::MakeSphere(Radio), ParametrosConsulta);
 
 	if (SAEVUSDepuracion::DibujoCombateActivo())
 	{
-		DrawDebugSphere(Mundo, Centro, Ataque.RadioGolpe, SAEVUSCombate::SegmentosEsferaDepuracion, Solapes.IsEmpty() ? FColor::Yellow : FColor::Red);
+		if (bAbanico)
+		{
+			const float Angulo = FMath::DegreesToRadians(Ataque.AnguloAbanico);
+			DrawDebugCone(Mundo, Origen, Frente, Ataque.AlcanceAbanico, Angulo, FMath::DegreesToRadians(1.f), SAEVUSCombate::SegmentosEsferaDepuracion,
+				Solapes.IsEmpty() ? FColor::Yellow : FColor::Red);
+		}
+		else
+		{
+			DrawDebugSphere(Mundo, Centro, Ataque.RadioGolpe, SAEVUSCombate::SegmentosEsferaDepuracion, Solapes.IsEmpty() ? FColor::Yellow : FColor::Red);
+		}
 	}
 
 	TArray<AActor*, TInlineAllocator<4>> Nuevos;
@@ -347,6 +399,23 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 		if (!Objetivo || Objetivo == Duenio || ActoresGolpeados.Contains(Objetivo) || Nuevos.Contains(Objetivo))
 		{
 			continue;
+		}
+		if (bAbanico)
+		{
+			// El punto del objetivo más cercano al origen tiene que caer en el abanico.
+			FVector Punto = Objetivo->GetActorLocation();
+			if (const UPrimitiveComponent* Componente = Solape.GetComponent())
+			{
+				FVector Cercano;
+				if (Componente->GetClosestPointOnCollision(Origen, Cercano) >= 0.f)
+				{
+					Punto = Cercano;
+				}
+			}
+			if (!DentroDelAbanico(Ataque, Origen, Frente, Punto))
+			{
+				continue;
+			}
 		}
 		Nuevos.Add(Objetivo);
 	}

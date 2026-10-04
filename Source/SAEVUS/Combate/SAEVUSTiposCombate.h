@@ -61,7 +61,21 @@ struct FSAEVUSDefinicionAtaque
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0"))
 	float Danio = 10.f;
 
-	/** Esfera de golpe, delante del personaje mientras el ataque está activo. */
+	/**
+	 * Zona de golpe en abanico (GunZ): todo lo que esté a menos de AlcanceAbanico del centro del cuerpo
+	 * (a AlturaGolpe), dentro de ±AnguloAbanico del frente y a ±MitadAlturaAbanico de altura. Es lo que
+	 * dibuja el arco del tajo: lo que se ve es lo que golpea. AnguloAbanico 0 = esfera (RadioGolpe).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float AlcanceAbanico = 170.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ClampMax = "180", ForceUnits = "deg"))
+	float AnguloAbanico = 75.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float MitadAlturaAbanico = 70.f;
+
+	/** Esfera de golpe (sin abanico), delante del personaje mientras el ataque está activo. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float RadioGolpe = 60.f;
 

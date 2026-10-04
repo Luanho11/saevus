@@ -79,6 +79,18 @@ public:
 
 	const FSAEVUSRepertorioMelee& ObtenerRepertorio() const;
 
+	/**
+	 * Cierto si Punto cae en el abanico de Ataque con origen Origen (centro del cuerpo a AlturaGolpe)
+	 * mirando a Frente (horizontal). Función pura: la usan la detección y los tests.
+	 */
+	static bool DentroDelAbanico(const FSAEVUSDefinicionAtaque& Ataque, const FVector& Origen, const FVector& Frente, const FVector& Punto);
+
+	/**
+	 * El abanico del ataque en curso mientras está activo, para dibujarlo: origen, frente, avance de la
+	 * fase activa (0–1) y sentido del barrido (+1 de derecha a izquierda, −1 al revés). Falso si no hay.
+	 */
+	bool ObtenerAbanicoActivo(FVector& OutOrigen, FVector& OutFrente, float& OutAvance, float& OutSentido) const;
+
 	/** Cambia el repertorio. Nulo vuelve al del código. Termina un ataque en curso. */
 	void FijarRepertorio(const USAEVUSDatosRepertorioMelee* NuevoRepertorio);
 

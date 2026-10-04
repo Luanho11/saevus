@@ -14,6 +14,7 @@
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Efectos/SAEVUSComponentePolvoMovimiento.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
 #include "Enemigos/SAEVUSProyectil.h"
@@ -129,6 +130,7 @@ namespace SAEVUSPruebas
 			GuardiaSimulada = Personaje->ObtenerGuardia();
 			ArmasSimuladas = Personaje->ObtenerArmas();
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
+			PolvoSimulado = Personaje->ObtenerPolvoMovimiento();
 			EfectosSimulados = Personaje->ObtenerEfectosCombate();
 			AnimacionSimulada = Personaje->ObtenerAnimacion();
 			return Personaje;
@@ -196,6 +198,10 @@ namespace SAEVUSPruebas
 			{
 				EstelaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &EstelaSimulada->PrimaryComponentTick);
 			}
+			if (PolvoSimulado)
+			{
+				PolvoSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &PolvoSimulado->PrimaryComponentTick);
+			}
 			if (AnimacionSimulada)
 			{
 				AnimacionSimulada->Actualizar(PasoSimulacion);
@@ -242,6 +248,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteGuardia* GuardiaSimulada = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
+		USAEVUSComponentePolvoMovimiento* PolvoSimulado = nullptr;
 		USAEVUSComponenteEfectosCombate* EfectosSimulados = nullptr;
 		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;
 		TArray<TWeakObjectPtr<ASAEVUSEnemigo>> Enemigos;

@@ -434,4 +434,40 @@ bool FSAEVUSPruebaAtaqueCargado::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAbanico, "SAEVUS.Combate.Abanico", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAbanico::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasCombate;
+	FSAEVUSDefinicionAtaque Ataque;
+	Ataque.AlcanceAbanico = 170.f;
+	Ataque.AnguloAbanico = 75.f;
+	Ataque.MitadAlturaAbanico = 70.f;
+	const FVector Origen = FVector::ZeroVector;
+	const FVector Frente = FVector::ForwardVector;
+	TestTrue(TEXT("Delante, al alcance"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(160.f, 0.f, 0.f)));
+	TestTrue(TEXT("En diagonal (45°)"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(100.f, 100.f, 0.f)));
+	TestFalse(TEXT("Más allá del alcance"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(180.f, 0.f, 0.f)));
+	TestFalse(TEXT("De lado (90°)"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(0.f, 120.f, 0.f)));
+	TestFalse(TEXT("Detrás"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(-100.f, 0.f, 0.f)));
+	TestFalse(TEXT("Por encima de la franja"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(100.f, 0.f, 90.f)));
+	Ataque.AnguloAbanico = 180.f;
+	TestTrue(TEXT("Con 180° también detrás"), USAEVUSComponenteCombate::DentroDelAbanico(Ataque, Origen, Frente, FVector(-100.f, 0.f, 0.f)));
+
+	// En el mundo: el primer tajo alcanza un muñeco a 1,6 m y no a 3,2 m (el abanico se mide desde donde
+	// está el personaje en la fase activa, ya adelantado por la estocada: lo que dibuja el arco).
+	for (const float Distancia : { 160.f, 320.f })
+	{
+		FMundoCombate Mundo;
+		if (!TestTrue(TEXT("Personaje asentado"), Mundo.bListo))
+		{
+			return false;
+		}
+		const ASAEVUSMunecoEntrenamiento* Muneco = Mundo.CrearMuneco(Distancia);
+		Mundo.Personaje->PedirAtaque();
+		Mundo.AvanzarHastaReposo();
+		TestEqual(FString::Printf(TEXT("Golpes a %.0f cm"), Distancia), Muneco->ObtenerGolpes(), Distancia < 250.f ? 1 : 0);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
