@@ -1,10 +1,12 @@
 ﻿# Compila SAEVUS, crea los assets, ejecuta los tests de automatización y verifica los assets.
-# Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets]
+# Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets] [-ConJuego]
+# -ConJuego añade la prueba de humo (L_Pruebas) y el recorrido del tutorial en el juego real (con render; varios minutos).
 # Los logs van a Saved\Logs\Verificacion\. Código de salida 0 solo si pasan todos los pasos.
 
 param(
     [string]$RaizMotor = "C:\Program Files\Epic Games\UE_5.8",
-    [switch]$SinAssets
+    [switch]$SinAssets,
+    [switch]$ConJuego
 )
 
 $ErrorActionPreference = "Stop"
@@ -45,5 +47,14 @@ Write-Host "== 4/4 Verificar assets"
 $logVerificar = Invocar-Editor "verificar" "-ExecutePythonScript=`"$(Join-Path $PSScriptRoot 'ScriptsEditor\saevus_verificar_assets.py')`""
 Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] (FALLO|SUPERADA|FALLIDA)" -Encoding UTF8 | ForEach-Object { "  " + ($_.Line -replace '^.*?\[SAEVUS', '[SAEVUS') }
 if (-not (Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] SUPERADA" -Quiet -Encoding UTF8)) { throw "Falló la verificación de assets (ver verificar.log)" }
+
+if ($ConJuego) {
+    Write-Host "== 5/6 Prueba de humo en el juego (L_Pruebas)"
+    & (Join-Path $PSScriptRoot "Ejecutar-PruebaHumo.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADA|FALLIDA|fotogramas"
+    if ($LASTEXITCODE -ne 0) { throw "Falló la prueba de humo (ver humo.log)" }
+    Write-Host "== 6/6 Recorrido del tutorial (L_Tutorial)"
+    & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADO|FALLIDO"
+    if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido del tutorial (ver recorrido.log)" }
+}
 
 Write-Host "Todas las comprobaciones pasaron."

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 28)**
-**Último latido: 2026-10-03 23:42** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (planificando)**
+**Último latido: 2026-10-03 23:48** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -62,9 +62,9 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 25. [x] ~~Escenario boceto del tutorial: piezas modulares generadas en Blender (bordes rotos, columnas, escombros) colocadas por el script del mapa; presupuesto de triángulos.~~
 26. [x] ~~Resumen para el dueño al volver: `Documentos/RESUMEN_PARA_EL_DUENO.md` con qué hay, cómo probarlo (controles, tutorial), capturas de referencia, decisiones tomadas y preguntas abiertas (empaquetado bloqueado, dirección de arte, números de equilibrio).~~
 27. [x] ~~Recorrido automático del tutorial completo en el juego real (prueba de humo `-SAEVUSRecorrido`): teletransporta al jugador a cada sección y comprueba avisos, puertas y que el jefe aparece; captura por sección.~~
-28. [ ] Añadir el recorrido a `Verificar-Arranque.ps1` como paso opcional (`-ConJuego`: prueba de humo + recorrido), para tener una sola orden que lo compruebe todo.
+28. [x] ~~Añadir el recorrido a `Verificar-Arranque.ps1` como paso opcional (`-ConJuego`: prueba de humo + recorrido), para tener una sola orden que lo compruebe todo.~~
 
 ## Estado del turno
-- Completado: tarea 27 (recorrido del tutorial en el juego real).
+- Completado: tarea 28 (`Verificar-Arranque.ps1 -ConJuego`, todo en verde).
 - A medias: —
-- Siguiente paso exacto: tarea 28 — `Verificar-Arranque.ps1 -ConJuego`.
+- Siguiente paso exacto: proponer la siguiente tanda de tareas (cola vacía salvo la 14, bloqueada).

@@ -8,7 +8,7 @@ Todo lo que pediste en tu mensaje está hecho, más lo que fui añadiendo al ter
 2. Teclas y técnicas: `controles.md`. Lo básico: WASD, Espacio (doble salto), **doble toque** de dirección (dash), clic izquierdo (tajos; mira arriba/abajo para tajos direccionales), **clic derecho** (guardia), **Q** mantenida (curar), **P** (pausa), F6 (datos de depuración).
 3. El tutorial enseña todo por secciones y acaba en el mini jefe; tras él hay un reto opcional.
 
-Si algo no compila o falta un asset: `powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1` lo reconstruye todo (compila, crea assets, 105 tests, verificación).
+Si algo no compila o falta un asset: `powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1` lo reconstruye todo (compila, crea assets, 105 tests, verificación). Con `-ConJuego` además juega la prueba de humo y recorre el tutorial solo (unos minutos).
 
 ## Qué hay (todo boceto, todo cambiable por datos)
 
