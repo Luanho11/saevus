@@ -57,12 +57,8 @@ Rendimiento: la prueba de humo va a ≈ 65 fps de media a 720p en Media dentro d
 
 ## Lo que queda para ti
 
-- **Ejecutable:** con 7 GB de RAM, el primer empaquetado lo cortó el sistema. Ahora `Herramientas\Empaquetar.ps1`:
-  - compila de una acción en una;
-  - deja libres casi todos los hilos al compilar shaders.
-
-  Es más lento, pero cabe en memoria. Ciérralo todo (editor incluido) y ejecútalo. Después, `Herramientas\Probar-Ejecutable.ps1` arranca el .exe con la prueba de humo, y para jugar está `Saved\Empaquetado\Windows\SAEVUS.exe`. No lo lancé yo porque quedó pedido no relanzarlo en autónomo.
-- **Fuente:** solo uso la Roboto del motor, con estilos. Una fuente con más carácter, como Cinzel (licencia libre OFL, parecida a la de Hollow Knight), sería un recurso externo. ¿La quieres?
+- **Ejecutable: hecho.** `Saved\Empaquetado\Windows\SAEVUS.exe` (959 MB) arranca en el tutorial con el menú principal. Pasa la prueba de humo completa a 78 fps (Media, 720p). Para volver a generarlo: `Herramientas\Empaquetar.ps1` con todo cerrado; para comprobarlo, `Herramientas\Probar-Ejecutable.ps1`.
+- **Fuente Cinzel:** la quieres, pero el permiso automático de Claude Code bloqueó la descarga. Pon `Cinzel-Regular.ttf`, `Cinzel-SemiBold.ttf` y `Cinzel-Bold.ttf` (Google Fonts o el repositorio NDISCOVER/Cinzel) en `ArteFuente\Fuentes\`, o autoriza la descarga.
 - **Preguntas:**
   - ¿El abanico de la espada (1,7 m, ±75°) se siente bien?
   - ¿Los goblins se dejan golpear como esperabas?

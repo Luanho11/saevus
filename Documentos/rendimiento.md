@@ -97,3 +97,7 @@ La Zona 1 cuesta lo mismo que el tutorial pese a tener el doble de enemigos: los
 
 - Escalabilidad y resolución por defecto del juego final, y si ejecutar el benchmark del motor al primer arranque (es parte del menú de ajustes).
 - Desglose de GPU por pasada: `-PerfilGPU` no da datos en esta máquina (ver arriba).
+
+## Ejecutable empaquetado (2026-10-04)
+
+Development, Win64, `Herramientas/Empaquetar.ps1` (una acción de compilación a la vez; cabe en 7 GB con el resto cerrado). Prueba de humo del .exe (`Probar-Ejecutable.ps1`, Media, 720p): 78 fps de media (12,8 ms; juego 8,8 ms, render 10,8 ms). Dentro del editor, la misma prueba da 65 fps: el editor cuesta unos 2–3 ms por fotograma.

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (cierre de la fase "Rehacer como GunZ")**
-**Último latido: 2026-10-04 12:38** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (fase "Calidad")**
+**Último latido: 2026-10-04 13:09** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -124,9 +124,18 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 74. [x] Partículas: estela y polvo direccional del dash, aterrizaje, carrera por pared, salto de pared, arcos de los tajos.
 75. [x] Goblins estilo GunZ (Blender, mejorados): tipos con ataques variados y avisos claros, sin daño por contacto, golpeables con claridad; sala de goblins en el tutorial.
 76. [x] Jefe goblin (rey goblin) con patrones claros.
-77. [~] (preparado: `Empaquetar.ps1` seguro de memoria y `Probar-Ejecutable.ps1`; lo ejecuta el dueño) Ejecutable: empaquetado que quepa en la memoria de la máquina (cocinar solo los mapas del juego) y prueba de arranque del .exe.
+77. [x] Ejecutable: empaquetado que quepa en la memoria de la máquina (cocinar solo los mapas del juego) y prueba de arranque del .exe. Hecho: 959 MB en `Saved/Empaquetado/Windows/SAEVUS.exe`; el .exe pasa la prueba de humo a 78 fps (Media, 720p).
+
+### Fase "Calidad" (dueño, 2026-10-04 tarde: "mejóralo más, debe sentirse calidad")
+78. [ ] Fuente Cinzel (OFL) en títulos, menús y avisos, con Roboto de respaldo si falta. Bloqueado: la descarga la frenó el permiso automático; el dueño pondrá los .ttf en `ArteFuente/Fuentes/` o autorizará la descarga. El código puede ir antes, con respaldo.
+79. [ ] Sensación de golpe: destello del objetivo, chispas más grandes en la dirección del tajo, parada de golpe y sacudida ajustadas por ataque, sonido por capas.
+80. [ ] Cámara: suavizado de seguimiento, ligera anticipación en el dash, empuje del campo de visión al esprintar y que no se meta en los muros estrechos (sonda y distancia mínima).
+81. [ ] Animación: transiciones con anticipación y asentamiento (squash/stretch leve), postura de reposo con el arma lista y giro de la capa en las volteretas.
+82. [ ] Goblins: animación propia (andar, agacharse al avisar, golpe, aturdido, muerte que se deshace en polvo) y sonidos.
+83. [ ] Interfaz: transición de menús (fundido y desplazamiento), sonido al navegar, barra del jefe con nombre en Cinzel.
+84. [ ] Rendimiento en el ejecutable: perfil con el recorrido empaquetado y presupuesto de partículas.
 
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- Siguiente paso exacto: fase "Rehacer como GunZ" completa salvo el empaquetado (lo lanza el dueño). Siguiente: proponer pulido (ver RESUMEN_PARA_EL_DUENO.md).
+- Siguiente paso exacto: fase "Calidad", tarea 79 (la 78 espera los .ttf de Cinzel).
