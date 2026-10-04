@@ -187,6 +187,7 @@ bool FSAEVUSPruebaEnemigoAturdido::RunTest(const FString& Parameters)
 		return false;
 	}
 	TestTrue(TEXT("Y le quita vida"), Enemigo->ObtenerVida()->ObtenerVida() < VidaEnemigo);
+	TestTrue(TEXT("El golpe hace destellar al enemigo"), Enemigo->ObtenerDestello() > 0.f);
 	TestEqual(TEXT("El jugador gana alma"), Mundo.Jugador->ObtenerAlma()->ObtenerAlma(), Mundo.Jugador->ObtenerAlma()->ObtenerAjuste().AlmaPorGolpe);
 	Mundo.AvanzarDurante(Enemigo->ObtenerAjuste().TiempoAturdido + SAEVUSPruebas::PasoSimulacion * 2.f);
 	TestNotEqual(TEXT("El aturdimiento pasa"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Aturdido);

@@ -42,6 +42,11 @@ namespace SAEVUSEnemigo
 	constexpr float VelocidadParticulasMuerte = 300.f;
 	constexpr float DispersionParticulasMuerte = 250.f;
 
+	// Destello al recibir un golpe: duración, mezcla hacia el blanco y brillo.
+	constexpr float DuracionDestello = 0.12f;
+	constexpr float MezclaDestello = 0.85f;
+	constexpr float BrilloDestello = 1.5f;
+
 	const FName ParametroColor(TEXT("Color"));
 	const FName ParametroAutoIluminacion(TEXT("AutoIluminacion"));
 }
@@ -113,6 +118,40 @@ void ASAEVUSEnemigo::BeginPlay()
 	AplicarAjuste();
 	CrearMateriales();
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
+	Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::ManejarCambioVida);
+}
+
+void ASAEVUSEnemigo::ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
+{
+	if (Delta < 0.f)
+	{
+		TiempoDestello = SAEVUSEnemigo::DuracionDestello;
+	}
+}
+
+float ASAEVUSEnemigo::ObtenerDestello() const
+{
+	return FMath::Clamp(TiempoDestello / SAEVUSEnemigo::DuracionDestello, 0.f, 1.f);
+}
+
+void ASAEVUSEnemigo::AplicarDestello(float DeltaSeconds)
+{
+	using namespace SAEVUSEnemigo;
+	TiempoDestello = FMath::Max(0.f, TiempoDestello - DeltaSeconds);
+	const float Fraccion = ObtenerDestello();
+	if (!MaterialCuerpo || (Fraccion <= 0.f && !bDestelloPintado))
+	{
+		return;
+	}
+	// Mientras dura se pinta cada fotograma; al acabar, una vez más con los colores del tipo.
+	const FSAEVUSAjusteEnemigo& Ajuste = ObtenerAjuste();
+	MaterialCuerpo->SetVectorParameterValue(ParametroColor, FMath::Lerp(Ajuste.ColorCuerpo, FLinearColor::White, Fraccion * MezclaDestello));
+	MaterialCuerpo->SetScalarParameterValue(ParametroAutoIluminacion, Fraccion * BrilloDestello);
+	if (MaterialMascara)
+	{
+		MaterialMascara->SetVectorParameterValue(ParametroColor, FMath::Lerp(Ajuste.ColorMascara, FLinearColor::White, Fraccion * MezclaDestello));
+	}
+	bDestelloPintado = Fraccion > 0.f;
 }
 
 void ASAEVUSEnemigo::AplicarAjuste()
@@ -213,6 +252,7 @@ void ASAEVUSEnemigo::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	ActualizarAspecto(DeltaSeconds);
+	AplicarDestello(DeltaSeconds);
 }
 
 void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)

@@ -41,6 +41,9 @@ public:
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
 	USAEVUSComponenteIAEnemigo* ObtenerIA() const { return IA; }
 
+	/** Destello al recibir un golpe: 1 justo al recibirlo, baja a 0. */
+	float ObtenerDestello() const;
+
 	/** Material de sus proyectiles (el de la máscara: brilla igual). */
 	UMaterialInterface* ObtenerMaterialProyectil() const;
 
@@ -75,6 +78,13 @@ private:
 
 	UFUNCTION()
 	void ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor* Asesino);
+
+	/** Al recibir daño: destello blanco breve (lectura del golpe). */
+	UFUNCTION()
+	void ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
+
+	/** Pinta el destello sobre los colores del tipo. */
+	void AplicarDestello(float DeltaSeconds);
 
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<USAEVUSComponenteVida> Vida;
@@ -111,4 +121,6 @@ private:
 
 	FVector EscalaPiezas = FVector::OneVector;
 	float TiempoMuerto = 0.f;
+	float TiempoDestello = 0.f;
+	bool bDestelloPintado = false;
 };

@@ -59,6 +59,10 @@ El Guardián apenas se mueve con los golpes (`EscalaEmpujeRecibido` 0,15) y tard
 - El jugador recibe golpes por `ApplyDamage`: pierde vida, queda invulnerable 1 s parpadeando y sale despedido lejos del causante (`FSAEVUSAjusteGolpeRecibido`: 550 cm/s en horizontal, 350 cm/s hacia arriba).
 - Jugador y enemigos aceptan daño sin modo de juego (`ShouldTakeDamage` solo pide autoridad).
 
+## Destello
+
+Al recibir daño, cuerpo y máscara se pintan casi en blanco y brillan 0,12 s (`ASAEVUSEnemigo::AplicarDestello`): el golpe se lee aunque el enemigo no se aturda (jefes).
+
 ## Muerte
 
 Al morir: sin colisión ni movimiento, ráfaga de partículas, se encoge durante `DuracionMuerte` y desaparece. `ASAEVUSEnemigo::AlMorirEnemigo` (estático) avisa a quien escuche (puertas y recuentos del tutorial).
