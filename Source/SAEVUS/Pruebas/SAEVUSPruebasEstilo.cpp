@@ -38,6 +38,7 @@ bool FSAEVUSPruebaEstiloCamara::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Viñeta activada"), Ajuste.bOverride_VignetteIntensity != 0);
 	TestEqual(TEXT("Intensidad de viñeta"), Ajuste.VignetteIntensity, 0.3f, Tolerancia);
 	TestEqual(TEXT("Saturación"), static_cast<float>(Ajuste.ColorSaturation.X), 0.6f, Tolerancia);
+	TestTrue(TEXT("Sin desenfoque de movimiento por defecto"), Ajuste.bOverride_MotionBlurAmount && Ajuste.MotionBlurAmount == 0.f);
 
 	// Sin material: sin contorno, y reaplicar no acumula blendables.
 	Ajustes->Camara.MaterialDibujado = nullptr;

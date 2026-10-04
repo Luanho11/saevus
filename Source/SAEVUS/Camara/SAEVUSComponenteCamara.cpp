@@ -136,6 +136,8 @@ void USAEVUSComponenteCamara::AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste)
 	PostProcessSettings.VignetteIntensity = Ajuste.IntensidadVineta;
 	PostProcessSettings.bOverride_ColorSaturation = true;
 	PostProcessSettings.ColorSaturation = FVector4(Ajuste.Saturacion, Ajuste.Saturacion, Ajuste.Saturacion, 1.f);
+	PostProcessSettings.bOverride_MotionBlurAmount = true;
+	PostProcessSettings.MotionBlurAmount = Ajuste.DesenfoqueMovimiento;
 }
 
 float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const

@@ -64,6 +64,10 @@ struct FSAEVUSAjusteCamara
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "2"))
 	float Saturacion = 0.8f;
 
+	/** Desenfoque de movimiento (0 = ninguno): emborrona las líneas del dibujo y cuesta en la Vega 8. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "1"))
+	float DesenfoqueMovimiento = 0.f;
+
 	/** Sacudida de cámara en los impactos (modelo de "trauma": cada evento suma; la sacudida es su cuadrado). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida")
 	bool bSacudida = true;

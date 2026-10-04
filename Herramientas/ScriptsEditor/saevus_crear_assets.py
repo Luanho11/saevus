@@ -854,17 +854,36 @@ PIEZAS_ESCENARIO = {
     "Puerta": {"Color": (0.25, 0.12, 0.05, 1.0), "ColorBorde": (1.0, 0.6, 0.3, 1.0), "IntensidadBorde": 0.3, "AutoIluminacion": 0.6},
 }
 
-# Avisos por sección: (x inicio del volumen, título, texto). El cartel 3D repite el título.
+# Avisos por sala: (x inicio del volumen, título, texto). El cartel 3D repite el título. Cada aviso dice
+# qué pulsar y qué hacer con ello en esa sala, en frases cortas.
 AVISOS_TUTORIAL = [
-    (100, "Moverse", "WASD: moverse   ·   Ratón: mirar   ·   Mayús: esprintar   ·   Alt: caminar"),
-    (1500, "Saltar", "Espacio: saltar.\nPulsa otra vez en el aire: doble salto."),
-    (3550, "Dash", "Toca dos veces una dirección (W W, A A...) para hacer dash.\nTambién en el aire: salto, doble salto y dash para cruzar."),
-    (5650, "Paredes", "Salta contra una pared para rebotar en ella.\nCorre de frente hacia una pared para escalarla."),
-    (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
-    (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
-    (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
-    (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe.\nLos bancos (E) te curan del todo y guardan tu avance."),
-    (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
+    (100, "Moverse", "W A S D: moverte en ocho direcciones. Tu cuerpo mira siempre hacia la cámara.\n"
+                     "Ratón: mirar.   Mayús (mantener): esprintar.   Alt: caminar."),
+    (1450, "Saltar", "Espacio: saltar. Sube al escalón.\n"
+                     "En el aire, pulsa Espacio otra vez: doble salto. Así llegas al bloque alto."),
+    (3650, "Dash", "Toca dos veces seguidas una dirección (W W, A A, S S o D D): dash.\n"
+                   "Los dashes se encadenan sin espera, también en el aire.\n"
+                   "Cruza el foso: corre, salta, doble salto y dash hacia delante."),
+    (5850, "Paredes", "Salta hacia una pared y pulsa Espacio al tocarla: rebotas en ella.\n"
+                      "Entre las dos paredes del fondo, rebota de una a otra para subir.\n"
+                      "Corre de frente contra la cornisa y salta: la escalas."),
+    (7650, "Carrera por pared", "Corre junto a la pared de la derecha y salta hacia ella en diagonal.\n"
+                                "Mantén W: corres por la pared. Espacio: saltas desde ella.\n"
+                                "Cruza así el foso."),
+    (9850, "Combate", "Clic izquierdo: tajo. Tres clics seguidos: combo de tres tajos.\n"
+                      "Mira hacia arriba al atacar: tajo hacia arriba (para el muñeco alto).\n"
+                      "Clic derecho (mantener): guardia. Bloquea los golpes que llegan de frente."),
+    (10950, "Técnicas", "Mantén clic izquierdo y suelta: ataque cargado en giro.\n"
+                        "Ataca durante un dash: tajo en carrera.   En el aire: hasta tres tajos.\n"
+                        "Un tajo se corta con dash, salto o guardia: encadénalos."),
+    (12650, "Alma", "Cada golpe llena el alma (orbe arriba a la izquierda).\n"
+                    "Mantén Q en el suelo para gastarla y curarte.\n"
+                    "Siéntate en el banco (E): te cura del todo y guarda tu avance."),
+    (14450, "Gran salón", "Sala libre: sube por las escaleras a los balcones,\n"
+                          "corre por las paredes y salta entre columnas.\n"
+                          "Todo se combina con todo: practica antes de seguir."),
+    (20450, "Reto (opcional)", "Foso con pinchos, carrera por pared y cornisa, sin descanso.\n"
+                               "Arriba espera un fragmento de máscara."),
 ]
 
 
@@ -889,16 +908,17 @@ def crear_volumen(actores, clase, etiqueta, centro, extension, carpeta):
     return volumen
 
 
-def crear_aviso(actores, x, titulo, texto, altura=0.0):
+def crear_aviso(actores, x, titulo, texto, altura=0.0, ancho=ANCHO_PASILLO):
+    """Volumen que publica el aviso al cruzarlo (de pared a pared) y cartel 3D con el título."""
     volumen = crear_volumen(actores, unreal.SAEVUSVolumenTutorial, f"Aviso_{titulo}", unreal.Vector(x + 150, 0, altura + 150),
-                            (150, ANCHO_PASILLO / 2, 300), "Tutorial")
+                            (150, ancho / 2, 300), "Tutorial")
     volumen.set_editor_property("titulo", unreal.Text(titulo))
     volumen.set_editor_property("texto", unreal.Text(texto))
-    crear_texto(actores, f"Cartel_{titulo}", titulo, unreal.Vector(x + 300, -ANCHO_PASILLO / 2 + 40, altura + 260))
+    crear_texto(actores, f"Cartel_{titulo}", titulo, unreal.Vector(x + 300, -ancho / 2 + 40, altura + 260))
 
 
-def crear_punto_control(actores, etiqueta, x, y=0.0, z=0.0):
-    volumen = crear_volumen(actores, unreal.SAEVUSPuntoControl, etiqueta, unreal.Vector(x, y, z + 100), (100, ANCHO_PASILLO / 2, 200), "Tutorial")
+def crear_punto_control(actores, etiqueta, x, y=0.0, z=0.0, ancho=ANCHO_PASILLO):
+    volumen = crear_volumen(actores, unreal.SAEVUSPuntoControl, etiqueta, unreal.Vector(x, y, z + 100), (100, ancho / 2, 200), "Tutorial")
     return volumen
 
 
@@ -961,18 +981,81 @@ def crear_decorado(actores, etiqueta, malla, posicion, guinada=0.0, escala=1.0):
     return actor
 
 
-def decorar_tutorial(actores, mallas):
-    # Arcos en los pasos de sección: pilares a los lados del pasillo, que bajan al vacío.
-    for x in (1500, 3500, 5600, 7300, 9500, 11500, 13500, 21500):
-        crear_decorado(actores, f"Arco_{x}", mallas["SM_ArcoSeccion"], unreal.Vector(x, 0, 0), guinada=90.0)
-    # Columnas rotas a ambos lados, fuera del suelo (flotan sobre la niebla del vacío).
-    for indice, x in enumerate(range(700, 15000, 1500)):
-        for lado, y in (("I", -620), ("D", 620)):
-            crear_decorado(actores, f"Columna_{lado}{x}", mallas["SM_ColumnaRota"], unreal.Vector(x + (indice % 2) * 300, y, -250),
-                           guinada=(indice * 47) % 360, escala=1.2)
-    # Escombros junto a los bordes en las zonas de descanso.
-    for x, y in ((600, -300), (1100, 320), (9800, 300), (10900, -320), (13900, 310), (14600, -300)):
-        crear_decorado(actores, f"Escombros_{x}", mallas["SM_Escombros"], unreal.Vector(x, y, 0), guinada=(x * 13) % 360)
+# --- Piezas de mazmorra (referencia de estructura: el mapa Dungeon de GunZ) --------------------
+# Salas cerradas de muros altos sin techo (la luna entra y la cámara no choca con un techo), unidas por
+# puertas; dentro, escaleras, balcones y columnas para correr por las paredes. Sin texturas.
+FONDO_MUROS = FONDO_FOSO - 100.0
+ANCHO_PUERTA = 500.0
+ALTO_PUERTA = 600.0
+ALTURA_PELDANO_MAX = 40.0  # por debajo del escalón que sube el movimiento: las escaleras se andan
+
+
+def crear_muro_con_puerta(actores, etiqueta, x, ancho, alto, materiales, hueco=ANCHO_PUERTA, alto_hueco=ALTO_PUERTA):
+    """Muro transversal en x (de pared a pared) con una puerta centrada; hueco 0 = muro ciego."""
+    alto_total = alto - FONDO_MUROS
+    if hueco <= 0:
+        crear_bloque(actores, f"{etiqueta}", unreal.Vector(x, 0, FONDO_MUROS + alto_total / 2), (100, ancho + 200, alto_total), materiales["Acento"])
+        return
+    tramo = (ancho + 200 - hueco) / 2.0
+    for lado, signo in (("I", -1), ("D", 1)):
+        y = signo * (hueco / 2.0 + tramo / 2.0)
+        crear_bloque(actores, f"{etiqueta}_{lado}", unreal.Vector(x, y, FONDO_MUROS + alto_total / 2), (100, tramo, alto_total), materiales["Acento"])
+    dintel = alto - alto_hueco
+    crear_bloque(actores, f"{etiqueta}_Dintel", unreal.Vector(x, 0, alto_hueco + dintel / 2), (100, hueco, dintel), materiales["Acento"])
+
+
+def crear_sala(actores, etiqueta, x_inicio, x_fin, ancho, alto, materiales, suelo=True, hueco_entrada=ANCHO_PUERTA, hueco_salida=ANCHO_PUERTA):
+    """Sala cerrada: suelo opcional, muros laterales (bajan hasta el fondo de los fosos) y muros de entrada y
+    salida con puerta (hueco 0 = ciego). Cada sala pone los dos con su propio ancho: entre salas de anchos
+    distintos el muro común tapa hasta la pared de la más ancha."""
+    largo = x_fin - x_inicio
+    centro_x = (x_inicio + x_fin) / 2.0
+    if suelo:
+        crear_suelo(actores, f"{etiqueta}_Suelo", x_inicio, x_fin, materiales, ancho=ancho)
+    alto_total = alto - FONDO_MUROS
+    for lado, signo in (("I", -1), ("D", 1)):
+        crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, signo * (ancho / 2 + 50), FONDO_MUROS + alto_total / 2),
+                     (largo, 100, alto_total), materiales["Acento"])
+    crear_muro_con_puerta(actores, f"{etiqueta}_Entrada", x_inicio, ancho, alto, materiales, hueco=hueco_entrada)
+    crear_muro_con_puerta(actores, f"{etiqueta}_Salida", x_fin, ancho, alto, materiales, hueco=hueco_salida)
+
+
+def crear_escalera(actores, etiqueta, x_inicio, x_fin, z_inicio, z_fin, ancho, materiales, y=0.0):
+    """Escalera a lo largo de X entre dos alturas, con peldaños macizos que se suben andando."""
+    peldanos = max(1, int((abs(z_fin - z_inicio) + ALTURA_PELDANO_MAX - 1e-3) // ALTURA_PELDANO_MAX))
+    largo = (x_fin - x_inicio) / peldanos
+    for indice in range(peldanos):
+        # Altura de la cara superior del peldaño: sube hacia z_fin según se avanza en X.
+        tope = z_inicio + (z_fin - z_inicio) * (indice + 1) / peldanos if z_fin > z_inicio else z_inicio + (z_fin - z_inicio) * indice / peldanos
+        if tope <= 0:
+            continue
+        x = x_inicio + largo * (indice + 0.5)
+        crear_bloque(actores, f"{etiqueta}_{indice}", unreal.Vector(x, y, tope / 2), (largo, ancho, tope), materiales["Piedra"])
+
+
+def crear_columna(actores, etiqueta, x, y, alto, materiales, grosor=160.0):
+    """Columna maciza (se puede correr por ella y rebotar entre dos)."""
+    crear_bloque(actores, etiqueta, unreal.Vector(x, y, alto / 2), (grosor, grosor, alto), materiales["Acento"])
+
+
+def crear_antorcha(actores, etiqueta, posicion, materiales):
+    """Brasero en la pared: bloque cálido que brilla y luz puntual sin sombras (barata)."""
+    crear_bloque(actores, f"{etiqueta}_Brasero", posicion, (30, 30, 40), materiales["Puerta"])
+    luz = actores.spawn_actor_from_class(unreal.PointLight, unreal.Vector(posicion.x, posicion.y, posicion.z + 60))
+    luz.set_actor_label(f"{etiqueta}_Luz")
+    componente = luz.get_component_by_class(unreal.PointLightComponent)
+    componente.set_mobility(unreal.ComponentMobility.MOVABLE)
+    componente.set_editor_property("intensity_units", unreal.LightUnits.CANDELAS)
+    componente.set_editor_property("intensity", 25.0)
+    componente.set_editor_property("attenuation_radius", 1100.0)
+    componente.set_editor_property("light_color", unreal.Color(255, 160, 80, 255))
+    componente.set_editor_property("cast_shadows", False)
+    luz.set_folder_path("Iluminacion")
+
+
+def antorchas_puerta(actores, etiqueta, x, ancho, materiales, lado=1):
+    """Un brasero junto a la puerta de salida, por dentro de la sala, en el lado indicado."""
+    crear_antorcha(actores, etiqueta, unreal.Vector(x - 80, lado * (ANCHO_PUERTA / 2 + 120), 320), materiales)
 
 
 def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, ancho=ANCHO_PASILLO):
@@ -1056,103 +1139,115 @@ def crear_iluminacion_oscura(actores):
 
 
 def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
+    """
+    Tutorial como mazmorra (estructura de referencia: el mapa Dungeon de GunZ): salas cerradas unidas por
+    puertas hacia +X. Las medidas de los obstáculos son las probadas por SAEVUS.Tutorial.Obstaculos.*.
+    """
     editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_TUTORIAL)
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
+    mallas = importar_decorado(materiales["Acento"])
 
-    # S0 Inicio.
-    crear_suelo(actores, "S0_Suelo", -500, 1500, materiales)
+    # Sala 0, la celda: moverse y mirar.
+    crear_sala(actores, "S0", -600, 1400, 1400, 800, materiales, hueco_entrada=0)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
-    crear_texto(actores, "Cartel_SAEVUS", "SAEVUS", unreal.Vector(900, 0, 450), tamano=160.0)
-    crear_info_zona(actores, "Las Afueras", "Tutorial")
+    crear_texto(actores, "Cartel_SAEVUS", "SAEVUS", unreal.Vector(1340, 0, 640), tamano=150.0)
+    crear_info_zona(actores, "Mazmorra del Umbral", "Tutorial")
+    antorchas_puerta(actores, "S0_Antorcha", 1400, 1400, materiales)
+    crear_decorado(actores, "S0_Escombros", mallas["SM_Escombros"], unreal.Vector(-300, 500, 0), guinada=40)
 
-    # S1 Saltar: escalón de 1 m (salto) y bloque de 2,2 m (doble salto).
-    crear_suelo(actores, "S1_Suelo", 1500, 3500, materiales)
-    crear_bloque(actores, "S1_Escalon100", unreal.Vector(2000, 0, 50), (400, ANCHO_PASILLO, 100), materiales["Acento"])
-    crear_bloque(actores, "S1_Bloque220", unreal.Vector(2600, 0, 110), (400, ANCHO_PASILLO, 220), materiales["Acento"])
+    # Sala 1: escalón de 1 m (salto) y bloque de 2,2 m (doble salto), de pared a pared; se baja por una escalera.
+    crear_sala(actores, "S1", 1400, 3600, 1200, 800, materiales)
+    crear_bloque(actores, "S1_Escalon100", unreal.Vector(2000, 0, 50), (400, 1200, 100), materiales["Acento"])
+    crear_bloque(actores, "S1_Bloque220", unreal.Vector(2600, 0, 110), (400, 1200, 220), materiales["Acento"])
+    crear_escalera(actores, "S1_Bajada", 2800, 3400, 220, 0, 1200, materiales)
+    antorchas_puerta(actores, "S1_Antorcha", 3600, 1200, materiales, lado=-1)
 
-    # S2 Dash: foso de 8 m.
-    crear_foso(actores, "S2_Foso", 3500, 4300, unreal.Vector(3300, 0, 100), materiales)
-    crear_suelo(actores, "S2_Suelo", 4300, 5600, materiales)
+    # Sala 2: foso de 8 m (dash).
+    crear_sala(actores, "S2", 3600, 5800, 1200, 800, materiales, suelo=False)
+    crear_suelo(actores, "S2_Suelo", 3600, 4000, materiales, ancho=1200)
+    crear_foso(actores, "S2_Foso", 4000, 4800, unreal.Vector(3800, 0, 100), materiales)
+    crear_suelo(actores, "S2_Llegada", 4800, 5800, materiales, ancho=1200)
+    antorchas_puerta(actores, "S2_Antorcha", 5800, 1200, materiales)
 
-    # S3 Paredes: chimenea de 7 m para saltos de pared y cornisa de 4,5 m que se puede escalar.
-    crear_suelo(actores, "S3_Suelo", 5600, 7400, materiales)
+    # Sala 3, la chimenea: dos paredes a 3 m para rebotar entre ellas y una cornisa de 4,5 m que se escala.
+    crear_sala(actores, "S3", 5800, 7600, 800, 1000, materiales)
     for lado, y in (("I", -200), ("D", 200)):
-        crear_bloque(actores, f"S3_Chimenea{lado}", unreal.Vector(6450, y, 350), (500, 100, 700), materiales["Acento"])
-    crear_bloque(actores, "S3_Cornisa450", unreal.Vector(7000, 0, 225), (600, ANCHO_PASILLO, 450), materiales["Acento"])
+        crear_bloque(actores, f"S3_Chimenea{lado}", unreal.Vector(6250, y, 350), (500, 100, 700), materiales["Acento"])
+    crear_bloque(actores, "S3_Cornisa450", unreal.Vector(7000, 0, 225), (600, 800, 450), materiales["Acento"])
+    antorchas_puerta(actores, "S3_Antorcha", 7600, 800, materiales, lado=-1)
 
-    # S3b Carrera por pared: foso de 9 m junto a una pared larga.
-    crear_suelo(actores, "S3b_Suelo", 7300, 8000, materiales)
-    crear_foso(actores, "S3b_Foso", 8000, 8900, unreal.Vector(7800, 0, 100), materiales)
-    crear_bloque(actores, "S3b_ParedCarrera", unreal.Vector(8450, ANCHO_PASILLO / 2 + 50, 300), (1500, 100, 600), materiales["Acento"])
-    crear_suelo(actores, "S3b_Llegada", 8900, 9500, materiales)
+    # Sala 4, la galería: foso de 9 m junto al muro derecho (en y = 450, como la pared probada).
+    crear_sala(actores, "S4", 7600, 9800, 800, 900, materiales, suelo=False)
+    crear_suelo(actores, "S4_Suelo", 7600, 8000, materiales)
+    crear_foso(actores, "S4_Foso", 8000, 8900, unreal.Vector(7800, 0, 100), materiales)
+    crear_suelo(actores, "S4_Llegada", 8900, 9800, materiales)
+    antorchas_puerta(actores, "S4_Antorcha", 9800, 800, materiales)
 
-    # S4 Combate: tres muñecos y uno flotando para el tajo hacia arriba.
-    crear_suelo(actores, "S4_Suelo", 9500, 11500, materiales)
-    crear_punto_control(actores, "Control_Combate", 9600)
+    # Sala 5, la sala de armas: combo, tajo hacia arriba, técnicas y guardia, entre cuatro columnas.
+    crear_sala(actores, "S5", 9800, 12600, 1800, 900, materiales)
+    crear_punto_control(actores, "Control_Combate", 9900, ancho=1800)
     for indice, y in enumerate((-250, 0, 250)):
-        crear_muneco(actores, f"S4_Muneco{indice}", unreal.Vector(10400, y, 96), unreal.Rotator(0, 0, 180))
-    crear_muneco(actores, "S4_MunecoAlto", unreal.Vector(11000, 0, 96 + 190), unreal.Rotator(0, 0, 180))
-    # Pareja para el ataque cargado (a los lados) y uno lejano para el tajo en carrera.
+        crear_muneco(actores, f"S5_Muneco{indice}", unreal.Vector(10500, y, 96), unreal.Rotator(0, 0, 180))
+    crear_muneco(actores, "S5_MunecoAlto", unreal.Vector(11100, 0, 96 + 190), unreal.Rotator(0, 0, 180))
     for indice, y in enumerate((-180, 180)):
-        crear_muneco(actores, f"S4_MunecoCargado{indice}", unreal.Vector(10900, y, 96), unreal.Rotator(0, 0, 180))
+        crear_muneco(actores, f"S5_MunecoCargado{indice}", unreal.Vector(11800, y, 96), unreal.Rotator(0, 0, 180))
+    for indice, (x, y) in enumerate(((10200, -650), (10200, 650), (12200, -650), (12200, 650))):
+        crear_columna(actores, f"S5_Columna{indice}", x, y, 900, materiales)
+    antorchas_puerta(actores, "S5_Antorcha", 12600, 1800, materiales, lado=-1)
 
-    # S5: suelo de paso (el tajo hacia abajo y su foso de rebote se retiraron).
-    crear_suelo(actores, "S5_Suelo", 11500, 13500, materiales)
-
-    # S6 Alma: muñecos para llenar el alma antes de la arena.
-    crear_suelo(actores, "S6_Suelo", 13500, 15000, materiales)
-    crear_punto_control(actores, "Control_Alma", 13600)
+    # Sala 6, la capilla: alma, curación y banco.
+    crear_sala(actores, "S6", 12600, 14400, 1200, 800, materiales)
+    crear_punto_control(actores, "Control_Alma", 12700, ancho=1200)
     for indice, y in enumerate((-200, 200)):
-        crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(14300, y, 96), unreal.Rotator(0, 0, 180))
-    crear_banco(actores, "S6_Banco", 13900, -280, 0, materiales)
+        crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(13500, y, 96), unreal.Rotator(0, 0, 180))
+    crear_banco(actores, "S6_Banco", 13000, -480, 0, materiales)
+    antorchas_puerta(actores, "S6_Antorcha", 14400, 1200, materiales)
 
-    # S7 Arena de mini enemigos; la puerta se abre al vaciarla.
-    crear_arena(actores, "S7_Arena", 15000, 17500, 2000, 400, materiales, 600)
-    crear_punto_control(actores, "Control_Arena", 15100)
-    enemigos_arena = [
-        crear_enemigo(actores, "S7_Rastrero1", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16100, -400, 0)),
-        crear_enemigo(actores, "S7_Rastrero2", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16400, 400, 0)),
-        crear_enemigo(actores, "S7_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(16900, 0, 0)),
-        crear_enemigo(actores, "S7_Escupidor", datos_enemigos["DA_Enemigo_Escupidor"], unreal.Vector(17200, 600, 0)),
-        crear_enemigo(actores, "S7_Revoloteador", datos_enemigos["DA_Enemigo_Revoloteador"], unreal.Vector(16700, -500, 0)),
-    ]
-    crear_puerta(actores, "S7_Puerta", 17500, 600, 400, enemigos_arena, materiales["Puerta"],
-                 "Puerta abierta", "Sigue adelante.")
+    # Sala 7, el gran salón (la sala central del Dungeon de GunZ): balcones a 4 m a ambos lados con
+    # escaleras, columnas en dos filas para correr y rebotar, y un estrado en el centro.
+    crear_sala(actores, "S7", 14400, 19000, 3000, 1200, materiales)
+    crear_punto_control(actores, "Control_Salon", 14500, ancho=3000)
+    for lado, signo in (("I", -1), ("D", 1)):
+        y_balcon = signo * 1300
+        crear_escalera(actores, f"S7_Escalera{lado}", 14600, 15400, 0, 400, 400, materiales, y=y_balcon)
+        crear_bloque(actores, f"S7_Balcon{lado}", unreal.Vector(17000, y_balcon, 360), (3200, 400, 80), materiales["Piedra"])
+        for indice, x in enumerate(range(15800, 18700, 800)):
+            crear_columna(actores, f"S7_Apoyo{lado}{indice}", x, signo * 1150, 320, materiales, grosor=80.0)
+        crear_antorcha(actores, f"S7_Antorcha{lado}", unreal.Vector(17000, signo * 1460, 650), materiales)
+    for indice, x in enumerate((15600, 16400, 17200, 18000)):
+        for lado, y in (("I", -600), ("D", 600)):
+            crear_columna(actores, f"S7_Columna{lado}{indice}", x, y, 1100, materiales)
+    crear_bloque(actores, "S7_Estrado", unreal.Vector(16800, 0, 20), (800, 800, 40), materiales["Acento"])
+    for indice, (x, y) in enumerate(((14700, -1350), (18700, 1350), (18700, -1350))):
+        crear_decorado(actores, f"S7_ColumnaRota{indice}", mallas["SM_ColumnaRota"], unreal.Vector(x, y, 0), guinada=indice * 70, escala=1.3)
+    antorchas_puerta(actores, "S7_Antorcha", 19000, 3000, materiales)
 
-    # S8 Arena del Guardián.
-    crear_arena(actores, "S8_Arena", 17500, 20500, 2400, 600, materiales, 600)
-    crear_punto_control(actores, "Control_Jefe", 17700)
-    jefe = crear_enemigo(actores, "S8_Guardian", datos_enemigos["DA_Jefe_Guardian"], unreal.Vector(19400, 0, 0))
-    crear_puerta(actores, "S8_Puerta", 20500, 600, 600, [jefe], materiales["Puerta"],
-                 "Tutorial completado", "Has derrotado al Guardián.\nSigue practicando: todo se combina con todo.")
+    # Sala 8: fin del tutorial, banco y paso a la Zona 1 (y llegada desde ella).
+    crear_sala(actores, "S8", 19000, 20400, 1200, 800, materiales)
+    crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(20300, 0, 450), tamano=100.0)
+    crear_banco(actores, "S8_Banco", 19400, -480, 0, materiales)
+    crear_paso(actores, "S8_PasoZona1", unreal.Vector(19800, 540, 150), RUTA_MAPA_ZONA1, "", "Zona 1  ->")
+    crear_llegada(actores, "Llegada_DesdeZona1", unreal.Vector(19800, 0, 100), 0.0, "DesdeZona1")
 
-    # S9 Fin.
-    crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
-    crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
-    crear_banco(actores, "S9_Banco", 20800, -280, 0, materiales)
-    crear_paso(actores, "S9_PasoZona1", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 150), RUTA_MAPA_ZONA1, "", "Zona 1  ->")
-    # Llegada desde la Zona 1: junto al paso, mirando hacia el camino.
-    crear_llegada(actores, "Llegada_DesdeZona1", unreal.Vector(20900, 0, 100), 0.0, "DesdeZona1")
-
-    # S10 Reto opcional: obstáculos ya probados (SAEVUS.Tutorial.Obstaculos.*) encadenados sin descanso.
-    crear_punto_control(actores, "Control_Reto", 21300)
-    crear_foso(actores, "S10_Foso1", 21500, 22300, unreal.Vector(21350, 0, 100), materiales)
-    crear_peligro(actores, "S10_Pinchos1", unreal.Vector(21900, 0, -120), (400, ANCHO_PASILLO / 2, 30), unreal.Vector(21350, 0, 100),
+    # Sala 9, reto opcional: obstáculos ya probados (SAEVUS.Tutorial.Obstaculos.*) encadenados sin descanso.
+    crear_sala(actores, "S9", 20400, 24400, 800, 1000, materiales, suelo=False, hueco_salida=0)
+    crear_punto_control(actores, "Control_Reto", 20500)
+    crear_suelo(actores, "S9_Inicio", 20400, 20600, materiales)
+    crear_foso(actores, "S9_Foso1", 20600, 21400, unreal.Vector(20500, 0, 100), materiales)
+    crear_peligro(actores, "S9_Pinchos1", unreal.Vector(21000, 0, -120), (400, ANCHO_PASILLO / 2, 30), unreal.Vector(20500, 0, 100),
                   materiales["Puerta"])
-    crear_suelo(actores, "S10_Suelo1", 22300, 22700, materiales)
-    crear_foso(actores, "S10_Foso2", 22700, 23600, unreal.Vector(22550, 0, 100), materiales)
-    crear_bloque(actores, "S10_ParedCarrera", unreal.Vector(23150, ANCHO_PASILLO / 2 + 50, 300), (1500, 100, 600), materiales["Acento"])
-    crear_suelo(actores, "S10_Suelo2", 23600, 24200, materiales)
-    crear_bloque(actores, "S10_Cornisa450", unreal.Vector(24500, 0, 225), (600, ANCHO_PASILLO, 450), materiales["Acento"])
-    crear_texto(actores, "Cartel_RetoSuperado", "Reto superado", unreal.Vector(24600, 0, 650), tamano=90.0)
-    # Premio del reto: un fragmento de máscara en lo alto de la cornisa.
-    crear_fragmento(actores, "S10_Fragmento", unreal.Vector(24500, 0, 450 + 100), "Tutorial_Reto", materiales["Puerta"])
+    crear_suelo(actores, "S9_Suelo1", 21400, 21800, materiales)
+    crear_foso(actores, "S9_Foso2", 21800, 22700, unreal.Vector(21650, 0, 100), materiales)
+    crear_suelo(actores, "S9_Suelo2", 22700, 23300, materiales)
+    crear_bloque(actores, "S9_Cornisa450", unreal.Vector(23700, 0, 225), (800, ANCHO_PASILLO, 450), materiales["Acento"])
+    crear_suelo(actores, "S9_Fondo", 23300, 24400, materiales)
+    crear_texto(actores, "Cartel_RetoSuperado", "Reto superado", unreal.Vector(24300, 0, 700), tamano=90.0)
+    crear_fragmento(actores, "S9_Fragmento", unreal.Vector(23700, 0, 450 + 100), "Tutorial_Reto", materiales["Puerta"])
 
+    anchos = {100: 1400, 1450: 1200, 3650: 1200, 5850: 800, 7650: 800, 9850: 1800, 10950: 1800, 12650: 1200, 14450: 3000, 20450: 800}
     for x, titulo, texto in AVISOS_TUTORIAL:
-        crear_aviso(actores, x, titulo, texto)
-
-    decorar_tutorial(actores, importar_decorado(materiales["Acento"]))
+        crear_aviso(actores, x, titulo, texto, ancho=anchos[x])
 
     crear_iluminacion_oscura(actores)
     mundo = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()

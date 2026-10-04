@@ -1,27 +1,27 @@
 # Mapa tutorial (`/Game/SAEVUS/Mapas/L_Tutorial`)
 
-Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.py` (`construir_mapa_tutorial`): se rehace en cada ejecución, así que los cambios se hacen en el script, no a mano en el editor. Simple pero escalable: secciones en línea hacia +X, cada una con un aviso en pantalla, un cartel 3D y su prueba.
+Mapa por defecto del juego y del editor: la **Mazmorra del Umbral**. Lo genera entero `saevus_crear_assets.py` (`construir_mapa_tutorial`): se rehace en cada ejecución, así que los cambios se hacen en el script, no a mano en el editor.
 
-> **2026-10-04:** sin enemigos, jefes, armas de fuego ni rebote (decisión del dueño). Este mapa en línea se sustituirá por un tutorial de salas tipo mazmorra con el mapa Dungeon de GunZ como referencia de estructura (tarea 70 de `PROGRESS.md`).
+**Estructura (tarea 70, referencia: el mapa Dungeon de GunZ):** salas cerradas de muros altos sin techo (la luna entra y la cámara no choca con un techo), unidas por puertas de 5 × 6 m hacia +X. Dentro hay escaleras, balcones y columnas para correr por las paredes. No hay pasillos sobre el vacío: los fosos están dentro de las salas y sus muros bajan hasta el fondo. Junto a cada puerta de salida hay un brasero (luz puntual cálida sin sombras). Cada sala enseña una cosa con un aviso que dice qué pulsar y qué hacer con ello, en frases cortas.
+
+Piezas del script: `crear_sala` (suelo, muros laterales y muros de entrada y salida con puerta; cada sala pone los dos con su ancho, así entre salas de anchos distintos no quedan huecos), `crear_muro_con_puerta`, `crear_escalera` (peldaños macizos de 40 cm como mucho, que se suben andando), `crear_columna` y `crear_antorcha`.
 
 ## Recorrido
 
-| Sección | X (cm) | Enseña | Obstáculo |
-|---|---|---|---|
-| S0 Inicio | −500 – 1500 | Moverse, mirar, esprintar | Suelo llano, cartel "SAEVUS" |
-| S1 Saltar | 1500 – 3500 | Salto y doble salto | Escalón de 1 m y bloque de 2,2 m (necesita doble salto) |
-| S2 Dash | 3500 – 5600 | Dash por doble toque, también en el aire | Foso de 8 m |
-| S3 Paredes | 5600 – 7400 | Salto de pared, escalada | Chimenea de 7 m y cornisa de 4,5 m |
-| S3b Carrera por pared | 7300 – 9500 | Carrera por pared | Foso de 9 m junto a una pared de 15 m |
-| S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba; técnicas (desde X ≈ 10650): ataque cargado, tajo en carrera, combo aéreo | Tres muñecos y uno flotando; una pareja a los lados (X = 10900) para el giro cargado |
-| S5 Paso | 11500 – 13500 | — | Suelo llano (el foso del rebote se retiró) |
-| S6 Alma | 13500 – 15000 | Alma y curación (Q) | Dos muñecos para llenar el alma |
-| S7 Arena | 15000 – 17500 | — (sin enemigos por ahora) | Sala vacía; sin enemigos no se pone su puerta (`ENEMIGOS_EN_MAPAS` en el script) |
-| S8 Sala del jefe | 17500 – 20500 | — (sin jefe por ahora) | Sala vacía |
-| S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial"; a la derecha, "Zona 1 ->" lleva a la Zona 1 (`zona1.md`); al volver de ella se aparece aquí (`Llegada_DesdeZona1`) |
-| S10 Reto (opcional) | 21500 – 24800 | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con pared, cornisa de 4,5 m; arriba, el cartel "Reto superado" y un fragmento de máscara |
+| Sala | X (cm) | Ancho | Enseña | Obstáculo |
+|---|---|---|---|---|
+| S0 Celda | −600 – 1400 | 14 m | Moverse en ocho direcciones, mirar, esprintar | Sala vacía; cartel "SAEVUS" sobre la puerta |
+| S1 Saltar | 1400 – 3600 | 12 m | Salto y doble salto | Escalón de 1 m y bloque de 2,2 m de pared a pared; escalera de bajada |
+| S2 Dash | 3600 – 5800 | 12 m | Dash por doble toque, encadenado, también en el aire | Foso de 8 m |
+| S3 Chimenea | 5800 – 7600 | 8 m | Salto de pared, rebote entre paredes, escalada | Chimenea de paredes a 3 m y cornisa de 4,5 m |
+| S4 Galería | 7600 – 9800 | 8 m | Carrera por pared | Foso de 9 m junto al muro derecho (y = 450) |
+| S5 Sala de armas | 9800 – 12600 | 18 m | Combo, tajo hacia arriba, guardia; ataque cargado, tajo en carrera, combo aéreo | Muñecos (uno alto, una pareja para el giro) entre cuatro columnas |
+| S6 Capilla | 12600 – 14400 | 12 m | Alma, curación, banco | Dos muñecos y un banco |
+| S7 Gran salón | 14400 – 19000 | 30 m | Práctica libre | Balcones a 4 m a ambos lados con escaleras, dos filas de columnas de 11 m, estrado central |
+| S8 Fin | 19000 – 20400 | 12 m | — | Banco, cartel "Fin del tutorial", paso a la Zona 1 y llegada desde ella (`Llegada_DesdeZona1`) |
+| S9 Reto (opcional) | 20400 – 24400 | 8 m | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con carrera por pared, cornisa de 4,5 m con un fragmento de máscara |
 
-Puntos de control antes del combate, del alma, de la arena, del jefe y del reto: al morir se reaparece en el último.
+Puntos de control al entrar en la sala de armas, la capilla, el gran salón y el reto: al morir se reaparece en el último.
 
 ## Piezas (`Source/SAEVUS/Tutorial/`)
 
@@ -43,7 +43,7 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 - Luz: "Luna" direccional azulada de 2,5 lux con sombras y prioridad de sombreado forward, más "Relleno" de 0,8 lux sin sombras desde el lado contrario. Sin atmósfera ni luz de cielo: el cielo queda oscuro. Niebla de altura densa y azul oscuro.
 - Exposición manual (sin adaptación) en un volumen de post-proceso: la oscuridad no se aclara sola.
 - Carteles: `TextRenderActor` mirando hacia el jugador que avanza.
-- **Decorado** (sin colisión, fuera del recorrido probado): piezas modulares generadas en Blender (`Herramientas/Arte/blender_escenario.py`, `Generar-Escenario.ps1` → `ArteFuente/Escenario/`, importadas a `/Game/SAEVUS/Arte/Escenario/`): `SM_ArcoSeccion` (arco roto en cada paso de sección, con pilares que bajan al vacío), `SM_ColumnaRota` (a ambos lados del pasillo) y `SM_Escombros` (en las zonas de descanso). Menos de 100 triángulos cada una, con `MI_Escenario_Acento`.
+- **Decorado** (sin colisión): piezas modulares generadas en Blender (`Herramientas/Arte/blender_escenario.py`, `Generar-Escenario.ps1` → `ArteFuente/Escenario/`, importadas a `/Game/SAEVUS/Arte/Escenario/`): `SM_ColumnaRota` (esquinas del gran salón) y `SM_Escombros` (la celda); `SM_ArcoSeccion` queda para la Zona 1. Menos de 100 triángulos cada una, con `MI_Escenario_Acento`.
 
 ## Pruebas
 
