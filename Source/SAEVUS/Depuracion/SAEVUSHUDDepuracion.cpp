@@ -6,18 +6,65 @@
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
+#include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
+#include "Tutorial/SAEVUSSubsistemaTutorial.h"
 
 void ASAEVUSHUDDepuracion::DrawHUD()
 {
 	Super::DrawHUD();
+	DibujarAvisoTutorial();
+	if (SAEVUSDepuracion::HUDActivo())
+	{
+		DibujarDepuracion();
+	}
+}
 
-	if (!SAEVUSDepuracion::HUDActivo())
+void ASAEVUSHUDDepuracion::DibujarAvisoTutorial()
+{
+	const USAEVUSSubsistemaTutorial* Tutorial = GetWorld()->GetSubsystem<USAEVUSSubsistemaTutorial>();
+	const FSAEVUSMensajeTutorial* Mensaje = Tutorial ? Tutorial->ObtenerMensajeActivo() : nullptr;
+	if (!Mensaje || !Canvas)
 	{
 		return;
 	}
+	// Fundido de entrada, y de salida si el aviso tiene duración.
+	const float Edad = Tutorial->ObtenerEdadMensaje();
+	float Opacidad = FundidoAviso > 0.f ? FMath::Clamp(Edad / FundidoAviso, 0.f, 1.f) : 1.f;
+	if (Mensaje->Duracion > 0.f && FundidoAviso > 0.f)
+	{
+		Opacidad = FMath::Min(Opacidad, FMath::Clamp((Mensaje->Duracion - Edad) / FundidoAviso, 0.f, 1.f));
+	}
+	FLinearColor Color = ColorAviso;
+	Color.A = Opacidad;
+
+	UFont* FuenteTitulo = GEngine->GetLargeFont();
+	UFont* FuenteTexto = GEngine->GetMediumFont();
+	float Y = Canvas->ClipY * AlturaAviso;
+	auto DibujarCentrado = [this, &Y, &Color](const FString& Linea, UFont* Fuente, float Escala)
+	{
+		float Ancho = 0.f;
+		float Alto = 0.f;
+		GetTextSize(Linea, Ancho, Alto, Fuente, Escala);
+		DrawText(Linea, Color, (Canvas->ClipX - Ancho) * 0.5f, Y, Fuente, Escala);
+		Y += Alto * 1.15f;
+	};
+	if (!Mensaje->Titulo.IsEmpty())
+	{
+		DibujarCentrado(Mensaje->Titulo.ToString(), FuenteTitulo, EscalaTituloAviso);
+	}
+	TArray<FString> Lineas;
+	Mensaje->Texto.ToString().ParseIntoArrayLines(Lineas);
+	for (const FString& Linea : Lineas)
+	{
+		DibujarCentrado(Linea, FuenteTexto, EscalaTextoAviso);
+	}
+}
+
+void ASAEVUSHUDDepuracion::DibujarDepuracion()
+{
 
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwningPawn());
 	const USAEVUSComponenteMovimiento* Movimiento = Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;

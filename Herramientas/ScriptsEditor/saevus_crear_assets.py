@@ -675,6 +675,239 @@ def construir_mapa_pruebas(bp_modo_juego, datos_enemigos):
     editor_niveles.save_current_level()
 
 
+# --- Mapa tutorial ------------------------------------------------------------------
+# Recorrido lineal hacia +X: cada sección enseña una mecánica con un aviso en pantalla y un cartel.
+# Medidas pensadas para las del personaje (movimiento.md): salto ≈ 143 cm de alto y 450 cm de largo
+# corriendo, doble salto ≈ +120 cm, dash ≈ 290 cm. Iluminación oscura (tono Hollow Knight).
+RUTA_MAPA_TUTORIAL = f"{RAIZ}/Mapas/L_Tutorial"
+ANCHO_PASILLO = 800.0
+GROSOR_SUELO = 100.0
+FONDO_FOSO = -700.0
+
+# Paleta del escenario: piedra azul casi negra, acentos un poco más claros, puertas con brillo cálido.
+PIEZAS_ESCENARIO = {
+    "Piedra": {"Color": (0.035, 0.04, 0.055, 1.0), "ColorBorde": (0.3, 0.4, 0.6, 1.0), "IntensidadBorde": 0.08, "AutoIluminacion": 0.0},
+    "Acento": {"Color": (0.09, 0.1, 0.13, 1.0), "ColorBorde": (0.4, 0.5, 0.7, 1.0), "IntensidadBorde": 0.12, "AutoIluminacion": 0.0},
+    "Puerta": {"Color": (0.25, 0.12, 0.05, 1.0), "ColorBorde": (1.0, 0.6, 0.3, 1.0), "IntensidadBorde": 0.3, "AutoIluminacion": 0.6},
+}
+
+# Avisos por sección: (x inicio del volumen, título, texto). El cartel 3D repite el título.
+AVISOS_TUTORIAL = [
+    (100, "Moverse", "WASD: moverse   ·   Ratón: mirar   ·   Mayús: esprintar   ·   Alt: caminar"),
+    (1500, "Saltar", "Espacio: saltar.\nPulsa otra vez en el aire: doble salto."),
+    (3550, "Dash", "Toca dos veces una dirección (W W, A A...) para hacer dash.\nTambién en el aire: salto, doble salto y dash para cruzar."),
+    (5650, "Paredes", "Salta contra una pared para rebotar en ella.\nCorre de frente hacia una pared para escalarla."),
+    (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
+    (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos.\nMira hacia arriba al atacar: tajo hacia arriba."),
+    (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo.\nSi golpeas algo rebotas y recuperas el dash y el doble salto."),
+    (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
+    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan.\nEsquiva con dash y castiga cuando se recuperan. Derrótalos para abrir la puerta."),
+    (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
+]
+
+
+def crear_texto(actores, etiqueta, texto, posicion, tamano=60.0, color=unreal.Color(200, 215, 255, 255)):
+    """Cartel de texto 3D mirando hacia -X (hacia el jugador que avanza)."""
+    actor = actores.spawn_actor_from_class(unreal.TextRenderActor, posicion, unreal.Rotator(0, 0, 180))
+    actor.set_actor_label(etiqueta)
+    componente = actor.text_render
+    componente.set_editor_property("text", unreal.Text(texto))
+    componente.set_editor_property("world_size", tamano)
+    componente.set_editor_property("horizontal_alignment", unreal.HorizTextAligment.EHTA_CENTER)
+    componente.set_editor_property("text_render_color", color)
+    actor.set_folder_path("Carteles")
+    return actor
+
+
+def crear_volumen(actores, clase, etiqueta, centro, extension, carpeta):
+    volumen = actores.spawn_actor_from_class(clase, centro)
+    volumen.set_actor_label(etiqueta)
+    volumen.get_component_by_class(unreal.BoxComponent).set_box_extent(unreal.Vector(*extension))
+    volumen.set_folder_path(carpeta)
+    return volumen
+
+
+def crear_aviso(actores, x, titulo, texto):
+    volumen = crear_volumen(actores, unreal.SAEVUSVolumenTutorial, f"Aviso_{titulo}", unreal.Vector(x + 150, 0, 150),
+                            (150, ANCHO_PASILLO / 2, 300), "Tutorial")
+    volumen.set_editor_property("titulo", unreal.Text(titulo))
+    volumen.set_editor_property("texto", unreal.Text(texto))
+    crear_texto(actores, f"Cartel_{titulo}", titulo, unreal.Vector(x + 300, -ANCHO_PASILLO / 2 + 40, 260))
+
+
+def crear_punto_control(actores, etiqueta, x, y=0.0, z=0.0):
+    volumen = crear_volumen(actores, unreal.SAEVUSPuntoControl, etiqueta, unreal.Vector(x, y, z + 100), (100, ANCHO_PASILLO / 2, 200), "Tutorial")
+    return volumen
+
+
+def crear_foso(actores, etiqueta, x_inicio, x_fin, retorno, materiales):
+    """Hueco entre x_inicio y x_fin con fondo y volumen de caída que devuelve a retorno."""
+    largo = x_fin - x_inicio
+    centro_x = (x_inicio + x_fin) / 2.0
+    crear_bloque(actores, f"{etiqueta}_Fondo", unreal.Vector(centro_x, 0, FONDO_FOSO - 50), (largo, ANCHO_PASILLO * 2, 100), materiales["Piedra"])
+    caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, f"{etiqueta}_Caida", unreal.Vector(centro_x, 0, FONDO_FOSO + 150),
+                          (largo / 2, ANCHO_PASILLO, 150), "Tutorial")
+    caida.set_editor_property("punto_retorno", retorno - caida.get_actor_location())
+    return caida
+
+
+def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, ancho=ANCHO_PASILLO):
+    largo = x_fin - x_inicio
+    return crear_bloque(actores, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, altura - GROSOR_SUELO / 2), (largo, ancho, GROSOR_SUELO),
+                        materiales["Piedra"])
+
+
+def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, texto):
+    puerta = actores.spawn_actor_from_class(unreal.SAEVUSPuertaArena, unreal.Vector(x, 0, alto / 2.0))
+    puerta.set_actor_label(etiqueta)
+    puerta.set_actor_scale3d(unreal.Vector(0.6, ancho / 100.0, alto / 100.0))
+    puerta.get_component_by_class(unreal.StaticMeshComponent).set_material(0, material)
+    puerta.set_editor_property("enemigos", enemigos)
+    puerta.set_editor_property("titulo_al_abrir", unreal.Text(titulo))
+    puerta.set_editor_property("texto_al_abrir", unreal.Text(texto))
+    puerta.set_folder_path("Tutorial")
+    return puerta
+
+
+def crear_arena(actores, etiqueta, x_inicio, x_fin, ancho, alto_muros, materiales, hueco_salida):
+    """Suelo y muros laterales; el muro de salida deja un hueco central de hueco_salida para la puerta."""
+    crear_suelo(actores, f"{etiqueta}_Suelo", x_inicio, x_fin, materiales, ancho=ancho)
+    largo = x_fin - x_inicio
+    centro_x = (x_inicio + x_fin) / 2.0
+    for lado, y in (("I", -ancho / 2), ("D", ancho / 2)):
+        crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, y, alto_muros / 2), (largo, 100, alto_muros), materiales["Acento"])
+    tramo = (ancho - hueco_salida) / 2.0
+    for lado, signo in (("I", -1), ("D", 1)):
+        y = signo * (hueco_salida / 2.0 + tramo / 2.0)
+        crear_bloque(actores, f"{etiqueta}_Salida{lado}", unreal.Vector(x_fin, y, alto_muros / 2), (100, tramo, alto_muros), materiales["Acento"])
+
+
+def crear_iluminacion_oscura(actores):
+    """Noche fría sin atmósfera: luz de luna azulada, cielo apagado, niebla densa. Exposición fija."""
+    luna = actores.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-55, yaw=-40))
+    luna.set_actor_label("Luna")
+    luz = luna.get_component_by_class(unreal.DirectionalLightComponent)
+    luz.set_mobility(unreal.ComponentMobility.MOVABLE)
+    luz.set_editor_property("intensity", 2.5)
+    luz.set_editor_property("light_color", unreal.Color(170, 190, 255, 255))
+    # La luna manda en el sombreado forward/translúcido; el relleno no compite con ella.
+    luz.set_editor_property("forward_shading_priority", 1)
+
+    # Relleno desde el lado contrario, sin sombras: sustituye a la luz de cielo (sin atmósfera el cielo es
+    # negro y no aportaría luz ambiente) y deja leer las formas en sombra.
+    cielo = actores.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000), unreal.Rotator(roll=0, pitch=-30, yaw=140))
+    cielo.set_actor_label("Relleno")
+    relleno = cielo.get_component_by_class(unreal.DirectionalLightComponent)
+    relleno.set_mobility(unreal.ComponentMobility.MOVABLE)
+    relleno.set_editor_property("intensity", 0.8)
+    relleno.set_editor_property("light_color", unreal.Color(90, 110, 170, 255))
+    relleno.set_editor_property("cast_shadows", False)
+
+    niebla = actores.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector(0, 0, -200))
+    niebla.set_actor_label("Niebla")
+    componente_niebla = niebla.get_component_by_class(unreal.ExponentialHeightFogComponent)
+    componente_niebla.set_editor_property("fog_density", 0.04)
+    componente_niebla.set_editor_property("fog_inscattering_luminance", unreal.LinearColor(0.02, 0.03, 0.06, 1.0))
+
+    # Exposición manual: sin adaptación automática, la oscuridad se queda oscura.
+    volumen = actores.spawn_actor_from_class(unreal.PostProcessVolume, unreal.Vector(0, 0, 0))
+    volumen.set_actor_label("PostProceso")
+    volumen.set_editor_property("unbound", True)
+    ajustes = volumen.get_editor_property("settings")
+    ajustes.set_editor_property("override_auto_exposure_method", True)
+    ajustes.set_editor_property("auto_exposure_method", unreal.AutoExposureMethod.AEM_MANUAL)
+    ajustes.set_editor_property("override_auto_exposure_apply_physical_camera_exposure", True)
+    ajustes.set_editor_property("auto_exposure_apply_physical_camera_exposure", False)
+    ajustes.set_editor_property("override_auto_exposure_bias", True)
+    ajustes.set_editor_property("auto_exposure_bias", 0.0)
+    volumen.set_editor_property("settings", ajustes)
+    for actor in (luna, cielo, niebla, volumen):
+        actor.set_folder_path("Iluminacion")
+
+
+def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
+    editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_TUTORIAL)
+    materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
+                  for nombre, valores in PIEZAS_ESCENARIO.items()}
+
+    # S0 Inicio.
+    crear_suelo(actores, "S0_Suelo", -500, 1500, materiales)
+    actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
+    crear_texto(actores, "Cartel_SAEVUS", "SAEVUS", unreal.Vector(900, 0, 450), tamano=160.0)
+
+    # S1 Saltar: escalón de 1 m (salto) y bloque de 2,2 m (doble salto).
+    crear_suelo(actores, "S1_Suelo", 1500, 3500, materiales)
+    crear_bloque(actores, "S1_Escalon100", unreal.Vector(2000, 0, 50), (400, ANCHO_PASILLO, 100), materiales["Acento"])
+    crear_bloque(actores, "S1_Bloque220", unreal.Vector(2600, 0, 110), (400, ANCHO_PASILLO, 220), materiales["Acento"])
+
+    # S2 Dash: foso de 8 m.
+    crear_foso(actores, "S2_Foso", 3500, 4300, unreal.Vector(3300, 0, 100), materiales)
+    crear_suelo(actores, "S2_Suelo", 4300, 5600, materiales)
+
+    # S3 Paredes: chimenea de 7 m para saltos de pared y cornisa de 4,5 m que se puede escalar.
+    crear_suelo(actores, "S3_Suelo", 5600, 7400, materiales)
+    for lado, y in (("I", -200), ("D", 200)):
+        crear_bloque(actores, f"S3_Chimenea{lado}", unreal.Vector(6450, y, 350), (500, 100, 700), materiales["Acento"])
+    crear_bloque(actores, "S3_Cornisa450", unreal.Vector(7000, 0, 225), (600, ANCHO_PASILLO, 450), materiales["Acento"])
+
+    # S3b Carrera por pared: foso de 9 m junto a una pared larga.
+    crear_suelo(actores, "S3b_Suelo", 7300, 8000, materiales)
+    crear_foso(actores, "S3b_Foso", 8000, 8900, unreal.Vector(7800, 0, 100), materiales)
+    crear_bloque(actores, "S3b_ParedCarrera", unreal.Vector(8450, ANCHO_PASILLO / 2 + 50, 300), (1500, 100, 600), materiales["Acento"])
+    crear_suelo(actores, "S3b_Llegada", 8900, 9500, materiales)
+
+    # S4 Combate: tres muñecos y uno flotando para el tajo hacia arriba.
+    crear_suelo(actores, "S4_Suelo", 9500, 11500, materiales)
+    crear_punto_control(actores, "Control_Combate", 9600)
+    for indice, y in enumerate((-250, 0, 250)):
+        crear_muneco(actores, f"S4_Muneco{indice}", unreal.Vector(10400, y, 96), unreal.Rotator(0, 0, 180))
+    crear_muneco(actores, "S4_MunecoAlto", unreal.Vector(11000, 0, 96 + 190), unreal.Rotator(0, 0, 180))
+
+    # S5 Rebote: foso de 12 m (no se cruza sin rebotar) con dos muñecos flotando a media altura.
+    crear_suelo(actores, "S5_Suelo", 11500, 11800, materiales)
+    crear_foso(actores, "S5_Foso", 11800, 13000, unreal.Vector(11650, 0, 100), materiales)
+    crear_muneco(actores, "S5_MunecoRebote1", unreal.Vector(12200, 0, -60))
+    crear_muneco(actores, "S5_MunecoRebote2", unreal.Vector(12650, 0, -60))
+    crear_suelo(actores, "S5_Llegada", 13000, 13500, materiales)
+
+    # S6 Alma: muñecos para llenar el alma antes de la arena.
+    crear_suelo(actores, "S6_Suelo", 13500, 15000, materiales)
+    crear_punto_control(actores, "Control_Alma", 13600)
+    for indice, y in enumerate((-200, 200)):
+        crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(14300, y, 96), unreal.Rotator(0, 0, 180))
+
+    # S7 Arena de mini enemigos; la puerta se abre al vaciarla.
+    crear_arena(actores, "S7_Arena", 15000, 17500, 2000, 400, materiales, 600)
+    crear_punto_control(actores, "Control_Arena", 15100)
+    enemigos_arena = [
+        crear_enemigo(actores, "S7_Rastrero1", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16100, -400, 0)),
+        crear_enemigo(actores, "S7_Rastrero2", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16400, 400, 0)),
+        crear_enemigo(actores, "S7_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(16900, 0, 0)),
+    ]
+    crear_puerta(actores, "S7_Puerta", 17500, 600, 400, enemigos_arena, materiales["Puerta"],
+                 "Puerta abierta", "Sigue adelante.")
+
+    # S8 Arena del Guardián.
+    crear_arena(actores, "S8_Arena", 17500, 20500, 2400, 600, materiales, 600)
+    crear_punto_control(actores, "Control_Jefe", 17700)
+    jefe = crear_enemigo(actores, "S8_Guardian", datos_enemigos["DA_Jefe_Guardian"], unreal.Vector(19400, 0, 0))
+    crear_puerta(actores, "S8_Puerta", 20500, 600, 600, [jefe], materiales["Puerta"],
+                 "Tutorial completado", "Has derrotado al Guardián.\nSigue practicando: todo se combina con todo.")
+
+    # S9 Fin.
+    crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
+    crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
+
+    for x, titulo, texto in AVISOS_TUTORIAL:
+        crear_aviso(actores, x, titulo, texto)
+
+    crear_iluminacion_oscura(actores)
+    mundo = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    mundo.get_world_settings().set_editor_property("default_game_mode", bp_modo_juego.generated_class())
+    editor_niveles.save_current_level()
+    registrar(f"mapa tutorial: {RUTA_MAPA_TUTORIAL}")
+
+
 def main():
     acciones, imc = crear_assets_entrada()
     config_entrada, movimiento, camara, repertorio, armas = crear_data_assets(acciones)
@@ -682,6 +915,7 @@ def main():
     datos_enemigos = crear_datos_enemigos(
         cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"), cargar(f"{DIR_MATERIALES}/M_ParticulaAlma"))
     construir_mapa_pruebas(bp_modo_juego, datos_enemigos)
+    construir_mapa_tutorial(bp_modo_juego, datos_enemigos, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
     if not eal.save_directory(RAIZ, only_if_is_dirty=False, recursive=True):
         raise RuntimeError(f"Falló el guardado de {RAIZ}")
     registrar("hecho")

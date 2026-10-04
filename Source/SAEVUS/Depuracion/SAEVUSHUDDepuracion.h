@@ -6,7 +6,10 @@
 #include "GameFramework/HUD.h"
 #include "SAEVUSHUDDepuracion.generated.h"
 
-/** Texto superpuesto con valores en vivo. Solo se dibuja con SAEVUS.Depuracion.HUD activo (F6). */
+/**
+ * Texto superpuesto: los avisos del tutorial (siempre) y valores en vivo de depuración (solo con
+ * SAEVUS.Depuracion.HUD activo, F6).
+ */
 UCLASS()
 class SAEVUS_API ASAEVUSHUDDepuracion : public AHUD
 {
@@ -28,4 +31,25 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Depuracion")
 	FLinearColor ColorTexto = FLinearColor(0.2f, 1.f, 0.4f);
+
+	/** Altura del aviso de tutorial como fracción de la pantalla (desde arriba). */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Tutorial", meta = (ClampMin = "0", ClampMax = "1"))
+	float AlturaAviso = 0.12f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Tutorial", meta = (ClampMin = "0"))
+	float EscalaTituloAviso = 1.4f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Tutorial", meta = (ClampMin = "0"))
+	float EscalaTextoAviso = 1.f;
+
+	/** Fundido de entrada y salida del aviso. */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Tutorial", meta = (ClampMin = "0", ForceUnits = "s"))
+	float FundidoAviso = 0.3f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Tutorial")
+	FLinearColor ColorAviso = FLinearColor(0.85f, 0.9f, 1.f);
+
+private:
+	void DibujarAvisoTutorial();
+	void DibujarDepuracion();
 };

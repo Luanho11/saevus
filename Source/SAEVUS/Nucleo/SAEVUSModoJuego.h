@@ -22,6 +22,12 @@ public:
 	/** Lo llama un personaje al morir. Programa la reaparición de su controlador (si tiene). */
 	void NotificarMuerteJugador(AController* Controlador);
 
+	/** Desde ahora los jugadores reaparecen en Punto (puntos de control del tutorial). */
+	void FijarPuntoControl(const FTransform& Punto);
+
+	bool TienePuntoControl() const { return bTienePuntoControl; }
+	const FTransform& ObtenerPuntoControl() const { return PuntoControl; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Reaparicion", meta = (ClampMin = "0", ForceUnits = "s"))
 	float RetardoReaparicion = 3.f;
@@ -32,4 +38,7 @@ protected:
 
 private:
 	void ReaparecerJugador(TWeakObjectPtr<AController> Controlador);
+
+	FTransform PuntoControl;
+	bool bTienePuntoControl = false;
 };

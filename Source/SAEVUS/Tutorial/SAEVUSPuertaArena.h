@@ -1,0 +1,61 @@
+// Copyright SAEVUS. Todos los derechos reservados.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "SAEVUSPuertaArena.generated.h"
+
+class ASAEVUSEnemigo;
+class UStaticMeshComponent;
+
+/**
+ * Puerta (un bloque) que se hunde en el suelo cuando mueren todos sus enemigos: cierra una
+ * arena del tutorial hasta vaciarla. Sin enemigos asignados se queda cerrada.
+ */
+UCLASS()
+class SAEVUS_API ASAEVUSPuertaArena : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ASAEVUSPuertaArena();
+
+	void FijarEnemigos(const TArray<ASAEVUSEnemigo*>& NuevosEnemigos);
+
+	bool EstaAbierta() const { return bAbierta; }
+
+	/** Abre la puerta (sin colisión al instante; se hunde en DuracionApertura). */
+	void Abrir();
+
+	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UPROPERTY(VisibleAnywhere, Category = "Componentes")
+	TObjectPtr<UStaticMeshComponent> Malla;
+
+	UPROPERTY(EditInstanceOnly, Category = "SAEVUS|Puerta")
+	TArray<TObjectPtr<ASAEVUSEnemigo>> Enemigos;
+
+	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionApertura = 1.2f;
+
+	/** Aviso al abrirse (vacío = ninguno). */
+	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta")
+	FText TituloAlAbrir;
+
+	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta", meta = (MultiLine = "true"))
+	FText TextoAlAbrir;
+
+private:
+	void AlMorirEnemigo(ASAEVUSEnemigo* Enemigo);
+	bool QuedanEnemigos() const;
+
+	FDelegateHandle Manejador;
+	bool bAbierta = false;
+	float TiempoAbriendo = 0.f;
+	FVector PosicionCerrada = FVector::ZeroVector;
+};

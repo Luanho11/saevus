@@ -36,5 +36,18 @@ void ASAEVUSModoJuego::ReaparecerJugador(TWeakObjectPtr<AController> Controlador
 		Controlador->UnPossess();
 		PawnMuerto->SetLifeSpan(FMath::Max(DuracionCadaver, UE_KINDA_SMALL_NUMBER));
 	}
-	RestartPlayer(Controlador.Get());
+	if (bTienePuntoControl)
+	{
+		RestartPlayerAtTransform(Controlador.Get(), PuntoControl);
+	}
+	else
+	{
+		RestartPlayer(Controlador.Get());
+	}
+}
+
+void ASAEVUSModoJuego::FijarPuntoControl(const FTransform& Punto)
+{
+	PuntoControl = Punto;
+	bTienePuntoControl = true;
 }

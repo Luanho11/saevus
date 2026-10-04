@@ -9,7 +9,8 @@ param(
     [int]$ResY = 720,
     [string]$ComandosExtra = "",
     [switch]$PerfilGPU,
-    [string]$Mapa = "",
+    # La prueba de humo necesita el mapa de pruebas (suelo llano largo); el juego arranca en el tutorial.
+    [string]$Mapa = "/Game/SAEVUS/Mapas/L_Pruebas",
     [string]$RaizMotor = "C:\Program Files\Epic Games\UE_5.8"
 )
 
