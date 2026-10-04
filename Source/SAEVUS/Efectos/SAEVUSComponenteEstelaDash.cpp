@@ -37,6 +37,11 @@ FVector USAEVUSComponenteEstelaDash::ObtenerPuntoEmision() const
 
 void USAEVUSComponenteEstelaDash::AlIniciarDash(const FVector& Direccion)
 {
+	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
+	if (Movimiento && !Movimiento->ObtenerAjusteDash().bEstela)
+	{
+		return;
+	}
 	AcumuladoEmision = 0.f;
 	EmitirRafaga(ObtenerPuntoEmision(), -Direccion * AjusteEstela.VelocidadRetroceso, AjusteEstela.ParticulasRafaga, AjusteEstela.Dispersion);
 }
@@ -51,7 +56,7 @@ void USAEVUSComponenteEstelaDash::AlSaltoAereo()
 void USAEVUSComponenteEstelaDash::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
-	if (Movimiento && Movimiento->EstaEnDash())
+	if (Movimiento && Movimiento->EstaEnDash() && Movimiento->ObtenerAjusteDash().bEstela)
 	{
 		AcumuladoEmision += AjusteEstela.ParticulasPorSegundo * DeltaTime;
 		const int32 Cantidad = FMath::FloorToInt32(AcumuladoEmision);

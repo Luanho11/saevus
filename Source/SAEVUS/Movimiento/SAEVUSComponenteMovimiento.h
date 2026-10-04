@@ -107,6 +107,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	int32 SaltosParedRestantes() const;
 
+	/** Con arma de fuego, el dash es la voltereta (DashArmaFuego). Lo fija el personaje al pedir el dash. */
+	void FijarDashArmaFuego(bool bArmaFuego) { bDashArmaFuego = bArmaFuego; }
+
 	/** Dobles saltos que quedan antes de aterrizar. */
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	int32 SaltosAereosRestantes() const;
@@ -235,6 +238,7 @@ private:
 	int32 DashesAereosUsados = 0;
 	int32 SaltosParedUsados = 0;
 	int32 SaltosAereosUsados = 0;
+	bool bDashArmaFuego = false;
 
 	// Estado de carrera por pared / escalada, también guardado y restaurado por FSAEVUSMovimientoGuardado.
 	FVector NormalPared = FVector::ZeroVector;

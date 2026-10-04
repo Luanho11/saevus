@@ -4,6 +4,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Armas/SAEVUSTiposArma.h"
 #include "Movimiento/SAEVUSAjustesMovimiento.h"
 
 namespace SAEVUSPruebasDash
@@ -221,6 +222,44 @@ bool FSAEVUSPruebaDashCancelarSalto::RunTest(const FString& Parameters)
 	TestTrue(TEXT("El salto ocurrió"), Movimiento->IsFalling() && Movimiento->Velocity.Z > 0.f);
 	TestTrue(TEXT("El salto sale con la velocidad de salida del dash, no con la del dash"),
 		Movimiento->Velocity.Size2D() <= Movimiento->ObtenerAjusteDash().VelocidadSalida + ToleranciaVelocidad);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaDashArmaFuego, "SAEVUS.Movimiento.Dash.SegunArma", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaDashArmaFuego::RunTest(const FString& Parameters)
+{
+	// Con aguijón, el dash normal; con arma de fuego, la voltereta: más lenta, sin estela ni cámara fija.
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	MundoPrueba.CrearBloque(FVector(0.f, 0.f, -50.f), FVector(4000.f, 4000.f, 100.f));
+	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(FVector(0.f, 0.f, 150.f));
+	if (!TestTrue(TEXT("Asentado"), MundoPrueba.AsentarEnSuelo()))
+	{
+		return false;
+	}
+	USAEVUSComponenteMovimiento* Movimiento = Personaje->ObtenerMovimiento();
+	const FSAEVUSAjusteDash Voltereta = SAEVUSDash::CrearVoltereta();
+
+	Personaje->PedirDash();
+	MundoPrueba.Paso();
+	const float VelocidadAguijon = static_cast<float>(Movimiento->Velocity.Size2D());
+	TestTrue(TEXT("Con aguijón: dash con estela"), Movimiento->ObtenerAjusteDash().bEstela);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(1.f); ++Indice)
+	{
+		MundoPrueba.Paso();
+	}
+
+	USAEVUSDefinicionArma* Pistola = NewObject<USAEVUSDefinicionArma>(GetTransientPackage());
+	Pistola->Tipo = ESAEVUSTipoArma::ArmaFuego;
+	Personaje->ObtenerArmas()->FijarArsenal({ Pistola });
+	MundoPrueba.Paso();
+	Personaje->PedirDash();
+	MundoPrueba.Paso();
+	AddInfo(FString::Printf(TEXT("Velocidad: aguijón %.0f, arma de fuego %.0f cm/s"), VelocidadAguijon, Movimiento->Velocity.Size2D()));
+	TestTrue(TEXT("Con arma de fuego: la voltereta"), Movimiento->EstaEnDash());
+	TestEqual(TEXT("A la velocidad de la voltereta"), static_cast<float>(Movimiento->Velocity.Size2D()), Voltereta.Velocidad, 5.f);
+	TestTrue(TEXT("Más lenta que el dash con aguijón"), Movimiento->Velocity.Size2D() < VelocidadAguijon);
+	TestFalse(TEXT("Sin estela"), Movimiento->ObtenerAjusteDash().bEstela);
+	TestFalse(TEXT("Sin cámara fija"), Personaje->CamaraBloqueada());
 	return true;
 }
 

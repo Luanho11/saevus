@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 16)**
-**Último latido: 2026-10-03 21:40** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 18)**
+**Último latido: 2026-10-03 21:51** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -50,9 +50,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 13. [x] ~~Reto de técnica al final del tutorial (opcional, tras el Guardián): pasillo con pared → doble salto → dash → rebote en pinchos → carrera por pared, con su test de obstáculo.~~
 14. [ ] Medición real: empaquetar Development para Win64 (`RunUAT BuildCookRun`) en `Saved/Empaquetado/`, script `Herramientas/Empaquetar.ps1`, y medir el tutorial con `stat unit`/Unreal Insights fuera del editor. **BLOQUEADA (2026-10-03):** el primer intento (`Herramientas/Empaquetar.ps1`) lo detuvo el sistema por falta de memoria al compilar el juego con 7 GB de RAM. No relanzar en autónomo; pedir al dueño que lo ejecute con el resto de programas cerrados.
 15. [x] ~~Sonidos de enemigos (aviso, embestida, muerte) con la síntesis existente.~~
-16. [ ] Dash según el arma (GunZ): con aguijón, más rápido y con estela; con arma de fuego, voltereta más lenta (ajuste del dash por tipo de arma).
+16. [x] ~~Dash según el arma (GunZ): con aguijón, más rápido y con estela; con arma de fuego, voltereta más lenta (ajuste del dash por tipo de arma).~~
+17. [ ] Cabeza que mira al enemigo cercano o al objetivo de la cámara (animación), con límites de giro.
+18. [ ] Contraataque (parry, Hollow Knight/GunZ): guardia pulsada justo antes del golpe → el atacante queda aturdido y el jugador gana alma; ventana por datos.
 
 ## Estado del turno
-- Completado: tarea 15 (sonidos de enemigos).
+- Completado: tarea 16 (dash según el arma).
 - A medias: —
-- Siguiente paso exacto: tarea 16 — dash según el arma: `FSAEVUSAjusteDash` por tipo de arma (aguijón: el actual; arma de fuego: voltereta más lenta y corta, sin estela), elegido por `USAEVUSComponenteArmas` al cambiar de arma; tests.
+- Siguiente paso exacto: tarea 18 — contraataque (parry) sobre la guardia (más jugable que la 17).

@@ -13,6 +13,7 @@ namespace SAEVUSMovimiento
 	const FSAEVUSAjusteMovimientoSuelo AjusteSueloBase;
 	const FSAEVUSAjusteMovimientoAire AjusteAireBase;
 	const FSAEVUSAjusteDash AjusteDashBase;
+	const FSAEVUSAjusteDash AjusteDashArmaFuegoBase = SAEVUSDash::CrearVoltereta();
 	const FSAEVUSAjusteSaltoPared AjusteSaltoParedBase;
 	const FSAEVUSAjusteCarreraPared AjusteCarreraParedBase;
 	const FSAEVUSAjusteEscaladaPared AjusteEscaladaBase;
@@ -213,6 +214,10 @@ const FSAEVUSAjusteMovimientoAire& USAEVUSComponenteMovimiento::ObtenerAjusteAir
 
 const FSAEVUSAjusteDash& USAEVUSComponenteMovimiento::ObtenerAjusteDash() const
 {
+	if (bDashArmaFuego)
+	{
+		return AjustesMovimiento ? AjustesMovimiento->DashArmaFuego : SAEVUSMovimiento::AjusteDashArmaFuegoBase;
+	}
 	return AjustesMovimiento ? AjustesMovimiento->Dash : SAEVUSMovimiento::AjusteDashBase;
 }
 

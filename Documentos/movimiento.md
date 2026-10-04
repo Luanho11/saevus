@@ -85,6 +85,10 @@ Primera habilidad avanzada (objetivos en `investigacion/gunz.md`). En teclado: *
 | VelocidadVerticalDashAereo | 0 cm/s | |
 | bSuspenderGravedadEnDash | cierto | |
 
+## Dash según el arma
+
+Con un arma de fuego equipada el dash es una **voltereta** (`USAEVUSAjustesMovimiento::DashArmaFuego`, valores de `SAEVUSDash::CrearVoltereta`): 1150 cm/s durante 0,24 s (frente a 1600 × 0,18 del aguijón), enfriamiento 0,45 s, invulnerable 0,1 s, sin estela y sin cámara fija (se sigue apuntando). Idea tomada de GunZ (con espada el dash es más rápido y vistoso), con números propios. El personaje fija el tipo al pedir el dash (`FijarDashArmaFuego`); falta llevarlo al movimiento guardado en la fase de red. Test `SAEVUS.Movimiento.Dash.SegunArma`.
+
 ## Salto de pared
 
 Sin entrada nueva: es el salto pulsado en el aire junto a una pared.

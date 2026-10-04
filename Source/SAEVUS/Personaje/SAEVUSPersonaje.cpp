@@ -332,6 +332,7 @@ void ASAEVUSPersonaje::PedirDash()
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
 		Alma->CancelarCuracion();
+		ObtenerMovimiento()->FijarDashArmaFuego(Armas->TieneArmaFuegoEquipada());
 		ObtenerMovimiento()->PedirDash();
 	}
 }
@@ -341,6 +342,7 @@ void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
 		Alma->CancelarCuracion();
+		ObtenerMovimiento()->FijarDashArmaFuego(Armas->TieneArmaFuegoEquipada());
 		ObtenerMovimiento()->PedirDashEnDireccion(Direccion);
 	}
 }

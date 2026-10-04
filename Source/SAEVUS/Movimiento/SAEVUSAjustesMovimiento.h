@@ -148,7 +148,21 @@ struct FSAEVUSAjusteDash
 	/** Invulnerabilidad desde el inicio del dash (esquiva). 0 = ninguna. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
 	float DuracionInvulnerable = 0.15f;
+
+	/** Deja estela de partículas (el dash con aguijón sí; la voltereta con arma de fuego no). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Efectos")
+	bool bEstela = true;
 };
+
+namespace SAEVUSDash
+{
+	/**
+	 * Dash con arma de fuego (GunZ: voltereta más lenta que el dash con espada): más corto en
+	 * velocidad, algo más largo, con más enfriamiento, sin estela y sin bloquear la cámara para
+	 * poder seguir apuntando.
+	 */
+	SAEVUS_API FSAEVUSAjusteDash CrearVoltereta();
+}
 
 /**
  * Salto de pared: un salto pulsado en el aire junto a una pared casi vertical empuja al
@@ -322,6 +336,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
 	FSAEVUSAjusteDash Dash;
+
+	/** Dash con un arma de fuego equipada. Ver SAEVUSDash::CrearVoltereta. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
+	FSAEVUSAjusteDash DashArmaFuego = SAEVUSDash::CrearVoltereta();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Salto de pared")
 	FSAEVUSAjusteSaltoPared SaltoPared;
