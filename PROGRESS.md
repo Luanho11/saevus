@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 54)**
-**Último latido: 2026-10-04 06:11** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 55)**
+**Último latido: 2026-10-04 06:28** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -88,11 +88,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 51. [x] ~~Medir el rendimiento en los recorridos: fotogramas medio y peor por mapa (tutorial y Zona 1, con sus 13 enemigos y el jefe), escrito en el log y en `rendimiento.md`.~~ ≈ 52 fps en los dos mapas, en Media.
 52. [x] ~~Volumen general en los menús (0–100 % en pasos), guardado con las demás opciones.~~
 53. [x] ~~Menús con mando y teclado: foco en el primer botón al abrir, navegación con la cruceta y confirmar con el botón inferior; prueba de humo.~~ Botón enfocado resaltado.
-54. [ ] Enemigo con escudo ("Acorazado"): bloquea los golpes de frente (filtro de daño como la guardia del jugador), hay que rodearlo, saltarle por encima (pogo) o romper su guardia con el giro cargado; en la Zona 1.
+54. [x] ~~Enemigo con escudo ("Acorazado"): bloquea los golpes de frente (filtro de daño como la guardia del jugador), hay que rodearlo, saltarle por encima (pogo) o romper su guardia con el giro cargado; en la Zona 1.~~ `USAEVUSComponenteEscudo`, `DA_Enemigo_Acorazado` (cuerpo con escudo en Blender).
 55. [ ] Secreto en la Zona 1: pared falsa que se rompe a golpes y da a una sala con un fragmento de máscara (+1 máscara de vida al juntar dos; guardado).
 56. [ ] Regreso de la Zona 1 al tutorial (paso en la entrada) y aparición junto al paso correspondiente al cambiar de mapa.
 
 ## Estado del turno
-- Completado: tarea 53 (menús con mando).
+- Completado: tarea 54 (enemigo con escudo).
 - A medias: —
-- Siguiente paso exacto: tarea 54 — enemigo con escudo.
+- Siguiente paso exacto: tarea 55 — secreto con fragmento de máscara.

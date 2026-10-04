@@ -5,7 +5,7 @@ dos materiales ("Cuerpo" en la ranura 0, "Mascara" en la 1) que UE colorea por d
 Cada cuerpo llena la cápsula de su tipo (FSAEVUSAjusteEnemigo): origen en el centro de la cápsula
 (como el actor en UE), mirando a +X (llega a UE mirando a +X, el frente del actor). Formas simples
 y rotundas en la línea de Hollow Knight, con identidad propia: rastrero bajo y ancho, saltador con
-patas traseras grandes, escupidor con buche luminoso, revoloteador alado, Guardián acorazado con cuernos enormes, Madre Alada (jefe volador).
+patas traseras grandes, escupidor con buche luminoso, revoloteador alado, acorazado con escudo, Guardián acorazado con cuernos enormes, Madre Alada (jefe volador).
 
 Ejecución sin interfaz (Generar-Enemigos.ps1 lo hace):
   blender.exe --background --factory-startup --python blender_enemigos.py -- <directorio de salida>
@@ -107,6 +107,18 @@ def revoloteador():
     return piezas
 
 
+def acorazado():
+    """Con escudo (cápsula 0,45 × 0,60 m): cuerpo encorvado, patas cortas y un gran escudo redondo delante."""
+    piezas = [esfera("Cuerpo", (-0.05, 0, 0.0), (0.42, 0.38, 0.5)), esfera("Mascara", (0.2, 0, 0.32), (0.13, 0.18, 0.15))]
+    for lado in (-1, 1):
+        piezas.append(segmento("Cuerpo", (0.0, lado * 0.2, -0.35), (0.05, lado * 0.25, -0.6), 0.09, 0.06, 8))
+    # Escudo: disco grueso delante, de la altura del cuerpo, con un reborde.
+    piezas.append(esfera("Mascara", (0.42, 0, 0.0), (0.07, 0.42, 0.52), 16, 10))
+    piezas.append(esfera("Cuerpo", (0.47, 0, 0.0), (0.03, 0.2, 0.25), 12, 8))
+    piezas += cuernos(0.05, 0.42, 0.08, 0.16, 0.035, 0.05)
+    return piezas
+
+
 def madre_alada():
     """Jefe volador (cápsula 0,70 × 0,70 m): cuerpo grande, máscara ancha, cuatro alas, corona de cuernos y aguijón."""
     piezas = [esfera("Cuerpo", (0, 0, 0.0), (0.62, 0.55, 0.52), 16, 10), esfera("Mascara", (0.42, 0, 0.12), (0.26, 0.38, 0.3), 16, 10)]
@@ -140,6 +152,7 @@ TIPOS = {
     "SM_Enemigo_Saltador": saltador,
     "SM_Enemigo_Escupidor": escupidor,
     "SM_Enemigo_Revoloteador": revoloteador,
+    "SM_Enemigo_Acorazado": acorazado,
     "SM_Jefe_Guardian": guardian,
     "SM_Jefe_MadreAlada": madre_alada,
 }

@@ -47,10 +47,21 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
 | Saltador | 25 | 35 × 50 | 220 | 1100 | 10 | Salto 150–700 cm: aviso 0,45 s, 500 + 750 cm/s, 15 de daño, recuperación 0,7 s |
 | Escupidor | 20 | 38 × 55 | 200 | 1300 | 10 | Escupitajo 400–1200 cm: aviso 0,6 s, proyectil a 900 cm/s, 15 de daño, recuperación 1,1 s; retrocede si el jugador está a menos de 4 m |
 | Revoloteador (vuela) | 15 | 35 × 35 | 260 | 1000 | 10 | Picado 0–450 cm: aviso 0,6 s, 0,55 s a 950 cm/s, 15 de daño, recuperación 0,9 s; vuela a 2,2 m sobre el jugador |
+| Acorazado (escudo de 120°) | 40 | 45 × 60 | 200 | 900 | 10 | Escudazo 0–220 cm: aviso 0,6 s, golpe de 20 (radio 140 a 120 cm), recuperación 1 s; bloquea de frente, se rompe con 28 de daño (giro cargado) durante 2,5 s |
 | Madre Alada (jefe de la Zona 1, vuela a 3,2 m) | 300 | 70 × 70 | 300 | 1600 | 15 | Picado 0–700 cm (25, 1100 cm/s), Abanico de 5 a 60° 300–1600 cm (20), Abanico amplio de 7 a 90° (20, solo fase 2); fase 2 a media vida: × 1,25 velocidad, avisos × 0,75 |
 | Guardián (jefe) | 250 | 90 × 120 | 260 | 1500 | 15 | Golpe 0–260 cm (25), Embestida 300–1200 cm a 1300 cm/s (25), Salto 200–900 cm (30, solo fase 2) |
 
 El Guardián apenas se mueve con los golpes (`EscalaEmpujeRecibido` 0,15) y tarda 1,5 s en deshacerse al morir.
+
+## Escudo
+
+`USAEVUSComponenteEscudo` (en todos los enemigos; solo actúa si el tipo tiene `AnguloEscudo`). Se engancha al filtro de daño de la vida, como la guardia del jugador. Un golpe que llega de frente, dentro de la mitad del ángulo a cada lado, se **bloquea**: no hace daño, no da alma, empuja al atacante (`EmpujeEscudo`), saca chispas y suena un choque metálico. Hay tres formas de vencerlo:
+
+- **rodearlo:** por detrás o de lado el golpe pasa;
+- **saltarle encima:** desde arriba no hay dirección, así que el tajo hacia abajo (pogo) pasa;
+- **romperlo:** un golpe de al menos `DanioRompeEscudo` (28, el giro cargado) lo rompe durante `TiempoEscudoRoto` (2,5 s) y pasa entero.
+
+El Acorazado está en la planta alta y en la arena de la Zona 1.
 
 ## Voladores
 
@@ -78,6 +89,7 @@ Al morir: sin colisión ni movimiento, ráfaga de partículas, se encoge durante
 
 `SAEVUS.Enemigo.*`:
 - `Deteccion`: patrulla en reposo, persigue al ver y se acerca.
+- `Escudo`: de frente bloquea (un bloqueo, sin daño); por detrás pasa; un golpe fuerte lo rompe y pasa, y roto no bloquea; recuperado, desde encima pasa.
 - `Volador`: vuela sin caer, se pone a su altura sobre el jugador, cae en picado hacia él y, aturdido, cae y vuelve a volar.
 - `ReposoLejano`: lejos, la IA y el movimiento se actualizan a intervalos; al acercarse despierta y vuelve a cada fotograma.
 - `AvisoYEmbestida`: quieto durante el aviso; embiste hacia el jugador; se recupera.

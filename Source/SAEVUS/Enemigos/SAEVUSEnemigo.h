@@ -12,6 +12,7 @@ class UStaticMeshComponent;
 class USAEVUSComponenteIAEnemigo;
 class USAEVUSComponenteParticulas;
 class USAEVUSComponenteSonidoEnemigo;
+class USAEVUSComponenteEscudo;
 class USAEVUSComponenteVida;
 class ASAEVUSEnemigo;
 
@@ -112,6 +113,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<USAEVUSComponenteSonidoEnemigo> Sonido;
+
+	/** Escudo (solo bloquea si el tipo tiene AnguloEscudo). */
+	UPROPERTY(VisibleAnywhere, Category = "Componentes")
+	TObjectPtr<USAEVUSComponenteEscudo> Escudo;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> MaterialCuerpo;

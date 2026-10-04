@@ -17,6 +17,8 @@ enum class ESAEVUSSonidoMundo : uint8
 	Puerta,
 	/** Sentarse en un banco: campanada suave y cálida. */
 	Banco,
+	/** Golpe contra un escudo: choque metálico seco. */
+	Escudo,
 	Total UMETA(Hidden)
 };
 
@@ -39,6 +41,9 @@ struct SAEVUS_API FSAEVUSAjusteSonidosMundo
 
 	UPROPERTY(EditAnywhere, Category = "Sonidos")
 	FSAEVUSSonidoSintetizado Banco;
+
+	UPROPERTY(EditAnywhere, Category = "Sonidos")
+	FSAEVUSSonidoSintetizado Escudo;
 
 	const FSAEVUSSonidoSintetizado& Obtener(ESAEVUSSonidoMundo Sonido) const;
 };

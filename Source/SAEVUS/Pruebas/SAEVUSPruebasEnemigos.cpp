@@ -6,6 +6,7 @@
 
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
+#include "Enemigos/SAEVUSComponenteEscudo.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
@@ -205,6 +206,58 @@ bool FSAEVUSPruebaEnemigoVolador::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Aturdido cae"), Movimiento->IsFalling());
 	Mundo.AvanzarDurante(Ajuste.TiempoAturdido + TiempoObservar);
 	TestTrue(TEXT("Vuelve a volar"), Movimiento->IsFlying());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoEscudo, "SAEVUS.Enemigo.Escudo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoEscudo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	constexpr float DanioFlojo = 10.f;
+	constexpr float DanioFuerte = 30.f;
+	FMundoEnemigos Mundo;
+	USAEVUSDatosEnemigo* Datos = CrearDatos();
+	Datos->Enemigo.AnguloEscudo = 120.f;
+	Datos->Enemigo.DanioRompeEscudo = 28.f;
+	Datos->Enemigo.VidaMaxima = 200.f;
+	Datos->Enemigo.Ataques.Reset();
+	Datos->Enemigo.RadioPatrulla = 0.f;
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(DistanciaVista, Datos);
+	if (!TestTrue(TEXT("Jugador y enemigo de pie"), Mundo.bListo))
+	{
+		return false;
+	}
+	// El enemigo mira al jugador (que está en -X).
+	Enemigo->SetActorRotation(FRotator(0.f, 180.f, 0.f));
+	const USAEVUSComponenteVida* Vida = Enemigo->ObtenerVida();
+	const USAEVUSComponenteEscudo* Escudo = Enemigo->FindComponentByClass<USAEVUSComponenteEscudo>();
+	const float VidaInicial = Vida->ObtenerVida();
+	UGameplayStatics::ApplyDamage(Enemigo, DanioFlojo, nullptr, Mundo.Jugador, UDamageType::StaticClass());
+	TestEqual(TEXT("De frente, el escudo bloquea"), Vida->ObtenerVida(), VidaInicial);
+	TestEqual(TEXT("Un bloqueo"), Escudo->ObtenerBloqueos(), 1);
+
+	// Por detrás pasa.
+	Mundo.Jugador->SetActorLocation(Enemigo->GetActorLocation() + FVector(300.f, 0.f, 0.f));
+	UGameplayStatics::ApplyDamage(Enemigo, DanioFlojo, nullptr, Mundo.Jugador, UDamageType::StaticClass());
+	TestEqual(TEXT("Por detrás, el golpe entra"), Vida->ObtenerVida(), VidaInicial - DanioFlojo);
+
+	// De frente, un golpe fuerte lo rompe y pasa; mientras está roto, los flojos también pasan.
+	Mundo.Jugador->SetActorLocation(Enemigo->GetActorLocation() - FVector(300.f, 0.f, 0.f));
+	UGameplayStatics::ApplyDamage(Enemigo, DanioFuerte, nullptr, Mundo.Jugador, UDamageType::StaticClass());
+	TestTrue(TEXT("El golpe fuerte rompe el escudo"), Escudo->EstaRoto());
+	TestEqual(TEXT("y hace daño"), Vida->ObtenerVida(), VidaInicial - DanioFlojo - DanioFuerte);
+	UGameplayStatics::ApplyDamage(Enemigo, DanioFlojo, nullptr, Mundo.Jugador, UDamageType::StaticClass());
+	TestEqual(TEXT("Roto, no bloquea"), Vida->ObtenerVida(), VidaInicial - 2.f * DanioFlojo - DanioFuerte);
+	TestEqual(TEXT("Sin bloqueos nuevos"), Escudo->ObtenerBloqueos(), 1);
+
+	// Desde encima (pogo) no hay dirección: pasa.
+	Mundo.MundoPrueba.ObtenerMundo()->TimeSeconds += Datos->Enemigo.TiempoEscudoRoto + 1.f;
+	TestFalse(TEXT("El escudo se recupera"), Escudo->EstaRoto());
+	Mundo.Jugador->SetActorLocation(Enemigo->GetActorLocation() + FVector(0.f, 0.f, 300.f));
+	const float VidaAntesPogo = Vida->ObtenerVida();
+	UGameplayStatics::ApplyDamage(Enemigo, DanioFlojo, nullptr, Mundo.Jugador, UDamageType::StaticClass());
+	TestEqual(TEXT("Desde encima pasa (pogo)"), Vida->ObtenerVida(), VidaAntesPogo - DanioFlojo);
 	return true;
 }
 

@@ -197,6 +197,26 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float RadioPatrulla = 250.f;
 
+	/**
+	 * Escudo: bloquea los golpes que llegan de frente dentro de este ángulo total (0 = sin escudo).
+	 * Bloquear no hace daño, no da alma y empuja al atacante; se rodea, se salta por encima (pogo)
+	 * o se rompe con un golpe fuerte.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Escudo", meta = (ClampMin = "0", ClampMax = "360", ForceUnits = "deg"))
+	float AnguloEscudo = 0.f;
+
+	/** Un golpe de frente con al menos este daño rompe el escudo (el giro cargado). 0 = no se rompe. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Escudo", meta = (ClampMin = "0"))
+	float DanioRompeEscudo = 28.f;
+
+	/** Tiempo que el escudo queda roto (no bloquea). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Escudo", meta = (ClampMin = "0", ForceUnits = "s"))
+	float TiempoEscudoRoto = 2.5f;
+
+	/** Velocidad con la que el escudo empuja al atacante al bloquear. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Escudo", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float EmpujeEscudo = 500.f;
+
 	/** Daño por tocar al enemigo (Hollow Knight: el contacto hace daño). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contacto", meta = (ClampMin = "0"))
 	float DanioContacto = 10.f;

@@ -41,6 +41,17 @@ FSAEVUSAjusteSonidosMundo::FSAEVUSAjusteSonidosMundo()
 	Banco.Caida = 0.4f;
 	Banco.Volumen = 0.45f;
 	Banco.Semilla = 227;
+
+	// Escudo: choque metálico seco y brillante.
+	Escudo.Duracion = 0.22f;
+	Escudo.FrecuenciaInicio = 1100.f;
+	Escudo.FrecuenciaFin = 700.f;
+	Escudo.Aspereza = 0.6f;
+	Escudo.MezclaRuido = 0.45f;
+	Escudo.FiltroRuido = 0.9f;
+	Escudo.Caida = 0.05f;
+	Escudo.Volumen = 0.6f;
+	Escudo.Semilla = 229;
 }
 
 const FSAEVUSSonidoSintetizado& FSAEVUSAjusteSonidosMundo::Obtener(ESAEVUSSonidoMundo Sonido) const
@@ -51,6 +62,8 @@ const FSAEVUSSonidoSintetizado& FSAEVUSAjusteSonidosMundo::Obtener(ESAEVUSSonido
 		return Palanca;
 	case ESAEVUSSonidoMundo::Banco:
 		return Banco;
+	case ESAEVUSSonidoMundo::Escudo:
+		return Escudo;
 	default:
 		return Puerta;
 	}

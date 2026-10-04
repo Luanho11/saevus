@@ -30,10 +30,11 @@ Si algo no compila o falta un asset, `powershell -ExecutionPolicy Bypass -File H
 | Tutorial con mini enemigos y mini jefe, escalable | Hecho: 10 secciones + reto, puertas de arena, puntos de control, pinchos, bancos y lección de armas |
 | Todo en español | Hecho: código, assets, documentos, mensajes |
 
-**Enemigos** (`enemigos.md`), seis tipos por datos con cuerpos generados en Blender:
+**Enemigos** (`enemigos.md`), siete tipos por datos con cuerpos generados en Blender:
 
 - rastrero, saltador y escupidor (proyectiles que se paran con la guardia o se devuelven con un tajo);
 - **revoloteador**, volador que cae en picado;
+- **acorazado**, con un escudo que bloquea de frente: se rodea, se le salta encima o se rompe con el giro cargado;
 - **Guardián**, mini jefe con dos fases;
 - **Madre Alada**, jefe volador con picados y abanicos de proyectiles, también con dos fases.
 

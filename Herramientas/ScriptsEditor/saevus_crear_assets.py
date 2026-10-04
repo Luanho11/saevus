@@ -540,6 +540,18 @@ ENEMIGOS = {
         ],
     },
 }
+ENEMIGOS["DA_Enemigo_Acorazado"] = {
+    # Con escudo: bloquea de frente; se rodea, se salta por encima (pogo) o se rompe con el giro cargado.
+    "nombre_visible": "Acorazado", "vida_maxima": 40.0, "radio_capsula": 45.0, "media_altura_capsula": 60.0,
+    "color_cuerpo": (0.05, 0.045, 0.04), "color_mascara": (0.75, 0.6, 0.35),
+    "velocidad_movimiento": 200.0, "radio_deteccion": 900.0, "radio_perdida": 1800.0, "radio_patrulla": 150.0,
+    "danio_contacto": 10.0, "angulo_escudo": 120.0, "danio_rompe_escudo": 28.0, "tiempo_escudo_roto": 2.5,
+    "ataques": [
+        {"nombre": "Escudazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 220.0,
+         "tiempo_telegrafiar": 0.6, "duracion": 0.25, "tiempo_recuperacion": 1.0, "danio": 20.0,
+         "radio_golpe": 140.0, "alcance_golpe": 120.0},
+    ],
+}
 ENEMIGOS["DA_Jefe_MadreAlada"] = {
     # Jefe de la Zona 1: volador grande. Picado y abanico de proyectiles; a media vida, más rápido y un abanico más amplio.
     "nombre_visible": "Madre Alada", "vida_maxima": 300.0, "es_jefe": True, "radio_capsula": 70.0, "media_altura_capsula": 70.0,
@@ -569,6 +581,7 @@ CUERPOS_ENEMIGOS = {
     "DA_Enemigo_Saltador": "SM_Enemigo_Saltador",
     "DA_Enemigo_Escupidor": "SM_Enemigo_Escupidor",
     "DA_Enemigo_Revoloteador": "SM_Enemigo_Revoloteador",
+    "DA_Enemigo_Acorazado": "SM_Enemigo_Acorazado",
     "DA_Jefe_Guardian": "SM_Jefe_Guardian",
     "DA_Jefe_MadreAlada": "SM_Jefe_MadreAlada",
 }
@@ -1188,6 +1201,7 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     enemigo("Z4_Saltador", "DA_Enemigo_Saltador", 8200, 0, 150)
     enemigo("Z4_Revoloteador", "DA_Enemigo_Revoloteador", 8700, -200, 150)
     enemigo("Z4_Escupidor", "DA_Enemigo_Escupidor", 9300, 250, 150)
+    enemigo("Z4_Acorazado", "DA_Enemigo_Acorazado", 7800, 0, 150)
 
     # Z5 Arena de las ruinas: la puerta se abre al vaciarla.
     crear_punto_control(actores, "Control_Arena", 9700, z=150)
@@ -1199,6 +1213,7 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
         enemigo("Z5_Escupidor", "DA_Enemigo_Escupidor", 11500, 600, 150),
         enemigo("Z5_Revoloteador1", "DA_Enemigo_Revoloteador", 10800, -300, 150),
         enemigo("Z5_Revoloteador2", "DA_Enemigo_Revoloteador", 11300, 300, 150),
+        enemigo("Z5_Acorazado", "DA_Enemigo_Acorazado", 11700, -400, 150),
     ]
     crear_puerta(actores, "Z5_Puerta", 12000, 600, 400, enemigos_arena, materiales["Puerta"],
                  "Ruinas despejadas", "Sigue: a la derecha de la salida se baja a la galería del atajo.", altura=150)

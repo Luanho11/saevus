@@ -12,8 +12,8 @@ Prototipo de nivel con lo que ya existe (movimiento, combate, enemigos, puntos d
 | Z1 Descenso | 1200 – 4600 | −100, −200, −300 | Dos escalones de 1 m; encuentro 1: dos rastreros y un revoloteador |
 | Z2 Grieta | 4600 – 5500 | −300 | Foso de 9 m con dos plataformas; caer devuelve al borde |
 | Z3 Banco | 5500 – 6500 | −300 | Banco para sentarse (E), punto de control y aviso; a la derecha, la compuerta cerrada del atajo |
-| Z4 Torre | 6500 – 9600 | muro de 4,5 m, después +150 | Se escala el muro; planta alta con el encuentro 2: saltador, revoloteador y escupidor |
-| Z5 Arena | 9600 – 12000 | +150 | Punto de control; arena de 20 m de ancho con dos rastreros, un saltador, un escupidor y dos revoloteadores; la puerta se abre al vaciarla |
+| Z4 Torre | 6500 – 9600 | muro de 4,5 m, después +150 | Se escala el muro; planta alta con el encuentro 2: acorazado, saltador, revoloteador y escupidor |
+| Z5 Arena | 9600 – 12000 | +150 | Punto de control; arena de 20 m de ancho con dos rastreros, un saltador, un escupidor, dos revoloteadores y un acorazado; la puerta se abre al vaciarla |
 | Z6 Antesala | 12000 – 13000 | +150 | Aviso y banco; por la derecha se baja a la galería |
 | Z7 Arena del jefe | 13000 – 16000 | +150 | Punto de control; **Madre Alada** (jefe volador: picados y abanicos de proyectiles, dos fases), muros de 7 m; la puerta se abre al derrotarla |
 | Z8 Fin | 16000 – 17000 | +150 | Cartel "Fin de la Zona 1 (boceto)" |
