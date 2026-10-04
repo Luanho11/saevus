@@ -6,6 +6,8 @@ _Actualizado: 2026-10-03 (sesión 3c)_
 
 Que el juego **se vea y se sienta**: dash por doble toque con partículas, caballero boceto animado con esqueleto propio, sombreado tipo Hollow Knight, mecánicas de Hollow Knight, enemigos y mini jefe, mapa tutorial e interfaz. Orden y detalle en `PROGRESS.md` y `hoja-de-ruta.md`.
 
+Para jugar: abrir el proyecto y pulsar Play (arranca en `L_Tutorial`); teclas y técnicas en `controles.md`.
+
 ## Hecho
 
 - **Entorno:** UE 5.8.3 (binario), VS 2022 Build Tools 17.14 / MSVC 14.44, SDK 10.0.26100, .NET 4.8 SDK, Blender 4.2.16, Git + LFS (`entorno.md`). Smart App Control desactivado.
