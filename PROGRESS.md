@@ -2,7 +2,7 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: EN PAUSA (editor del dueño abierto)**
+**Estado: EN PAUSA — el dueño abrió el editor (2026-10-04 08:10). Ninguna sesión (tampoco `loop.ps1`, aunque el latido sea viejo) debe editar, compilar ni hacer commit hasta que el dueño cambie este estado.**
 **Último latido: 2026-10-04 08:19** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
