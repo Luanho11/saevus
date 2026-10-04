@@ -708,6 +708,7 @@ AVISOS_TUTORIAL = [
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan.\nEsquiva con dash y castiga cuando se recuperan. Derrótalos para abrir la puerta."),
+    (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
     (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
 ]
 
@@ -913,6 +914,18 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     # S9 Fin.
     crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
     crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
+
+    # S10 Reto opcional: obstáculos ya probados (SAEVUS.Tutorial.Obstaculos.*) encadenados sin descanso.
+    crear_punto_control(actores, "Control_Reto", 21300)
+    crear_foso(actores, "S10_Foso1", 21500, 22300, unreal.Vector(21350, 0, 100), materiales)
+    crear_peligro(actores, "S10_Pinchos1", unreal.Vector(21900, 0, -120), (400, ANCHO_PASILLO / 2, 30), unreal.Vector(21350, 0, 100),
+                  materiales["Puerta"])
+    crear_suelo(actores, "S10_Suelo1", 22300, 22700, materiales)
+    crear_foso(actores, "S10_Foso2", 22700, 23600, unreal.Vector(22550, 0, 100), materiales)
+    crear_bloque(actores, "S10_ParedCarrera", unreal.Vector(23150, ANCHO_PASILLO / 2 + 50, 300), (1500, 100, 600), materiales["Acento"])
+    crear_suelo(actores, "S10_Suelo2", 23600, 24200, materiales)
+    crear_bloque(actores, "S10_Cornisa450", unreal.Vector(24500, 0, 225), (600, ANCHO_PASILLO, 450), materiales["Acento"])
+    crear_texto(actores, "Cartel_RetoSuperado", "Reto superado", unreal.Vector(24600, 0, 650), tamano=90.0)
 
     for x, titulo, texto in AVISOS_TUTORIAL:
         crear_aviso(actores, x, titulo, texto)

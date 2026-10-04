@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 13)**
-**Último latido: 2026-10-03 21:24** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 14)**
+**Último latido: 2026-10-03 21:28** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -47,10 +47,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
     - 10f. [x] ~~Hilo de juego: la animación procedural solo se actualiza para mallas visibles (y a menos frecuencia lejos de la cámara); la IA de enemigos lejanos en reposo, a menos frecuencia.~~ (sin cambio medible; ver rendimiento.md)
 11. [x] ~~Guardia (GunZ): mantener clic derecho con el arma cuerpo a cuerpo → postura de guardia que bloquea daño frontal (golpes de enemigos y disparos dentro de un cono), con retroceso y chispa al bloquear; la guardia cancela la recuperación del tajo (nueva acción de cancelación `Guardia` en la tabla de cada ataque); no se puede atacar ni curar en guardia; movimiento reducido. Datos en un struct; tests; aviso en el tutorial (sección de combate).~~
 12. [x] ~~Peligros y rebote en el tutorial (Hollow Knight): pinchos (`ASAEVUSPeligro`: daño + retorno como la caída, se puede rebotar en ellos con el tajo hacia abajo) en el foso de rebote, y un reto final de técnica (cadena pared → doble salto → dash → rebote).~~ (el reto final de técnica queda para la 13)
-13. [ ] Reto de técnica al final del tutorial (opcional, tras el Guardián): pasillo con pared → doble salto → dash → rebote en pinchos → carrera por pared, con su test de obstáculo.
+13. [x] ~~Reto de técnica al final del tutorial (opcional, tras el Guardián): pasillo con pared → doble salto → dash → rebote en pinchos → carrera por pared, con su test de obstáculo.~~
 14. [ ] Medición real: empaquetar Development para Win64 (`RunUAT BuildCookRun`) en `Saved/Empaquetado/`, script `Herramientas/Empaquetar.ps1`, y medir el tutorial con `stat unit`/Unreal Insights fuera del editor.
 
 ## Estado del turno
-- Completado: tarea 10f (optimizaciones baratas; sin cambio medible en el hilo de juego, documentado).
+- Completado: tarea 13 (reto opcional del tutorial).
 - A medias: —
-- Siguiente paso exacto: tarea 13 — reto de técnica opcional tras el Guardián en `L_Tutorial`, con su test de obstáculo.
+- Siguiente paso exacto: tarea 14 — empaquetado Development (`Herramientas/Empaquetar.ps1` con RunUAT BuildCookRun → `Saved/Empaquetado/`) y medición fuera del editor.

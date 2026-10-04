@@ -17,8 +17,9 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar | Dos rastreros y un saltador; la puerta se abre al vaciarla |
 | S8 Guardián | 17500 – 20500 | Todo junto | Mini jefe con dos fases; su puerta lleva al final |
 | S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial" |
+| S10 Reto (opcional) | 21500 – 24800 | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con pared, cornisa de 4,5 m; cartel "Reto superado" arriba |
 
-Puntos de control antes del combate, del alma, de la arena y del jefe: al morir se reaparece en el último.
+Puntos de control antes del combate, del alma, de la arena, del jefe y del reto: al morir se reaparece en el último.
 
 ## Piezas (`Source/SAEVUS/Tutorial/`)
 
