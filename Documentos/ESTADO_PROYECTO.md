@@ -23,7 +23,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Secretos** (`zona1.md`): pared falsa que cae a tajos, fragmentos de máscara (dos = una máscara de vida más, guardados).
 - **Bancos** (`zona1.md`): sentarse con E cura, rellena la munición, fija el punto de control y guarda (Zona 1 y tutorial).
 - **Zona 1** (`zona1.md`): `L_Zona1`, ruinas con desniveles, tres encuentros, banco, arena, un atajo con palanca y compuerta y el jefe Madre Alada; se llega desde el final del tutorial.
-- **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa con mapa de la zona; sensibilidad y punto de control guardados entre sesiones.
+- **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa con mapa de la zona (solo lo explorado); sensibilidad y punto de control guardados entre sesiones.
 - **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Sonido boceto** (`audio.md`): efectos sintetizados por código (tajo, golpe, disparo, daño, curación, dash, doble salto) disparados por eventos.
 - **Guardia** (GunZ, `combate.md`): bloqueo frontal por filtro de daño, cancela el tajo por datos (tajo → guardia), empuje y chispas al bloquear.
@@ -37,7 +37,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y un recorrido Zona 1 → paso → tutorial). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 127/127 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 128/128 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -63,4 +63,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 60 de `PROGRESS.md` (mapa que se descubre), después 61 (esquirlas) y 62 (revisión de código); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 61 de `PROGRESS.md` (esquirlas), después 62 (revisión de código); después, tareas propias (ver la cola en `PROGRESS.md`).

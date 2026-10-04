@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 60)**
-**Último latido: 2026-10-04 07:49** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 61)**
+**Último latido: 2026-10-04 08:04** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -94,11 +94,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 57. [x] ~~Prueba del paso entre mapas de punta a punta: el recorrido de la Zona 1 cruza el paso de vuelta y el del tutorial comprueba que aparece en la llegada (`-SAEVUSRecorridoPaso`).~~ Encontró que la llegada necesita `mapa#Llegada` en la URL; corregido. `Verificar-Arranque -ConJuego` usa la cadena.
 58. [x] ~~Más variedad en la Zona 1: plataformas que se mueven (ascensor boceto) y un tramo de pinchos con rebote, con su comprobación en el recorrido.~~ Plataforma móvil en la grieta (`ASAEVUSPlataformaMovil`), con test; los pinchos con rebote quedan para otra tarea.
 59. [x] ~~Pinchos con rebote en la Zona 1 (un tramo sobre la galería) y una segunda plataforma móvil vertical (ascensor) hacia la planta alta.~~ Pinchos en la planta alta y ascensor junto al muro (`crear_plataforma_movil`).
-60. [ ] Mapa que se descubre al explorar (Hollow Knight): celdas visitadas guardadas por mapa; el mapa de la pausa solo dibuja lo visitado (y el jugador).
+60. [x] ~~Mapa que se descubre al explorar (Hollow Knight): celdas visitadas guardadas por mapa; el mapa de la pausa solo dibuja lo visitado (y el jugador).~~ `USAEVUSSubsistemaExploracion`, bloques recortados por celdas.
 61. [ ] Esquirlas (moneda): las sueltan los enemigos, contador en la interfaz; al morir se pierden y quedan en el sitio, se recuperan al tocarlas (sombra simplificada). Guardado.
 62. [ ] Revisión de código sin cambiar comportamiento: fixtures de tests repetidas, constantes sueltas, comentarios desfasados, includes.
 
 ## Estado del turno
-- Completado: tarea 59 (pinchos y ascensor).
+- Completado: tarea 60 (mapa explorado).
 - A medias: —
-- Siguiente paso exacto: tarea 60 — mapa que se descubre al explorar.
+- Siguiente paso exacto: tarea 61 — esquirlas (moneda).

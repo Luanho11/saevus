@@ -32,7 +32,9 @@ Al entrar en un mapa con `ASAEVUSInfoZona` (un actor por mapa con `Nombre` y `Su
 
 ## Mapa en la pausa
 
-`USAEVUSWidgetMapa` (`Interfaz/SAEVUSMapa`), a la derecha de las opciones de la pausa: una vista cenital de la zona generada de la geometría al abrir la pausa. Cada malla estática con colisión es un rectángulo, más claro cuanto más alta es su cara de arriba. Las puertas cerradas salen en naranja, los puntos de control en cian y el jugador es un punto blanco. Los fondos de los fosos llevan la etiqueta `SinMapa` (`crear_foso`) y no salen, así el foso se lee como un hueco. El cálculo está aparte del widget y se prueba sin pantalla: `SAEVUSMapa::RecogerBloques` y `Encuadrar` (escala uniforme, centrado, margen), con el test `SAEVUS.Interfaz.Mapa`. La captura de la pausa de la prueba de humo lo muestra.
+`USAEVUSWidgetMapa` (`Interfaz/SAEVUSMapa`), a la derecha de las opciones de la pausa: una vista cenital de la zona generada de la geometría al abrir la pausa. Cada malla estática con colisión es un rectángulo, más claro cuanto más alta es su cara de arriba. Las puertas cerradas salen en naranja, los puntos de control en cian y el jugador es un punto blanco. Los fondos de los fosos llevan la etiqueta `SinMapa` (`crear_foso`) y no salen, así el foso se lee como un hueco. **Solo lo explorado** (Hollow Knight): `USAEVUSSubsistemaExploracion` (`Mundo/SAEVUSExploracion`) marca las celdas de 8 m alrededor del jugador (3 × 3) mientras juega y las guarda por mapa en la partida (cada 5 s si hay algo nuevo y al salir). El mapa recorta cada bloque a las celdas exploradas (`SAEVUSExploracion::RecortarBloques`), así un suelo largo solo se ve hasta donde se ha llegado; puertas y puntos de control salen si su celda está explorada. El encuadre es el de toda la zona, para que el mapa no salte al explorar. Test `SAEVUS.Interfaz.MapaExplorado`.
+
+El cálculo está aparte del widget y se prueba sin pantalla: `SAEVUSMapa::RecogerBloques` y `Encuadrar` (escala uniforme, centrado, margen), con el test `SAEVUS.Interfaz.Mapa`. La captura de la pausa de la prueba de humo lo muestra.
 
 ## Menú principal
 

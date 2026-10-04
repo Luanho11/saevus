@@ -72,6 +72,18 @@ void USAEVUSSubsistemaGuardado::GuardarVolumen(float Volumen)
 	Guardar();
 }
 
+TArray<FIntPoint> USAEVUSSubsistemaGuardado::ObtenerExploracion(FName Mapa) const
+{
+	const FSAEVUSExploracionMapa* Exploracion = Partida->Exploracion.Find(Mapa);
+	return Exploracion ? Exploracion->Celdas : TArray<FIntPoint>();
+}
+
+void USAEVUSSubsistemaGuardado::GuardarExploracion(FName Mapa, const TArray<FIntPoint>& Celdas)
+{
+	Partida->Exploracion.FindOrAdd(Mapa).Celdas = Celdas;
+	Guardar();
+}
+
 void USAEVUSSubsistemaGuardado::GuardarFragmento(FName Identificador)
 {
 	Partida->FragmentosMascara.AddUnique(Identificador);

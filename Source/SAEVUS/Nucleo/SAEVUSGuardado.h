@@ -7,6 +7,16 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SAEVUSGuardado.generated.h"
 
+/** Celdas exploradas de un mapa (SAEVUSExploracion). */
+USTRUCT()
+struct FSAEVUSExploracionMapa
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FIntPoint> Celdas;
+};
+
 /**
  * Lo que se guarda entre sesiones: opciones que no guarda el motor (la calidad ya va en
  * GameUserSettings.ini) y el último punto de control, por mapa.
@@ -37,6 +47,10 @@ public:
 	/** Fragmentos de máscara recogidos (por identificador). */
 	UPROPERTY()
 	TArray<FName> FragmentosMascara;
+
+	/** Celdas exploradas por mapa (nombre corto). */
+	UPROPERTY()
+	TMap<FName, FSAEVUSExploracionMapa> Exploracion;
 };
 
 namespace SAEVUSGuardado
@@ -79,6 +93,10 @@ public:
 	int32 ObtenerNumeroFragmentos() const { return Partida->FragmentosMascara.Num(); }
 	bool FragmentoRecogido(FName Identificador) const { return Partida->FragmentosMascara.Contains(Identificador); }
 	void GuardarFragmento(FName Identificador);
+
+	/** Celdas exploradas del mapa (vacío si nunca se exploró). */
+	TArray<FIntPoint> ObtenerExploracion(FName Mapa) const;
+	void GuardarExploracion(FName Mapa, const TArray<FIntPoint>& Celdas);
 
 	void GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto);
 	/** Cierto si hay un punto de control guardado para el mapa de Mundo. */

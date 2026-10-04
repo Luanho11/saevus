@@ -13,6 +13,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
+#include "Mundo/SAEVUSExploracion.h"
 #include "Tutorial/SAEVUSPuertaArena.h"
 #include "Tutorial/SAEVUSPuntoControl.h"
 
@@ -142,8 +143,15 @@ void USAEVUSWidgetMapa::Refrescar()
 	}
 	const FSAEVUSEncuadreMapa Encuadre = Encuadrar(Limites, Tamano, Margen);
 
+	// Solo lo explorado (sin subsistema de exploración, todo: pruebas y editor).
+	const USAEVUSSubsistemaExploracion* Exploracion = Mundo->GetSubsystem<USAEVUSSubsistemaExploracion>();
+	auto Explorado = [Exploracion](const FVector& Posicion)
+	{
+		return !Exploracion || Exploracion->ObtenerCeldas().Contains(SAEVUSExploracion::Celda(Posicion));
+	};
+
 	// Los bajos primero: los altos (muros, plataformas) quedan encima.
-	TArray<FSAEVUSBloqueMapa> Ordenados = Bloques;
+	TArray<FSAEVUSBloqueMapa> Ordenados = Exploracion ? SAEVUSExploracion::RecortarBloques(Bloques, Exploracion->ObtenerCeldas()) : Bloques;
 	Ordenados.Sort([](const FSAEVUSBloqueMapa& A, const FSAEVUSBloqueMapa& B) { return A.Altura < B.Altura; });
 	const float RangoAltura = FMath::Max(AlturaMaxima - AlturaMinima, 1.f);
 	for (const FSAEVUSBloqueMapa& Bloque : Ordenados)
@@ -154,7 +162,7 @@ void USAEVUSWidgetMapa::Refrescar()
 	}
 	for (TActorIterator<ASAEVUSPuertaArena> Puerta(Mundo); Puerta; ++Puerta)
 	{
-		if (!Puerta->EstaAbierta())
+		if (!Puerta->EstaAbierta() && Explorado(Puerta->GetActorLocation()))
 		{
 			const FBox Caja = Puerta->GetComponentsBoundingBox();
 			AnadirRectangulo(Encuadre.APixel(FVector2D(Caja.Min)), FVector2D(Caja.GetSize()) * Encuadre.Escala, ColorPuerta);
@@ -162,6 +170,10 @@ void USAEVUSWidgetMapa::Refrescar()
 	}
 	for (TActorIterator<ASAEVUSPuntoControl> Punto(Mundo); Punto; ++Punto)
 	{
+		if (!Explorado(Punto->GetActorLocation()))
+		{
+			continue;
+		}
 		const FVector2D Centro = Encuadre.APixel(FVector2D(Punto->GetActorLocation()));
 		AnadirRectangulo(Centro - FVector2D(TamanoPuntoControl * 0.5f), FVector2D(TamanoPuntoControl), ColorPuntoControl);
 	}

@@ -40,7 +40,8 @@ namespace SAEVUSMapa
 
 /**
  * Mapa boceto de la zona en la pausa: vista cenital generada de la geometría (más claro = más
- * alto), puertas cerradas, puntos de control y el jugador. Se rehace al abrir la pausa.
+ * alto), puertas cerradas, puntos de control y el jugador. Solo lo explorado
+ * (USAEVUSSubsistemaExploracion); el encuadre es el de toda la zona. Se rehace al abrir la pausa.
  */
 UCLASS()
 class SAEVUS_API USAEVUSWidgetMapa : public UUserWidget
