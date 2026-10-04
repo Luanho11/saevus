@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 57)**
-**Último latido: 2026-10-04 07:14** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tareas 57-58)**
+**Último latido: 2026-10-04 07:29** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -91,10 +91,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 54. [x] ~~Enemigo con escudo ("Acorazado"): bloquea los golpes de frente (filtro de daño como la guardia del jugador), hay que rodearlo, saltarle por encima (pogo) o romper su guardia con el giro cargado; en la Zona 1.~~ `USAEVUSComponenteEscudo`, `DA_Enemigo_Acorazado` (cuerpo con escudo en Blender).
 55. [x] ~~Secreto en la Zona 1: pared falsa que se rompe a golpes y da a una sala con un fragmento de máscara (+1 máscara de vida al juntar dos; guardado).~~ `ASAEVUSParedRompible`, `ASAEVUSFragmentoMascara`; el segundo fragmento es el premio del reto del tutorial.
 56. [x] ~~Regreso de la Zona 1 al tutorial (paso en la entrada) y aparición junto al paso correspondiente al cambiar de mapa.~~ Opción `portal` de UE con `PlayerStart` etiquetados; sin menú principal al llegar por un paso.
-57. [ ] Prueba del paso entre mapas de punta a punta: el recorrido de la Zona 1 cruza el paso de vuelta y el del tutorial comprueba que aparece en la llegada (`-SAEVUSRecorridoPaso`).
+57. [x] ~~Prueba del paso entre mapas de punta a punta: el recorrido de la Zona 1 cruza el paso de vuelta y el del tutorial comprueba que aparece en la llegada (`-SAEVUSRecorridoPaso`).~~ Encontró que la llegada necesita `mapa#Llegada` en la URL; corregido. `Verificar-Arranque -ConJuego` usa la cadena.
 58. [ ] Más variedad en la Zona 1: plataformas que se mueven (ascensor boceto) y un tramo de pinchos con rebote, con su comprobación en el recorrido.
 
 ## Estado del turno
-- Completado: tarea 56 (regreso al tutorial).
+- Completado: tarea 57 (paso entre mapas de punta a punta).
 - A medias: —
-- Siguiente paso exacto: tarea 57 — prueba del paso entre mapas.
+- Siguiente paso exacto: tarea 58 — más variedad en la Zona 1.

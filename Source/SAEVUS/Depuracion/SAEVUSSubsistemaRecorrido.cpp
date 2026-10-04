@@ -10,13 +10,17 @@
 #include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerStart.h"
 #include "HAL/PlatformMisc.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Mundo/SAEVUSBanco.h"
 #include "Mundo/SAEVUSFragmentoMascara.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Mundo/SAEVUSPalanca.h"
 #include "Mundo/SAEVUSParedRompible.h"
+#include "Mundo/SAEVUSVolumenCambioMapa.h"
+#include "Nucleo/SAEVUSModoJuego.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "RenderTimer.h"
 #include "SAEVUS.h"
@@ -28,6 +32,10 @@
 namespace SAEVUSRecorrido
 {
 	const TCHAR* const Parametro = TEXT("SAEVUSRecorrido");
+	const TCHAR* const ParametroPaso = TEXT("SAEVUSRecorridoPaso");
+	// Tiempo máximo para que el paso abra el otro mapa, y distancia a la llegada que cuenta como "en ella".
+	constexpr float TiempoMaxPaso = 15.f;
+	constexpr float DistanciaLlegada = 300.f;
 	constexpr float LimiteJugador = 120.f;
 	constexpr float TiempoAsentar = 1.5f;
 	constexpr float TiempoPorAviso = 0.6f;
@@ -93,8 +101,39 @@ void USAEVUSSubsistemaRecorrido::Terminar()
 			Fotogramas, Media * 1000.0, Media > 0.0 ? 1.0 / Media : 0.0, PeorSegundos * 1000.f, SumaMsJuego / Fotogramas, SumaMsGPU / Fotogramas);
 	}
 	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %s"), Fallos == 0 ? TEXT("SUPERADO") : TEXT("FALLIDO"));
+	if (Paso != EPaso::Cruzando && Fallos == 0 && DebeCruzarPaso() && CruzarPaso())
+	{
+		return;
+	}
 	Paso = EPaso::Hecho;
 	FPlatformMisc::RequestExit(false, TEXT("Recorrido SAEVUS"));
+}
+
+bool USAEVUSSubsistemaRecorrido::DebeCruzarPaso() const
+{
+	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	return FParse::Param(FCommandLine::Get(), SAEVUSRecorrido::ParametroPaso) && ModoJuego && !ModoJuego->LlegoPorPaso();
+}
+
+bool USAEVUSSubsistemaRecorrido::CruzarPaso()
+{
+	const APlayerController* Controlador = GetWorld()->GetFirstPlayerController();
+	ASAEVUSPersonaje* Jugador = Controlador ? Cast<ASAEVUSPersonaje>(Controlador->GetPawn()) : nullptr;
+	for (TActorIterator<ASAEVUSVolumenCambioMapa> PasoMapa(GetWorld()); PasoMapa; ++PasoMapa)
+	{
+		if (Jugador && !PasoMapa->ObtenerLlegada().IsNone())
+		{
+			UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] cruzando el paso hacia %s (llegada %s)"),
+				*PasoMapa->ObtenerMapa().GetAssetName(), *PasoMapa->ObtenerLlegada().ToString());
+			// Entrar en el volumen abre el otro mapa; este subsistema muere con este mundo.
+			Paso = EPaso::Cruzando;
+			TiempoPaso = 0.f;
+			Llevar(Jugador, PasoMapa->GetActorLocation());
+			return true;
+		}
+	}
+	Comprobar(TEXT("hay un paso con llegada para cruzar"), false);
+	return false;
 }
 
 void USAEVUSSubsistemaRecorrido::Llevar(ASAEVUSPersonaje* Jugador, const FVector& Posicion)
@@ -152,6 +191,18 @@ void USAEVUSSubsistemaRecorrido::Preparar(ASAEVUSPersonaje* Jugador)
 	});
 	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena, %d palancas, %d bancos, %d paredes falsas y %d fragmentos en el mapa"),
 		Avisos.Num(), Puertas.Num(), Palancas.Num(), Bancos.Num(), Paredes.Num(), Fragmentos.Num());
+	// Llegada por un paso desde otro mapa: el jugador tiene que estar en el inicio con esa etiqueta.
+	if (const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>(); ModoJuego && ModoJuego->LlegoPorPaso())
+	{
+		const FString Etiqueta = UGameplayStatics::ParseOption(ModoJuego->OptionsString, TEXT("portal"));
+		const APlayerStart* Llegada = nullptr;
+		for (TActorIterator<APlayerStart> Inicio(GetWorld()); Inicio; ++Inicio)
+		{
+			Llegada = Inicio->PlayerStartTag.ToString() == Etiqueta ? *Inicio : Llegada;
+		}
+		const float Distancia = Llegada ? static_cast<float>(FVector::Dist2D(Llegada->GetActorLocation(), Jugador->GetActorLocation())) : TNumericLimits<float>::Max();
+		Comprobar(FString::Printf(TEXT("llega por el paso al inicio \"%s\" (a %.0f cm)"), *Etiqueta, Distancia), Distancia <= SAEVUSRecorrido::DistanciaLlegada);
+	}
 	Comprobar(TEXT("el mapa tiene avisos de tutorial"), !Avisos.IsEmpty());
 }
 
@@ -224,6 +275,14 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 		if (Jugador)
 		{
 			ActualizarSecretos(Jugador);
+		}
+		break;
+	case EPaso::Cruzando:
+		// Si el paso no abre el otro mapa a tiempo, falla y se acaba.
+		if (TiempoPaso > TiempoMaxPaso)
+		{
+			Comprobar(TEXT("el paso abre el otro mapa"), false);
+			Terminar();
 		}
 		break;
 	default:

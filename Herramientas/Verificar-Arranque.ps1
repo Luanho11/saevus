@@ -52,16 +52,12 @@ Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] (FALLO|SUPERADA
 if (-not (Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] SUPERADA" -Quiet -Encoding UTF8)) { throw "Falló la verificación de assets (ver verificar.log)" }
 
 if ($ConJuego) {
-    Write-Host "== 5/7 Prueba de humo en el juego (L_Pruebas)"
+    Write-Host "== 5/6 Prueba de humo en el juego (L_Pruebas)"
     & (Join-Path $PSScriptRoot "Ejecutar-PruebaHumo.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADA|FALLIDA|fotogramas"
     if ($LASTEXITCODE -ne 0) { throw "Falló la prueba de humo (ver humo.log)" }
-    Write-Host "== 6/7 Recorrido del tutorial (L_Tutorial)"
-    & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADO|FALLIDO"
-    if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido del tutorial (ver recorrido.log)" }
-
-    Write-Host "== 7/7 Recorrido de la Zona 1 (L_Zona1)"
-    & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 -Mapa "/Game/SAEVUS/Mapas/L_Zona1" -NombreLog "recorrido-zona1" | Select-String -Pattern "FALLO|SUPERADO|FALLIDO"
-    if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido de la Zona 1 (ver recorrido-zona1.log)" }
+    Write-Host "== 6/6 Recorridos: Zona 1, paso entre mapas y tutorial (L_Zona1 -> L_Tutorial)"
+    & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 -Mapa "/Game/SAEVUS/Mapas/L_Zona1" -Paso | Select-String -Pattern "FALLO|SUPERADO|FALLIDO|cruzando|llega por"
+    if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido (ver recorrido.log)" }
 }
 
 Write-Host "Todas las comprobaciones pasaron."

@@ -22,6 +22,8 @@ class ASAEVUSVolumenTutorial;
  * después vacía cada arena y comprueba que su puerta se abre y que el jefe se activa; por último
  * golpea cada palanca y comprueba que abre sus compuertas, se sienta en cada banco, rompe cada
  * pared falsa a tajos y recoge cada fragmento de máscara. Sirve para cualquier mapa con avisos.
+ * Con -SAEVUSRecorridoPaso, al acabar cruza el paso con llegada a otro mapa; allí comprueba que
+ * aparece en la llegada y recorre también ese mapa (un solo proceso para los dos).
  * Escribe "[SAEVUS recorrido]" en el log y cierra el juego. No existe en Shipping.
  */
 UCLASS()
@@ -47,6 +49,7 @@ private:
 		Palancas,
 		Bancos,
 		Secretos,
+		Cruzando,
 		Hecho
 	};
 
@@ -61,6 +64,10 @@ private:
 	static float AlturaJunto(const AActor* Actor);
 	void Comprobar(const FString& Descripcion, bool bBien);
 	void Terminar();
+	/** Si toca cruzar a otro mapa: lleva al jugador al paso con llegada. Falso si no hay paso. */
+	bool CruzarPaso();
+	/** Cierto si se pidió cruzar y este es el primer mapa (no se llegó por un paso). */
+	bool DebeCruzarPaso() const;
 	void Llevar(ASAEVUSPersonaje* Jugador, const FVector& Posicion);
 
 	EPaso Paso = EPaso::EsperarJugador;

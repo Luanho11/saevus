@@ -11,6 +11,13 @@ void ASAEVUSVolumenCambioMapa::AlEntrarJugador(ASAEVUSPersonaje* Personaje)
 		UE_LOG(LogSAEVUS, Warning, TEXT("%s no tiene mapa de destino"), *GetName());
 		return;
 	}
-	const FString Opciones = Llegada.IsNone() ? FString() : FString::Printf(TEXT("portal=%s"), *Llegada.ToString());
-	UGameplayStatics::OpenLevelBySoftObjectPtr(this, Mapa, true, Opciones);
+	if (Llegada.IsNone())
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(this, Mapa);
+		return;
+	}
+	// UE elige el inicio por el "portal" de la URL (mapa#Llegada); la opción ?portal= le dice al modo
+	// de juego que se llegó por un paso.
+	const FString Destino = FString::Printf(TEXT("%s#%s"), *Mapa.GetLongPackageName(), *Llegada.ToString());
+	UGameplayStatics::OpenLevel(this, FName(*Destino), true, FString::Printf(TEXT("portal=%s"), *Llegada.ToString()));
 }
