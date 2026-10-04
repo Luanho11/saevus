@@ -23,7 +23,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
-- **Rendimiento** (`rendimiento.md`): Media ≈ 51–68 fps a 720p en la Vega 8; limitado por GPU.
+- **Rendimiento** (`rendimiento.md`): Media a 720p en la Vega 8: tutorial 67–68 fps, mapa de pruebas 57–63 fps; el hilo de juego (11–13 ms) es el próximo cuello.
 
 ## Verificación
 

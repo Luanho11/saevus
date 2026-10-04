@@ -40,7 +40,20 @@ Alta con un grupo bajado a Media (una ejecución cada uno, ruido de ±1 ms): Efe
 - El hilo de juego ya cuesta unos 8–10 ms con un personaje y un mapa vacío; vigilarlo según se añaden sistemas (animación procedural, enemigos, efectos).
 - El mapa de pruebas es geometría trivial: estas cifras son un suelo, no un presupuesto para niveles reales.
 
+## Con el juego completo (2026-10-04)
+
+Media, 720p, prueba de humo (una ejecución cada una, ruido de ±1–2 ms):
+
+| Mapa | Media | Hilo de juego | Notas |
+|---|---|---|---|
+| `L_Pruebas` | 57–63 fps (15,9–17,5 ms) | 10,8–13,2 ms | Cielo con atmósfera; caballero animado, estela, interfaz UMG, contorno, 3 enemigos lejos |
+| `L_Tutorial` | 67–68 fps (14,7–14,9 ms) | 11,3–12,5 ms | Noche sin atmósfera, niebla, dos luces direccionales (una con sombras), 3 enemigos activos |
+
+- El tutorial cumple los 60 fps en Media; el mapa de pruebas queda justo (lo encarece la atmósfera del cielo).
+- El **hilo de juego** ha subido de 7–10 ms a 11–13 ms con animación procedural, IA, partículas por CPU e interfaz: es el siguiente cuello si se añaden muchos enemigos. Candidatos: animación procedural solo para mallas visibles y cercanas, IA a menos frecuencia lejos del jugador, interfaz que solo recalcule al cambiar.
+- `ProfileGPU` (`-PerfilGPU`) **no registra datos con este driver** (Vega 8, Adrenalin 21.20, 2021): el desglose por pasada sale vacío. Para medir pasadas habrá que usar otra herramienta (RenderDoc / Radeon GPU Profiler) o un driver más nuevo.
+
 ## Sin decidir
 
 - Escalabilidad y resolución por defecto del juego final, y si ejecutar el benchmark del motor al primer arranque (es parte del menú de ajustes).
-- Desglose de GPU por pasada (`-PerfilGPU`) disponible, sin registrar todavía.
+- Desglose de GPU por pasada: `-PerfilGPU` no da datos en esta máquina (ver arriba).

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 10d)**
-**Último latido: 2026-10-03 20:37** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10e)**
+**Último latido: 2026-10-03 20:38** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -42,10 +42,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
     - 10a. [x] ~~Obstáculos del tutorial comprobados con tests de entradas simuladas (`SAEVUS.Tutorial.Obstaculos.*`).~~
     - 10b. [x] ~~Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.~~
     - 10c. [x] ~~Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.~~
-    - 10d. [ ] Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.
+    - 10d. [x] ~~Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.~~
     - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
+    - 10f. [ ] Hilo de juego: la animación procedural solo se actualiza para mallas visibles (y a menos frecuencia lejos de la cámara); la IA de enemigos lejanos en reposo, a menos frecuencia.
 
 ## Estado del turno
-- Completado: tarea 10c (estela del arma y reacción al golpe; 93/93 tests).
+- Completado: tarea 10d (medición: tutorial 67–68 fps, pruebas 57–63 fps; ProfileGPU sin datos en este driver).
 - A medias: —
-- Siguiente paso exacto: tarea 10d — rendimiento: medir `L_Tutorial` en la Vega 8 con perfil de GPU (`Ejecutar-PruebaHumo.ps1 -PerfilGPU -Mapa /Game/SAEVUS/Mapas/L_Tutorial`), revisar coste del contorno, niebla, sombras de la luna y partículas; ajustar escalabilidad si la media baja de 60 fps.
+- Siguiente paso exacto: tarea 10e — investigación Hollow Knight/GunZ con búsqueda web (WebSearch disponible): sensación de combate, ventanas de invulnerabilidad, rebote, curación, técnicas de GunZ (K-style, cancelaciones); ampliar `Documentos/investigacion/` y contrastar con lo implementado, sin copiar datos.
