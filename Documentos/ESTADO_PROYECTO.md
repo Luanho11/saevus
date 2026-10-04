@@ -62,4 +62,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 53 de `PROGRESS.md` (menús con mando); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 54 de `PROGRESS.md` (enemigo con escudo), después 55 (secreto con fragmento de máscara) y 56 (regreso al tutorial); después, tareas propias (ver la cola en `PROGRESS.md`).

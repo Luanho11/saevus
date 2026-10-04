@@ -36,6 +36,8 @@ Al entrar en un mapa con `ASAEVUSInfoZona` (un actor por mapa con `Nombre` y `Su
 
 ## Menú principal
 
+**Mando y teclado:** al abrir un menú el foco va al primer botón visible (`ObtenerPrimerBoton`); se navega con la cruceta, el stick o las flechas y se confirma con el botón inferior, Intro o Espacio (navegación de Slate). El botón con el foco se resalta con `EstiloBotonMenuEnfocado`, porque el mando no tiene "pasar por encima". La prueba de humo comprueba que la pausa abre con el foco en un botón.
+
 Los botones de los dos menús usan `SAEVUSEstilo::EstiloBotonMenu` (`SAEVUSEstiloInterfaz`, compartido con la interfaz): píldora oscura translúcida con borde, que se aclara al pasar por encima.
 
 El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, título **SAEVUS** con el subtítulo "Boceto jugable", y debajo **Jugar**, **Continuar desde el último punto de control** (solo si hay uno guardado para el mapa: lleva al jugador allí con `ASAEVUSModoJuego::FijarPuntoControl` y `ReiniciarJugador`), **Calidad**, **Sensibilidad** y **Salir**. Se abre al arrancar los mapas de `ASAEVUSModoJuego::MapasConMenuPrincipal` (`L_Tutorial`), también con Play en el editor, con el juego en pausa. La tecla de pausa no lo cierra. No sale en las pruebas en el juego (`-SAEVUSPruebaHumo`, `-SAEVUSRecorrido`) ni con `-SAEVUSSinMenu`. La prueba de humo lo abre, comprueba la pausa, pulsa la tecla de pausa (sigue abierto), lo cierra con "Jugar" y guarda `SAEVUS_PruebaHumo_Menu.png`.

@@ -17,6 +17,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 | Interactuar: sentarse en un banco (cura, munición, guarda) | E | Cruceta arriba |
 | Armas | 1–4, rueda del ratón | botón superior derecho |
 | Pausa (opciones) | P | Start |
+| Menús: moverse y confirmar | Flechas e Intro (o ratón) | Cruceta/stick y botón inferior |
 | Datos de depuración | F6 | — |
 | Números de daño (consola, tecla `º`/`~`) | `SAEVUS.Depuracion.NumerosDanio 1` | — |
 

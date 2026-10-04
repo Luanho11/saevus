@@ -17,4 +17,7 @@ namespace SAEVUSEstilo
 
 	/** Botón de menú: píldora oscura translúcida que se aclara al pasar por encima y al pulsar. */
 	SAEVUS_API FButtonStyle EstiloBotonMenu();
+
+	/** El mismo botón con el foco del mando o del teclado: se ve como al pasar el ratón por encima. */
+	SAEVUS_API FButtonStyle EstiloBotonMenuEnfocado();
 }

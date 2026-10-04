@@ -297,6 +297,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		if (!bMenuPausaVisto && TiempoEtapa >= DuracionEtapaPausa * 0.5f)
 		{
 			bMenuPausaVisto = Controlador && Controlador->EstaEnMenuPausa() && GetWorld()->IsPaused();
+			bMenuConFoco = Controlador && Controlador->MenuTieneFoco();
 			FScreenshotRequest::RequestScreenshot(NombreCapturaPausa, true, false);
 		}
 		if (TiempoEtapa >= DuracionEtapaPausa)
@@ -459,6 +460,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("duración del ataque"), DuracionAtaque, Pawn->ObtenerCombate()->ObtenerRepertorio().ComboSuelo[0].ObtenerTiempoTotal(), ToleranciaDuracionAtaque);
 		Comprobar(TEXT("guardia activa"), bGuardiaActiva ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("menú de pausa (juego en pausa)"), bMenuPausaVisto ? 1.f : 0.f, 1.f, 0.f);
+		Comprobar(TEXT("el menú abre con el foco en un botón (mando y teclado)"), bMenuConFoco ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("menú principal (en pausa, la tecla de pausa no lo cierra)"), bMenuPrincipalVisto ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("\"Jugar\" cierra el menú principal y quita la pausa"), bMenuPrincipalCerrado ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);

@@ -35,6 +35,9 @@ public:
 	void ContinuarPartidaGuardada();
 	bool EstaEnMenuPrincipal() const;
 
+	/** Cierto si el menú abierto (pausa o principal) tiene el foco en un botón. */
+	bool MenuTieneFoco() const;
+
 	/** Multiplicador de la entrada de mirar (ratón y stick). Se guarda entre sesiones. */
 	float ObtenerSensibilidad() const { return Sensibilidad; }
 	void FijarSensibilidad(float Nueva);

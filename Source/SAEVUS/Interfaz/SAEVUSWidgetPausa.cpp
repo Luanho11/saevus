@@ -105,10 +105,51 @@ UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, UTe
 	OutTexto->SetJustification(ETextJustify::Center);
 	OutTexto->SetColorAndOpacity(FSlateColor(ColorTexto));
 	Boton->AddChild(OutTexto);
+	Botones.Add(Boton);
+	FocoBotones.Add(false);
 	UVerticalBoxSlot* Ranura = Columna->AddChildToVerticalBox(Boton);
 	Ranura->SetPadding(FMargin(0.f, SeparacionBotones));
 	Ranura->SetHorizontalAlignment(HAlign_Fill);
 	return Boton;
+}
+
+void USAEVUSWidgetPausa::NativeTick(const FGeometry& Geometria, float DeltaTime)
+{
+	Super::NativeTick(Geometria, DeltaTime);
+	for (int32 Indice = 0; Indice < Botones.Num(); ++Indice)
+	{
+		UButton* Boton = Botones[Indice];
+		const bool bFoco = Boton && (Boton->HasKeyboardFocus() || Boton->HasUserFocus(GetOwningPlayer()));
+		if (Boton && bFoco != FocoBotones[Indice])
+		{
+			FocoBotones[Indice] = bFoco;
+			Boton->SetStyle(bFoco ? SAEVUSEstilo::EstiloBotonMenuEnfocado() : SAEVUSEstilo::EstiloBotonMenu());
+		}
+	}
+}
+
+UWidget* USAEVUSWidgetPausa::ObtenerPrimerBoton() const
+{
+	for (UButton* Boton : Botones)
+	{
+		if (Boton && Boton->GetVisibility() == ESlateVisibility::Visible)
+		{
+			return Boton;
+		}
+	}
+	return nullptr;
+}
+
+bool USAEVUSWidgetPausa::TieneFocoAlgunBoton() const
+{
+	for (const UButton* Boton : Botones)
+	{
+		if (Boton && (Boton->HasKeyboardFocus() || Boton->HasUserFocus(GetOwningPlayer())))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void USAEVUSWidgetPausa::Construir()

@@ -49,11 +49,18 @@ class SAEVUS_API USAEVUSWidgetPausa : public UUserWidget
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	virtual void NativeConstruct() override;
+	/** Resalta el botón con el foco (mando y teclado no tienen "pasar por encima"). */
+	virtual void NativeTick(const FGeometry& Geometria, float DeltaTime) override;
 
 public:
 	/** Antes de añadirlo a la pantalla. */
 	void FijarModo(ESAEVUSModoMenu NuevoModo) { Modo = NuevoModo; }
 	ESAEVUSModoMenu ObtenerModo() const { return Modo; }
+
+	/** El primer botón visible, para darle el foco al abrir (mando y teclado: cruceta o flechas y confirmar). */
+	UWidget* ObtenerPrimerBoton() const;
+	/** Cierto si algún botón del menú tiene el foco del jugador. */
+	bool TieneFocoAlgunBoton() const;
 
 private:
 	void Construir();
@@ -107,4 +114,11 @@ private:
 	TObjectPtr<USAEVUSWidgetMapa> Mapa;
 
 	ESAEVUSModoMenu Modo = ESAEVUSModoMenu::Pausa;
+
+	/** Botones en orden de la columna. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UButton>> Botones;
+
+	/** Si cada botón tenía el foco el último fotograma (solo se cambia el estilo al cambiar). */
+	TArray<bool> FocoBotones;
 };

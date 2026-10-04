@@ -48,10 +48,16 @@ void ASAEVUSControladorJugador::AbrirMenu(USAEVUSWidgetPausa* Menu)
 	Menu->AddToViewport(1);
 	SetPause(true);
 	SetShowMouseCursor(true);
+	// El foco en el primer botón: así se navega con la cruceta o las flechas y se confirma con el botón inferior o Intro.
+	UWidget* PrimerBoton = Menu->ObtenerPrimerBoton();
 	FInputModeGameAndUI Modo;
-	Modo.SetWidgetToFocus(Menu->TakeWidget());
+	Modo.SetWidgetToFocus(PrimerBoton ? PrimerBoton->TakeWidget() : Menu->TakeWidget());
 	Modo.SetHideCursorDuringCapture(false);
 	SetInputMode(Modo);
+	if (PrimerBoton)
+	{
+		PrimerBoton->SetUserFocus(this);
+	}
 }
 
 void ASAEVUSControladorJugador::CerrarMenu(USAEVUSWidgetPausa* Menu)
@@ -63,6 +69,12 @@ void ASAEVUSControladorJugador::CerrarMenu(USAEVUSWidgetPausa* Menu)
 	SetPause(false);
 	SetShowMouseCursor(false);
 	SetInputMode(FInputModeGameOnly());
+}
+
+bool ASAEVUSControladorJugador::MenuTieneFoco() const
+{
+	const USAEVUSWidgetPausa* Menu = EstaEnMenuPrincipal() ? MenuPrincipal.Get() : (EstaEnMenuPausa() ? MenuPausa.Get() : nullptr);
+	return Menu && Menu->TieneFocoAlgunBoton();
 }
 
 bool ASAEVUSControladorJugador::EstaEnMenuPrincipal() const

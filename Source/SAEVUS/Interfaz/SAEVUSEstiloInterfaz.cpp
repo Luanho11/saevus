@@ -37,4 +37,11 @@ namespace SAEVUSEstilo
 		Estilo.SetPressedPadding(RellenoBotonPulsado);
 		return Estilo;
 	}
+
+	FButtonStyle EstiloBotonMenuEnfocado()
+	{
+		FButtonStyle Estilo = EstiloBotonMenu();
+		Estilo.SetNormal(PincelRedondo(ColorBotonEncima, ColorBordeBotonEncima));
+		return Estilo;
+	}
 }
