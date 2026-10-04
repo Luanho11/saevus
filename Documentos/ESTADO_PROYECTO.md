@@ -18,6 +18,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
 - **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, tres tipos por datos (rastrero, saltador, mini jefe Guardián con dos fases), el jugador sale despedido al recibir golpes.
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
+- **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
@@ -25,7 +26,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Verificación
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 83/83 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 85/85 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -50,4 +51,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 9 de `PROGRESS.md`: interfaz UMG en C++ escalable (vida, alma, arma y munición, avisos del tutorial, barra del jefe).
+Tarea 10 de `PROGRESS.md`: tareas propias (ver la cola en `PROGRESS.md`).

@@ -1,0 +1,139 @@
+// Copyright SAEVUS. Todos los derechos reservados.
+
+#pragma once
+
+#include "Blueprint/UserWidget.h"
+#include "CoreMinimal.h"
+#include "Interfaz/SAEVUSEstadoInterfaz.h"
+#include "SAEVUSWidgetInterfaz.generated.h"
+
+class UCanvasPanel;
+class UHorizontalBox;
+class UImage;
+class UProgressBar;
+class UTextBlock;
+class UVerticalBox;
+
+/** Aspecto de la interfaz de juego: boceto mejorable, todo aquí para cambiarlo sin tocar el código. */
+USTRUCT(BlueprintType)
+struct FSAEVUSAjusteInterfaz
+{
+	GENERATED_BODY()
+
+	/** Vida que vale cada máscara (Hollow Knight muestra la vida en máscaras). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "1"))
+	float VidaPorMascara = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
+	FVector2D TamanoMascara = FVector2D(26.f, 34.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
+	FLinearColor ColorMascaraLlena = FLinearColor(0.92f, 0.93f, 0.95f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
+	FLinearColor ColorMascaraVacia = FLinearColor(0.12f, 0.13f, 0.16f, 0.8f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alma")
+	float DiametroOrbe = 72.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alma")
+	FLinearColor ColorAlma = FLinearColor(0.75f, 0.88f, 1.f);
+
+	/** Color del alma cuando alcanza para curar: brilla más. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alma")
+	FLinearColor ColorAlmaLista = FLinearColor(1.f, 1.f, 1.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "General")
+	FLinearColor ColorFondo = FLinearColor(0.02f, 0.02f, 0.03f, 0.75f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "General")
+	FLinearColor ColorTexto = FLinearColor(0.85f, 0.9f, 1.f);
+
+	/** Margen de los bloques respecto al borde de la pantalla (unidades de interfaz a 1080p). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "General")
+	FVector2D Margen = FVector2D(48.f, 40.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Textos", meta = (ClampMin = "6"))
+	int32 TamanoTituloAviso = 30;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Textos", meta = (ClampMin = "6"))
+	int32 TamanoTextoAviso = 18;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Textos", meta = (ClampMin = "6"))
+	int32 TamanoTextoArma = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avisos", meta = (ClampMin = "0", ForceUnits = "s"))
+	float FundidoAviso = 0.3f;
+
+	/** Altura del aviso del tutorial como fracción de la pantalla (desde arriba). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avisos", meta = (ClampMin = "0", ClampMax = "1"))
+	float AlturaAviso = 0.1f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
+	FVector2D TamanoBarraJefe = FVector2D(640.f, 12.f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
+	FLinearColor ColorVidaJefe = FLinearColor(0.85f, 0.35f, 0.12f);
+};
+
+/**
+ * Interfaz de juego: máscaras de vida y orbe de alma (arriba a la izquierda), arma y munición
+ * (abajo a la derecha), aviso del tutorial (arriba al centro) y barra del jefe activo (abajo al
+ * centro). El árbol de widgets se construye en C++ con formas redondeadas de Slate, sin
+ * texturas ni assets; escala con las reglas de DPI del proyecto. Una subclase Blueprint puede
+ * sustituirlo cuando haya dirección de arte.
+ */
+UCLASS()
+class SAEVUS_API USAEVUSWidgetInterfaz : public UUserWidget
+{
+	GENERATED_BODY()
+
+public:
+	/** Muestra Estado (lo llama el tick; expuesto para pruebas y previsualización). */
+	void Aplicar(const FSAEVUSEstadoInterfaz& Estado);
+
+protected:
+	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual void NativeTick(const FGeometry& Geometria, float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere, Category = "SAEVUS|Interfaz")
+	FSAEVUSAjusteInterfaz Ajuste;
+
+private:
+	void Construir();
+	void AjustarMascaras(int32 Numero);
+	UTextBlock* CrearTexto(FName Nombre, int32 Tamano, bool bCentrado);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UHorizontalBox> FilaMascaras;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UImage>> Mascaras;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UProgressBar> OrbeAlma;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoArma;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoMunicion;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UVerticalBox> BloqueAviso;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TituloAviso;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoAviso;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UVerticalBox> BloqueJefe;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> NombreJefe;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UProgressBar> BarraJefe;
+};

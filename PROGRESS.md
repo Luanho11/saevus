@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 9)**
-**Último latido: 2026-10-03 19:06** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10a)**
+**Último latido: 2026-10-03 19:19** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -37,10 +37,15 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 6. [x] ~~Mecánicas Hollow Knight: doble salto, ataque hacia arriba/abajo, rebote (pogo), retroceso al golpear, almas + curación.~~
 7. [x] ~~Enemigos simples (IA de estados) + mini jefe, datos en Data Assets.~~
 8. [x] ~~Mapa tutorial `L_Tutorial`: secciones con carteles y avisos en pantalla, mini enemigos, mini jefe al final.~~
-9. [ ] Interfaz UMG en C++ escalable: vida, almas, arma/munición, avisos de tutorial, barra del jefe.
-10. [ ] Después: nuevas tareas propuestas por Claude (pulido, efectos, tests, rendimiento).
+9. [x] ~~Interfaz UMG en C++ escalable: vida, almas, arma/munición, avisos de tutorial, barra del jefe.~~
+10. [ ] Tareas propias (Claude), en este orden:
+    - 10a. [ ] Recorrido automático del tutorial: prueba de humo `-SAEVUSRecorridoTutorial` que mueve al jugador por cada sección (saltos, dash, paredes, rebote) y comprueba que llega al final; detecta mapas imposibles.
+    - 10b. [ ] Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.
+    - 10c. [ ] Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.
+    - 10d. [ ] Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.
+    - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
 
 ## Estado del turno
-- Completado: tarea 8 (`L_Tutorial` por script y mapa por defecto; avisos, puntos de control, fosos, puertas de arena; 83/83 tests; humo SUPERADA en ambos mapas).
+- Completado: tarea 9 (interfaz UMG en C++: máscaras, orbe de alma, arma, avisos, barra del jefe; 85/85 tests; humo SUPERADA).
 - A medias: —
-- Siguiente paso exacto: tarea 9 — interfaz UMG en C++ sin assets de widget (Slate/UMG construido en código): `USAEVUSWidgetInterfaz` con máscaras de vida, orbe de alma, arma y munición, aviso del tutorial (sustituye al dibujo del HUD) y barra del jefe que aparece al activarse un jefe; escalable con DPI y ajustes en un struct; tests de lógica (valores que muestra) y captura en la prueba de humo.
+- Siguiente paso exacto: tarea 10a — recorrido automático del tutorial (modo de la prueba de humo que lleva al jugador por las secciones de `L_Tutorial` con entradas reales y comprueba que cada obstáculo se supera).

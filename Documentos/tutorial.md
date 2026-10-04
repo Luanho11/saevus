@@ -31,7 +31,7 @@ Puntos de control antes del combate, del alma, de la arena y del jefe: al morir 
 | `ASAEVUSVolumenCaida` | Fondo de foso: quita 10 de vida y devuelve al borde (`PuntoRetorno`), como los peligros de Hollow Knight. |
 | `ASAEVUSPuertaArena` | Bloque que se hunde cuando mueren todos sus enemigos (escucha `ASAEVUSEnemigo::AlMorirEnemigo`); aviso opcional al abrirse. |
 
-El HUD dibuja el aviso activo centrado arriba, con fundido de entrada y salida (siempre visible; los datos de depuración siguen con F6). La interfaz UMG de la tarea 9 lo sustituirá.
+La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido de entrada y salida.
 
 ## Aspecto
 
@@ -50,5 +50,4 @@ El HUD dibuja el aviso activo centrado arriba, con fundido de entrada y salida (
 ## Pendiente
 
 - Recorrido automático completo del tutorial (un "fantasma" que lo supere) como prueba.
-- Interfaz UMG para los avisos, la vida, el alma y la barra del jefe (tarea 9).
 - Arte del escenario: piezas modulares, decorado, luces de acento.

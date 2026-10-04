@@ -17,14 +17,18 @@ public class SAEVUS : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"InputCore",
-			"EnhancedInput"
+			"EnhancedInput",
+			"UMG"
 		});
 
 		// Tiempos por fotograma (hilo de juego/render, GPU) para la prueba de humo de depuración.
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"RenderCore",
-			"RHI"
+			"RHI",
+			// Interfaz construida en C++ (estilos, pinceles redondeados).
+			"Slate",
+			"SlateCore"
 		});
 	}
 }
