@@ -8,6 +8,7 @@
 
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Combate/SAEVUSComponenteAlma.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
@@ -123,6 +124,7 @@ namespace SAEVUSPruebas
 			MovimientoSimulado = Movimiento;
 			CombateSimulado = Personaje->ObtenerCombate();
 			AlmaSimulada = Personaje->ObtenerAlma();
+			GuardiaSimulada = Personaje->ObtenerGuardia();
 			ArmasSimuladas = Personaje->ObtenerArmas();
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
 			EfectosSimulados = Personaje->ObtenerEfectosCombate();
@@ -179,6 +181,10 @@ namespace SAEVUSPruebas
 			{
 				CombateSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &CombateSimulado->PrimaryComponentTick);
 			}
+			if (GuardiaSimulada)
+			{
+				GuardiaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &GuardiaSimulada->PrimaryComponentTick);
+			}
 			if (AlmaSimulada)
 			{
 				AlmaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &AlmaSimulada->PrimaryComponentTick);
@@ -212,6 +218,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteMovimiento* MovimientoSimulado = nullptr;
 		USAEVUSComponenteCombate* CombateSimulado = nullptr;
 		USAEVUSComponenteAlma* AlmaSimulada = nullptr;
+		USAEVUSComponenteGuardia* GuardiaSimulada = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
 		USAEVUSComponenteEfectosCombate* EfectosSimulados = nullptr;

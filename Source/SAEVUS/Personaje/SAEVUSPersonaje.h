@@ -10,6 +10,7 @@
 class UPoseableMeshComponent;
 class USpringArmComponent;
 class USAEVUSComponenteAlma;
+class USAEVUSComponenteGuardia;
 class USAEVUSComponenteSonido;
 class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteEfectosCombate;
@@ -60,6 +61,7 @@ public:
 	USAEVUSComponenteArmas* ObtenerArmas() const { return Armas; }
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
 	USAEVUSComponenteAlma* ObtenerAlma() const { return Alma; }
+	USAEVUSComponenteGuardia* ObtenerGuardia() const { return Guardia; }
 	USAEVUSComponenteEfectosCombate* ObtenerEfectosCombate() const { return EfectosCombate; }
 	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
 	UPoseableMeshComponent* ObtenerCuerpo() const { return Cuerpo; }
@@ -108,6 +110,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void PedirRecarga();
 
+	/** Acción de guardia pulsada o soltada. */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
+	void FijarGuardia(bool bPulsada);
+
 	/** Acción de curar pulsada o soltada. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void FijarCuracion(bool bPulsada);
@@ -139,6 +145,7 @@ private:
 	void ManejarEsprint(const FInputActionValue& Valor);
 	void ManejarCaminar(const FInputActionValue& Valor);
 	void ManejarCurar(const FInputActionValue& Valor);
+	void ManejarGuardia(const FInputActionValue& Valor);
 
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);
@@ -165,6 +172,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteAlma> Alma;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteGuardia> Guardia;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEstelaDash> EstelaDash;

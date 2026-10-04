@@ -54,6 +54,8 @@ ASIGNACIONES_SAEVUS = {
     "IA_Dash": ["Gamepad_FaceButton_Right"],
     "IA_Atacar": ["LeftMouseButton", "Gamepad_FaceButton_Left"],
     "IA_Recargar": ["R", "Gamepad_FaceButton_Top"],
+    # Mantener para la guardia con el arma cuerpo a cuerpo (GunZ).
+    "IA_Guardia": ["RightMouseButton", "Gamepad_LeftTrigger"],
     # Mantener para gastar alma y curar (Hollow Knight).
     "IA_Curar": ["Q", "Gamepad_LeftShoulder"],
     "IA_SiguienteArma": ["MouseScrollDown", "Gamepad_RightShoulder"],
@@ -379,6 +381,7 @@ def crear_data_assets(acciones):
     config_entrada.set_editor_property("accion_atacar", acciones["IA_Atacar"])
     config_entrada.set_editor_property("accion_recargar", acciones["IA_Recargar"])
     config_entrada.set_editor_property("accion_curar", acciones["IA_Curar"])
+    config_entrada.set_editor_property("accion_guardia", acciones["IA_Guardia"])
     config_entrada.set_editor_property("accion_siguiente_arma", acciones["IA_SiguienteArma"])
     config_entrada.set_editor_property(
         "acciones_ranura_arma", [acciones[f"IA_RanuraArma{ranura}"] for ranura in range(1, len(ARMAS) + 1)]
@@ -391,6 +394,9 @@ def crear_data_assets(acciones):
     ajuste_camara.set_editor_property("material_contorno", crear_material_contorno())
     camara.set_editor_property("camara", ajuste_camara)
     repertorio = data_asset("DA_RepertorioMelee_Base", unreal.SAEVUSDatosRepertorioMelee)
+    # Copia del repertorio del código (su constructor): mientras no se ajuste a mano, el asset sigue
+    # al código y recibe los campos nuevos (p. ej. ventanas de guardia) con sus valores de diseño.
+    repertorio.set_editor_property("repertorio", unreal.SAEVUSRepertorioMelee())
     armas = [crear_arma(data_asset, nombre, datos, repertorio) for nombre, datos in ARMAS.items()]
     return config_entrada, movimiento, camara, repertorio, armas
 
@@ -698,7 +704,7 @@ AVISOS_TUTORIAL = [
     (3550, "Dash", "Toca dos veces una dirección (W W, A A...) para hacer dash.\nTambién en el aire: salto, doble salto y dash para cruzar."),
     (5650, "Paredes", "Salta contra una pared para rebotar en ella.\nCorre de frente hacia una pared para escalarla."),
     (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
-    (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos.\nMira hacia arriba al atacar: tajo hacia arriba."),
+    (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo.\nSi golpeas algo rebotas y recuperas el dash y el doble salto."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan.\nEsquiva con dash y castiga cuando se recuperan. Derrótalos para abrir la puerta."),

@@ -9,6 +9,8 @@
 class USAEVUSComponenteVida;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSAEVUSFirmaCambioVida, USAEVUSComponenteVida*, ComponenteVida, float, Delta, AActor*, Instigador);
+/** Filtra el daño antes de aplicarlo (guardia, armaduras): recibe cantidad y causante, devuelve lo que queda. */
+DECLARE_DELEGATE_RetVal_TwoParams(float, FSAEVUSFiltroDanio, float /*Cantidad*/, AActor* /*Causante*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSAEVUSFirmaMuerte, USAEVUSComponenteVida*, ComponenteVida, AActor*, Asesino);
 
 /**
@@ -63,6 +65,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Vida")
 	FSAEVUSFirmaCambioVida AlCambiarVida;
+
+	/** Filtro opcional del daño entrante (lo fija la guardia). */
+	FSAEVUSFiltroDanio FiltroDanio;
 
 	/** Se dispara una vez, cuando la vida llega a cero. */
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Vida")

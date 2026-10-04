@@ -71,6 +71,18 @@ Mecánicas de Hollow Knight adaptadas a 3D, con números propios:
   - **Parada de golpe** `DuracionParadaGolpe` (0,06 s reales) a la escala `EscalaTiempoParada` (0,05) del repertorio: `FSAEVUSParadaGolpe` baja `CustomTimeDilation` del atacante y de los golpeados y la devuelve a 1, contando tiempo real.
 - Animación: trayectorias propias para arriba (cuerpo echado atrás) y abajo (volcado hacia el golpe).
 
+## Guardia (GunZ)
+
+La otra mitad de la "mariposa" de GunZ (salto → dash → tajo → guardia), diseñada como cancelación por datos:
+
+- **Mantener `IA_Guardia`** (clic derecho / gatillo izquierdo) con el arma cuerpo a cuerpo (`USAEVUSComponenteGuardia`, `FSAEVUSAjusteGuardia`). Bloquea el daño de causantes dentro de un cono frontal de ±70° (`FraccionBloqueada` 1: todo). No cubre la espalda ni el daño sin causante (caídas).
+- El bloqueo pasa por el **filtro de daño** de la vida (`USAEVUSComponenteVida::FiltroDanio`): un golpe parado no da invulnerabilidad ni corta nada.
+- **Reacción** (como mucho cada 0,2 s): el jugador retrocede (300 cm/s), el atacante sale despedido (450 cm/s, escalado por su `EscalaEmpujeRecibido`), chispas y un choque metálico.
+- **Cancelación:** nueva acción `ESAEVUSAccionCancelacion::Guardia` con `CancelarConGuardiaDesde` en cada ataque (0,18 s en los tajos, 0,4 s en el remate, el final de la fase activa en los aéreos y direccionales). Pedida durante un tajo, la guardia entra en cuanto la ventana lo permite y corta el ataque. Atacar desde la guardia la suelta; si sigue pulsada, vuelve en la siguiente ventana: tajo → guardia → tajo.
+- En guardia: velocidad ×0,35, el cuerpo mira hacia la cámara, no se cura (pulsar guardia corta la curación). Con un arma de fuego o durante un dash no hay guardia.
+- Animación: brazos al frente y el aguijón cruzado en diagonal.
+- `DA_RepertorioMelee_Base` se reescribe con el repertorio del código en cada ejecución del script de assets (mientras no se ajuste a mano), así recibe los campos nuevos con sus valores de diseño.
+
 ## Alma y curación (Hollow Knight)
 
 - Cada actor golpeado por un ataque cuerpo a cuerpo da `AlmaPorGolpe` (11) hasta `AlmaMaxima` (99) (`FSAEVUSAjusteAlma`).
@@ -124,6 +136,7 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 `SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
 `SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Cambio`, `CambioCancela`, `RepertorioMelee`.
 `SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`, `InvulnerableTrasGolpe`.
+`SAEVUS.Guardia.*`: `BloqueaDeFrente` (frente sí; espalda y sin causante no), `MovimientoYArma` (más lenta, sin curación, se suelta con arma de fuego), `CancelaTajo` (espera la ventana, corta el tajo, atacar la suelta y vuelve).
 `SAEVUS.Alma.*`: `GanarAlGolpear`, `Curacion` (no se mueve, cura y gasta), `CuracionInterrumpida` (golpe y salto la cortan sin gastar), `SinAlmaNoCura`.
 
 ## Pendiente

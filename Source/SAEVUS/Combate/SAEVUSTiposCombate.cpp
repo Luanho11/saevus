@@ -30,6 +30,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	Remate.CancelarConDashDesde = 0.4f;
 	Remate.CancelarConSaltoDesde = -1.f;
 	Remate.CancelarConCambioArmaDesde = 0.4f;
+	Remate.CancelarConGuardiaDesde = 0.4f;
 
 	ComboSuelo = { Tajo1, Tajo2, Remate };
 
@@ -45,6 +46,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoAereo.EncadenarDesde = TajoAereo.TiempoPreparacion + TajoAereo.TiempoActivo;
 	TajoAereo.CancelarConDashDesde = TajoAereo.EncadenarDesde;
 	TajoAereo.CancelarConCambioArmaDesde = TajoAereo.EncadenarDesde;
+	TajoAereo.CancelarConGuardiaDesde = TajoAereo.EncadenarDesde;
 
 	ComboAire = { TajoAereo };
 
@@ -63,6 +65,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoArriba.CancelarConDashDesde = TajoArriba.EncadenarDesde;
 	TajoArriba.CancelarConSaltoDesde = TajoArriba.EncadenarDesde;
 	TajoArriba.CancelarConCambioArmaDesde = TajoArriba.EncadenarDesde;
+	TajoArriba.CancelarConGuardiaDesde = TajoArriba.EncadenarDesde;
 
 	// Tajo hacia abajo: esfera bajo los pies; al acertar rebota (pogo), así se encadenan saltos sobre enemigos.
 	TajoAbajo = TajoArriba;

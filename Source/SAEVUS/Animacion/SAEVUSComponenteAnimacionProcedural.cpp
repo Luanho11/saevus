@@ -4,6 +4,7 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Engine/SkinnedAsset.h"
@@ -186,6 +187,7 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	Armas = GetOwner()->FindComponentByClass<USAEVUSComponenteArmas>();
 	Vida = GetOwner()->FindComponentByClass<USAEVUSComponenteVida>();
 	Alma = GetOwner()->FindComponentByClass<USAEVUSComponenteAlma>();
+	Guardia = GetOwner()->FindComponentByClass<USAEVUSComponenteGuardia>();
 	if (Armas)
 	{
 		Armas->AlDisparar.AddUniqueDynamic(this, &ThisClass::AlDisparar);
@@ -343,6 +345,10 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 		PoseAtaque(Pose, *Combate->ObtenerAtaqueActual(), Combate->ObtenerIndiceCombo(), Combate->EsCadenaAerea(), Combate->ObtenerDireccionAtaque(),
 			Combate->ObtenerTiempoAtaque());
 	}
+	else if (Guardia && Guardia->EstaEnGuardia())
+	{
+		PoseGuardia(Pose);
+	}
 	else if (bArmaFuego && !Movimiento->EstaEscalando())
 	{
 		PoseDisparo(Pose);
@@ -479,7 +485,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 {
 	using namespace SAEVUSAnimacion;
 	const FTrayectoria Trayectoria = TrayectoriaAtaque(IndiceCombo, bAereo, Direccion);
-	const FVector Guardia = (Adelante * 0.5f - Arriba * 0.7f + Derecha * 0.25f).GetSafeNormal();
+	const FVector PosturaReposo = (Adelante * 0.5f - Arriba * 0.7f + Derecha * 0.25f).GetSafeNormal();
 
 	// Dirección del brazo y del aguijón a lo largo de la línea de tiempo del ataque.
 	FVector DireccionBrazo;
@@ -490,7 +496,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 	if (Tiempo < Ataque.TiempoPreparacion)
 	{
 		const float U = SuavizarCurva(Tiempo / FMath::Max(Ataque.TiempoPreparacion, UE_KINDA_SMALL_NUMBER));
-		DireccionBrazo = Interpolar(Guardia, Trayectoria.Inicio, U);
+		DireccionBrazo = Interpolar(PosturaReposo, Trayectoria.Inicio, U);
 		GiroPecho = FMath::Lerp(0.f, Trayectoria.GiroInicio, U);
 		Inclinacion = FMath::Lerp(0.f, Trayectoria.InclinacionInicio, U);
 		FlexionAntebrazo = 35.f * U;
@@ -505,7 +511,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 	else
 	{
 		const float U = SuavizarCurva((Tiempo - FinActivo) / FMath::Max(Ataque.TiempoRecuperacion, UE_KINDA_SMALL_NUMBER));
-		DireccionBrazo = Interpolar(Trayectoria.Fin, Guardia, U);
+		DireccionBrazo = Interpolar(Trayectoria.Fin, PosturaReposo, U);
 		GiroPecho = FMath::Lerp(Trayectoria.GiroFin, 0.f, U);
 		Inclinacion = FMath::Lerp(Trayectoria.InclinacionFin, 0.f, U);
 	}
@@ -583,6 +589,19 @@ void USAEVUSComponenteAnimacionProcedural::PoseCuracion(FPose& Pose)
 	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 60.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 12.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 20.f) };
+}
+
+void USAEVUSComponenteAnimacionProcedural::PoseGuardia(FPose& Pose)
+{
+	using namespace SAEVUSAnimacion;
+	// Brazos al frente a la altura del pecho y el aguijón cruzado en diagonal: cubre el frente.
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Adelante * 0.8f - Arriba * 0.25f + Derecha * 0.3f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoD)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 35.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (-Derecha * 0.8f + Arriba * 0.5f + Adelante * 0.3f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Adelante * 0.8f - Arriba * 0.3f - Derecha * 0.2f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 35.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 8.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 6.f) };
 }
 
 void USAEVUSComponenteAnimacionProcedural::AplicarParpadeo()

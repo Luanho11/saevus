@@ -73,6 +73,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Armas")
 	TArray<TObjectPtr<UInputAction>> AccionesRanuraArma;
 
+	/** Booleana, mantenida: guardia con el arma cuerpo a cuerpo. */
+	UPROPERTY(EditDefaultsOnly, Category = "Combate")
+	TObjectPtr<UInputAction> AccionGuardia;
+
 	/** Booleana, mantenida: gasta alma para curar (en el suelo). */
 	UPROPERTY(EditDefaultsOnly, Category = "Combate")
 	TObjectPtr<UInputAction> AccionCurar;

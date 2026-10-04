@@ -6,6 +6,7 @@
 #include "Components/PoseableMeshComponent.h"
 #include "Engine/SkinnedAsset.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
@@ -54,6 +55,8 @@ namespace SAEVUSPruebaHumo
 	constexpr float ToleranciaDuracionAtaque = 0.15f;
 	// Cambia a la segunda ranura del arsenal (un arma de fuego en el arsenal por defecto) y dispara una vez.
 	constexpr int32 RanuraArmaFuego = 1;
+	constexpr float DuracionEtapaGuardia = 0.5f;
+	const TCHAR* const NombreCapturaGuardia = TEXT("SAEVUS_PruebaHumo_Guardia.png");
 	constexpr float DuracionEtapaDisparo = 1.5f;
 	// Daño, muerte y reaparición por la vía de daño del motor (necesita el modo de juego).
 	constexpr float DanioPrueba = 10.f;
@@ -241,6 +244,21 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		if (!Pawn->ObtenerCombate()->EstaAtacando() || TiempoEtapa >= DuracionMaxEtapaAtaque)
 		{
 			DuracionAtaque = TiempoEtapa;
+			Pawn->FijarGuardia(true);
+			EntrarEtapa(EEtapa::Guardia);
+		}
+		break;
+
+	case EEtapa::Guardia:
+		if (!bGuardiaActiva && TiempoEtapa >= DuracionEtapaGuardia * 0.6f)
+		{
+			// La captura sale en el fotograma siguiente: se pide con la guardia aún puesta.
+			bGuardiaActiva = Pawn->ObtenerGuardia()->EstaEnGuardia();
+			FScreenshotRequest::RequestScreenshot(NombreCapturaGuardia, true, false);
+		}
+		if (TiempoEtapa >= DuracionEtapaGuardia)
+		{
+			Pawn->FijarGuardia(false);
 			Pawn->PedirRanuraArma(RanuraArmaFuego);
 			EntrarEtapa(EEtapa::Disparar);
 		}
@@ -357,6 +375,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("estela del dash con partículas"), ParticulasDash > 0 ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("ataque empezado"), bAtaqueEmpezo ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("duración del ataque"), DuracionAtaque, Pawn->ObtenerCombate()->ObtenerRepertorio().ComboSuelo[0].ObtenerTiempoTotal(), ToleranciaDuracionAtaque);
+		Comprobar(TEXT("guardia activa"), bGuardiaActiva ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);
 		Comprobar(TEXT("vida tras un golpe"), VidaTrasGolpe, Pawn->ObtenerVida()->ObtenerVidaMaxima() - DanioPrueba, 0.f);
 		Comprobar(TEXT("golpe ignorado durante la invulnerabilidad"), VidaTrasGolpeInvulnerable, VidaTrasGolpe, 0.f);

@@ -21,6 +21,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Entrada/Acciones/IA_Atacar",
     "/Game/SAEVUS/Entrada/Acciones/IA_Recargar",
     "/Game/SAEVUS/Entrada/Acciones/IA_Curar",
+    "/Game/SAEVUS/Entrada/Acciones/IA_Guardia",
     "/Game/SAEVUS/Entrada/Acciones/IA_SiguienteArma",
     "/Game/SAEVUS/Entrada/Acciones/IA_AlternarHUD",
     "/Game/SAEVUS/Datos/DA_AjustesMovimiento_Base",
@@ -43,7 +44,7 @@ ASSETS_OBLIGATORIOS = (
 
 PROPIEDADES_CONFIG_ENTRADA = (
     "accion_mover", "accion_mirar", "accion_mirar_raton", "accion_saltar", "accion_esprint", "accion_caminar",
-    "accion_dash", "accion_atacar", "accion_recargar", "accion_siguiente_arma", "accion_curar",
+    "accion_dash", "accion_atacar", "accion_recargar", "accion_siguiente_arma", "accion_curar", "accion_guardia",
 )
 
 

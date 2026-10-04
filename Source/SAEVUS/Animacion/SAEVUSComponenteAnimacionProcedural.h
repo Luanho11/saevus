@@ -8,6 +8,7 @@
 
 class UPoseableMeshComponent;
 class USAEVUSComponenteAlma;
+class USAEVUSComponenteGuardia;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCombate;
 class USAEVUSComponenteMovimiento;
@@ -199,6 +200,7 @@ private:
 	void PoseDisparo(FPose& Pose);
 	void PoseMuerte(FPose& Pose, float DeltaTime);
 	void PoseCuracion(FPose& Pose);
+	void PoseGuardia(FPose& Pose);
 	/** Oculta y muestra el cuerpo durante la invulnerabilidad tras un golpe. */
 	void AplicarParpadeo();
 	void PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical);
@@ -229,6 +231,7 @@ private:
 	USAEVUSComponenteArmas* Armas = nullptr;
 	USAEVUSComponenteVida* Vida = nullptr;
 	USAEVUSComponenteAlma* Alma = nullptr;
+	USAEVUSComponenteGuardia* Guardia = nullptr;
 
 	bool bEsqueletoValido = false;
 	int32 IndiceMalla[static_cast<int32>(ESAEVUSHueso::Total)];

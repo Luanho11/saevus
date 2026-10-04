@@ -4,6 +4,7 @@
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 
 namespace SAEVUSEfectosCombate
 {
@@ -35,6 +36,18 @@ void USAEVUSComponenteEfectosCombate::BeginPlay()
 	{
 		ManejadorCurar = Alma->AlCurar.AddUObject(this, &ThisClass::AlCurar);
 	}
+	Guardia = GetOwner()->FindComponentByClass<USAEVUSComponenteGuardia>();
+	if (Guardia)
+	{
+		ManejadorBloqueo = Guardia->AlBloquear.AddUObject(this, &ThisClass::AlBloquear);
+	}
+}
+
+void USAEVUSComponenteEfectosCombate::AlBloquear(AActor* Atacante, const FVector& PuntoContacto)
+{
+	// Chispas que saltan hacia el atacante.
+	const FVector HaciaAtacante = (PuntoContacto - GetOwner()->GetActorLocation()).GetSafeNormal();
+	EmitirRafaga(PuntoContacto, HaciaAtacante * AjusteEfectos.VelocidadBloqueo, AjusteEfectos.ParticulasBloqueo, AjusteEfectos.Dispersion);
 }
 
 void USAEVUSComponenteEfectosCombate::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -42,6 +55,10 @@ void USAEVUSComponenteEfectosCombate::EndPlay(const EEndPlayReason::Type EndPlay
 	if (Alma)
 	{
 		Alma->AlCurar.Remove(ManejadorCurar);
+	}
+	if (Guardia)
+	{
+		Guardia->AlBloquear.Remove(ManejadorBloqueo);
 	}
 	Super::EndPlay(EndPlayReason);
 }

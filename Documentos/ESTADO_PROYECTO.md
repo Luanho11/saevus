@@ -20,6 +20,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
 - **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Sonido boceto** (`audio.md`): efectos sintetizados por código (tajo, golpe, disparo, daño, curación, dash, doble salto) disparados por eventos.
+- **Guardia** (GunZ, `combate.md`): bloqueo frontal por filtro de daño, cancela el tajo por datos (tajo → guardia), empuje y chispas al bloquear.
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
@@ -27,7 +28,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Verificación
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 93/93 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 96/96 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)

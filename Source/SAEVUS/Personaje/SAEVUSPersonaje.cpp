@@ -8,6 +8,7 @@
 #include "Camara/SAEVUSComponenteCamara.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -56,6 +57,7 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	Vida = CreateDefaultSubobject<USAEVUSComponenteVida>(TEXT("Vida"));
 	Vida->FijarInvulnerabilidadTrasGolpe(SAEVUSPersonaje::InvulnerabilidadTrasGolpe);
 	Alma = CreateDefaultSubobject<USAEVUSComponenteAlma>(TEXT("Alma"));
+	Guardia = CreateDefaultSubobject<USAEVUSComponenteGuardia>(TEXT("Guardia"));
 
 	EstelaDash = CreateDefaultSubobject<USAEVUSComponenteEstelaDash>(TEXT("EstelaDash"));
 	EstelaDash->SetupAttachment(RootComponent);
@@ -91,6 +93,9 @@ void ASAEVUSPersonaje::PostInitializeComponents()
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Combate, Combate->PrimaryComponentTick);
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Armas, Armas->PrimaryComponentTick);
 	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Alma, Alma->PrimaryComponentTick);
+	GetCharacterMovement()->PrimaryComponentTick.AddPrerequisite(Guardia, Guardia->PrimaryComponentTick);
+	// La guardia pregunta al combate si puede cortar el ataque: va después de él.
+	Guardia->PrimaryComponentTick.AddPrerequisite(Combate, Combate->PrimaryComponentTick);
 
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
 	Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::ManejarCambioVida);
@@ -242,6 +247,11 @@ void ASAEVUSPersonaje::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Entrada->BindAction(ConfigEntrada->AccionAtacar, ETriggerEvent::Started, this, &ThisClass::PedirAtaque);
 		Entrada->BindAction(ConfigEntrada->AccionAtacar, ETriggerEvent::Completed, this, &ThisClass::SoltarAtaque);
 	}
+	if (ConfigEntrada->AccionGuardia)
+	{
+		Entrada->BindAction(ConfigEntrada->AccionGuardia, ETriggerEvent::Started, this, &ThisClass::ManejarGuardia);
+		Entrada->BindAction(ConfigEntrada->AccionGuardia, ETriggerEvent::Completed, this, &ThisClass::ManejarGuardia);
+	}
 	if (ConfigEntrada->AccionCurar)
 	{
 		Entrada->BindAction(ConfigEntrada->AccionCurar, ETriggerEvent::Started, this, &ThisClass::ManejarCurar);
@@ -337,7 +347,22 @@ void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
 
 void ASAEVUSPersonaje::FijarCuracion(bool bPulsada)
 {
-	Alma->FijarCuracionPedida(bPulsada);
+	// En guardia no se cura.
+	Alma->FijarCuracionPedida(bPulsada && !Guardia->EstaPedida());
+}
+
+void ASAEVUSPersonaje::FijarGuardia(bool bPulsada)
+{
+	if (bPulsada)
+	{
+		Alma->CancelarCuracion();
+	}
+	Guardia->FijarGuardiaPedida(bPulsada);
+}
+
+void ASAEVUSPersonaje::ManejarGuardia(const FInputActionValue& Valor)
+{
+	FijarGuardia(Valor.Get<bool>());
 }
 
 void ASAEVUSPersonaje::ManejarCurar(const FInputActionValue& Valor)
@@ -354,6 +379,8 @@ void ASAEVUSPersonaje::PedirAtaque()
 	else if (!Armas->EstaCambiando())
 	{
 		Alma->CancelarCuracion();
+		// Atacar suelta la guardia; si sigue pulsada vuelve en la ventana de cancelación del tajo.
+		Guardia->Interrumpir();
 		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate). La inclinación de la
 		// cámara elige el tajo: arriba, de frente o abajo (en el aire).
 		const float Inclinacion = Controller ? static_cast<float>(FRotator::NormalizeAxis(GetControlRotation().Pitch)) : 0.f;

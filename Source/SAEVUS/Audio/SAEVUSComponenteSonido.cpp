@@ -4,6 +4,7 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -65,6 +66,17 @@ FSAEVUSAjusteSonidos::FSAEVUSAjusteSonidos()
 	Curacion.Volumen = 0.4f;
 	Curacion.Semilla = 53;
 
+	// Bloqueo: choque metálico corto y brillante.
+	Bloqueo.Duracion = 0.25f;
+	Bloqueo.FrecuenciaInicio = 1300.f;
+	Bloqueo.FrecuenciaFin = 900.f;
+	Bloqueo.Aspereza = 0.5f;
+	Bloqueo.MezclaRuido = 0.35f;
+	Bloqueo.FiltroRuido = 0.9f;
+	Bloqueo.Caida = 0.06f;
+	Bloqueo.Volumen = 0.55f;
+	Bloqueo.Semilla = 83;
+
 	// Dash: soplo más largo que el tajo.
 	Dash.Duracion = 0.3f;
 	Dash.MezclaRuido = 1.f;
@@ -102,6 +114,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	Preparar(EEfecto::Disparo, Ajuste.Disparo);
 	Preparar(EEfecto::Danio, Ajuste.Danio);
 	Preparar(EEfecto::Curacion, Ajuste.Curacion);
+	Preparar(EEfecto::Bloqueo, Ajuste.Bloqueo);
 	Preparar(EEfecto::Dash, Ajuste.Dash);
 	Preparar(EEfecto::DobleSalto, Ajuste.DobleSalto);
 
@@ -122,6 +135,10 @@ void USAEVUSComponenteSonido::BeginPlay()
 	if (USAEVUSComponenteAlma* Alma = Duenio->FindComponentByClass<USAEVUSComponenteAlma>())
 	{
 		Manejadores.Emplace(Alma, Alma->AlCurar.AddUObject(this, &ThisClass::AlCurar));
+	}
+	if (USAEVUSComponenteGuardia* Guardia = Duenio->FindComponentByClass<USAEVUSComponenteGuardia>())
+	{
+		Manejadores.Emplace(Guardia, Guardia->AlBloquear.AddUObject(this, &ThisClass::AlBloquear));
 	}
 	if (const ACharacter* Personaje = Cast<ACharacter>(Duenio))
 	{
@@ -145,6 +162,10 @@ void USAEVUSComponenteSonido::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		else if (USAEVUSComponenteAlma* Alma = Cast<USAEVUSComponenteAlma>(Par.Key.Get()))
 		{
 			Alma->AlCurar.Remove(Par.Value);
+		}
+		else if (USAEVUSComponenteGuardia* Guardia = Cast<USAEVUSComponenteGuardia>(Par.Key.Get()))
+		{
+			Guardia->AlBloquear.Remove(Par.Value);
 		}
 		else if (USAEVUSComponenteMovimiento* Movimiento = Cast<USAEVUSComponenteMovimiento>(Par.Key.Get()))
 		{
@@ -200,6 +221,11 @@ void USAEVUSComponenteSonido::AlCambiarVida(USAEVUSComponenteVida* ComponenteVid
 void USAEVUSComponenteSonido::AlCurar(float VidaRecuperada)
 {
 	Reproducir(EEfecto::Curacion, Ajuste.VolumenCombate);
+}
+
+void USAEVUSComponenteSonido::AlBloquear(AActor* Atacante, const FVector& PuntoContacto)
+{
+	Reproducir(EEfecto::Bloqueo, Ajuste.VolumenCombate);
 }
 
 void USAEVUSComponenteSonido::AlIniciarDash(const FVector& Direccion)

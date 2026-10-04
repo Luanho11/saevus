@@ -5,6 +5,7 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Combate/SAEVUSComponenteGuardia.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "Engine/Engine.h"
@@ -99,6 +100,11 @@ void ASAEVUSHUDDepuracion::DibujarDepuracion()
 	{
 		Lineas.Add(FString::Printf(TEXT("Vida: %.0f/%.0f%s%s"), Vida->ObtenerVida(), Vida->ObtenerVidaMaxima(), Vida->EstaMuerto() ? TEXT(" MUERTO") : TEXT(""),
 			Vida->EstaInvulnerable() ? TEXT(" (invulnerable)") : TEXT("")));
+	}
+	if (const USAEVUSComponenteGuardia* Guardia = Personaje->FindComponentByClass<USAEVUSComponenteGuardia>())
+	{
+		Lineas.Add(FString::Printf(TEXT("Guardia: %s, bloqueos %d"), Guardia->EstaEnGuardia() ? TEXT("activa") : (Guardia->EstaPedida() ? TEXT("pedida") : TEXT("no")),
+			Guardia->ObtenerBloqueos()));
 	}
 	if (const USAEVUSComponenteAlma* Alma = Personaje->FindComponentByClass<USAEVUSComponenteAlma>())
 	{

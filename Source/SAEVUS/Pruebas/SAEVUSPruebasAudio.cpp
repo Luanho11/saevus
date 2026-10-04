@@ -34,7 +34,7 @@ bool FSAEVUSPruebaAudioSintesis::RunTest(const FString& Parameters)
 	using namespace SAEVUSPruebasAudio;
 
 	const FSAEVUSAjusteSonidos Sonidos;
-	for (const FSAEVUSSonidoSintetizado* Sonido : { &Sonidos.Tajo, &Sonidos.Golpe, &Sonidos.Disparo, &Sonidos.Danio, &Sonidos.Curacion, &Sonidos.Dash, &Sonidos.DobleSalto })
+	for (const FSAEVUSSonidoSintetizado* Sonido : { &Sonidos.Tajo, &Sonidos.Golpe, &Sonidos.Disparo, &Sonidos.Danio, &Sonidos.Curacion, &Sonidos.Bloqueo, &Sonidos.Dash, &Sonidos.DobleSalto })
 	{
 		const TArray<int16> Muestras = SAEVUSSintesis::Sintetizar(*Sonido);
 		TestEqual(TEXT("Muestras = duración × frecuencia de muestreo"), Muestras.Num(), FMath::RoundToInt32(Sonido->Duracion * SAEVUSSintesis::FrecuenciaMuestreo));

@@ -42,6 +42,10 @@ struct SAEVUS_API FSAEVUSAjusteSonidos
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
 	FSAEVUSSonidoSintetizado Curacion;
 
+	/** Choque metálico del bloqueo de la guardia. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
+	FSAEVUSSonidoSintetizado Bloqueo;
+
 	/** Movimiento: dash y doble salto. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
 	FSAEVUSSonidoSintetizado Dash;
@@ -78,7 +82,7 @@ private:
 		float Duracion = 0.f;
 	};
 
-	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, Danio, Curacion, Dash, DobleSalto, Total };
+	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, Danio, Curacion, Bloqueo, Dash, DobleSalto, Total };
 
 	void Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido);
 	void Reproducir(EEfecto Efecto, float VolumenCategoria);
@@ -87,6 +91,7 @@ private:
 	void AlIniciarDash(const FVector& Direccion);
 	void AlSaltoAereo();
 	void AlCurar(float VidaRecuperada);
+	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
 
 	UFUNCTION()
 	void AlGolpear(AActor* ActorGolpeado, float Cantidad);

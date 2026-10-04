@@ -35,7 +35,8 @@ enum class ESAEVUSAccionCancelacion : uint8
 {
 	Dash,
 	Salto,
-	CambioArma
+	CambioArma,
+	Guardia
 };
 
 /**
@@ -115,6 +116,10 @@ struct FSAEVUSDefinicionAtaque
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones", meta = (ForceUnits = "s"))
 	float CancelarConCambioArmaDesde = 0.18f;
 
+	/** Desde este tiempo la guardia puede cortar el ataque (tajo → guardia, GunZ). Negativo: nunca. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones", meta = (ForceUnits = "s"))
+	float CancelarConGuardiaDesde = 0.18f;
+
 	float ObtenerTiempoTotal() const { return TiempoPreparacion + TiempoActivo + TiempoRecuperacion; }
 
 	ESAEVUSFaseAtaque ObtenerFaseEn(float Tiempo) const
@@ -138,6 +143,8 @@ struct FSAEVUSDefinicionAtaque
 			return CancelarConDashDesde;
 		case ESAEVUSAccionCancelacion::Salto:
 			return CancelarConSaltoDesde;
+		case ESAEVUSAccionCancelacion::Guardia:
+			return CancelarConGuardiaDesde;
 		case ESAEVUSAccionCancelacion::CambioArma:
 		default:
 			return CancelarConCambioArmaDesde;

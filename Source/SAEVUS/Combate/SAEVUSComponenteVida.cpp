@@ -41,6 +41,14 @@ float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
 	{
 		return 0.f;
 	}
+	if (FiltroDanio.IsBound())
+	{
+		Cantidad = FiltroDanio.Execute(Cantidad, Causante);
+		if (Cantidad <= 0.f)
+		{
+			return 0.f;
+		}
+	}
 	const float Quitada = FMath::Min(Cantidad, Vida);
 	Vida -= Quitada;
 	if (Vida > 0.f && DuracionInvulnerableTrasGolpe > 0.f)

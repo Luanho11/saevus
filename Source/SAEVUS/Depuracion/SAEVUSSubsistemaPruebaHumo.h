@@ -41,6 +41,7 @@ private:
 		Saltar,
 		Dash,
 		Atacar,
+		Guardia,
 		Disparar,
 		Morir,
 		Reaparecer,
@@ -73,6 +74,7 @@ private:
 	/** Radio de los límites del cuerpo animado al asentarse; si colapsa, el caballero no se ve. */
 	float RadioCuerpo = 0.f;
 	float DuracionAtaque = 0.f;
+	bool bGuardiaActiva = false;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;
 	int32 DisparosRealizados = 0;

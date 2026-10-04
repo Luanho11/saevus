@@ -9,6 +9,7 @@
 class USAEVUSComponenteAlma;
 class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteCombate;
+class USAEVUSComponenteGuardia;
 
 /** Cómo se ven los efectos de golpe, alma y curación. */
 USTRUCT(BlueprintType)
@@ -45,6 +46,13 @@ struct FSAEVUSAjusteEfectosCombate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0"))
 	int32 ParticulasEstelaPorFotograma = 5;
 
+	/** Chispas del bloqueo de la guardia. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Guardia", meta = (ClampMin = "0"))
+	int32 ParticulasBloqueo = 16;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Guardia", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadBloqueo = 420.f;
+
 	/** Velocidad aleatoria pequeña de la estela: se queda casi quieta y dibuja el arco. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float DispersionEstela = 15.f;
@@ -77,6 +85,7 @@ private:
 	void AlGolpear(AActor* ActorGolpeado, float Danio);
 
 	void AlCurar(float VidaRecuperada);
+	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
 
 	/** Partículas a lo largo de la hoja mientras el tajo está en su fase activa. */
 	void EmitirEstelaArma();
@@ -90,6 +99,10 @@ private:
 	UPROPERTY()
 	TObjectPtr<USAEVUSComponenteAnimacionProcedural> Animacion;
 
+	UPROPERTY()
+	TObjectPtr<USAEVUSComponenteGuardia> Guardia;
+
 	FDelegateHandle ManejadorCurar;
+	FDelegateHandle ManejadorBloqueo;
 	float AcumuladoEmision = 0.f;
 };
