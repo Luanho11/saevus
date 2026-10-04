@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 41)**
-**Último latido: 2026-10-04 02:40** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 42)**
+**Último latido: 2026-10-04 02:52** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -75,9 +75,12 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 38. [x] ~~Hilo de juego: medir el tutorial con `stat game`/`stat unit` en la prueba de humo, localizar lo más caro (animación procedural, IA, partículas) y bajar del presupuesto actual (11–13 ms).~~ `-PerfilJuego dumpave|dumpmax`: el "coste" era un tirón único de 1,5 s del editor (primera captura) y espera al render; nuestro código ≈ 2,5 ms. Movimiento de enemigos lejanos a intervalos. Ver `rendimiento.md`.
 39. [x] ~~Rotación de logs de verificación: `Saved/Logs/Verificacion` acumula decenas de `*-backup-*.log` (≈ 50 MB); conservar los 5 últimos de cada tipo desde `Verificar-Arranque` y los scripts de ejecución.~~ `Herramientas/Limpiar-Logs.ps1` (59 MB → 10 MB).
 40. [x] ~~Enemigo volador ("Revoloteador", Hollow Knight): flota a media altura, se lanza en picado tras avisar; obliga a usar el tajo hacia arriba y el pogo. Cuerpo en Blender, datos, IA (estado de vuelo sin gravedad), tests, en el tutorial (S4b o arena).~~ `bVolador`, ataque `Picado`, `DA_Enemigo_Revoloteador` en la arena S7 y en `L_Pruebas`; captura de enemigos por arena en el recorrido.
-41. [ ] Sección de armas de fuego en el tutorial: aviso ("Las armas gastan reserva; la espada la rellena"), dianas a distancia y un muñeco cerca para rellenar; comprobado por el recorrido.
+41. [x] ~~Sección de armas de fuego en el tutorial: aviso ("Las armas gastan reserva; la espada la rellena"), dianas a distancia y un muñeco cerca para rellenar; comprobado por el recorrido.~~ Aviso en S6 y dos muñecos altos; el recorrido dispara con la pistola a la diana y comprueba el impacto.
+42. [ ] Guardar opciones y progreso (`USaveGame`): calidad y sensibilidad del menú de pausa y el último punto de control; se aplican al arrancar. Tests.
+43. [ ] Menú principal boceto en C++ (Jugar, Continuar desde el punto de control, Opciones, Salir) sobre el tutorial en pausa, con la estética de la interfaz; prueba de humo.
+44. [ ] Zona 1 boceto (`L_Zona1`, generado por script): ruinas tras el tutorial con plataformas, tres encuentros de enemigos mezclados, un banco (punto de control) y un atajo; recorrido propio.
 
 ## Estado del turno
-- Completado: tarea 40 (enemigo volador).
+- Completado: tarea 41 (armas en el tutorial).
 - A medias: —
-- Siguiente paso exacto: tarea 41 — sección de armas de fuego en el tutorial.
+- Siguiente paso exacto: tarea 42 — guardar opciones y progreso.

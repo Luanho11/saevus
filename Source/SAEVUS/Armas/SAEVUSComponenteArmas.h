@@ -34,6 +34,9 @@ public:
 	/** Arma equipada; nula con el arsenal vacío o mientras se equipa la primera. */
 	const USAEVUSDefinicionArma* ObtenerArmaActual() const;
 
+	/** Arma de Ranura; nula si la ranura no es válida. */
+	const USAEVUSDefinicionArma* ObtenerArma(int32 Ranura) const { return Arsenal.IsValidIndex(Ranura) ? Arsenal[Ranura].Get() : nullptr; }
+
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Armas")
 	bool TieneArmaFuegoEquipada() const;
 

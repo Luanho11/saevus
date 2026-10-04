@@ -13,7 +13,7 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S3b Carrera por pared | 7300 – 9500 | Carrera por pared | Foso de 9 m junto a una pared de 15 m |
 | S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba; técnicas (desde X ≈ 10650): ataque cargado, tajo en carrera, combo aéreo | Tres muñecos y uno flotando; una pareja a los lados (X = 10900) para el giro cargado |
 | S5 Rebote | 11500 – 13500 | Tajo hacia abajo y pogo | Foso de 12 m con pinchos (se rebota en ellos) y un muñeco flotando: no se cruza sin rebotar |
-| S6 Alma | 13500 – 15000 | Alma y curación (Q) | Dos muñecos |
+| S6 Alma y armas | 13500 – 15000 | Alma y curación (Q); armas de fuego, reserva y recarga (desde X = 14600) | Dos muñecos (alma y rellenar la reserva con la espada) y dos muñecos altos a los lados (X = 14850, 4,3 m) para disparar |
 | S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar, parar y devolver proyectiles, golpear voladores | Dos rastreros, un saltador, un escupidor y un revoloteador; la puerta se abre al vaciarla |
 | S8 Guardián | 17500 – 20500 | Todo junto | Mini jefe con dos fases; su puerta lleva al final |
 | S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial" |
@@ -55,7 +55,7 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
   - `FosoPinchos`: el foso de 12 m del tutorial se cruza rebotando en los pinchos, sin tocarlos ni ganar alma (`PeligroTocar`: tocarlos quita vida y devuelve al borde).
   - `FosoCarreraPared`: el foso de 9 m se cruza corriendo por la pared.
   - `Cornisa`: la cornisa de 4,5 m se sube escalando y rematando con doble salto.
-- **Recorrido en el juego real:** `Herramientas\Ejecutar-Recorrido.ps1` (`USAEVUSSubsistemaRecorrido`, `-SAEVUSRecorrido`) lleva al jugador, invulnerable, a cada aviso y comprueba que aparece (captura `SAEVUS_Recorrido_NN.png` por sección), y en cada arena hace una captura mirando atrás con los enemigos acercándose (`SAEVUS_Recorrido_ArenaN_Enemigos.png`) y comprueba que el jefe se activa al entrar y que la puerta se abre al vaciarla. Escribe `[SAEVUS recorrido] SUPERADO/FALLIDO`.
+- **Recorrido en el juego real:** `Herramientas\Ejecutar-Recorrido.ps1` (`USAEVUSSubsistemaRecorrido`, `-SAEVUSRecorrido`) lleva al jugador, invulnerable, a cada aviso y comprueba que aparece (captura `SAEVUS_Recorrido_NN.png` por sección), dispara con la pistola a la diana más alta (muñeco elevado) y comprueba el impacto (`SAEVUS_Recorrido_Diana.png`), y en cada arena hace una captura mirando atrás con los enemigos acercándose (`SAEVUS_Recorrido_ArenaN_Enemigos.png`) y comprueba que el jefe se activa al entrar y que la puerta se abre al vaciarla. Escribe `[SAEVUS recorrido] SUPERADO/FALLIDO`.
 - La prueba de humo funciona también aquí: `Ejecutar-PruebaHumo.ps1 -Mapa /Game/SAEVUS/Mapas/L_Tutorial` (desde Git Bash, con `MSYS_NO_PATHCONV=1`: si no, Git convierte `/Game/...` en una ruta de Windows y el juego se queda sin mapa). Por defecto la prueba usa `L_Pruebas`.
 
 ## Pendiente

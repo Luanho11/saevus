@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Depuracion/SAEVUSSubsistemaRecorrido.h"
+#include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
@@ -10,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/PlatformMisc.h"
 #include "Misc/CommandLine.h"
+#include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "SAEVUS.h"
 #include "Tutorial/SAEVUSPuertaArena.h"
@@ -33,6 +35,13 @@ namespace SAEVUSRecorrido
 	constexpr float DanioLetal = 100000.f;
 	// El jugador se coloca delante de cada puerta, en el lado de la arena.
 	constexpr float DistanciaAntesPuerta = 600.f;
+	// Diana: un muñeco por encima de esta altura; el jugador dispara desde esta distancia por delante.
+	constexpr float AlturaMinimaDiana = 300.f;
+	constexpr float DistanciaDiana = 700.f;
+	// Tiempo para equipar el arma, para apuntar (la cámara sigue a la rotación) y para que llegue el golpe.
+	constexpr float TiempoEquiparDiana = 0.8f;
+	constexpr float TiempoApuntarDiana = 0.4f;
+	constexpr float TiempoComprobarDiana = 0.4f;
 }
 
 bool USAEVUSSubsistemaRecorrido::ShouldCreateSubsystem(UObject* Outer) const
@@ -126,6 +135,12 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 			ActualizarAvisos(Jugador);
 		}
 		break;
+	case EPaso::Diana:
+		if (Jugador)
+		{
+			ActualizarDiana(Jugador);
+		}
+		break;
 	case EPaso::Arenas:
 		if (Jugador)
 		{
@@ -142,10 +157,9 @@ void USAEVUSSubsistemaRecorrido::ActualizarAvisos(ASAEVUSPersonaje* Jugador)
 	using namespace SAEVUSRecorrido;
 	if (!Avisos.IsValidIndex(Indice))
 	{
-		Paso = EPaso::Arenas;
-		Indice = 0;
+		Paso = EPaso::Diana;
+		SubpasoDiana = 0;
 		TiempoPaso = 0.f;
-		bLlevado = false;
 		return;
 	}
 	ASAEVUSVolumenTutorial* Volumen = Avisos[Indice].Get();
@@ -167,6 +181,80 @@ void USAEVUSSubsistemaRecorrido::ActualizarAvisos(ASAEVUSPersonaje* Jugador)
 	FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("SAEVUS_Recorrido_%02d.png"), Indice), true, false);
 	++Indice;
 	bLlevado = false;
+}
+
+void USAEVUSSubsistemaRecorrido::ActualizarDiana(ASAEVUSPersonaje* Jugador)
+{
+	using namespace SAEVUSRecorrido;
+	USAEVUSComponenteArmas* Armas = Jugador->ObtenerArmas();
+	APlayerController* Controlador = Cast<APlayerController>(Jugador->GetController());
+	auto PasarAArenas = [this, Armas]()
+	{
+		Armas->PedirCambio(0);
+		Paso = EPaso::Arenas;
+		Indice = 0;
+		TiempoPaso = 0.f;
+		bLlevado = false;
+	};
+	switch (SubpasoDiana)
+	{
+	case 0:
+	{
+		// La diana más alta del mapa y la primera ranura con arma de fuego.
+		for (TActorIterator<ASAEVUSMunecoEntrenamiento> Muneco(GetWorld()); Muneco; ++Muneco)
+		{
+			if (Muneco->GetActorLocation().Z > AlturaMinimaDiana && (!Diana.IsValid() || Muneco->GetActorLocation().Z > Diana->GetActorLocation().Z))
+			{
+				Diana = *Muneco;
+			}
+		}
+		int32 RanuraFuego = INDEX_NONE;
+		for (int32 Ranura = 0; Ranura < Armas->ObtenerNumeroRanuras() && RanuraFuego == INDEX_NONE; ++Ranura)
+		{
+			const USAEVUSDefinicionArma* Arma = Armas->ObtenerArma(Ranura);
+			RanuraFuego = Arma && Arma->EsArmaFuego() ? Ranura : INDEX_NONE;
+		}
+		Comprobar(TEXT("hay una diana alta para las armas"), Diana.IsValid());
+		Comprobar(TEXT("el arsenal tiene un arma de fuego"), RanuraFuego != INDEX_NONE);
+		if (!Diana.IsValid() || RanuraFuego == INDEX_NONE || !Controlador)
+		{
+			PasarAArenas();
+			return;
+		}
+		const FVector PosicionDiana = Diana->GetActorLocation();
+		Llevar(Jugador, FVector(PosicionDiana.X - DistanciaDiana, PosicionDiana.Y * 0.5f, AlturaLlevar));
+		Armas->PedirCambio(RanuraFuego);
+		SubpasoDiana = 1;
+		TiempoPaso = 0.f;
+		break;
+	}
+	case 1:
+	{
+		// Apunta desde la cámara cada fotograma (la cámara se mueve al girar) y dispara al acabar.
+		FVector PosicionVista;
+		FRotator RotacionVista;
+		Controlador->GetPlayerViewPoint(PosicionVista, RotacionVista);
+		Controlador->SetControlRotation((Diana->GetActorLocation() - PosicionVista).Rotation());
+		if (TiempoPaso >= TiempoEquiparDiana + TiempoApuntarDiana && !Armas->EstaCambiando())
+		{
+			Armas->FijarGatillo(true);
+			Armas->FijarGatillo(false);
+			SubpasoDiana = 2;
+			TiempoPaso = 0.f;
+		}
+		break;
+	}
+	default:
+		if (TiempoPaso >= TiempoComprobarDiana)
+		{
+			Comprobar(FString::Printf(TEXT("un disparo de %s alcanza la diana alta (%d golpes)"),
+				Armas->ObtenerArmaActual() ? *Armas->ObtenerArmaActual()->NombreVisible.ToString() : TEXT("?"), Diana->ObtenerGolpes()), Diana->ObtenerGolpes() > 0);
+			FScreenshotRequest::RequestScreenshot(TEXT("SAEVUS_Recorrido_Diana.png"), true, false);
+			Controlador->SetControlRotation(FRotator::ZeroRotator);
+			PasarAArenas();
+		}
+		break;
+	}
 }
 
 void USAEVUSSubsistemaRecorrido::ActualizarArenas(ASAEVUSPersonaje* Jugador)

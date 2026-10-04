@@ -771,6 +771,7 @@ AVISOS_TUTORIAL = [
     (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
+    (14600, "Armas de fuego", "1-4 o la rueda: cambiar de arma. Dispara a los muñecos de arriba.\nLas balas de reserva se gastan: cada golpe de espada las devuelve. R: recargar."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo.\nA los voladores: salta y tajo hacia arriba, o rebota encima."),
     (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
     (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
@@ -1011,6 +1012,9 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     crear_punto_control(actores, "Control_Alma", 13600)
     for indice, y in enumerate((-200, 200)):
         crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(14300, y, 96), unreal.Rotator(0, 0, 180))
+    # Armas de fuego: dos muñecos altos a los lados, mejor a tiros; los de abajo rellenan la reserva con la espada.
+    for indice, y in enumerate((-(ANCHO_PASILLO / 2 - 80), ANCHO_PASILLO / 2 - 80)):
+        crear_muneco(actores, f"S6_MunecoDiana{indice}", unreal.Vector(14850, y, 96 + 330), unreal.Rotator(0, 0, 180))
 
     # S7 Arena de mini enemigos; la puerta se abre al vaciarla.
     crear_arena(actores, "S7_Arena", 15000, 17500, 2000, 400, materiales, 600)

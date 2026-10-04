@@ -59,4 +59,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 41 de `PROGRESS.md` (armas en el tutorial); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 42 de `PROGRESS.md` (guardar opciones y progreso), después 43 (menú principal) y 44 (Zona 1); después, tareas propias (ver la cola en `PROGRESS.md`).
