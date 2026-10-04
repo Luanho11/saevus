@@ -26,13 +26,14 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Investigación:** `investigacion/gunz.md`, `investigacion/hollow-knight.md` (borrador), `investigacion/mecanicas-objetivo.md`.
 - **Pipeline de assets** decidido y sonda Blender → UE verificada (`pipeline-assets.md`).
 - **Todo en español:** código, herramientas, assets, documentos.
+- **Equilibrio** (`equilibrio.md`): tablas de daño/s por técnica y de enemigos calculadas desde los datos en `SAEVUS.Equilibrio.*`, con reglas de diseño comprobadas.
 - **Rendimiento** (`rendimiento.md`): Media a 720p en la Vega 8: tutorial 67–68 fps, mapa de pruebas 57–63 fps; el hilo de juego (11–13 ms) es el próximo cuello.
 
 ## Verificación
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorrido del tutorial).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 109/109 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 111/111 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -58,4 +59,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 35 de `PROGRESS.md` (tabla de equilibrio); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 36 de `PROGRESS.md` (munición de reserva); después, tareas propias (ver la cola en `PROGRESS.md`).
