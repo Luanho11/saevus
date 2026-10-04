@@ -121,6 +121,7 @@ private:
 
 	FVector EscalaPiezas = FVector::OneVector;
 	float TiempoMuerto = 0.f;
+	float TiempoAleteo = 0.f;
 	float TiempoDestello = 0.f;
 	bool bDestelloPintado = false;
 };

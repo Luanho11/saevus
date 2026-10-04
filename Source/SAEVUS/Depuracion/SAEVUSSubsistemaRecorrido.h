@@ -51,6 +51,7 @@ private:
 	int32 Indice = 0;
 	bool bLlevado = false;
 	bool bVaciada = false;
+	bool bCapturaEnemigos = false;
 	TArray<TWeakObjectPtr<ASAEVUSVolumenTutorial>> Avisos;
 	TArray<TWeakObjectPtr<ASAEVUSPuertaArena>> Puertas;
 	int32 Fallos = 0;

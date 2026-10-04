@@ -37,7 +37,9 @@ enum class ESAEVUSTipoAtaqueEnemigo : uint8
 	/** Golpe en una esfera delante del enemigo. */
 	Golpe,
 	/** Lanza un proyectil hacia el objetivo (ASAEVUSProyectil): se bloquea con la guardia y se devuelve con un tajo. */
-	Proyectil
+	Proyectil,
+	/** Voladores: picado en línea recta (también en vertical) hacia donde estaba el objetivo al acabar de avisar. */
+	Picado
 };
 
 /** Un ataque de enemigo. Tiempos en segundos; se escalan con la fase. */
@@ -147,6 +149,27 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadMovimiento = 300.f;
+
+	/**
+	 * Vuela (Hollow Knight): sin gravedad, persigue a AlturaVuelo por encima del objetivo y patrulla a
+	 * su altura de origen. Un golpe lo derriba un poco (cae mientras está aturdido) y luego vuelve a volar.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vuelo")
+	bool bVolador = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vuelo", meta = (ClampMin = "0", ForceUnits = "cm", EditCondition = "bVolador"))
+	float AlturaVuelo = 220.f;
+
+	/** Frenada en el aire cuando deja de moverse (al avisar, al recuperarse). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vuelo", meta = (ClampMin = "0", ForceUnits = "cm/s^2", EditCondition = "bVolador"))
+	float FrenadaVuelo = 2500.f;
+
+	/** Balanceo vertical del cuerpo al volar (solo aspecto): amplitud y frecuencia. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vuelo", meta = (ClampMin = "0", ForceUnits = "cm", EditCondition = "bVolador"))
+	float AmplitudAleteo = 8.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vuelo", meta = (ClampMin = "0", ForceUnits = "Hz", EditCondition = "bVolador"))
+	float FrecuenciaAleteo = 3.f;
 
 	/** Ve al objetivo a esta distancia, y lo pierde más allá de RadioPerdida. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sentidos", meta = (ClampMin = "0", ForceUnits = "cm"))

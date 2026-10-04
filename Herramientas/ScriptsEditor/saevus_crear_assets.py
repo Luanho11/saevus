@@ -503,6 +503,18 @@ ENEMIGOS = {
              "tiempo_telegrafiar": 0.6, "duracion": 0.3, "tiempo_recuperacion": 1.1, "danio": 15.0, "velocidad": 900.0},
         ],
     },
+    "DA_Enemigo_Revoloteador": {
+        # Volador (Hollow Knight): flota sobre el jugador y cae en picado tras avisar; se le da con el tajo hacia
+        # arriba al saltar o rebotando encima. Frágil.
+        "nombre_visible": "Revoloteador", "vida_maxima": 15.0, "radio_capsula": 35.0, "media_altura_capsula": 35.0,
+        "color_cuerpo": (0.03, 0.04, 0.06), "color_mascara": (0.4, 0.8, 1.0),
+        "velocidad_movimiento": 260.0, "radio_deteccion": 1000.0, "radio_perdida": 1800.0, "radio_patrulla": 200.0,
+        "danio_contacto": 10.0, "volador": True, "altura_vuelo": 220.0,
+        "ataques": [
+            {"nombre": "Picado", "tipo": "PICADO", "distancia_minima": 0.0, "distancia_maxima": 450.0,
+             "tiempo_telegrafiar": 0.6, "duracion": 0.55, "tiempo_recuperacion": 0.9, "danio": 15.0, "velocidad": 950.0},
+        ],
+    },
     "DA_Jefe_Guardian": {
         "nombre_visible": "Guardián", "vida_maxima": 250.0, "es_jefe": True, "radio_capsula": 90.0, "media_altura_capsula": 120.0,
         "color_cuerpo": (0.06, 0.05, 0.07), "color_mascara": (1.0, 0.55, 0.15),
@@ -532,6 +544,7 @@ CUERPOS_ENEMIGOS = {
     "DA_Enemigo_Rastrero": "SM_Enemigo_Rastrero",
     "DA_Enemigo_Saltador": "SM_Enemigo_Saltador",
     "DA_Enemigo_Escupidor": "SM_Enemigo_Escupidor",
+    "DA_Enemigo_Revoloteador": "SM_Enemigo_Revoloteador",
     "DA_Jefe_Guardian": "SM_Jefe_Guardian",
 }
 
@@ -597,8 +610,12 @@ def crear_datos_enemigos(material_base, material_particulas):
 
 
 def crear_enemigo(actores, etiqueta, datos, posicion):
-    altura = datos.get_editor_property("enemigo").get_editor_property("media_altura_capsula")
-    enemigo = actores.spawn_actor_from_class(unreal.SAEVUSEnemigo, unreal.Vector(posicion.x, posicion.y, altura + 5.0), unreal.Rotator(0, 0, 180))
+    """De pie en el suelo (posicion.z = altura del suelo); los voladores, a su altura de vuelo sobre él."""
+    ajuste = datos.get_editor_property("enemigo")
+    altura = ajuste.get_editor_property("media_altura_capsula")
+    if ajuste.get_editor_property("volador"):
+        altura += ajuste.get_editor_property("altura_vuelo")
+    enemigo = actores.spawn_actor_from_class(unreal.SAEVUSEnemigo, unreal.Vector(posicion.x, posicion.y, posicion.z + altura + 5.0), unreal.Rotator(0, 0, 180))
     enemigo.set_actor_label(etiqueta)
     enemigo.set_editor_property("datos", datos)
     enemigo.set_folder_path("Enemigos")
@@ -716,6 +733,7 @@ def construir_mapa_pruebas(bp_modo_juego, datos_enemigos):
     # Zona de enemigos, lejos de la ruta de la prueba de humo (que va hacia +X cerca de Y = 0).
     crear_enemigo(actores, "Enemigo_Rastrero", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(-1500, -4300, 0))
     crear_enemigo(actores, "Enemigo_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(0, -4300, 0))
+    crear_enemigo(actores, "Enemigo_Revoloteador", datos_enemigos["DA_Enemigo_Revoloteador"], unreal.Vector(1000, -4300, 0))
     crear_enemigo(actores, "Jefe_Guardian", datos_enemigos["DA_Jefe_Guardian"], unreal.Vector(2000, -4300, 0))
 
     crear_iluminacion(actores)
@@ -753,7 +771,7 @@ AVISOS_TUTORIAL = [
     (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
-    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo."),
+    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo.\nA los voladores: salta y tajo hacia arriba, o rebota encima."),
     (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
     (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
 ]
@@ -1002,6 +1020,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
         crear_enemigo(actores, "S7_Rastrero2", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16400, 400, 0)),
         crear_enemigo(actores, "S7_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(16900, 0, 0)),
         crear_enemigo(actores, "S7_Escupidor", datos_enemigos["DA_Enemigo_Escupidor"], unreal.Vector(17200, 600, 0)),
+        crear_enemigo(actores, "S7_Revoloteador", datos_enemigos["DA_Enemigo_Revoloteador"], unreal.Vector(16700, -500, 0)),
     ]
     crear_puerta(actores, "S7_Puerta", 17500, 600, 400, enemigos_arena, materiales["Puerta"],
                  "Puerta abierta", "Sigue adelante.")

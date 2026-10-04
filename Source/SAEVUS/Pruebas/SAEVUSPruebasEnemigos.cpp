@@ -6,6 +6,8 @@
 
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/DamageType.h"
+#include "Kismet/GameplayStatics.h"
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 
 namespace SAEVUSPruebasEnemigos
@@ -139,6 +141,70 @@ bool FSAEVUSPruebaEnemigoReposoLejano::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Despierta y persigue"), IA->ObtenerEstado(), ESAEVUSEstadoEnemigo::Perseguir);
 	TestEqual(TEXT("IA cada fotograma"), IA->GetComponentTickInterval(), 0.f);
 	TestEqual(TEXT("Movimiento cada fotograma"), Enemigo->GetCharacterMovement()->GetComponentTickInterval(), 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoVolador, "SAEVUS.Enemigo.Volador", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoVolador::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	constexpr float AlturaInicio = 400.f;
+	constexpr float ToleranciaAltura = 80.f;
+	FMundoEnemigos Mundo;
+	if (!TestTrue(TEXT("Jugador de pie"), Mundo.bListo))
+	{
+		return false;
+	}
+	USAEVUSDatosEnemigo* Datos = CrearDatos();
+	FSAEVUSAjusteEnemigo& Ajuste = Datos->Enemigo;
+	Ajuste.bVolador = true;
+	Ajuste.RadioPatrulla = 0.f;
+	FSAEVUSAtaqueEnemigo Picado;
+	Picado.Nombre = TEXT("Picado");
+	Picado.Tipo = ESAEVUSTipoAtaqueEnemigo::Picado;
+	Picado.DistanciaMaxima = DistanciaAtaque;
+	Picado.Velocidad = 900.f;
+	Picado.Duracion = 0.5f;
+	Ajuste.Ataques = { Picado };
+
+	// Sin objetivo: vuela en su sitio, no cae.
+	ASAEVUSEnemigo* Enemigo = Mundo.MundoPrueba.CrearEnemigo(FVector(DistanciaLejos, 0.f, AlturaInicio), Datos, nullptr);
+	UCharacterMovementComponent* Movimiento = Enemigo->GetCharacterMovement();
+	Mundo.AvanzarDurante(TiempoObservar);
+	TestTrue(TEXT("Vuela"), Movimiento->IsFlying());
+	TestEqual(TEXT("No cae"), static_cast<float>(Enemigo->GetActorLocation().Z), AlturaInicio, ToleranciaAltura * 0.25f);
+
+	// Con objetivo a la vista: se pone a su altura de vuelo sobre el jugador y avisa.
+	Enemigo->ObtenerIA()->FijarObjetivo(Mundo.Jugador);
+	Enemigo->SetActorLocation(FVector(DistanciaVista, 0.f, AlturaInicio));
+	if (!TestTrue(TEXT("Persigue y avisa"), Mundo.AvanzarHastaEstado(Enemigo, ESAEVUSEstadoEnemigo::Telegrafiar)))
+	{
+		return false;
+	}
+	const float AlturaDeseada = static_cast<float>(Mundo.Jugador->GetActorLocation().Z) + Ajuste.AlturaVuelo;
+	AddInfo(FString::Printf(TEXT("Altura al avisar %.0f cm, deseada %.0f cm"), Enemigo->GetActorLocation().Z, AlturaDeseada));
+	TestEqual(TEXT("A su altura de vuelo sobre el jugador"), static_cast<float>(Enemigo->GetActorLocation().Z), AlturaDeseada, ToleranciaAltura);
+
+	// Picado: hacia abajo, hacia el jugador, a la velocidad del ataque.
+	if (!TestTrue(TEXT("Ataca"), Mundo.AvanzarHastaEstado(Enemigo, ESAEVUSEstadoEnemigo::Atacar)))
+	{
+		return false;
+	}
+	Mundo.MundoPrueba.Paso();
+	AddInfo(FString::Printf(TEXT("Velocidad del picado %s"), *Movimiento->Velocity.ToCompactString()));
+	TestTrue(TEXT("Cae en picado"), Movimiento->Velocity.Z < 0.f);
+	TestTrue(TEXT("Hacia el jugador"), Movimiento->Velocity.X < 0.f);
+	TestTrue(TEXT("A la velocidad del picado"), Movimiento->Velocity.Size() > Picado.Velocidad * 0.8f);
+
+	// Un golpe lo derriba (cae aturdido) y después vuelve a volar.
+	UGameplayStatics::ApplyDamage(Enemigo, 1.f, nullptr, nullptr, UDamageType::StaticClass());
+	Movimiento->SetMovementMode(MOVE_Falling);
+	TestEqual(TEXT("Aturdido"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Aturdido);
+	Mundo.MundoPrueba.Paso();
+	TestTrue(TEXT("Aturdido cae"), Movimiento->IsFalling());
+	Mundo.AvanzarDurante(Ajuste.TiempoAturdido + TiempoObservar);
+	TestTrue(TEXT("Vuelve a volar"), Movimiento->IsFlying());
 	return true;
 }
 

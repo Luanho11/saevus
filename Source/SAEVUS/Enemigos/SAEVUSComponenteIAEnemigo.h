@@ -68,6 +68,10 @@ private:
 
 	void CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado);
 	void ActualizarReposo();
+	/** Voladores: dirección de movimiento con la componente vertical que lleva a AlturaObjetivo. */
+	FVector ConAltura(const FVector& DireccionHorizontal, float AlturaObjetivo) const;
+	/** Voladores: vuelve a volar al salir del aturdimiento (el golpe los hace caer). */
+	void MantenerVuelo();
 	/** Reposo lejano: la IA y el movimiento (si está de pie) se actualizan cada IntervaloReposoLejos. */
 	void FijarReposoLejano(bool bLejos);
 	void ActualizarPerseguir();

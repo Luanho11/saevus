@@ -161,7 +161,15 @@ void ASAEVUSEnemigo::AplicarAjuste()
 	const float Radio = Ajuste.RadioCapsula;
 	const float MediaAltura = FMath::Max(Ajuste.MediaAlturaCapsula, Radio);
 	GetCapsuleComponent()->SetCapsuleSize(Radio, MediaAltura);
-	GetCharacterMovement()->MaxWalkSpeed = Ajuste.VelocidadMovimiento;
+	UCharacterMovementComponent* Movimiento = GetCharacterMovement();
+	Movimiento->MaxWalkSpeed = Movimiento->MaxFlySpeed = Ajuste.VelocidadMovimiento;
+	// Los voladores "aterrizan" volando: el modo por defecto también es el vuelo.
+	Movimiento->DefaultLandMovementMode = Ajuste.bVolador ? MOVE_Flying : MOVE_Walking;
+	Movimiento->BrakingDecelerationFlying = Ajuste.FrenadaVuelo;
+	if (Ajuste.bVolador && HasActorBegunPlay() && Movimiento->MovementMode != MOVE_None)
+	{
+		Movimiento->SetMovementMode(MOVE_Flying);
+	}
 	Vida->FijarVidaMaxima(Ajuste.VidaMaxima);
 
 	// Con cuerpo generado en Blender, ese cuerpo (ya a la medida de la cápsula) sustituye a las formas.
@@ -287,6 +295,14 @@ void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)
 	}
 	EscalaPiezas = FMath::VInterpTo(EscalaPiezas, Objetivo, DeltaSeconds, RapidezEscala);
 	Piezas->SetRelativeScale3D(EscalaPiezas);
+	const FSAEVUSAjusteEnemigo& Ajuste = ObtenerAjuste();
+	if (Ajuste.bVolador && IA->ObtenerEstado() != ESAEVUSEstadoEnemigo::Muerto)
+	{
+		// Aleteo: el cuerpo sube y baja; cada enemigo con su fase para que no vayan al unísono.
+		TiempoAleteo += DeltaSeconds;
+		const float Fase = static_cast<float>(GetUniqueID() % 7) * 0.9f;
+		Piezas->SetRelativeLocation(FVector(0.f, 0.f, Ajuste.AmplitudAleteo * FMath::Sin(UE_TWO_PI * Ajuste.FrecuenciaAleteo * TiempoAleteo + Fase)));
+	}
 	if (MaterialMascara)
 	{
 		MaterialMascara->SetScalarParameterValue(ParametroAutoIluminacion, Brillo);

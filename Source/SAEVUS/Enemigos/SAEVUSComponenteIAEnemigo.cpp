@@ -16,6 +16,8 @@ namespace SAEVUSIAEnemigo
 	// La patrulla va a media velocidad: se lee como "no te ha visto".
 	constexpr float EscalaVelocidadPatrulla = 0.5f;
 	constexpr float DistanciaSinObjetivo = TNumericLimits<float>::Max();
+	// Voladores: cuánto pesa la diferencia de altura frente a avanzar (más = corrige la altura antes).
+	constexpr float GananciaAltura = 2.f;
 }
 
 USAEVUSComponenteIAEnemigo::USAEVUSComponenteIAEnemigo()
@@ -174,7 +176,9 @@ void USAEVUSComponenteIAEnemigo::Actualizar(float DeltaTime)
 	const FSAEVUSFaseEnemigo& FaseActual = ObtenerFaseActual();
 	const FSAEVUSAtaqueEnemigo* Ataque = ObtenerAtaqueActual();
 	// La fase acelera también el paso.
-	ObtenerEnemigo()->GetCharacterMovement()->MaxWalkSpeed = ObtenerAjuste().VelocidadMovimiento * FaseActual.EscalaVelocidad;
+	UCharacterMovementComponent* Movimiento = ObtenerEnemigo()->GetCharacterMovement();
+	Movimiento->MaxWalkSpeed = Movimiento->MaxFlySpeed = ObtenerAjuste().VelocidadMovimiento * FaseActual.EscalaVelocidad;
+	MantenerVuelo();
 
 	switch (Estado)
 	{
@@ -228,24 +232,46 @@ void USAEVUSComponenteIAEnemigo::ActualizarReposo()
 	{
 		return;
 	}
-	// Ida y vuelta por el eje X del origen.
+	// Ida y vuelta por el eje X del origen (los voladores, a su altura de origen).
 	const float Desplazamiento = static_cast<float>(GetOwner()->GetActorLocation().X - Origen.X);
 	if (Desplazamiento * SentidoPatrulla >= Ajuste.RadioPatrulla)
 	{
 		SentidoPatrulla = -SentidoPatrulla;
 	}
-	MoverHacia(FVector(SentidoPatrulla, 0.f, 0.f), SAEVUSIAEnemigo::EscalaVelocidadPatrulla);
+	MoverHacia(ConAltura(FVector(SentidoPatrulla, 0.f, 0.f), static_cast<float>(Origen.Z)), SAEVUSIAEnemigo::EscalaVelocidadPatrulla);
+}
+
+FVector USAEVUSComponenteIAEnemigo::ConAltura(const FVector& DireccionHorizontal, float AlturaObjetivo) const
+{
+	const FSAEVUSAjusteEnemigo& Ajuste = ObtenerAjuste();
+	if (!Ajuste.bVolador)
+	{
+		return DireccionHorizontal;
+	}
+	// Sube o baja con más fuerza cuanto más lejos está de su altura; a AlturaVuelo de distancia, a tope.
+	const float Diferencia = AlturaObjetivo - static_cast<float>(GetOwner()->GetActorLocation().Z);
+	const float Vertical = FMath::Clamp(Diferencia / FMath::Max(Ajuste.AlturaVuelo, 1.f) * SAEVUSIAEnemigo::GananciaAltura, -1.f, 1.f);
+	return FVector(DireccionHorizontal.X, DireccionHorizontal.Y, Vertical).GetClampedToMaxSize(1.f);
+}
+
+void USAEVUSComponenteIAEnemigo::MantenerVuelo()
+{
+	UCharacterMovementComponent* Movimiento = ObtenerEnemigo()->GetCharacterMovement();
+	if (ObtenerAjuste().bVolador && Estado != ESAEVUSEstadoEnemigo::Aturdido && !Movimiento->IsFlying())
+	{
+		Movimiento->SetMovementMode(MOVE_Flying);
+	}
 }
 
 void USAEVUSComponenteIAEnemigo::FijarReposoLejano(bool bLejos)
 {
 	const float Intervalo = bLejos ? ObtenerAjuste().IntervaloReposoLejos : 0.f;
 	SetComponentTickInterval(Intervalo);
-	// El movimiento también descansa, pero solo de pie: uno que cae sigue simulando hasta aterrizar.
+	// El movimiento también descansa, pero solo de pie o volando: uno que cae sigue simulando hasta aterrizar.
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 	if (UCharacterMovementComponent* Movimiento = Personaje ? Personaje->GetCharacterMovement() : nullptr)
 	{
-		Movimiento->SetComponentTickInterval(bLejos && Movimiento->IsMovingOnGround() ? Intervalo : 0.f);
+		Movimiento->SetComponentTickInterval(bLejos && (Movimiento->IsMovingOnGround() || Movimiento->IsFlying()) ? Intervalo : 0.f);
 	}
 }
 
@@ -263,9 +289,11 @@ void USAEVUSComponenteIAEnemigo::ActualizarPerseguir()
 		CambiarEstado(ESAEVUSEstadoEnemigo::Telegrafiar);
 		return;
 	}
-	// Los de distancia retroceden si el objetivo se les echa encima.
+	// Los de distancia retroceden si el objetivo se les echa encima; los voladores se ponen a su altura de vuelo.
 	const bool bRetirarse = Distancia < ObtenerAjuste().DistanciaRetirada;
-	MoverHacia(bRetirarse ? -DireccionObjetivo() : DireccionObjetivo(), 1.f);
+	const APawn* Pawn = ObtenerObjetivo();
+	const float AlturaObjetivo = Pawn ? static_cast<float>(Pawn->GetActorLocation().Z) + ObtenerAjuste().AlturaVuelo : static_cast<float>(Origen.Z);
+	MoverHacia(ConAltura(bRetirarse ? -DireccionObjetivo() : DireccionObjetivo(), AlturaObjetivo), 1.f);
 }
 
 void USAEVUSComponenteIAEnemigo::ActualizarTelegrafiar()
@@ -297,6 +325,15 @@ void USAEVUSComponenteIAEnemigo::EmpezarAtaque()
 	{
 		LanzarProyectil(*Ataque);
 	}
+	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Picado)
+	{
+		// El picado va en línea recta en 3D hacia donde está el objetivo ahora.
+		if (const APawn* Pawn = ObtenerObjetivo())
+		{
+			const FVector Direccion3D = (Pawn->GetActorLocation() - Enemigo->GetActorLocation()).GetSafeNormal();
+			DireccionAtaque = Direccion3D.IsNearlyZero() ? DireccionAtaque : Direccion3D;
+		}
+	}
 	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Salto)
 	{
 		const float Escala = ObtenerFaseActual().EscalaVelocidad;
@@ -326,6 +363,19 @@ void USAEVUSComponenteIAEnemigo::ActualizarAtacar()
 			const float VelocidadVertical = static_cast<float>(Movimiento->Velocity.Z);
 			Movimiento->Velocity = DireccionAtaque * Velocidad;
 			Movimiento->Velocity.Z = VelocidadVertical;
+			Enemigo->AddMovementInput(DireccionAtaque, 1.f);
+		}
+		else
+		{
+			Movimiento->Velocity = FVector::ZeroVector;
+		}
+		break;
+	case ESAEVUSTipoAtaqueEnemigo::Picado:
+		if (!bTermino)
+		{
+			const float Velocidad = Ataque->Velocidad * ObtenerFaseActual().EscalaVelocidad;
+			Movimiento->MaxFlySpeed = Velocidad;
+			Movimiento->Velocity = DireccionAtaque * Velocidad;
 			Enemigo->AddMovementInput(DireccionAtaque, 1.f);
 		}
 		else

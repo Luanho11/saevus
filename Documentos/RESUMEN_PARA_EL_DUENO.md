@@ -20,7 +20,7 @@ Si algo no compila o falta un asset: `powershell -ExecutionPolicy Bypass -File H
 | Caballero animado en 3D tipo Genshin, generado, estilo Hollow Knight, esqueleto propio | Hecho: modelado por script en Blender, esqueleto propio de 25 huesos, animación procedural (correr, saltar, paredes, dash, tajos, guardia, curar, golpe recibido, muerte; la capa ondea, la cabeza mira al enemigo) |
 | Sombreado tipo Hollow Knight, oscuro, dibujado | Hecho: material plano con borde de luz fría, contorno por post-proceso, tutorial nocturno |
 | Interfaz moldeable y escalable, bocetos | Hecho: máscaras de vida, orbe de alma, arma, avisos, barra del jefe, pausa, pantalla de muerte; todo en C++ con ajustes en un struct |
-| Tutorial con mini enemigos y mini jefe, escalable | Hecho: 10 secciones + reto, 4 tipos de enemigo (rastrero, saltador, escupidor, Guardián con 2 fases), puertas de arena, puntos de control, pinchos |
+| Tutorial con mini enemigos y mini jefe, escalable | Hecho: 10 secciones + reto, 5 tipos de enemigo (rastrero, saltador, escupidor, revoloteador volador, Guardián con 2 fases), puertas de arena, puntos de control, pinchos |
 | Todo en español | Hecho: código, assets, documentos, mensajes |
 
 También: doble salto, rebote (pogo, también en pinchos), alma y curación, contraataque (parry), proyectiles que se paran con la guardia y se devuelven con un tajo, retroceso y parada de golpe, invulnerabilidad con parpadeo, sonido boceto sintetizado (sin archivos de audio), decorado de ruinas generado en Blender.

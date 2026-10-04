@@ -25,6 +25,9 @@ namespace SAEVUSRecorrido
 	constexpr float TiempoPorAviso = 0.6f;
 	// Tras vaciar una arena: tiempo para que la puerta se abra y el jefe reaccione.
 	constexpr float TiempoArena = 2.f;
+	// A mitad de la espera en la arena, una captura mirando atrás: los enemigos que vienen a por el jugador.
+	constexpr float FraccionCapturaEnemigos = 0.6f;
+	const FRotator VistaHaciaAtras(-15.f, 180.f, 0.f);
 	constexpr float AlturaLlevar = 150.f;
 	constexpr float InvulnerableTodoElRecorrido = 100000.f;
 	constexpr float DanioLetal = 100000.f;
@@ -183,6 +186,15 @@ void USAEVUSSubsistemaRecorrido::ActualizarArenas(ASAEVUSPersonaje* Jugador)
 		TiempoPaso = 0.f;
 		return;
 	}
+	if (!bCapturaEnemigos && TiempoPaso >= TiempoArena * FraccionCapturaEnemigos)
+	{
+		bCapturaEnemigos = true;
+		if (AController* Controlador = Jugador->GetController())
+		{
+			Controlador->SetControlRotation(VistaHaciaAtras);
+		}
+		FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("SAEVUS_Recorrido_Arena%d_Enemigos.png"), Indice), true, false);
+	}
 	if (TiempoPaso < TiempoArena)
 	{
 		return;
@@ -208,6 +220,10 @@ void USAEVUSSubsistemaRecorrido::ActualizarArenas(ASAEVUSPersonaje* Jugador)
 			}
 		}
 		UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] arena %d: %d enemigos derrotados"), Indice, Enemigos);
+		if (AController* Controlador = Jugador->GetController())
+		{
+			Controlador->SetControlRotation(FRotator::ZeroRotator);
+		}
 		bVaciada = true;
 		TiempoPaso = 0.f;
 		return;
@@ -218,4 +234,5 @@ void USAEVUSSubsistemaRecorrido::ActualizarArenas(ASAEVUSPersonaje* Jugador)
 	++Indice;
 	bLlevado = false;
 	bVaciada = false;
+	bCapturaEnemigos = false;
 }

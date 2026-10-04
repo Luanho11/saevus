@@ -28,6 +28,7 @@ namespace SAEVUSPruebasEquilibrio
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Rastrero.DA_Enemigo_Rastrero"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Saltador.DA_Enemigo_Saltador"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Escupidor.DA_Enemigo_Escupidor"),
+		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Revoloteador.DA_Enemigo_Revoloteador"),
 		TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian.DA_Jefe_Guardian"),
 	};
 

@@ -5,7 +5,7 @@ dos materiales ("Cuerpo" en la ranura 0, "Mascara" en la 1) que UE colorea por d
 Cada cuerpo llena la cápsula de su tipo (FSAEVUSAjusteEnemigo): origen en el centro de la cápsula
 (como el actor en UE), mirando a +X (llega a UE mirando a +X, el frente del actor). Formas simples
 y rotundas en la línea de Hollow Knight, con identidad propia: rastrero bajo y ancho, saltador con
-patas traseras grandes, escupidor con buche luminoso, Guardián acorazado con cuernos enormes.
+patas traseras grandes, escupidor con buche luminoso, revoloteador alado, Guardián acorazado con cuernos enormes.
 
 Ejecución sin interfaz (Generar-Enemigos.ps1 lo hace):
   blender.exe --background --factory-startup --python blender_enemigos.py -- <directorio de salida>
@@ -95,6 +95,18 @@ def escupidor():
     return piezas
 
 
+def revoloteador():
+    """Volador (cápsula 0,35 × 0,35 m): cuerpo redondo, máscara, dos alas membranosas y un aguijón colgante."""
+    piezas = [esfera("Cuerpo", (0, 0, 0.0), (0.3, 0.27, 0.27)), esfera("Mascara", (0.2, 0, 0.06), (0.13, 0.18, 0.15))]
+    for lado in (-1, 1):
+        # Ala: elipsoide plano que sale en diagonal hacia arriba y atrás, con una segunda lámina en la punta.
+        piezas.append(esfera("Cuerpo", (-0.05, lado * 0.36, 0.14), (0.2, 0.24, 0.025), 12, 6))
+        piezas.append(esfera("Cuerpo", (-0.14, lado * 0.62, 0.26), (0.14, 0.16, 0.02), 10, 6))
+    piezas.append(segmento("Cuerpo", (-0.05, 0, -0.2), (-0.12, 0, -0.45), 0.06, 0.01, 6))
+    piezas += cuernos(0.12, 0.22, 0.06, 0.14, 0.025, 0.04)
+    return piezas
+
+
 def guardian():
     """Mini jefe acorazado (cápsula 0,90 × 1,20 m): torso de barril, hombreras, máscara y cuernos enormes."""
     piezas = [
@@ -113,6 +125,7 @@ TIPOS = {
     "SM_Enemigo_Rastrero": rastrero,
     "SM_Enemigo_Saltador": saltador,
     "SM_Enemigo_Escupidor": escupidor,
+    "SM_Enemigo_Revoloteador": revoloteador,
     "SM_Jefe_Guardian": guardian,
 }
 
