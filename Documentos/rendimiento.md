@@ -54,6 +54,32 @@ Media, 720p, prueba de humo (una ejecución cada una, ruido de ±1–2 ms):
 - **Intento sobre el hilo de juego (tarea 10f):** la interfaz solo toca textos, barras y visibilidad cuando cambian (cambiarlos invalida el diseño de Slate) y los enemigos en reposo lejos del jugador (más de 2,5 × su radio de detección) se quedan quietos con la IA cada 0,25 s. Resultado en `L_Tutorial`: 11,6–12,3 ms de hilo de juego, **sin cambio medible** (antes 11,3–12,5). El coste está en otra parte: la prueba corre con el binario del editor (`UnrealEditor -game`, Development), que añade trabajo propio del editor, y con el HUD de depuración activo. Siguiente paso para medir de verdad: un empaquetado Development y `stat game` / Unreal Insights.
 - `ProfileGPU` (`-PerfilGPU`) **no registra datos con este driver** (Vega 8, Adrenalin 21.20, 2021): el desglose por pasada sale vacío. Para medir pasadas habrá que usar otra herramienta (RenderDoc / Radeon GPU Profiler) o un driver más nuevo.
 
+## Perfil del hilo de juego (tarea 38, 2026-10-04)
+
+`Ejecutar-PruebaHumo.ps1 -PerfilJuego dumpave|dumpmax|dumpsum` lanza `stat <modo> -num=240 -ms=0.1` al empezar las etapas de acción y deja la jerarquía de stats de CPU por hilo en `humo.log` (`LogStats`). `dumpave` da el promedio, `dumpmax` el peor fotograma de cada stat y `dumpsum` la suma.
+
+**Hallazgo 1, un tirón de 1,5 s solo del editor.** `dumpmax` mostró un único fotograma con 1,5 s de `CPU Stall - Sleep` dentro de `CalcSceneView → PostprocessSettings`. Es la primera captura de pantalla: en los binarios con editor (`WITH_EDITOR`), `EndFinalPostprocessSettings` prepara la maquinaria de capturas de alta resolución. Repartido en 240 fotogramas parecía un coste fijo de 6–7 ms. La prueba de humo hace ahora una captura de calentamiento durante el asentado (`SAEVUS_PruebaHumo_Calentamiento.png`), fuera de la medición: el peor fotograma baja de ≥ 400 ms a ≈ 300 ms. En un empaquetado no ocurre.
+
+**Hallazgo 2, desglose limpio** (`L_Tutorial`, Media, 720p; con stats activas el fotograma sube a ≈ 16,3 ms):
+
+| Parte | ms/fotograma |
+|---|---|
+| Tick del mundo | 4,5 |
+| · 5 enemigos, movimiento (sobre todo `FindFloor`) | 0,59 |
+| · jugador, movimiento | 0,47 |
+| · controlador (entrada) | 0,29 |
+| · animación procedural | 0,26 |
+| · espera al paralelo de física | 0,55 |
+| Pintado de vistas (`RedrawViewports`) | 3,5 (0,7 de texto del HUD de depuración, activo en la prueba) |
+| Slate (UMG y ventana) | 2,1 |
+| Espera al hilo de render (`FrameSync`, no es trabajo) | 4,2 |
+
+Nuestro código de juego cuesta unos 2,5 ms; el resto es el motor (Slate, pintado, sincronización), engordado por el binario del editor. El 12,3 ms de "juego" de la prueba de humo es `GGameThreadTime` de un `UnrealEditor -game` con el HUD de depuración: no es representativo de un empaquetado.
+
+**Cambio aplicado:** en reposo lejano, el enemigo también deja de simular el movimiento cada fotograma (`CharacterMovement` cada `IntervaloReposoLejos`, solo si está de pie), además de la IA. Cada enemigo dormido ahorra ≈ 0,12 ms. No se nota con 5 enemigos, pero escala con niveles grandes. Test `SAEVUS.Enemigo.ReposoLejano`.
+
+**Siguiente:** medir en un empaquetado Development (bloqueado por memoria, tarea 14) con `stat unit` y `-PerfilJuego`.
+
 ## Sin decidir
 
 - Escalabilidad y resolución por defecto del juego final, y si ejecutar el benchmark del motor al primer arranque (es parte del menú de ajustes).

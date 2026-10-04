@@ -21,7 +21,7 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
                                          cualquier estado ──vida 0──▶ Muerto
 ```
 
-- **Reposo:** patrulla de ida y vuelta (`RadioPatrulla`) a media velocidad; pasa a perseguir dentro de `RadioDeteccion`.
+- **Reposo:** patrulla de ida y vuelta (`RadioPatrulla`) a media velocidad; pasa a perseguir dentro de `RadioDeteccion`. **Reposo lejano** (más allá de `RadioDeteccion × FactorDistanciaReposoLejos`): se queda quieto y la IA y el movimiento (si está de pie) se actualizan cada `IntervaloReposoLejos` en vez de cada fotograma (`rendimiento.md`).
 - **Perseguir:** va en línea recta hacia el objetivo (sin navegación: arenas planas). Pierde al objetivo más allá de `RadioPerdida`.
 - **Elegir ataque:** el siguiente en rotación cuya franja `DistanciaMinima..DistanciaMaxima` contenga la distancia y que la fase permita. Predecible a propósito: se aprende y se prueba.
 - **Telegrafiar:** quieto, encarando al objetivo, durante `TiempoTelegrafiar`. El cuerpo se agacha y la máscara se enciende: es la lectura del jugador. La dirección del ataque se fija al acabar el aviso, así moverse a tiempo lo esquiva.
@@ -71,6 +71,7 @@ Al morir: sin colisión ni movimiento, ráfaga de partículas, se encoge durante
 
 `SAEVUS.Enemigo.*`:
 - `Deteccion`: patrulla en reposo, persigue al ver y se acerca.
+- `ReposoLejano`: lejos, la IA y el movimiento se actualizan a intervalos; al acercarse despierta y vuelve a cada fotograma.
 - `AvisoYEmbestida`: quieto durante el aviso; embiste hacia el jugador; se recupera.
 - `DanioContacto`: daño, invulnerabilidad y empuje del jugador.
 - `Aturdido`: el tajo aturde, quita vida y da alma; el aturdimiento pasa.

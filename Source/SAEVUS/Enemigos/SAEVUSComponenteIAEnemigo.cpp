@@ -100,8 +100,8 @@ void USAEVUSComponenteIAEnemigo::CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado)
 	const bool bCambia = Estado != NuevoEstado;
 	Estado = NuevoEstado;
 	TiempoEstado = 0.f;
-	// Fuera del reposo lejano, la IA vuelve a actualizarse cada fotograma.
-	SetComponentTickInterval(0.f);
+	// Fuera del reposo lejano, la IA y el movimiento vuelven a actualizarse cada fotograma.
+	FijarReposoLejano(false);
 	if (bCambia)
 	{
 		AlCambiarEstado.Broadcast(Estado);
@@ -219,7 +219,7 @@ void USAEVUSComponenteIAEnemigo::ActualizarReposo()
 		return;
 	}
 	const bool bLejos = Distancia > Ajuste.RadioDeteccion * Ajuste.FactorDistanciaReposoLejos;
-	SetComponentTickInterval(bLejos ? Ajuste.IntervaloReposoLejos : 0.f);
+	FijarReposoLejano(bLejos);
 	if (bLejos)
 	{
 		return;
@@ -235,6 +235,18 @@ void USAEVUSComponenteIAEnemigo::ActualizarReposo()
 		SentidoPatrulla = -SentidoPatrulla;
 	}
 	MoverHacia(FVector(SentidoPatrulla, 0.f, 0.f), SAEVUSIAEnemigo::EscalaVelocidadPatrulla);
+}
+
+void USAEVUSComponenteIAEnemigo::FijarReposoLejano(bool bLejos)
+{
+	const float Intervalo = bLejos ? ObtenerAjuste().IntervaloReposoLejos : 0.f;
+	SetComponentTickInterval(Intervalo);
+	// El movimiento también descansa, pero solo de pie: uno que cae sigue simulando hasta aterrizar.
+	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
+	if (UCharacterMovementComponent* Movimiento = Personaje ? Personaje->GetCharacterMovement() : nullptr)
+	{
+		Movimiento->SetComponentTickInterval(bLejos && Movimiento->IsMovingOnGround() ? Intervalo : 0.f);
+	}
 }
 
 void USAEVUSComponenteIAEnemigo::ActualizarPerseguir()

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 38)**
-**Último latido: 2026-10-04 01:41** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 39)**
+**Último latido: 2026-10-04 02:15** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -72,9 +72,12 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 35. [x] ~~Equilibrio de primera pasada con los tests: tabla de daño por segundo de cada técnica y tiempos para derrotar a cada enemigo, en un test informativo (`SAEVUS.Equilibrio.*`) que escribe la tabla en el log.~~ `equilibrio.md`; reglas de diseño comprobadas.
 36. [x] ~~Munición de reserva limitada para las armas de fuego (las armas superan al combo en daño/s, ver `equilibrio.md`): reserva por arma en datos, recarga desde la reserva, se rellena en los puntos de control; interfaz muestra cargador/reserva; tests.~~ La reserva también vuelve con los golpes de espada; chasquido en seco.
 37. [x] ~~Números de daño flotantes de depuración (CVar `SAEVUS.Depuracion.NumerosDanio`) para ajustar el equilibrio jugando.~~
-38. [ ] Hilo de juego: medir el tutorial con `stat game`/`stat unit` en la prueba de humo, localizar lo más caro (animación procedural, IA, partículas) y bajar del presupuesto actual (11–13 ms).
+38. [x] ~~Hilo de juego: medir el tutorial con `stat game`/`stat unit` en la prueba de humo, localizar lo más caro (animación procedural, IA, partículas) y bajar del presupuesto actual (11–13 ms).~~ `-PerfilJuego dumpave|dumpmax`: el "coste" era un tirón único de 1,5 s del editor (primera captura) y espera al render; nuestro código ≈ 2,5 ms. Movimiento de enemigos lejanos a intervalos. Ver `rendimiento.md`.
+39. [ ] Rotación de logs de verificación: `Saved/Logs/Verificacion` acumula decenas de `*-backup-*.log` (≈ 50 MB); conservar los 5 últimos de cada tipo desde `Verificar-Arranque` y los scripts de ejecución.
+40. [ ] Enemigo volador ("Revoloteador", Hollow Knight): flota a media altura, se lanza en picado tras avisar; obliga a usar el tajo hacia arriba y el pogo. Cuerpo en Blender, datos, IA (estado de vuelo sin gravedad), tests, en el tutorial (S4b o arena).
+41. [ ] Sección de armas de fuego en el tutorial: aviso ("Las armas gastan reserva; la espada la rellena"), dianas a distancia y un muñeco cerca para rellenar; comprobado por el recorrido.
 
 ## Estado del turno
-- Completado: tarea 37 (números de daño).
+- Completado: tarea 38 (perfil del hilo de juego).
 - A medias: —
-- Siguiente paso exacto: tarea 38 — perfil del hilo de juego (`-PerfilJuego` en la prueba de humo, `stat dumpave`).
+- Siguiente paso exacto: tarea 39 — rotación de logs de verificación.

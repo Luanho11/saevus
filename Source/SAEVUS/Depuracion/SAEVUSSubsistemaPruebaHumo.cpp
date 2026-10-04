@@ -33,8 +33,13 @@ namespace SAEVUSPruebaHumo
 	const TCHAR* const ParametroLineaComandos = TEXT("SAEVUSPruebaHumo");
 	// Opcional: captura también un fotograma de ProfileGPU a mitad del esprint (tiempos de GPU por pasada en el log).
 	const TCHAR* const ParametroPerfilGPU = TEXT("SAEVUSPruebaHumoPerfilGPU");
+	// Opcional: stats de CPU de las etapas de acción en el log (-SAEVUSPruebaHumoPerfilJuego=dumpave|dumpmax|dumpsum):
+	// promedio, peor fotograma o suma, en jerarquía por hilo.
+	const TCHAR* const ParametroPerfilJuego = TEXT("SAEVUSPruebaHumoPerfilJuego=");
+	const TCHAR* const ArgumentosPerfilJuego = TEXT(" -num=240 -ms=0.1");
 	const TCHAR* const NombreCaptura = TEXT("SAEVUS_PruebaHumo.png");
 	const TCHAR* const NombreCapturaDash = TEXT("SAEVUS_PruebaHumo_Dash.png");
+	const TCHAR* const NombreCapturaCalentamiento = TEXT("SAEVUS_PruebaHumo_Calentamiento.png");
 	const TCHAR* const NombreCapturaCorrer = TEXT("SAEVUS_PruebaHumo_Correr.png");
 	const TCHAR* const NombreCapturaAtaque = TEXT("SAEVUS_PruebaHumo_Ataque.png");
 
@@ -154,6 +159,13 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		break;
 
 	case EEtapa::Asentar:
+		// La primera captura prepara la maquinaria de capturas del editor (un tirón de ~1,5 s en el hilo de
+		// juego): se hace aquí, fuera de la medición, para que no pese en los tiempos de las etapas de acción.
+		if (!bCapturaCalentamientoHecha && TiempoEtapa >= DuracionAsentar * 0.5f)
+		{
+			bCapturaCalentamientoHecha = true;
+			FScreenshotRequest::RequestScreenshot(NombreCapturaCalentamiento, false, false);
+		}
 		if (TiempoEtapa >= DuracionAsentar)
 		{
 			UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS humo] asentado, modo %s"), *Movimiento->GetMovementName());
@@ -162,6 +174,11 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 				RadioCuerpo = Cuerpo->Bounds.SphereRadius;
 				UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS humo] cuerpo: malla %s, esqueleto válido %d, radio de límites %.0f"),
 					*GetNameSafe(Cuerpo->GetSkinnedAsset()), Pawn->ObtenerAnimacion()->EsqueletoValido(), RadioCuerpo);
+			}
+			FString ModoPerfil;
+			if (FParse::Value(FCommandLine::Get(), ParametroPerfilJuego, ModoPerfil))
+			{
+				GEngine->Exec(GetWorld(), *(TEXT("stat ") + ModoPerfil + ArgumentosPerfilJuego));
 			}
 			EntrarEtapa(EEtapa::Correr);
 		}

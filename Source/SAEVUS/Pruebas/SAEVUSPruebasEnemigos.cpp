@@ -17,6 +17,8 @@ namespace SAEVUSPruebasEnemigos
 	constexpr float AlturaAparicion = 100.f;
 
 	constexpr float DistanciaLejos = 2000.f;
+	// Más allá de RadioDeteccion x FactorDistanciaReposoLejos (1000 x 2,5 por defecto).
+	constexpr float DistanciaReposoLejano = 2800.f;
 	constexpr float DistanciaVista = 800.f;
 	constexpr float DistanciaAtaque = 400.f;
 	constexpr float DistanciaContacto = 80.f;
@@ -110,6 +112,33 @@ bool FSAEVUSPruebaEnemigoDeteccion::RunTest(const FString& Parameters)
 	const float DistanciaDespues = static_cast<float>(FVector::Dist2D(Enemigo->GetActorLocation(), Mundo.Jugador->GetActorLocation()));
 	AddInfo(FString::Printf(TEXT("Distancia al jugador: %.0f -> %.0f cm"), DistanciaAntes, DistanciaDespues));
 	TestTrue(TEXT("Se acerca al jugador"), DistanciaDespues < DistanciaAntes);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoReposoLejano, "SAEVUS.Enemigo.ReposoLejano", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoReposoLejano::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	FMundoEnemigos Mundo;
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(DistanciaReposoLejano);
+	if (!TestTrue(TEXT("Jugador y enemigo de pie"), Mundo.bListo))
+	{
+		return false;
+	}
+	const USAEVUSComponenteIAEnemigo* IA = Enemigo->ObtenerIA();
+	const float Intervalo = IA->ObtenerAjuste().IntervaloReposoLejos;
+	Mundo.AvanzarDurante(TiempoObservar);
+	TestEqual(TEXT("Lejos del todo: en reposo"), IA->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+	TestEqual(TEXT("La IA descansa"), IA->GetComponentTickInterval(), Intervalo);
+	TestEqual(TEXT("El movimiento también"), Enemigo->GetCharacterMovement()->GetComponentTickInterval(), Intervalo);
+
+	// Al acercarse el jugador, despierta en un intervalo como mucho y todo vuelve a cada fotograma.
+	Enemigo->SetActorLocation(FVector(DistanciaVista, 0.f, Enemigo->GetActorLocation().Z));
+	Mundo.AvanzarDurante(Intervalo + SAEVUSPruebas::PasoSimulacion * 2.f);
+	TestEqual(TEXT("Despierta y persigue"), IA->ObtenerEstado(), ESAEVUSEstadoEnemigo::Perseguir);
+	TestEqual(TEXT("IA cada fotograma"), IA->GetComponentTickInterval(), 0.f);
+	TestEqual(TEXT("Movimiento cada fotograma"), Enemigo->GetCharacterMovement()->GetComponentTickInterval(), 0.f);
 	return true;
 }
 

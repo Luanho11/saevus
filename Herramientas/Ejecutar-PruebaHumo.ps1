@@ -1,6 +1,6 @@
 ﻿# Ejecuta la prueba de humo en el juego (USAEVUSSubsistemaPruebaHumo) en una sesión -game real con render.
 # Uso (desde la raíz del proyecto):
-#   powershell -ExecutionPolicy Bypass -File Herramientas\Ejecutar-PruebaHumo.ps1 [-Escalabilidad 0..3] [-ResX 1280 -ResY 720] [-ComandosExtra "r.ScreenPercentage 75"] [-PerfilGPU] [-Mapa /Game/SAEVUS/Mapas/L_Pruebas]
+#   powershell -ExecutionPolicy Bypass -File Herramientas\Ejecutar-PruebaHumo.ps1 [-Escalabilidad 0..3] [-ResX 1280 -ResY 720] [-ComandosExtra "r.ScreenPercentage 75"] [-PerfilGPU] [-PerfilJuego dumpave|dumpmax|dumpsum] [-Mapa /Game/SAEVUS/Mapas/L_Pruebas]
 # Muestra las líneas [SAEVUS humo]; código de salida 0 solo si SUPERADA. Captura: Saved\Screenshots\WindowsEditor\SAEVUS_PruebaHumo.png
 
 param(
@@ -9,6 +9,9 @@ param(
     [int]$ResY = 720,
     [string]$ComandosExtra = "",
     [switch]$PerfilGPU,
+    # Stats de CPU de las etapas de acción en el log: dumpave (promedio), dumpmax (peor fotograma) o dumpsum.
+    [ValidateSet("", "dumpave", "dumpmax", "dumpsum")]
+    [string]$PerfilJuego = "",
     # La prueba de humo necesita el mapa de pruebas (suelo llano largo); el juego arranca en el tutorial.
     [string]$Mapa = "/Game/SAEVUS/Mapas/L_Pruebas",
     [string]$RaizMotor = "C:\Program Files\Epic Games\UE_5.8"
@@ -28,6 +31,7 @@ $argComandos = if ($comandos) { "-ExecCmds=`"$($comandos -join ',')`"" } else { 
 
 # Una sola cadena literal de argumentos: Windows PowerShell 5.1 estropea los argumentos nativos entre comillas con espacios.
 $argPerfil = if ($PerfilGPU) { "-SAEVUSPruebaHumoPerfilGPU" } else { "" }
+if ($PerfilJuego) { $argPerfil += " -SAEVUSPruebaHumoPerfilJuego=$PerfilJuego" }
 $argumentos = "`"$Proyecto`" $Mapa -game -windowed -ResX=$ResX -ResY=$ResY -SAEVUSPruebaHumo $argPerfil -nosplash -NoSound $argComandos `"-abslog=$log`""
 Start-Process -FilePath (Join-Path $RaizMotor "Engine\Binaries\Win64\UnrealEditor.exe") -ArgumentList $argumentos -Wait | Out-Null
 

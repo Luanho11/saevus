@@ -31,6 +31,9 @@ public:
 	void FijarObjetivo(APawn* NuevoObjetivo) { Objetivo = NuevoObjetivo; }
 	APawn* ObtenerObjetivo() const;
 
+	/** Ajuste del tipo de enemigo (de sus datos, o el del código sin datos). */
+	const FSAEVUSAjusteEnemigo& ObtenerAjuste() const;
+
 	ESAEVUSEstadoEnemigo ObtenerEstado() const { return Estado; }
 	float ObtenerTiempoEstado() const { return TiempoEstado; }
 	/** Ataque elegido (avisando, atacando o recuperándose), o nulo. */
@@ -65,6 +68,8 @@ private:
 
 	void CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado);
 	void ActualizarReposo();
+	/** Reposo lejano: la IA y el movimiento (si está de pie) se actualizan cada IntervaloReposoLejos. */
+	void FijarReposoLejano(bool bLejos);
 	void ActualizarPerseguir();
 	void ActualizarTelegrafiar();
 	void ActualizarAtacar();
@@ -78,7 +83,6 @@ private:
 	void Encarar(const FVector& Direccion);
 	void ActualizarFase();
 
-	const FSAEVUSAjusteEnemigo& ObtenerAjuste() const;
 	const FSAEVUSFaseEnemigo& ObtenerFaseActual() const;
 	bool FaseAdmiteAtaque(int32 IndiceAtaque) const;
 	/** Distancia horizontal al objetivo, o un número enorme sin objetivo vivo. */
