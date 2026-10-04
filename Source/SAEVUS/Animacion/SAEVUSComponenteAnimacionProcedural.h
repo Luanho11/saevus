@@ -108,6 +108,17 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curación")
 	float FlexionCuracion = 50.f;
 
+	/** Reacción al recibir un golpe: el torso y la cabeza se echan atrás y vuelven. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ForceUnits = "s"))
+	float DuracionReaccionGolpe = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido")
+	float InclinacionReaccionGolpe = 22.f;
+
+	/** Largo de la hoja del aguijón (cm), desde el hueso del arma: lo usa la estela. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float LongitudHoja = 62.f;
+
 	/** Parpadeos por segundo del cuerpo durante la invulnerabilidad tras un golpe. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
 	float FrecuenciaParpadeo = 12.f;
@@ -140,6 +151,12 @@ public:
 
 	/** Nombre de hueso de cada entrada de ESAEVUSHueso. */
 	static FName NombreHueso(ESAEVUSHueso Hueso);
+
+	/**
+	 * Base y punta de la hoja del aguijón en el mundo, según la pose actual. Falso si no hay
+	 * esqueleto o el aguijón está oculto (arma de fuego equipada).
+	 */
+	bool ObtenerHoja(FVector& OutBase, FVector& OutPunta) const;
 
 	/** Avanza la animación DeltaTime segundos (lo llama el tick; los tests lo llaman a mano). */
 	void Actualizar(float DeltaTime);
@@ -196,6 +213,11 @@ private:
 
 	void AlSaltoAereo();
 
+	UFUNCTION()
+	void AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
+
+	void PoseReaccionGolpe(FPose& Pose);
+
 	/** Dirección de reposo de un hueso en espacio de malla (hacia su hijo, o la fija de las hojas). */
 	FVector DireccionReposo(int32 Hueso) const;
 
@@ -215,6 +237,7 @@ private:
 
 	// Pose actual (ya suavizada) en espacio de malla.
 	FQuat RotacionActual[static_cast<int32>(ESAEVUSHueso::Total)];
+	FVector PosicionActual[static_cast<int32>(ESAEVUSHueso::Total)];
 	FVector DesplazamientoRaizActual = FVector::ZeroVector;
 	float EscalaArmaActual = 1.f;
 	float EscalaArmaFuegoActual = 0.f;
@@ -225,5 +248,6 @@ private:
 	float TiempoMuerto = 0.f;
 	float Retroceso = 0.f;
 	float TiempoRecogidaSaltoAereo = 0.f;
+	float TiempoReaccionGolpe = 0.f;
 	bool bEstabaEnAire = false;
 };

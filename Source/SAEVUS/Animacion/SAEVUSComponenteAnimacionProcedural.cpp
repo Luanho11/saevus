@@ -194,6 +194,10 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	{
 		Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo);
 	}
+	if (Vida)
+	{
+		Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::AlCambiarVida);
+	}
 	if (!Malla)
 	{
 		FijarMalla(GetOwner()->FindComponentByClass<UPoseableMeshComponent>());
@@ -304,6 +308,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	bEstabaEnAire = bEnAire;
 	TiempoAterrizaje = FMath::Max(0.f, TiempoAterrizaje - DeltaTime);
 	TiempoRecogidaSaltoAereo = FMath::Max(0.f, TiempoRecogidaSaltoAereo - DeltaTime);
+	TiempoReaccionGolpe = FMath::Max(0.f, TiempoReaccionGolpe - DeltaTime);
 
 	// Capa base del cuerpo.
 	if (Movimiento->EstaEscalando())
@@ -349,6 +354,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	Pose.EscalaArmaFuego = bArmaFuego ? 1.f : 0.f;
 
 	PoseCapa(Pose, Velocidad, VelocidadVertical);
+	PoseReaccionGolpe(Pose);
 }
 
 void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Velocidad, float DeltaTime)
@@ -604,6 +610,43 @@ void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad
 	Pose.Huesos[Indice(ESAEVUSHueso::Capa2)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.5f + Ondeo * 1.5f) };
 }
 
+void USAEVUSComponenteAnimacionProcedural::AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
+{
+	if (Delta < 0.f && !ComponenteVida->EstaMuerto())
+	{
+		TiempoReaccionGolpe = Ajuste.DuracionReaccionGolpe;
+	}
+}
+
+void USAEVUSComponenteAnimacionProcedural::PoseReaccionGolpe(FPose& Pose)
+{
+	using namespace SAEVUSAnimacion;
+	if (TiempoReaccionGolpe <= 0.f)
+	{
+		return;
+	}
+	// Sacudida: máximo al principio, vuelve suave.
+	const float P = TiempoReaccionGolpe / FMath::Max(Ajuste.DuracionReaccionGolpe, UE_KINDA_SMALL_NUMBER);
+	const float Grados = Ajuste.InclinacionReaccionGolpe * P * P;
+	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Grados) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Grados * 1.2f) };
+}
+
+bool USAEVUSComponenteAnimacionProcedural::ObtenerHoja(FVector& OutBase, FVector& OutPunta) const
+{
+	using namespace SAEVUSAnimacion;
+	if (!bEsqueletoValido || !Malla || !bPoseIniciada || EscalaArmaActual < 0.5f)
+	{
+		return false;
+	}
+	const int32 Hueso = Indice(ESAEVUSHueso::Arma);
+	const FTransform& Componente = Malla->GetComponentTransform();
+	const FVector DireccionMalla = (RotacionActual[Hueso] * ReposoComponente[Hueso].GetRotation().Inverse()).RotateVector(DireccionReposo(Hueso));
+	OutBase = Componente.TransformPosition(PosicionActual[Hueso]);
+	OutPunta = OutBase + Componente.TransformVectorNoScale(DireccionMalla) * Ajuste.LongitudHoja;
+	return true;
+}
+
 void USAEVUSComponenteAnimacionProcedural::AlSaltoAereo()
 {
 	TiempoRecogidaSaltoAereo = Ajuste.DuracionRecogidaSaltoAereo;
@@ -684,5 +727,6 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 		// La escala de reposo se conserva: el FBX de Blender puede traerla distinta de 1 (unidades del armazón).
 		const FVector EscalaFinal = ReposoComponente[Hueso].GetScale3D() * Escala;
 		Malla->SetBoneTransformByName(NombreHueso(static_cast<ESAEVUSHueso>(Hueso)), FTransform(RotacionActual[Hueso], Posicion[Hueso], EscalaFinal), EBoneSpaces::ComponentSpace);
+		PosicionActual[Hueso] = Posicion[Hueso];
 	}
 }

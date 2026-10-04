@@ -1,16 +1,35 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+
+namespace SAEVUSEfectosCombate
+{
+	// Partículas finas y breves: chispas, estela y alma (el polvo del dash usa otro emisor).
+	constexpr float TamanoParticula = 0.07f;
+	constexpr float VidaParticula = 0.3f;
+	constexpr float ArrastreParticula = 6.f;
+}
+
+USAEVUSComponenteEfectosCombate::USAEVUSComponenteEfectosCombate()
+{
+	Ajuste.TamanoInicial = SAEVUSEfectosCombate::TamanoParticula;
+	Ajuste.Vida = SAEVUSEfectosCombate::VidaParticula;
+	Ajuste.Arrastre = SAEVUSEfectosCombate::ArrastreParticula;
+	Ajuste.AceleracionVertical = 0.f;
+}
 
 void USAEVUSComponenteEfectosCombate::BeginPlay()
 {
 	Super::BeginPlay();
-	if (USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>())
+	Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
+	if (Combate)
 	{
 		Combate->AlGolpear.AddUniqueDynamic(this, &ThisClass::AlGolpear);
 	}
+	Animacion = GetOwner()->FindComponentByClass<USAEVUSComponenteAnimacionProcedural>();
 	Alma = GetOwner()->FindComponentByClass<USAEVUSComponenteAlma>();
 	if (Alma)
 	{
@@ -43,8 +62,25 @@ void USAEVUSComponenteEfectosCombate::AlCurar(float VidaRecuperada)
 	EmitirRafaga(GetOwner()->GetActorLocation(), FVector::UpVector * AjusteEfectos.VelocidadCuracion, AjusteEfectos.ParticulasCuracion, AjusteEfectos.Dispersion);
 }
 
+void USAEVUSComponenteEfectosCombate::EmitirEstelaArma()
+{
+	FVector Base;
+	FVector Punta;
+	if (!Combate || !Animacion || Combate->ObtenerFaseAtaque() != ESAEVUSFaseAtaque::Activa || !Animacion->ObtenerHoja(Base, Punta))
+	{
+		return;
+	}
+	for (int32 Indice = 0; Indice < AjusteEfectos.ParticulasEstelaPorFotograma; ++Indice)
+	{
+		// Más densa hacia la punta, que es la que barre el arco.
+		const float Fraccion = FMath::Sqrt(Aleatorio.FRand());
+		Emitir(FMath::Lerp(Base, Punta, Fraccion), Aleatorio.VRand() * AjusteEfectos.DispersionEstela);
+	}
+}
+
 void USAEVUSComponenteEfectosCombate::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	EmitirEstelaArma();
 	if (Alma && Alma->EstaCurando())
 	{
 		AcumuladoEmision += AjusteEfectos.ParticulasPorSegundoCurando * DeltaTime;

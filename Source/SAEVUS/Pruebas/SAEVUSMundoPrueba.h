@@ -10,6 +10,7 @@
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
+#include "Efectos/SAEVUSComponenteEfectosCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
@@ -124,6 +125,7 @@ namespace SAEVUSPruebas
 			AlmaSimulada = Personaje->ObtenerAlma();
 			ArmasSimuladas = Personaje->ObtenerArmas();
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
+			EfectosSimulados = Personaje->ObtenerEfectosCombate();
 			AnimacionSimulada = Personaje->ObtenerAnimacion();
 			return Personaje;
 		}
@@ -190,6 +192,10 @@ namespace SAEVUSPruebas
 			{
 				AnimacionSimulada->Actualizar(PasoSimulacion);
 			}
+			if (EfectosSimulados)
+			{
+				EfectosSimulados->TickComponent(PasoSimulacion, LEVELTICK_All, &EfectosSimulados->PrimaryComponentTick);
+			}
 			for (const TWeakObjectPtr<ASAEVUSEnemigo>& Enemigo : Enemigos)
 			{
 				if (Enemigo.IsValid() && IsValid(Enemigo.Get()))
@@ -208,6 +214,7 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteAlma* AlmaSimulada = nullptr;
 		USAEVUSComponenteArmas* ArmasSimuladas = nullptr;
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
+		USAEVUSComponenteEfectosCombate* EfectosSimulados = nullptr;
 		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;
 		TArray<TWeakObjectPtr<ASAEVUSEnemigo>> Enemigos;
 	};

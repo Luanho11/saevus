@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 10c)**
-**Último latido: 2026-10-03 20:24** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10d)**
+**Último latido: 2026-10-03 20:37** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -41,11 +41,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 10. [ ] Tareas propias (Claude), en este orden:
     - 10a. [x] ~~Obstáculos del tutorial comprobados con tests de entradas simuladas (`SAEVUS.Tutorial.Obstaculos.*`).~~
     - 10b. [x] ~~Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.~~
-    - 10c. [ ] Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.
+    - 10c. [x] ~~Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.~~
     - 10d. [ ] Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.
     - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
 
 ## Estado del turno
-- Completado: tarea 10b (sonido boceto sintetizado; 92/92 tests).
+- Completado: tarea 10c (estela del arma y reacción al golpe; 93/93 tests).
 - A medias: —
-- Siguiente paso exacto: tarea 10c — pulido de animación: estela del arma en los tajos (partículas a lo largo de la hoja durante la fase activa), anticipación más marcada, reacción visual al recibir golpe (retroceso del torso), cabeza que mira al enemigo cercano.
+- Siguiente paso exacto: tarea 10d — rendimiento: medir `L_Tutorial` en la Vega 8 con perfil de GPU (`Ejecutar-PruebaHumo.ps1 -PerfilGPU -Mapa /Game/SAEVUS/Mapas/L_Tutorial`), revisar coste del contorno, niebla, sombras de la luna y partículas; ajustar escalabilidad si la media baja de 60 fps.

@@ -7,6 +7,7 @@
 #include "SAEVUSComponenteEfectosCombate.generated.h"
 
 class USAEVUSComponenteAlma;
+class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteCombate;
 
 /** Cómo se ven los efectos de golpe, alma y curación. */
@@ -39,6 +40,14 @@ struct FSAEVUSAjusteEfectosCombate
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "General", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float Dispersion = 140.f;
+
+	/** Estela del aguijón: partículas repartidas a lo largo de la hoja en cada fotograma de la fase activa. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0"))
+	int32 ParticulasEstelaPorFotograma = 5;
+
+	/** Velocidad aleatoria pequeña de la estela: se queda casi quieta y dibuja el arco. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float DispersionEstela = 15.f;
 };
 
 /**
@@ -52,6 +61,8 @@ class SAEVUS_API USAEVUSComponenteEfectosCombate : public USAEVUSComponenteParti
 	GENERATED_BODY()
 
 public:
+	USAEVUSComponenteEfectosCombate();
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -67,8 +78,17 @@ private:
 
 	void AlCurar(float VidaRecuperada);
 
+	/** Partículas a lo largo de la hoja mientras el tajo está en su fase activa. */
+	void EmitirEstelaArma();
+
 	UPROPERTY()
 	TObjectPtr<USAEVUSComponenteAlma> Alma;
+
+	UPROPERTY()
+	TObjectPtr<USAEVUSComponenteCombate> Combate;
+
+	UPROPERTY()
+	TObjectPtr<USAEVUSComponenteAnimacionProcedural> Animacion;
 
 	FDelegateHandle ManejadorCurar;
 	float AcumuladoEmision = 0.f;
