@@ -17,6 +17,9 @@
 
 namespace SAEVUSAnimacion
 {
+	// Más allá de este giro (grados) el enemigo está detrás: la cabeza no lo sigue.
+	constexpr float GiroMaximoParaMirar = 120.f;
+
 	constexpr int32 NumHuesos = static_cast<int32>(ESAEVUSHueso::Total);
 
 	// Ejes del espacio de la malla: el personaje mira a +Y, su derecha es -X.
@@ -684,7 +687,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseMirada(FPose& Pose)
 	const float Giro = FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(Hacia, Derecha), FVector::DotProduct(Hacia, Adelante)));
 	const float Inclinacion = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(static_cast<float>(FVector::DotProduct(Hacia, Arriba)), -1.f, 1.f)));
 	// Detrás del todo no se gira: quedaría forzado.
-	if (FMath::Abs(Giro) > 120.f)
+	if (FMath::Abs(Giro) > GiroMaximoParaMirar)
 	{
 		return;
 	}

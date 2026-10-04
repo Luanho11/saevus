@@ -22,6 +22,9 @@ namespace SAEVUSInterfaz
 	constexpr float SeparacionLineas = 4.f;
 	constexpr float GrosorBorde = 2.f;
 	constexpr float AlturaBarraJefeDesdeAbajo = 70.f;
+	// Latido del orbe mientras cura: amplitud de escala y rapidez (rad/s).
+	constexpr float AmplitudLatido = 0.08f;
+	constexpr float RapidezLatido = 12.f;
 	// La sombra del texto lo despega de fondos claros.
 	const FVector2D DesplazamientoSombra(1.5f, 1.5f);
 	const FLinearColor ColorSombra(0.f, 0.f, 0.f, 0.85f);
@@ -226,7 +229,7 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	FijarPorcentaje(OrbeAlma, Estado.FraccionAlma);
 	OrbeAlma->SetFillColorAndOpacity(Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma);
 	// Al curar el orbe late.
-	const float Latido = Estado.bCurando ? 1.f + 0.08f * FMath::Sin(GetWorld()->GetTimeSeconds() * 12.f) : 1.f;
+	const float Latido = Estado.bCurando ? 1.f + AmplitudLatido * FMath::Sin(GetWorld()->GetTimeSeconds() * RapidezLatido) : 1.f;
 	OrbeAlma->SetRenderScale(FVector2D(Latido));
 
 	FijarTexto(TextoArma, Estado.TextoArma);

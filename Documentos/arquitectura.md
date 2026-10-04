@@ -1,79 +1,91 @@
 # Arquitectura de SAEVUS
 
-Estado: describe lo que existe en el código. Lo planeado se marca como tal.
+Estado: describe lo que existe en el código (2026-10-04). Lo planeado se marca como tal. Cada sistema tiene su documento: `movimiento.md`, `combate.md`, `animacion.md`, `enemigos.md`, `tutorial.md`, `interfaz.md`, `audio.md`, `rendimiento.md`, `pipeline-assets.md`.
 
 ## Módulo y carpetas
 
-Un módulo de juego, `SAEVUS` (`Source/SAEVUS/`), dividido en carpetas por función. `SAEVUS.Build.cs` añade la raíz del módulo a las rutas de inclusión, así los includes se escriben por carpeta: `#include "Movimiento/SAEVUSComponenteMovimiento.h"`.
+Un módulo de juego, `SAEVUS` (`Source/SAEVUS/`), dividido en carpetas por función. `SAEVUS.Build.cs` añade la raíz del módulo a las rutas de inclusión (`#include "Movimiento/SAEVUSComponenteMovimiento.h"`). Dependencias: Core, CoreUObject, Engine, InputCore, EnhancedInput, UMG (públicas); RenderCore, RHI, Slate, SlateCore (privadas).
 
 | Carpeta | Contenido |
 |---|---|
-| `Nucleo/` | `ASAEVUSModoJuego` (reaparición), `ASAEVUSControladorJugador`, `SAEVUSCanalesColision.h` |
-| `Personaje/` | `ASAEVUSPersonaje`, `USAEVUSConfigEntrada` |
-| `Movimiento/` | `USAEVUSComponenteMovimiento` (+ `...Paredes.cpp`), structs de ajuste, `USAEVUSAjustesMovimiento`, `ESAEVUSPaso`, `ESAEVUSModoMovimientoPersonalizado` |
-| `Camara/` | `USAEVUSComponenteCamara`, `FSAEVUSAjusteCamara`, `USAEVUSAjustesCamara` |
-| `Combate/` | `USAEVUSComponenteCombate`, `USAEVUSComponenteVida`, tipos de ataque y repertorio |
+| `Nucleo/` | `ASAEVUSModoJuego` (reaparición, puntos de control, reinicio), `ASAEVUSControladorJugador` (contextos de entrada, pausa, sensibilidad), `SAEVUSCanalesColision.h` |
+| `Personaje/` | `ASAEVUSPersonaje`, `USAEVUSConfigEntrada`, `FSAEVUSDetectorDobleToque`, `FSAEVUSAjusteGolpeRecibido` |
+| `Movimiento/` | `USAEVUSComponenteMovimiento` (+ `...Paredes.cpp`): paso, salto con coyote/buffer, doble salto, dash (y voltereta con arma de fuego), paredes, rebote; `USAEVUSAjustesMovimiento` |
+| `Camara/` | `USAEVUSComponenteCamara` (encuadre, FOV, estilo: contorno, viñeta, saturación), `USAEVUSAjustesCamara` |
+| `Combate/` | `USAEVUSComponenteCombate` (tajos por línea de tiempo, direccionales, impacto, parada de golpe), `USAEVUSComponenteVida` (filtro de daño, invulnerabilidad), `USAEVUSComponenteAlma`, `USAEVUSComponenteGuardia` (bloqueo, contraataque), `FSAEVUSParadaGolpe`, tipos y repertorio |
 | `Armas/` | `USAEVUSComponenteArmas`, `USAEVUSDefinicionArma` |
+| `Animacion/` | `USAEVUSComponenteAnimacionProcedural` (FK propio sobre el esqueleto del caballero) |
+| `Efectos/` | `USAEVUSComponenteParticulas` (CPU + mallas instanciadas), `USAEVUSComponenteEstelaDash`, `USAEVUSComponenteEfectosCombate` |
+| `Audio/` | `SAEVUSSintesis` (sonido sintetizado), `USAEVUSComponenteSonido`, `USAEVUSComponenteSonidoEnemigo` |
+| `Enemigos/` | `ASAEVUSEnemigo`, `USAEVUSComponenteIAEnemigo`, `ASAEVUSProyectil`, `USAEVUSDatosEnemigo` |
+| `Tutorial/` | `USAEVUSSubsistemaTutorial`, volúmenes (aviso, punto de control, caída), `ASAEVUSPeligro`, `ASAEVUSPuertaArena` |
+| `Interfaz/` | `FSAEVUSEstadoInterfaz`, `USAEVUSWidgetInterfaz`, `USAEVUSWidgetPausa` (UMG construida en C++) |
 | `Mundo/` | `ASAEVUSMunecoEntrenamiento` |
-| `Depuracion/` | `ASAEVUSHUDDepuracion`, variables de consola, `USAEVUSSubsistemaPruebaHumo` |
-| `Pruebas/` | tests de automatización `SAEVUS.*` y el fixture `SAEVUSMundoPrueba.h` |
-
-Se crean carpetas nuevas cuando llega su código (Animacion, Efectos, Interfaz, Enemigos, Jefes...).
+| `Depuracion/` | `ASAEVUSHUDDepuracion` (crea la interfaz; texto de depuración con F6), variables de consola, `USAEVUSSubsistemaPruebaHumo` |
+| `Pruebas/` | 105 tests `SAEVUS.*` y el fixture `SAEVUSMundoPrueba.h` |
 
 ## Mapa de clases
 
 ```
-ASAEVUSModoJuego (AGameModeBase)          respaldo nativo: ASAEVUSPersonaje, ASAEVUSControladorJugador, ASAEVUSHUDDepuracion
- └─ BP_SAEVUSModoJuego                    pone BP_SAEVUSPersonaje, BP_SAEVUSControladorJugador; reaparición tras la muerte
+ASAEVUSModoJuego (AGameModeBase)          reaparición (RetardoReaparicion), punto de control, ReiniciarJugador
+ └─ BP_SAEVUSModoJuego                    pone BP_SAEVUSPersonaje, BP_SAEVUSControladorJugador
 
-ASAEVUSControladorJugador (APlayerController)
- ├─ añade contextos: IMC_Default, IMC_MouseLook (plantilla del motor), IMC_SAEVUS
- └─ enlaza acciones propias del controlador: IA_AlternarHUD (F6)
+ASAEVUSControladorJugador                 contextos de entrada, IA_AlternarHUD, IA_Pausa → USAEVUSWidgetPausa, sensibilidad
+ASAEVUSHUDDepuracion (AHUD)               crea USAEVUSWidgetInterfaz; texto de depuración con F6
 
-ASAEVUSPersonaje (ACharacter)             reparte la entrada; no tiene reglas de juego propias
- ├─ USAEVUSComponenteMovimiento           paso, dash, paredes, movimientos guardados  ← USAEVUSAjustesMovimiento
- ├─ USAEVUSComponenteCombate              líneas de tiempo de ataque, combos, cancelaciones ← USAEVUSDatosRepertorioMelee
- ├─ USAEVUSComponenteArmas                arsenal, cambio, armas de fuego              ← USAEVUSDefinicionArma[]
- ├─ USAEVUSComponenteVida                 vida, muerte
- ├─ USpringArmComponent "BrazoCamara"
- │   └─ USAEVUSComponenteCamara           encuadre, retraso, FOV de esprint           ← USAEVUSAjustesCamara
- └─ ConfigEntrada                         ← USAEVUSConfigEntrada (qué acciones enlazar)
- └─ BP_SAEVUSPersonaje                    malla, anim BP, referencias a Data Assets
+ASAEVUSPersonaje (ACharacter)             reparte la entrada y coordina; sin reglas propias salvo el empuje al recibir golpes
+ ├─ USAEVUSComponenteMovimiento (CMC)     ← USAEVUSAjustesMovimiento
+ ├─ USAEVUSComponenteCombate              ← USAEVUSDatosRepertorioMelee
+ ├─ USAEVUSComponenteGuardia              filtro de daño de la vida; cancelación "Guardia"
+ ├─ USAEVUSComponenteArmas                ← USAEVUSDefinicionArma[]
+ ├─ USAEVUSComponenteVida                 invulnerabilidad tras golpe (1 s)
+ ├─ USAEVUSComponenteAlma                 alma por golpe, curación mantenida
+ ├─ USAEVUSComponenteEstelaDash           partículas del dash y del doble salto
+ ├─ USAEVUSComponenteEfectosCombate       chispas, estela del arma, curación, bloqueo
+ ├─ USAEVUSComponenteSonido               sonidos sintetizados por evento
+ ├─ UPoseableMeshComponent "Cuerpo"       SK_Caballero (esqueleto propio)
+ │   └─ USAEVUSComponenteAnimacionProcedural
+ └─ USpringArmComponent → USAEVUSComponenteCamara ← USAEVUSAjustesCamara
 
-ASAEVUSHUDDepuracion (AHUD)               dibuja con SAEVUS.Depuracion.HUD = 1
+ASAEVUSEnemigo (ACharacter, sin controlador) ← USAEVUSDatosEnemigo (rastrero, saltador, escupidor, Guardián)
+ ├─ USAEVUSComponenteVida, USAEVUSComponenteIAEnemigo (estados, ataques, fases)
+ ├─ piezas de formas del motor (cuerpo, máscara, cuernos), USAEVUSComponenteParticulas
+ └─ USAEVUSComponenteSonidoEnemigo
+ASAEVUSProyectil                          bloqueable con la guardia, devuelto por un tajo
 ```
 
-Orden de actualización por fotograma: armas y combate antes que el movimiento (prerrequisitos de tick), así una estocada, un cambio de velocidad o un giro se aplican en el movimiento del mismo fotograma.
+## Comunicación entre sistemas
+
+Los componentes no se conocen más de lo necesario; se hablan por eventos y por consultas pequeñas:
+
+| Evento | Lo emite | Lo escuchan |
+|---|---|---|
+| `AlIniciarDash`, `AlSaltoAereo` | movimiento | estela, sonido, animación, personaje (invulnerabilidad del dash) |
+| `AlIniciarAtaque`, `AlGolpear` (solo si hubo daño) | combate | sonido, efectos, alma |
+| `AlCambiarVida`, `AlMorir`, `FiltroDanio` | vida | personaje (empuje, muerte), alma (interrumpe), animación (reacción), sonido, IA enemiga (aturdir, fases), guardia (filtro) |
+| `AlCurar`, `AlBloquear`, `AlContraatacar` | alma, guardia | efectos, sonido |
+| `AlDisparar` | armas | animación, sonido |
+| `AlCambiarEstado`, `AlCambiarFase` | IA enemiga | sonido del enemigo |
+| `ASAEVUSEnemigo::AlMorirEnemigo` (estático) | enemigo | puertas de arena |
+
+Cancelaciones: el personaje pregunta `USAEVUSComponenteCombate::IntentarCancelarPor(Dash | Salto | CambioArma | Guardia)` antes de cada acción; la ventana de cada una está en los datos del ataque.
+
+Orden de actualización por fotograma: armas, combate, guardia (tras combate) y alma antes que el movimiento (prerrequisitos de tick), así una estocada, un cambio de velocidad o un giro se aplican en el movimiento del mismo fotograma; la animación va en `TG_PostPhysics`.
 
 ## Reglas que sigue el código
 
-- **Composición antes que herencia.** El personaje es una raíz de composición; cada comportamiento vive en un componente con una responsabilidad.
-- **Ajustes por datos.** Todo valor de juego es un inicializador en un struct de ajuste (o el constructor de un struct de repertorio). Esos inicializadores son la única fuente de valores por defecto; un Data Asset con el struct los sobrescribe; los componentes usan una instancia `const` por defecto si no hay asset.
-- **El C++ no referencia contenido.** Mallas, anim BPs, entrada y Data Assets se asignan en subclases Blueprint, creadas por `Herramientas/ScriptsEditor/saevus_crear_assets.py`, así se reconstruyen en vez de editarse a mano.
-- **Listo para replicar.** Las intenciones del jugador que cambian el movimiento (esprint, caminar, dash) viajan por el camino de movimientos guardados / banderas comprimidas de CMC, junto al estado de dash y paredes. Combate y armas todavía son locales (fase de red).
-- **Todo en español** (código, datos, documentos), con prefijo `SAEVUS` en las clases.
-
-## Flujo de entrada
-
-1. `DefaultInput.ini` hace de Enhanced Input el sistema por defecto.
-2. `ASAEVUSControladorJugador::SetupInputComponent` añade los contextos del jugador local y enlaza el interruptor del HUD.
-3. `ASAEVUSPersonaje::SetupPlayerInputComponent` enlaza las acciones de su `USAEVUSConfigEntrada`. Las acciones que falten se saltan; si falta la config, escribe un error.
-4. Acciones mantenidas (esprint, caminar, gatillo) en `Triggered`/`Started` (cierto) y `Completed` (falso).
-
-| Acción | Teclas | Origen |
-|---|---|---|
-| Mover | WASD, stick izquierdo | `IMC_Default` de plantilla |
-| Mirar | ratón, stick derecho | plantilla |
-| Saltar | Espacio, botón inferior del mando | plantilla |
-| Esprint (mantener) | Mayús izq., L3 | `IMC_SAEVUS` |
-| Caminar (mantener) | Alt izq. | `IMC_SAEVUS` |
-| Dash | doble toque de WASD; botón derecho del mando | personaje / `IMC_SAEVUS` |
-| Atacar / gatillo | clic izquierdo, botón izquierdo del mando | `IMC_SAEVUS` |
-| Recargar | R, botón superior del mando | `IMC_SAEVUS` |
-| Siguiente arma | rueda abajo, hombro derecho | `IMC_SAEVUS` |
-| Ranuras de arma | 1–4 | `IMC_SAEVUS` |
-| HUD de depuración | F6 | `IMC_SAEVUS` |
+- **Composición antes que herencia.** El personaje y el enemigo son raíces de composición; cada comportamiento vive en un componente con una responsabilidad.
+- **Ajustes por datos.** Todo valor de juego es un inicializador en un struct de ajuste (o el constructor de un struct de repertorio o de sonidos). Esos inicializadores son la única fuente de valores por defecto; un Data Asset los sobrescribe.
+- **El contenido lo crea un script.** Mallas del motor y generadas en Blender, materiales, Data Assets, Blueprints y mapas los crea `Herramientas/ScriptsEditor/saevus_crear_assets.py`; se reconstruyen en vez de editarse a mano. `DA_RepertorioMelee_Base` sigue al repertorio del código mientras no se ajuste a mano.
+- **Lógica separada de la presentación.** La interfaz calcula un `FSAEVUSEstadoInterfaz` y el widget solo lo pinta; la síntesis de audio son funciones puras; los efectos escuchan eventos.
+- **Probado sin pantalla.** El fixture simula el personaje, los enemigos y los proyectiles a pasos fijos; los obstáculos del tutorial se prueban con entradas simuladas; la prueba de humo cubre el juego real con capturas.
+- **Listo para replicar (en parte).** Esprint, caminar, dash, dobles saltos y estado de pared viajan en los movimientos guardados de CMC. Combate, guardia, alma, IA y parada de golpe son locales (fase de red: la IA solo en el servidor, la parada de golpe solo visual, el tipo de dash en el movimiento guardado).
+- **Todo en español**, con prefijo `SAEVUS` en las clases.
 
 ## Perfil de render
 
-`Config/DefaultEngine.ini`: sin Lumen, Nanite, ray tracing, Virtual Shadow Maps, MegaLights, distance fields ni iluminación estática. Reflejos SSR; antialiasing TAA. Iluminación totalmente dinámica: una luz direccional, luz de cielo, atmósfera y niebla de altura. DX12 con SM6. Canal de traza propio "Arma" (`ECC_GameTraceChannel1`).
+`Config/DefaultEngine.ini`: sin Lumen, Nanite, ray tracing, Virtual Shadow Maps, MegaLights, distance fields ni iluminación estática. Reflejos SSR; antialiasing TAA; DX12 con SM6. Iluminación dinámica. Post-proceso propio: contorno por profundidad, viñeta y saturación desde la cámara. Canal de traza propio "Arma" (`ECC_GameTraceChannel1`). Mapas: `L_Tutorial` (por defecto, nocturno con exposición manual) y `L_Pruebas` (prueba de humo).
+
+## Entrada
+
+Teclas y técnicas en `controles.md`. Las acciones mantenidas (esprint, caminar, gatillo, guardia, curar) usan `Started` (cierto) y `Completed` (falso); `IA_Pausa` dispara también en pausa.

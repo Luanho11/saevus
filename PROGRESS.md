@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 23)**
-**Último latido: 2026-10-03 23:05** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 22)**
+**Último latido: 2026-10-03 23:11** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -57,9 +57,9 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 20. [x] ~~Menú de pausa básico (UMG en C++): Esc pausa; continuar, reiniciar en el último punto de control, salir; opción de escalabilidad (Baja/Media/Alta) y sensibilidad del ratón.~~
 21. [x] ~~Pantalla de muerte simple (fundido a negro + "Has caído" durante la espera de reaparición) y fundido de entrada al reaparecer.~~
 22. [ ] Vista previa del caballero mejorada: segundo boceto de Blender con más volumen (capa con 3 huesos, cuernos más marcados, aguijón con guarda), manteniendo los mismos nombres de hueso; regenerar e importar; tests de animación verdes.
-23. [ ] Revisión de código general (limpieza, comentarios, números mágicos que queden) y actualización de `arquitectura.md` con todos los sistemas nuevos.
+23. [x] ~~Revisión de código general (limpieza, comentarios, números mágicos que queden) y actualización de `arquitectura.md` con todos los sistemas nuevos.~~
 
 ## Estado del turno
-- Completado: tarea 21 (pantalla de muerte).
+- Completado: tarea 23 (arquitectura al día).
 - A medias: —
-- Siguiente paso exacto: tarea 23 — revisión general y `arquitectura.md` al día (antes de seguir añadiendo).
+- Siguiente paso exacto: tarea 22 — segundo boceto del caballero en Blender (más volumen, capa de 3 huesos), mismos nombres de hueso.
