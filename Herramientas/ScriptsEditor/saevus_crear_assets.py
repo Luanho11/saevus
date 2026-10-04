@@ -1224,8 +1224,15 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
 
     # Z2 Grieta: foso con dos plataformas.
     crear_foso(actores, "Z2_Grieta", 4600, 5500, unreal.Vector(4450, 0, -200), materiales, altura=-300)
-    for indice, x in enumerate((4850, 5250)):
-        crear_bloque(actores, f"Z2_Plataforma{indice}", unreal.Vector(x, 0, -350), (200, 300, 100), materiales["Acento"])
+    # Una plataforma que va y viene de un lado al otro de la grieta: hay que esperarla.
+    plataforma = actores.spawn_actor_from_class(unreal.SAEVUSPlataformaMovil, unreal.Vector(4850, 0, -350), unreal.Rotator(0, 0, 0))
+    plataforma.set_actor_label("Z2_PlataformaMovil")
+    plataforma.set_actor_scale3d(unreal.Vector(2.0, 3.0, 1.0))
+    plataforma.set_editor_property("recorrido", unreal.Vector(400, 0, 0))
+    plataforma.set_editor_property("velocidad", 200.0)
+    plataforma.set_editor_property("pausa_extremo", 0.8)
+    plataforma.get_component_by_class(unreal.StaticMeshComponent).set_material(0, materiales["Acento"])
+    plataforma.set_folder_path("Mundo")
 
     # Z3 Banco: suelo ancho que llega hasta el carril de la galería (cerrado por la compuerta del atajo).
     ancho_banco = ANCHO_PASILLO / 2 + Y_GALERIA + ANCHO_GALERIA / 2

@@ -10,7 +10,7 @@ Prototipo de nivel con lo que ya existe (movimiento, combate, enemigos, puntos d
 |---|---|---|---|
 | Z0 Entrada | −500 – 1200 | 0 | Inicio con el título de zona "Ruinas del Paso" y el aviso "Hacia el este"; detrás, a la derecha, el paso "<- Tutorial" (se llega junto al paso del final del tutorial) |
 | Z1 Descenso | 1200 – 4600 | −100, −200, −300 | Dos escalones de 1 m; encuentro 1: dos rastreros y un revoloteador |
-| Z2 Grieta | 4600 – 5500 | −300 | Foso de 9 m con dos plataformas; caer devuelve al borde |
+| Z2 Grieta | 4600 – 5500 | −300 | Foso de 9 m con una **plataforma móvil** que va y viene (hay que esperarla); caer devuelve al borde |
 | Z3 Banco | 5500 – 6500 | −300 | Banco para sentarse (E), punto de control y aviso; a la derecha, la compuerta cerrada del atajo |
 | Z4 Torre | 6500 – 9600 | muro de 4,5 m, después +150 | Se escala el muro; planta alta con el encuentro 2: acorazado, saltador, revoloteador y escupidor |
 | Z5 Arena | 9600 – 12000 | +150 | Punto de control; arena de 20 m de ancho con dos rastreros, un saltador, un escupidor, dos revoloteadores y un acorazado; la puerta se abre al vaciarla |
@@ -31,6 +31,7 @@ Redes de caída bajo el vacío (`ASAEVUSVolumenCaida`): si se cae antes del banc
 | `ASAEVUSVolumenCambioMapa` | `Source/SAEVUS/Mundo/` | Volumen de jugador que abre otro mapa (`Mapa`, referencia blanda). Con `Llegada` abre `mapa#Llegada`: UE coloca al jugador en el `APlayerStart` con esa etiqueta (el "portal" de la URL va tras `#`; una opción `?portal=` no basta). Además pasa `?portal=<Llegada>` para que el modo de juego sepa que se llegó por un paso. `ASAEVUSModoJuego` elige el inicio sin etiqueta en el arranque normal; si se llega por un paso, no abre el menú principal y la llegada es el primer punto de control. Test `SAEVUS.Mundo.InicioJugador`. |
 | `ASAEVUSParedRompible` | `Source/SAEVUS/Mundo/` | Pared falsa (Hollow Knight): un bloque dinámico que tiembla con cada golpe y cae al tercero (`GolpesParaRomper`). No da alma ni munición. |
 | `ASAEVUSFragmentoMascara` | `Source/SAEVUS/Mundo/` | Se recoge al tocarlo. Cada `FragmentosPorMascara` (2) suma una máscara de vida (`FSAEVUSAjusteProgreso` en el personaje: +20 de vida máxima y vida llena). Se guarda por `Identificador`: los recogidos no vuelven a aparecer y las máscaras extra se aplican al empezar. Hay uno en la sala secreta de la Zona 1 y otro en lo alto del reto del tutorial. |
+| `ASAEVUSPlataformaMovil` | `Source/SAEVUS/Mundo/` | Va y viene entre su sitio y `Recorrido`, con pausa en los extremos y suavizado (`PosicionEn`, función pura). Lo que está encima viaja con ella. Test `SAEVUS.Mundo.PlataformaMovil` (posiciones del ciclo y jugador transportado 400 cm). |
 | `ASAEVUSBanco` | `Source/SAEVUS/Mundo/` | Banco (Hollow Knight) con `ISAEVUSInteractuable`. Al entrar en su zona se anuncia al personaje y la interfaz muestra "E   Sentarse". Sentarse (`IA_Interactuar`, E o cruceta arriba) cura del todo, rellena la munición, fija el punto de control delante del banco y lo guarda, con una campanada; el caballero adopta la pose sentada. Moverse, saltar, atacar, hacer dash o volver a interactuar lo levanta. Hay bancos en el banco de la Zona 1 (Z3), en la antesala del jefe (Z6) y en el tutorial (S6 y S9). |
 
 ## Comprobación

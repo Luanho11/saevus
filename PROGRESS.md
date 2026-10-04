@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tareas 57-58)**
-**Último latido: 2026-10-04 07:29** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 59)**
+**Último latido: 2026-10-04 07:41** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -92,9 +92,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 55. [x] ~~Secreto en la Zona 1: pared falsa que se rompe a golpes y da a una sala con un fragmento de máscara (+1 máscara de vida al juntar dos; guardado).~~ `ASAEVUSParedRompible`, `ASAEVUSFragmentoMascara`; el segundo fragmento es el premio del reto del tutorial.
 56. [x] ~~Regreso de la Zona 1 al tutorial (paso en la entrada) y aparición junto al paso correspondiente al cambiar de mapa.~~ Opción `portal` de UE con `PlayerStart` etiquetados; sin menú principal al llegar por un paso.
 57. [x] ~~Prueba del paso entre mapas de punta a punta: el recorrido de la Zona 1 cruza el paso de vuelta y el del tutorial comprueba que aparece en la llegada (`-SAEVUSRecorridoPaso`).~~ Encontró que la llegada necesita `mapa#Llegada` en la URL; corregido. `Verificar-Arranque -ConJuego` usa la cadena.
-58. [ ] Más variedad en la Zona 1: plataformas que se mueven (ascensor boceto) y un tramo de pinchos con rebote, con su comprobación en el recorrido.
+58. [x] ~~Más variedad en la Zona 1: plataformas que se mueven (ascensor boceto) y un tramo de pinchos con rebote, con su comprobación en el recorrido.~~ Plataforma móvil en la grieta (`ASAEVUSPlataformaMovil`), con test; los pinchos con rebote quedan para otra tarea.
+59. [ ] Pinchos con rebote en la Zona 1 (un tramo sobre la galería) y una segunda plataforma móvil vertical (ascensor) hacia la planta alta.
 
 ## Estado del turno
-- Completado: tarea 57 (paso entre mapas de punta a punta).
+- Completado: tarea 58 (plataforma móvil).
 - A medias: —
-- Siguiente paso exacto: tarea 58 — más variedad en la Zona 1.
+- Siguiente paso exacto: tarea 59 — pinchos y ascensor en la Zona 1.
