@@ -10,6 +10,7 @@
 class UPoseableMeshComponent;
 class USpringArmComponent;
 class USAEVUSComponenteAlma;
+class USAEVUSComponenteSonido;
 class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteEfectosCombate;
 class USAEVUSComponenteArmas;
@@ -170,6 +171,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEfectosCombate> EfectosCombate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteSonido> Sonido;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPoseableMeshComponent> Cuerpo;

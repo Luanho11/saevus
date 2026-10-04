@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 10b)**
-**Último latido: 2026-10-03 20:13** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10c)**
+**Último latido: 2026-10-03 20:24** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -40,12 +40,12 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 9. [x] ~~Interfaz UMG en C++ escalable: vida, almas, arma/munición, avisos de tutorial, barra del jefe.~~
 10. [ ] Tareas propias (Claude), en este orden:
     - 10a. [x] ~~Obstáculos del tutorial comprobados con tests de entradas simuladas (`SAEVUS.Tutorial.Obstaculos.*`).~~
-    - 10b. [ ] Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.
+    - 10b. [x] ~~Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.~~
     - 10c. [ ] Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.
     - 10d. [ ] Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.
     - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
 
 ## Estado del turno
-- Completado: tarea 10a (tests de obstáculos del tutorial; 90/90 tests).
+- Completado: tarea 10b (sonido boceto sintetizado; 92/92 tests).
 - A medias: —
-- Siguiente paso exacto: tarea 10b — sonido boceto generado por código (`USAEVUSComponenteSonido` o subsistema): síntesis simple a `USoundWaveProcedural` para tajo, golpe, dash, salto, daño y curación; volumen por categoría en un struct; disparado por los eventos que ya existen (AlGolpear, AlIniciarDash, AlSaltoAereo, AlCambiarVida, AlCurar).
+- Siguiente paso exacto: tarea 10c — pulido de animación: estela del arma en los tajos (partículas a lo largo de la hoja durante la fase activa), anticipación más marcada, reacción visual al recibir golpe (retroceso del torso), cabeza que mira al enemigo cercano.

@@ -230,6 +230,7 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 	Movimiento->GirarHacia(Direccion);
 	Movimiento->IniciarEstocada(Direccion, Ataque.VelocidadEstocada, Ataque.DuracionEstocada);
 	Movimiento->FijarEscalaVelocidadAccion(Ataque.EscalaVelocidadSuelo);
+	AlIniciarAtaque.Broadcast();
 }
 
 void USAEVUSComponenteCombate::TerminarAtaque()

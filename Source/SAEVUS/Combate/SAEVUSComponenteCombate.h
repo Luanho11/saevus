@@ -12,6 +12,7 @@ class ACharacter;
 class USAEVUSComponenteMovimiento;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSAEVUSFirmaGolpeAtaque, AActor*, ActorGolpeado, float, Danio);
+DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoAtaque);
 
 /**
  * Base del cuerpo a cuerpo: ejecuta las líneas de tiempo de ataque de un repertorio, guarda las
@@ -67,6 +68,9 @@ public:
 
 	/** Cambia el repertorio. Nulo vuelve al del código. Termina un ataque en curso. */
 	void FijarRepertorio(const USAEVUSDatosRepertorioMelee* NuevoRepertorio);
+
+	/** Se emite al empezar cada ataque (sonido, efectos). */
+	FSAEVUSEventoAtaque AlIniciarAtaque;
 
 	/** Se dispara una vez por cada actor golpeado por un ataque. */
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Combate")

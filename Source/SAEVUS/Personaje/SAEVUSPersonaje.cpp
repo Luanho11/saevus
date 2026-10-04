@@ -3,6 +3,7 @@
 #include "Personaje/SAEVUSPersonaje.h"
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
+#include "Audio/SAEVUSComponenteSonido.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Camara/SAEVUSComponenteCamara.h"
 #include "Combate/SAEVUSComponenteAlma.h"
@@ -60,6 +61,7 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	EstelaDash->SetupAttachment(RootComponent);
 	EfectosCombate = CreateDefaultSubobject<USAEVUSComponenteEfectosCombate>(TEXT("EfectosCombate"));
 	EfectosCombate->SetupAttachment(RootComponent);
+	Sonido = CreateDefaultSubobject<USAEVUSComponenteSonido>(TEXT("Sonido"));
 
 	// Cuerpo visible: hereda de la malla del personaje el desplazamiento a los pies y la corrección de -90°.
 	Cuerpo = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Cuerpo"));
