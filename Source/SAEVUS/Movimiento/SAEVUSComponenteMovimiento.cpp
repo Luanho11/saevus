@@ -168,8 +168,9 @@ USAEVUSComponenteMovimiento::USAEVUSComponenteMovimiento()
 {
 	bWantsInitializeComponent = true;
 
-	// Acción en tercera persona: el personaje gira hacia donde se mueve; la cámara es libre.
-	bOrientRotationToMovement = true;
+	// GunZ: el cuerpo sigue a la cámara (AplicarAjustes lo decide con bMirarHaciaCamara).
+	bOrientRotationToMovement = false;
+	bUseControllerDesiredRotation = true;
 }
 
 void USAEVUSComponenteMovimiento::InitializeComponent()
@@ -296,6 +297,7 @@ void USAEVUSComponenteMovimiento::IniciarDash()
 	}
 	DireccionDashPedida = FVector::ZeroVector;
 	TiempoDashRestante = Ajuste.Duracion;
+	DuracionDashActual = Ajuste.Duracion;
 
 	float VelocidadVertical = Velocity.Z;
 	if (IsFalling())
@@ -308,7 +310,7 @@ void USAEVUSComponenteMovimiento::IniciarDash()
 
 	if (Ajuste.bGirarHaciaDash)
 	{
-		MoveUpdatedComponent(FVector::ZeroVector, DireccionDash.ToOrientationQuat(), /*bSweep*/ false);
+		MoveUpdatedComponent(FVector::ZeroVector, OrientacionCuerpo(DireccionDash), /*bSweep*/ false);
 	}
 
 	// Las repeticiones tras una corrección vuelven a simular el dash: sin efectos repetidos.
@@ -338,8 +340,22 @@ void USAEVUSComponenteMovimiento::IniciarEstocada(const FVector& Direccion, floa
 	TiempoEstocadaRestante = Duracion;
 }
 
+bool USAEVUSComponenteMovimiento::MiraHaciaCamara() const
+{
+	return ObtenerAjusteSuelo().bMirarHaciaCamara && CharacterOwner && CharacterOwner->Controller;
+}
+
+FQuat USAEVUSComponenteMovimiento::OrientacionCuerpo(const FVector& Direccion) const
+{
+	return MiraHaciaCamara() && UpdatedComponent ? UpdatedComponent->GetComponentQuat() : Direccion.ToOrientationQuat();
+}
+
 void USAEVUSComponenteMovimiento::GirarHacia(const FVector& Direccion)
 {
+	if (MiraHaciaCamara())
+	{
+		return;
+	}
 	const FVector Horizontal = Direccion.GetSafeNormal2D();
 	if (HasValidData() && !Horizontal.IsNearlyZero())
 	{
@@ -626,7 +642,10 @@ void USAEVUSComponenteMovimiento::AplicarAjustes()
 	MaxAcceleration = Suelo.AceleracionMaxima;
 	BrakingDecelerationWalking = Suelo.DeceleracionFrenado;
 	GroundFriction = Suelo.FriccionSuelo;
-	RotationRate = FRotator(0.f, Suelo.VelocidadGiro, 0.f);
+	// Con bMirarHaciaCamara el cuerpo sigue a la rotación del controlador; si no, a la del movimiento.
+	bOrientRotationToMovement = !Suelo.bMirarHaciaCamara;
+	bUseControllerDesiredRotation = Suelo.bMirarHaciaCamara;
+	RotationRate = FRotator(0.f, Suelo.bMirarHaciaCamara ? Suelo.VelocidadGiroCamara : Suelo.VelocidadGiro, 0.f);
 
 	const FSAEVUSAjusteMovimientoAire& Aire = ObtenerAjusteAire();
 	JumpZVelocity = Aire.VelocidadSalto;

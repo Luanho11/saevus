@@ -31,6 +31,15 @@ Además, durante la invulnerabilidad tras un golpe el cuerpo parpadea (se oculta
 
 **Estela del arma:** `ObtenerHoja()` da la base y la punta del aguijón en el mundo (hueso `arma` + `LongitudHoja` en su dirección actual). `USAEVUSComponenteEfectosCombate` reparte partículas finas a lo largo de la hoja en cada fotograma de la fase activa del tajo, más densas hacia la punta: dibujan el arco del golpe.
 
+## Animación direccional (GunZ, tarea 68)
+
+Como el cuerpo mira siempre a la cámara (`movimiento.md`, Orientación), la animación lee la dirección del paso en el espacio de la malla (`DireccionMalla`):
+- **Locomoción en ocho direcciones:** los muslos oscilan en la dirección del paso (hacia atrás, de espaldas); de lado, la pelvis gira `GiroCaderaLateral` (35°) hacia el paso (al revés si va hacia atrás) y la columna lo compensa, así el pecho sigue de frente; hacia atrás la inclinación se reduce a `FraccionInclinacionAtras` y se echa atrás. La carrera por pared usa lo mismo: las piernas corren a lo largo de la pared.
+- **Dash direccional:** de frente, la estocada de siempre; a los lados o hacia atrás (producto con el frente por debajo de `UmbralDashFrontal`, 0,6), **voltereta** recogida de `GradosVolteretaDash` (360°) sobre la pelvis en la dirección del dash, siguiendo `ObtenerFraccionDash()` del movimiento. Los miembros van en giros locales para rodar con el cuerpo.
+- **Salto de pared con giro:** el movimiento emite `AlSaltoPared`; el cuerpo da una vuelta de `GradosGiroSaltoPared` (360°) en `DuracionGiroSaltoPared` (0,4 s) y acaba otra vez de frente.
+- **Aterrizaje según la caída:** la flexión se escala con la velocidad de caída (`VelocidadCaidaAterrizaje`, 900 cm/s = flexión completa; entre 0,35 y 1,3).
+- Test `SAEVUS.Animacion.Direccional`: correr de lado mueve los pies de lado (64 cm) y el dash lateral baja la cabeza (voltereta).
+
 ## Ajustes
 
 `FSAEVUSAjusteAnimacion` (en el componente): longitud de ciclo, amplitudes de muslo, rodilla y brazo, inclinación al correr, en el dash y en la pared, respiración, suavizados, aterrizaje y retroceso. Todo editable sin compilar.
@@ -41,7 +50,7 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 
 ## Tests
 
-`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
+`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible, Direccional}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
 
 ## Pendiente
 

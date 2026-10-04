@@ -8,6 +8,7 @@
 #include "Armas/SAEVUSTiposArma.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Movimiento/SAEVUSAjustesMovimiento.h"
 
 namespace SAEVUSPruebasAnimacion
 {
@@ -25,6 +26,8 @@ namespace SAEVUSPruebasAnimacion
 	constexpr float TiempoAsentarPose = 0.5f;
 	constexpr float ToleranciaEscala = 0.1f;
 	constexpr float SubidaMinimaManoTajoArriba = 40.f;
+	constexpr float BajadaMinimaCabezaVoltereta = 30.f;
+	constexpr float FraccionDashMedida = 0.6f;
 
 	/** Mundo con suelo y un personaje con el caballero en su malla poseable. */
 	struct FMundoAnimacion
@@ -297,6 +300,48 @@ bool FSAEVUSPruebaAnimacionArmas::RunTest(const FString& Parameters)
 	Mundo.AvanzarDurante(TiempoAsentarPose);
 	TestEqual(TEXT("Con pistola: el aguijón se oculta"), Mundo.EscalaHueso(ESAEVUSHueso::Arma), 0.f, ToleranciaEscala);
 	TestEqual(TEXT("Con pistola: la pistola se ve"), Mundo.EscalaHueso(ESAEVUSHueso::ArmaFuego), 1.f, ToleranciaEscala);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionDireccional, "SAEVUS.Animacion.Direccional", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionDireccional::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	// De lado (el cuerpo sigue de frente, como en GunZ): el pie oscila de lado (eje X de la malla).
+	const FVector Derecha = Mundo.Personaje->GetActorRightVector();
+	float Minimo = TNumericLimits<float>::Max();
+	float Maximo = TNumericLimits<float>::Lowest();
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoCarrera); ++Indice)
+	{
+		Mundo.Personaje->AddMovementInput(Derecha, 1.f);
+		Mundo.MundoPrueba.Paso();
+		const float X = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::PieD).X);
+		Minimo = FMath::Min(Minimo, X);
+		Maximo = FMath::Max(Maximo, X);
+	}
+	AddInfo(FString::Printf(TEXT("Recorrido lateral del pie al correr de lado %.1f cm"), Maximo - Minimo));
+	TestTrue(TEXT("Las piernas oscilan de lado al correr de lado"), Maximo - Minimo > RecorridoMinimoPie);
+
+	// Dash a un lado: voltereta (a media voltereta la cabeza queda muy por debajo de su altura de pie).
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	const float CabezaDePie = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Cabeza).Z);
+	// Sin controlador el cuerpo se giraría hacia el dash (lo haría frontal); en el juego sigue a la cámara.
+	USAEVUSComponenteMovimiento* Movimiento = Mundo.Personaje->ObtenerMovimiento();
+	USAEVUSAjustesMovimiento* Ajustes = NewObject<USAEVUSAjustesMovimiento>(GetTransientPackage());
+	Ajustes->Dash.bGirarHaciaDash = false;
+	Movimiento->FijarAjustesMovimiento(Ajustes);
+	Movimiento->PedirDashEnDireccion(Derecha);
+	Mundo.AvanzarDurante(Movimiento->ObtenerAjusteDash().Duracion * FraccionDashMedida);
+	TestTrue(TEXT("En dash"), Movimiento->EstaEnDash());
+	const float Bajada = CabezaDePie - static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Cabeza).Z);
+	AddInfo(FString::Printf(TEXT("Bajada de la cabeza en la voltereta %.1f cm"), Bajada));
+	TestTrue(TEXT("El dash lateral es una voltereta"), Bajada > BajadaMinimaCabezaVoltereta);
 	return true;
 }
 

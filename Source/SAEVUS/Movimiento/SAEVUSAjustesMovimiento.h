@@ -35,9 +35,21 @@ struct FSAEVUSAjusteMovimientoSuelo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Respuesta", meta = (ClampMin = "0"))
 	float FriccionSuelo = 8.f;
 
-	/** Rapidez con la que el personaje gira hacia donde se mueve. */
+	/** Rapidez con la que el personaje gira hacia donde se mueve (sin bMirarHaciaCamara). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Respuesta", meta = (ClampMin = "0", ForceUnits = "deg/s"))
 	float VelocidadGiro = 720.f;
+
+	/**
+	 * GunZ: el cuerpo mira siempre hacia donde mira la cámara (tercera persona desde atrás) y se mueve
+	 * en ocho direcciones sin girarse; dash, saltos de pared y tajos no lo giran. Solo con controlador
+	 * (sin él, como la IA o los tests, el cuerpo gira con las acciones).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Respuesta")
+	bool bMirarHaciaCamara = true;
+
+	/** Rapidez con la que el cuerpo sigue a la cámara (casi inmediata, como en GunZ). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Respuesta", meta = (ClampMin = "0", ForceUnits = "deg/s", EditCondition = "bMirarHaciaCamara"))
+	float VelocidadGiroCamara = 2000.f;
 };
 
 /** Ajuste del salto y del aire. */

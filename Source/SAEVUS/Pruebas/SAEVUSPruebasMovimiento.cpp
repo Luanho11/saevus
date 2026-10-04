@@ -4,6 +4,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "GameFramework/PlayerController.h"
+
 #include "Movimiento/SAEVUSAjustesMovimiento.h"
 
 namespace SAEVUSPruebasMovimiento
@@ -136,6 +138,51 @@ bool FSAEVUSPruebaControlAire::RunTest(const FString& Parameters)
 	SinControlAire->Aire.ControlAire = 0.f;
 	const float VelocidadBloqueada = MedirVelocidadAerea(SinControlAire, Esperada);
 	TestNearlyEqual(TEXT("Sin control aéreo se conserva la velocidad del despegue"), VelocidadBloqueada, 0.f, KINDA_SMALL_NUMBER);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMirarHaciaCamara, "SAEVUS.Movimiento.MirarHaciaCamara", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaMirarHaciaCamara::RunTest(const FString& Parameters)
+{
+	constexpr float GuinadaCamara = 90.f;
+	constexpr float ToleranciaGrados = 2.f;
+	constexpr float TiempoGiro = 0.5f;
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	MundoPrueba.CrearBloque(FVector(0.f, 0.f, -50.f), FVector(4000.f, 4000.f, 100.f));
+	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(FVector(0.f, 0.f, 150.f));
+	if (!TestTrue(TEXT("De pie"), MundoPrueba.AsentarEnSuelo()))
+	{
+		return false;
+	}
+	// Sin jugador local el controlador no cuenta como local y el movimiento no consumiría la entrada.
+	APlayerController* Controlador = MundoPrueba.ObtenerMundo()->SpawnActor<APlayerController>();
+	Controlador->SetAsLocalPlayerController();
+	// Al poseerlo, el personaje avisa de que no tiene configuración de entrada (aquí no hace falta).
+	AddExpectedMessagePlain(TEXT("sin ConfigEntrada asignada"), ELogVerbosity::Error, EAutomationExpectedMessageFlags::Contains, 0);
+	Controlador->Possess(Personaje);
+	Controlador->SetControlRotation(FRotator(0.f, GuinadaCamara, 0.f));
+	USAEVUSComponenteMovimiento* Movimiento = Personaje->ObtenerMovimiento();
+	TestTrue(TEXT("Con controlador el cuerpo sigue a la cámara"), Movimiento->MiraHaciaCamara());
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoGiro); ++Indice)
+	{
+		MundoPrueba.Paso();
+	}
+	TestEqual(TEXT("Mira hacia donde mira la cámara"), static_cast<float>(Personaje->GetActorRotation().Yaw), GuinadaCamara, ToleranciaGrados);
+
+	// Moverse hacia atrás (respecto a la cámara) y hacer dash atrás no gira el cuerpo.
+	const FVector Atras = -FRotator(0.f, GuinadaCamara, 0.f).Vector();
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoGiro); ++Indice)
+	{
+		Personaje->AddMovementInput(Atras, 1.f);
+		MundoPrueba.Paso();
+	}
+	TestTrue(TEXT("Se mueve hacia atrás"), FVector::DotProduct(Movimiento->Velocity.GetSafeNormal2D(), Atras) > 0.9f);
+	TestEqual(TEXT("Andando hacia atrás sigue mirando a la cámara"), static_cast<float>(Personaje->GetActorRotation().Yaw), GuinadaCamara, ToleranciaGrados);
+	Personaje->PedirDashHacia(Atras);
+	MundoPrueba.Paso();
+	TestTrue(TEXT("Dash atrás"), Movimiento->EstaEnDash());
+	TestEqual(TEXT("El dash atrás no gira el cuerpo"), static_cast<float>(Personaje->GetActorRotation().Yaw), GuinadaCamara, ToleranciaGrados);
+	Controlador->UnPossess();
 	return true;
 }
 

@@ -56,6 +56,17 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "cm"))
 	float BotePaso = 4.f;
 
+	/**
+	 * GunZ: el cuerpo mira a la cámara y corre en ocho direcciones. Las piernas oscilan en la
+	 * dirección del paso; de lado, la cadera gira hacia él estos grados y el pecho lo compensa.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float GiroCaderaLateral = 35.f;
+
+	/** Corriendo hacia atrás, fracción de la inclinación de carrera (el cuerpo se echa atrás). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ClampMin = "0", ClampMax = "1"))
+	float FraccionInclinacionAtras = 0.5f;
+
 	/** Respiración en reposo: grados y ciclos por segundo. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo")
 	float AmplitudRespiracion = 2.5f;
@@ -66,8 +77,23 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
 	float InclinacionDash = 38.f;
 
+	/** Dash a los lados o hacia atrás (GunZ): voltereta recogida de estos grados en la dirección del dash (0 = sin voltereta). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "deg"))
+	float GradosVolteretaDash = 360.f;
+
+	/** Desde este producto escalar con el frente (1 = recto delante) el dash es frontal: estocada en vez de voltereta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "-1", ClampMax = "1"))
+	float UmbralDashFrontal = 0.6f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes")
 	float InclinacionCarreraPared = 22.f;
+
+	/** Giro del cuerpo sobre sí mismo al saltar desde una pared (0 = sin giro), y su duración. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes", meta = (ClampMin = "0", ForceUnits = "deg"))
+	float GradosGiroSaltoPared = 360.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes", meta = (ClampMin = "0.05", ForceUnits = "s"))
+	float DuracionGiroSaltoPared = 0.4f;
 
 	/** Recogida de piernas del doble salto: duración y grados extra de muslo y rodilla en el pico. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ForceUnits = "s"))
@@ -94,6 +120,10 @@ struct FSAEVUSAjusteAnimacion
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aterrizaje")
 	float FlexionAterrizaje = 45.f;
+
+	/** Velocidad de caída con la que la flexión del aterrizaje es completa: las caídas cortas flexionan menos y las largas, más. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aterrizaje", meta = (ClampMin = "1", ForceUnits = "cm/s"))
+	float VelocidadCaidaAterrizaje = 900.f;
 
 	/** Retroceso del brazo al disparar (grados) y su recuperación (1/s). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas")
@@ -233,6 +263,10 @@ private:
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
 
 	void AlSaltoAereo();
+	void AlSaltoPared();
+
+	/** Dirección horizontal del mundo pasada al espacio de la malla (unitaria); al frente si es nula. */
+	FVector DireccionMalla(const FVector& DireccionMundo) const;
 
 	UFUNCTION()
 	void AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
@@ -274,4 +308,8 @@ private:
 	float TiempoRecogidaSaltoAereo = 0.f;
 	float TiempoReaccionGolpe = 0.f;
 	bool bEstabaEnAire = false;
+	float TiempoGiroSaltoPared = 0.f;
+	float VelocidadVerticalAire = 0.f;
+	/** Intensidad del último aterrizaje (según la velocidad de caída). */
+	float FuerzaAterrizaje = 1.f;
 };

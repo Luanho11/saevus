@@ -37,6 +37,13 @@ namespace SAEVUSAnimacion
 	constexpr float VelocidadCaidaCapaReferencia = 1000.f;
 	// Duración del desplome al morir.
 	constexpr float DuracionDesplome = 0.5f;
+	// Por debajo de este producto con el frente, el paso va hacia atrás (la cadera gira al revés).
+	constexpr float FrenteAtras = -0.2f;
+	// Límites de la intensidad del aterrizaje (fracción de FlexionAterrizaje).
+	constexpr float FuerzaAterrizajeMinima = 0.35f;
+	constexpr float FuerzaAterrizajeMaxima = 1.3f;
+	// Bajada del cuerpo durante la voltereta del dash.
+	constexpr float BajadaVoltereta = 22.f;
 
 	struct FDefinicionHueso
 	{
@@ -197,6 +204,7 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	if (Movimiento)
 	{
 		Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo);
+		Movimiento->AlSaltoPared.AddUObject(this, &ThisClass::AlSaltoPared);
 	}
 	if (Vida)
 	{
@@ -281,7 +289,7 @@ void USAEVUSComponenteAnimacionProcedural::Actualizar(float DeltaTime)
 	ConstruirPoseObjetivo(Pose, DeltaTime);
 	FQuat Objetivo[NumHuesos];
 	ResolverObjetivo(Pose, Objetivo);
-	const bool bAccion = (Combate && Combate->EstaAtacando()) || (Movimiento && Movimiento->EstaEnDash());
+	const bool bAccion = (Combate && Combate->EstaAtacando()) || (Movimiento && Movimiento->EstaEnDash()) || TiempoGiroSaltoPared > 0.f;
 	SuavizarYAplicar(Pose, Objetivo, DeltaTime, bAccion);
 }
 
@@ -304,14 +312,21 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	}
 	TiempoMuerto = 0.f;
 
-	// Aterrizaje: flexión breve al pasar del aire al suelo.
+	// Aterrizaje: flexión breve al pasar del aire al suelo, más honda cuanto más rápida la caída.
 	const bool bEnAire = Movimiento->IsFalling();
 	if (bEstabaEnAire && Movimiento->IsMovingOnGround())
 	{
 		TiempoAterrizaje = Ajuste.DuracionAterrizaje;
+		FuerzaAterrizaje = FMath::Clamp(-VelocidadVerticalAire / Ajuste.VelocidadCaidaAterrizaje, FuerzaAterrizajeMinima, FuerzaAterrizajeMaxima);
+		TiempoGiroSaltoPared = 0.f;
+	}
+	if (bEnAire)
+	{
+		VelocidadVerticalAire = VelocidadVertical;
 	}
 	bEstabaEnAire = bEnAire;
 	TiempoAterrizaje = FMath::Max(0.f, TiempoAterrizaje - DeltaTime);
+	TiempoGiroSaltoPared = FMath::Max(0.f, TiempoGiroSaltoPared - DeltaTime);
 	TiempoRecogidaSaltoAereo = FMath::Max(0.f, TiempoRecogidaSaltoAereo - DeltaTime);
 	TiempoReaccionGolpe = FMath::Max(0.f, TiempoReaccionGolpe - DeltaTime);
 
@@ -388,9 +403,20 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 	const float Seno = FMath::Sin(FaseCiclo);
 	const float Coseno = FMath::Cos(FaseCiclo);
 
+	// GunZ: el cuerpo mira a la cámara y se mueve en ocho direcciones. Las piernas oscilan en la
+	// dirección del paso; de lado, la cadera gira hacia él (al revés si va hacia atrás) y la columna
+	// lo compensa, así el pecho sigue de frente. Hacia atrás, el cuerpo se echa algo atrás.
+	const FVector Paso = DireccionMalla(Movimiento->Velocity);
+	const float Frente = static_cast<float>(FVector::DotProduct(Paso, Adelante));
+	const float Lado = static_cast<float>(FVector::DotProduct(Paso, Derecha));
+	const float GiroCadera = Ajuste.GiroCaderaLateral * Lado * (Frente < FrenteAtras ? -1.f : 1.f) * FMath::Min(1.f, Amplitud);
+	const float FactorInclinacion = Frente < 0.f ? FMath::Lerp(1.f, Ajuste.FraccionInclinacionAtras, -Frente) : 1.f;
+	const float Inclinacion = Ajuste.InclinacionCarrera * Amplitud * 0.5f * FactorInclinacion;
+	Pose.Huesos[Indice(ESAEVUSHueso::Pelvis)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, GiroCadera) };
+
 	auto Pierna = [&](ESAEVUSHueso Muslo, ESAEVUSHueso PiernaHueso, float Signo)
 	{
-		Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Adelante, Ajuste.GiroMuslo * Amplitud * Signo * Seno) };
+		Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Paso, Ajuste.GiroMuslo * Amplitud * Signo * Seno) };
 		// La rodilla se dobla sobre todo cuando la pierna va hacia delante en el aire.
 		const float Flexion = Ajuste.FlexionRodilla * Amplitud * FMath::Max(0.f, Signo * Coseno) + 8.f * Amplitud;
 		Pose.Huesos[Indice(PiernaHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Flexion) };
@@ -410,15 +436,15 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 
 	// Tronco: inclinación con la velocidad, giro de hombros y respiración en reposo.
 	const float Respiracion = Ajuste.AmplitudRespiracion * FMath::Sin(TiempoTotal * Ajuste.FrecuenciaRespiracion * UE_TWO_PI) * (1.f - FMath::Min(1.f, Amplitud));
-	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionCarrera * Amplitud * 0.5f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, -GiroCadera) * Girar(Arriba, Paso, Inclinacion) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector,
-		Girar(Adelante, Derecha, 6.f * Amplitud * Seno) * Girar(Arriba, Adelante, Ajuste.InclinacionCarrera * Amplitud * 0.5f + Respiracion) };
+		Girar(Adelante, Derecha, 6.f * Amplitud * Seno) * Girar(Arriba, Paso, Inclinacion) * Girar(Arriba, Adelante, Respiracion) };
 	Pose.DesplazamientoRaiz.Z = Ajuste.BotePaso * Amplitud * FMath::Abs(Seno);
 
 	// Flexión de aterrizaje.
 	if (TiempoAterrizaje > 0.f)
 	{
-		const float Fraccion = TiempoAterrizaje / FMath::Max(Ajuste.DuracionAterrizaje, UE_KINDA_SMALL_NUMBER);
+		const float Fraccion = FuerzaAterrizaje * TiempoAterrizaje / FMath::Max(Ajuste.DuracionAterrizaje, UE_KINDA_SMALL_NUMBER);
 		for (const ESAEVUSHueso Muslo : { ESAEVUSHueso::MusloD, ESAEVUSHueso::MusloI })
 		{
 			Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Adelante, Ajuste.FlexionAterrizaje * 0.6f * Fraccion) };
@@ -451,12 +477,47 @@ void USAEVUSComponenteAnimacionProcedural::PoseAire(FPose& Pose, float Velocidad
 	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Derecha * 0.8f + Arriba * AlturaBrazos + Adelante * 0.2f).GetSafeNormal() };
 	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Derecha * 0.8f + Arriba * AlturaBrazos + Adelante * 0.2f).GetSafeNormal() };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, FMath::Lerp(-6.f, 8.f, Subida)) };
+
+	// Salto de pared: una vuelta sobre sí mismo que acaba otra vez de frente a la cámara.
+	if (TiempoGiroSaltoPared > 0.f && Ajuste.GradosGiroSaltoPared > 0.f)
+	{
+		const float U = 1.f - TiempoGiroSaltoPared / FMath::Max(Ajuste.DuracionGiroSaltoPared, UE_KINDA_SMALL_NUMBER);
+		Pose.Huesos[Indice(ESAEVUSHueso::Raiz)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, Ajuste.GradosGiroSaltoPared * SuavizarCurva(U)) };
+	}
 }
 
 void USAEVUSComponenteAnimacionProcedural::PoseDash(FPose& Pose)
 {
 	using namespace SAEVUSAnimacion;
-	// Cuerpo lanzado hacia delante, piernas en zancada, brazos atrás; la cabeza mira al frente.
+	const FVector Direccion = DireccionMalla(Movimiento->ObtenerDireccionDash());
+	if (Ajuste.GradosVolteretaDash > 0.f && FVector::DotProduct(Direccion, Adelante) < Ajuste.UmbralDashFrontal)
+	{
+		// A los lados o hacia atrás (GunZ): voltereta recogida sobre la pelvis en la dirección del dash.
+		// Los miembros van en giros locales para rodar con el cuerpo.
+		const float Vuelta = Ajuste.GradosVolteretaDash * SuavizarCurva(Movimiento->ObtenerFraccionDash());
+		Pose.Huesos[Indice(ESAEVUSHueso::Pelvis)] = { false, FVector::ZeroVector, Girar(Arriba, Direccion, Vuelta) };
+		Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 25.f) };
+		Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 20.f) };
+		for (const ESAEVUSHueso Muslo : { ESAEVUSHueso::MusloD, ESAEVUSHueso::MusloI })
+		{
+			Pose.Huesos[Indice(Muslo)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 80.f) };
+		}
+		for (const ESAEVUSHueso PiernaHueso : { ESAEVUSHueso::PiernaD, ESAEVUSHueso::PiernaI })
+		{
+			Pose.Huesos[Indice(PiernaHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 110.f) };
+		}
+		for (const ESAEVUSHueso BrazoHueso : { ESAEVUSHueso::BrazoD, ESAEVUSHueso::BrazoI })
+		{
+			Pose.Huesos[Indice(BrazoHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 55.f) };
+		}
+		for (const ESAEVUSHueso Antebrazo : { ESAEVUSHueso::AntebrazoD, ESAEVUSHueso::AntebrazoI })
+		{
+			Pose.Huesos[Indice(Antebrazo)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 70.f) };
+		}
+		Pose.DesplazamientoRaiz.Z = -BajadaVoltereta;
+		return;
+	}
+	// Hacia delante: cuerpo lanzado, piernas en zancada, brazos atrás; la cabeza mira al frente.
 	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Ajuste.InclinacionDash * 0.6f) };
@@ -741,6 +802,23 @@ bool USAEVUSComponenteAnimacionProcedural::ObtenerHoja(FVector& OutBase, FVector
 void USAEVUSComponenteAnimacionProcedural::AlSaltoAereo()
 {
 	TiempoRecogidaSaltoAereo = Ajuste.DuracionRecogidaSaltoAereo;
+}
+
+void USAEVUSComponenteAnimacionProcedural::AlSaltoPared()
+{
+	TiempoGiroSaltoPared = Ajuste.DuracionGiroSaltoPared;
+}
+
+FVector USAEVUSComponenteAnimacionProcedural::DireccionMalla(const FVector& DireccionMundo) const
+{
+	using namespace SAEVUSAnimacion;
+	if (!Malla)
+	{
+		return Adelante;
+	}
+	const FVector Local = Malla->GetComponentTransform().InverseTransformVectorNoScale(DireccionMundo);
+	const FVector Horizontal = FVector(Local.X, Local.Y, 0.f).GetSafeNormal();
+	return Horizontal.IsNearlyZero() ? Adelante : Horizontal;
 }
 
 void USAEVUSComponenteAnimacionProcedural::AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado)

@@ -135,6 +135,10 @@ bool USAEVUSComponenteMovimiento::IntentarSaltoPared()
 		SetMovementMode(MOVE_Falling);
 	}
 	ImpulsarDesdePared(NormalEmpuje);
+	if (!CharacterOwner->bClientUpdating)
+	{
+		AlSaltoPared.Broadcast();
+	}
 	return true;
 }
 
@@ -166,7 +170,7 @@ void USAEVUSComponenteMovimiento::ImpulsarDesdePared(const FVector& NormalEmpuje
 
 	if (Ajuste.bGirarHaciaSalto)
 	{
-		MoveUpdatedComponent(FVector::ZeroVector, Velocity.GetSafeNormal2D().ToOrientationQuat(), /*bSweep*/ false);
+		MoveUpdatedComponent(FVector::ZeroVector, OrientacionCuerpo(Velocity.GetSafeNormal2D()), /*bSweep*/ false);
 	}
 }
 
@@ -272,7 +276,7 @@ bool USAEVUSComponenteMovimiento::IntentarIniciarCarreraPared()
 		DashesAereosUsados = 0;
 	}
 	SetMovementMode(MOVE_Custom, static_cast<uint8>(ESAEVUSModoMovimientoPersonalizado::CarreraPared));
-	MoveUpdatedComponent(FVector::ZeroVector, DireccionCarreraPared.ToOrientationQuat(), /*bSweep*/ false);
+	MoveUpdatedComponent(FVector::ZeroVector, OrientacionCuerpo(DireccionCarreraPared), /*bSweep*/ false);
 	return true;
 }
 
@@ -311,7 +315,7 @@ void USAEVUSComponenteMovimiento::FisicaCarreraPared(float DeltaTime, int32 Iter
 	Velocity = DireccionCarreraPared * Ajuste.Velocidad;
 	Velocity.Z = VelocidadVertical;
 
-	const FVector Movido = MoverJuntoAPared(DeltaTime, Iteraciones, GolpePared, DireccionCarreraPared.ToOrientationQuat());
+	const FVector Movido = MoverJuntoAPared(DeltaTime, Iteraciones, GolpePared, OrientacionCuerpo(DireccionCarreraPared));
 	if (!EstaEnCarreraPared())
 	{
 		return; // aterrizó durante el movimiento
@@ -378,7 +382,7 @@ bool USAEVUSComponenteMovimiento::IntentarIniciarEscalada()
 	}
 	Velocity = FVector(0.f, 0.f, Ajuste.Velocidad);
 	SetMovementMode(MOVE_Custom, static_cast<uint8>(ESAEVUSModoMovimientoPersonalizado::EscaladaPared));
-	MoveUpdatedComponent(FVector::ZeroVector, HaciaPared.ToOrientationQuat(), /*bSweep*/ false);
+	MoveUpdatedComponent(FVector::ZeroVector, OrientacionCuerpo(HaciaPared), /*bSweep*/ false);
 	return true;
 }
 
@@ -397,7 +401,7 @@ void USAEVUSComponenteMovimiento::FisicaEscalada(float DeltaTime, int32 Iteracio
 		// Sin tiempo: voltereta lejos de la pared.
 		Velocity = NormalPared * Ajuste.VelocidadVolteretaAlejarse;
 		Velocity.Z = Ajuste.VelocidadVolteretaSubida;
-		MoveUpdatedComponent(FVector::ZeroVector, NormalPared.ToOrientationQuat(), /*bSweep*/ false);
+		MoveUpdatedComponent(FVector::ZeroVector, OrientacionCuerpo(NormalPared), /*bSweep*/ false);
 		SoltarPared(DeltaTime, Iteraciones);
 		return;
 	}
@@ -420,7 +424,7 @@ void USAEVUSComponenteMovimiento::FisicaEscalada(float DeltaTime, int32 Iteracio
 	}
 
 	Velocity = FVector(0.f, 0.f, Ajuste.Velocidad);
-	const FVector Movido = MoverJuntoAPared(DeltaTime, Iteraciones, GolpePared, (-NormalPared).ToOrientationQuat());
+	const FVector Movido = MoverJuntoAPared(DeltaTime, Iteraciones, GolpePared, OrientacionCuerpo(-NormalPared));
 	if (EstaEscalando() && Movido.Z < Ajuste.Velocidad * DeltaTime * FraccionAvanceBloqueado)
 	{
 		// Algo por encima detiene la escalada.

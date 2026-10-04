@@ -26,7 +26,9 @@ Todos los valores viven en `Source/SAEVUS/Movimiento/SAEVUSAjustesMovimiento.h`.
 | AceleracionMaxima | 2400 cm/s² | |
 | DeceleracionFrenado | 2000 cm/s² | sin entrada en el suelo |
 | FriccionSuelo | 8 | sequedad del cambio de dirección |
-| VelocidadGiro | 720 grados/s | orientarse al movimiento |
+| VelocidadGiro | 720 grados/s | orientarse al movimiento (sin `bMirarHaciaCamara`) |
+| bMirarHaciaCamara | cierto | GunZ: el cuerpo sigue a la cámara (ver "Orientación") |
+| VelocidadGiroCamara | 2000 grados/s | rapidez con la que el cuerpo sigue a la cámara |
 | VelocidadSalto | 700 cm/s | cima = v² / 2g = 700² / (2 × 980 × 1,75) ≈ 143 cm |
 | TiempoMaximoMantenerSalto | 0 s | salto de altura fija |
 | EscalaGravedad | 1,75 | arco más pesado y seco que el 1,0 del motor |
@@ -166,7 +168,15 @@ Límite conocido: el paso en el aire y los temporizadores coyote/buffer son esta
 ## Preguntas abiertas
 
 - ~~Esprint en el aire~~ — decidido: se bloquea el paso del despegue (`bBloquearPasoEnAire`, desactivable).
-- **Dirección del esprint:** con orientarse al movimiento el cuerpo siempre mira hacia donde corre; revisar si llega un modo de apuntado.
+- **Dirección del esprint:** con `bMirarHaciaCamara` el cuerpo mira a la cámara también al esprintar; las piernas corren en la dirección del paso (`animacion.md`).
+
+## Orientación (GunZ, tarea 67)
+
+La cámara nunca se mueve de la vista en tercera persona desde atrás y el cuerpo **mira siempre hacia donde mira la cámara**; se mueve en ocho direcciones sin girarse (andar hacia atrás es andar de espaldas, no darse la vuelta).
+- `FSAEVUSAjusteMovimientoSuelo::bMirarHaciaCamara` (cierto): `AplicarAjustes` usa `bUseControllerDesiredRotation` a `VelocidadGiroCamara` en vez de `bOrientRotationToMovement`.
+- `MiraHaciaCamara()`: cierto con esa opción **y** un controlador. Entonces `GirarHacia` no hace nada y `OrientacionCuerpo(Direccion)` devuelve la orientación actual: el dash (también hacia atrás), el salto de pared, la carrera por pared, la escalada y los tajos no giran el cuerpo. Los tajos salen de frente (hacia la cámara).
+- Sin controlador (tests de física, IA) se conserva el comportamiento anterior: las acciones giran el cuerpo, así los tests de giros siguen midiendo lo mismo.
+- Test `SAEVUS.Movimiento.MirarHaciaCamara`: con controlador el cuerpo sigue la guiñada de la cámara, andar hacia atrás no lo gira y el dash hacia atrás tampoco.
 - **Recuperación al aterrizar:** pendiente de las animaciones.
 
 ## Tests

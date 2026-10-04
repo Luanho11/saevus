@@ -248,7 +248,9 @@ void USAEVUSComponenteCombate::IniciarTajoEnCarrera(bool bEnAire, const FVector&
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	bTajoEnCarrera = true;
 	bAtaqueCargado = false;
-	const FVector Direccion = DireccionDash.GetSafeNormal2D();
+	// Siguiendo a la cámara, el tajo en carrera también sale de frente.
+	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
+	const FVector Direccion = Movimiento && Movimiento->MiraHaciaCamara() ? FVector::ZeroVector : DireccionDash.GetSafeNormal2D();
 	PrepararAtaque(ObtenerRepertorio().TajoEnCarrera, Direccion.IsNearlyZero() ? nullptr : &Direccion);
 }
 
@@ -276,8 +278,9 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 	bImpactoAplicado = false;
 	ActoresGolpeados.Reset();
 
-	// Ataca hacia la entrada de movimiento si la hay; si no, de frente.
-	const FVector DireccionEntrada = Movimiento->GetCurrentAcceleration().GetSafeNormal2D();
+	// Ataca hacia la entrada de movimiento si la hay; si no, de frente. Siguiendo a la cámara (GunZ),
+	// siempre de frente: hacia donde se mira.
+	const FVector DireccionEntrada = Movimiento->MiraHaciaCamara() ? FVector::ZeroVector : Movimiento->GetCurrentAcceleration().GetSafeNormal2D();
 	const FVector Direccion = DireccionForzada ? *DireccionForzada
 		: (DireccionEntrada.IsNearlyZero() ? GetOwner()->GetActorForwardVector().GetSafeNormal2D() : DireccionEntrada);
 

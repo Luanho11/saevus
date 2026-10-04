@@ -75,8 +75,17 @@ public:
 	/** Se emite al hacer un doble salto (no en las repeticiones de corrección del cliente). */
 	FSAEVUSEventoSaltoAereo AlSaltoAereo;
 
+	/** Se emite al saltar desde una pared (no en las repeticiones de corrección del cliente). */
+	FSAEVUSEventoSaltoAereo AlSaltoPared;
+
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnDash() const { return TiempoDashRestante > 0.f; }
+
+	/** Avance del dash en curso: 0 al empezar, 1 al terminar (1 fuera de un dash). */
+	float ObtenerFraccionDash() const
+	{
+		return EstaEnDash() && DuracionDashActual > 0.f ? FMath::Clamp(1.f - TiempoDashRestante / DuracionDashActual, 0.f, 1.f) : 1.f;
+	}
 
 	/** Termina el dash antes de tiempo, con la salida normal (límite de velocidad, enfriamiento). */
 	void CancelarDash();
@@ -98,6 +107,12 @@ public:
 
 	/** Gira el cuerpo de golpe hacia Direccion (horizontal). */
 	void GirarHacia(const FVector& Direccion);
+
+	/** Cierto si el cuerpo sigue a la cámara (bMirarHaciaCamara con controlador): las acciones no lo giran. */
+	bool MiraHaciaCamara() const;
+
+	/** Orientación del cuerpo para una acción hacia Direccion: la de ahora si mira a la cámara. */
+	FQuat OrientacionCuerpo(const FVector& Direccion) const;
 
 	/** Dashes aéreos que quedan antes de aterrizar. */
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
@@ -235,6 +250,8 @@ private:
 	// Estado del dash. Lo guarda y restaura FSAEVUSMovimientoGuardado para que las repeticiones tras una corrección coincidan.
 	FVector DireccionDash = FVector::ForwardVector;
 	float TiempoDashRestante = 0.f;
+	/** Duración del dash en curso (solo para la animación; no viaja en los movimientos guardados). */
+	float DuracionDashActual = 0.f;
 	float EnfriamientoDashRestante = 0.f;
 	int32 DashesAereosUsados = 0;
 	int32 SaltosParedUsados = 0;
