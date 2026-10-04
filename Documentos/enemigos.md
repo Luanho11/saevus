@@ -28,6 +28,7 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
   - `Embestida`: carrera recta a `Velocidad` durante `Duracion`.
   - `Salto`: lanzamiento en arco (`Velocidad` horizontal, `VelocidadVertical`); termina al aterrizar.
   - `Golpe`: esfera de `RadioGolpe` a `AlcanceGolpe` delante.
+  - `Proyectil`: lanza un `ASAEVUSProyectil` hacia el objetivo a `Velocidad`, y se queda quieto `Duracion`.
 - **Recuperarse:** `TiempoRecuperacion` sin actuar: la ventana de castigo.
 - **Aturdido:** cada golpe recibido corta lo que hace durante `TiempoAturdido` (los jefes no se aturden).
 - **Contacto:** tocar al enemigo quita `DanioContacto`; durante una embestida o un salto, el daño del ataque. La invulnerabilidad del jugador (1 s tras un golpe, inicio del dash) evita el daño continuo.
@@ -42,9 +43,14 @@ Reposo ──ve al objetivo──▶ Perseguir ──ataque a distancia──▶
 |---|---|---|---|---|---|---|
 | Rastrero | 30 | 40 × 40 | 280 | 900 | 10 | Embestida 0–450 cm: aviso 0,55 s, 0,4 s a 950 cm/s, 15 de daño, recuperación 0,8 s |
 | Saltador | 25 | 35 × 50 | 220 | 1100 | 10 | Salto 150–700 cm: aviso 0,45 s, 500 + 750 cm/s, 15 de daño, recuperación 0,7 s |
+| Escupidor | 20 | 38 × 55 | 200 | 1300 | 10 | Escupitajo 400–1200 cm: aviso 0,6 s, proyectil a 900 cm/s, 15 de daño, recuperación 1,1 s; retrocede si el jugador está a menos de 4 m |
 | Guardián (jefe) | 250 | 90 × 120 | 260 | 1500 | 15 | Golpe 0–260 cm (25), Embestida 300–1200 cm a 1300 cm/s (25), Salto 200–900 cm (30, solo fase 2) |
 
 El Guardián apenas se mueve con los golpes (`EscalaEmpujeRecibido` 0,15) y tarda 1,5 s en deshacerse al morir.
+
+## Proyectiles
+
+`ASAEVUSProyectil` (`Enemigos/`): esfera brillante que vuela recto (barrido en su tick, sin físicas), se deshace contra el escenario y hace daño al jugador al tocarlo, con el proyectil como causante: **la guardia lo para** si llega de frente (y cuenta para el contraataque). **Un tajo lo devuelve:** invierte su dirección hacia el lanzador, va 1,6 veces más rápido y entonces solo daña a enemigos. No da alma. Los enemigos con `DistanciaRetirada` retroceden si el jugador se les echa encima, en vez de acercarse.
 
 ## Golpes
 
@@ -66,12 +72,13 @@ Al morir: sin colisión ni movimiento, ráfaga de partículas, se encoge durante
 - `Muerte`: estado, aviso único, vida limitada, sin colisión, sin daño de contacto.
 - `FasesJefe`: cambio de fase al 50 %, el jefe no se aturde, velocidad de fase.
 - `Salto`: despega hacia el jugador y se recupera al aterrizar.
+- `Proyectil`: el escupidor dispara y el proyectil alcanza al jugador. Además `SAEVUS.Guardia.BloqueaProyectil` y `SAEVUS.Combate.DevolverProyectil`.
 
 La prueba de humo lleva al jugador junto al primer enemigo del mapa y comprueba que reacciona (captura `SAEVUS_PruebaHumo_Enemigos.png`). En `L_Pruebas` hay una zona de enemigos en Y ≈ −4300 (rastrero, saltador y Guardián), lejos de la ruta de la prueba.
 
 ## Pendiente
 
 - Navegación (navmesh) si los mapas dejan de ser arenas.
-- Más tipos (voladores, a distancia), proyectiles y peligros (pinchos con rebote).
+- Voladores; proyectiles en arco y en abanico.
 - Barra de vida del jefe (tarea de interfaz) y música/sonido.
 - Red: la IA corre solo en el servidor; el aspecto se derivará del estado replicado.

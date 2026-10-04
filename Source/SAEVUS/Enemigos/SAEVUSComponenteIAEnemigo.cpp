@@ -4,6 +4,7 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Enemigos/SAEVUSEnemigo.h"
+#include "Enemigos/SAEVUSProyectil.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/DamageType.h"
@@ -250,7 +251,9 @@ void USAEVUSComponenteIAEnemigo::ActualizarPerseguir()
 		CambiarEstado(ESAEVUSEstadoEnemigo::Telegrafiar);
 		return;
 	}
-	MoverHacia(DireccionObjetivo(), 1.f);
+	// Los de distancia retroceden si el objetivo se les echa encima.
+	const bool bRetirarse = Distancia < ObtenerAjuste().DistanciaRetirada;
+	MoverHacia(bRetirarse ? -DireccionObjetivo() : DireccionObjetivo(), 1.f);
 }
 
 void USAEVUSComponenteIAEnemigo::ActualizarTelegrafiar()
@@ -278,6 +281,10 @@ void USAEVUSComponenteIAEnemigo::EmpezarAtaque()
 	bGolpeAplicado = false;
 	bDejoSuelo = false;
 	CambiarEstado(ESAEVUSEstadoEnemigo::Atacar);
+	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Proyectil)
+	{
+		LanzarProyectil(*Ataque);
+	}
 	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Salto)
 	{
 		const float Escala = ObtenerFaseActual().EscalaVelocidad;
@@ -318,6 +325,9 @@ void USAEVUSComponenteIAEnemigo::ActualizarAtacar()
 		bDejoSuelo |= Movimiento->IsFalling();
 		bTermino |= bDejoSuelo && Movimiento->IsMovingOnGround();
 		break;
+	case ESAEVUSTipoAtaqueEnemigo::Proyectil:
+		// Lanzado al empezar; queda quieto la duración del ataque.
+		break;
 	case ESAEVUSTipoAtaqueEnemigo::Golpe:
 		if (!bGolpeAplicado)
 		{
@@ -334,6 +344,22 @@ void USAEVUSComponenteIAEnemigo::ActualizarAtacar()
 	if (bTermino)
 	{
 		CambiarEstado(ESAEVUSEstadoEnemigo::Recuperarse);
+	}
+}
+
+void USAEVUSComponenteIAEnemigo::LanzarProyectil(const FSAEVUSAtaqueEnemigo& Ataque)
+{
+	ASAEVUSEnemigo* Enemigo = ObtenerEnemigo();
+	const APawn* Pawn = ObtenerObjetivo();
+	// Sale de delante del cuerpo, a la altura de la máscara, apuntando al centro del objetivo.
+	const FVector Boca = Enemigo->GetActorLocation() + DireccionAtaque * (Enemigo->ObtenerAjuste().RadioCapsula + Ataque.AlcanceGolpe * 0.25f);
+	const FVector Destino = Pawn ? Pawn->GetActorLocation() : Boca + DireccionAtaque;
+	FActorSpawnParameters Parametros;
+	Parametros.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Parametros.Owner = Enemigo;
+	if (ASAEVUSProyectil* Proyectil = GetWorld()->SpawnActor<ASAEVUSProyectil>(Boca, FRotator::ZeroRotator, Parametros))
+	{
+		Proyectil->Lanzar(Destino - Boca, Ataque.Velocidad * ObtenerFaseActual().EscalaVelocidad, Ataque.Danio, Enemigo, Enemigo->ObtenerMaterialProyectil());
 	}
 }
 

@@ -69,6 +69,7 @@ private:
 	void ActualizarTelegrafiar();
 	void ActualizarAtacar();
 	void EmpezarAtaque();
+	void LanzarProyectil(const FSAEVUSAtaqueEnemigo& Ataque);
 	/** Elige el siguiente ataque válido a esta distancia (en rotación); falso si no hay. */
 	bool ElegirAtaque(float Distancia);
 	void ComprobarContacto();

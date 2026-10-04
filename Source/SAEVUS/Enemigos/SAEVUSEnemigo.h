@@ -41,6 +41,9 @@ public:
 	USAEVUSComponenteVida* ObtenerVida() const { return Vida; }
 	USAEVUSComponenteIAEnemigo* ObtenerIA() const { return IA; }
 
+	/** Material de sus proyectiles (el de la máscara: brilla igual). */
+	UMaterialInterface* ObtenerMaterialProyectil() const;
+
 	/** Se emite al morir cualquier enemigo (puertas del tutorial, recuentos). */
 	static FSAEVUSEventoEnemigo AlMorirEnemigo;
 

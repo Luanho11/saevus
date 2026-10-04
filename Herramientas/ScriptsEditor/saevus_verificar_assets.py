@@ -39,6 +39,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Arte/Estilo/M_PP_Contorno",
     "/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Rastrero",
     "/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Saltador",
+    "/Game/SAEVUS/Datos/Enemigos/DA_Enemigo_Escupidor",
     "/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian",
 )
 

@@ -34,7 +34,9 @@ enum class ESAEVUSTipoAtaqueEnemigo : uint8
 	/** Salto en arco hacia el objetivo. */
 	Salto,
 	/** Golpe en una esfera delante del enemigo. */
-	Golpe
+	Golpe,
+	/** Lanza un proyectil hacia el objetivo (ASAEVUSProyectil): se bloquea con la guardia y se devuelve con un tajo. */
+	Proyectil
 };
 
 /** Un ataque de enemigo. Tiempos en segundos; se escalan con la fase. */
@@ -69,7 +71,7 @@ struct FSAEVUSAtaqueEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0"))
 	float Danio = 20.f;
 
-	/** Embestida: velocidad de la carrera. Salto: velocidad horizontal del salto. */
+	/** Embestida: velocidad de la carrera. Salto: velocidad horizontal del salto. Proyectil: su velocidad. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float Velocidad = 1000.f;
 
@@ -151,6 +153,13 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sentidos", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float RadioPerdida = 1800.f;
+
+	/**
+	 * Enemigos a distancia: sin ataque posible y con el objetivo más cerca que esto, se alejan en
+	 * vez de acercarse. 0 = nunca retroceden.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DistanciaRetirada = 0.f;
 
 	/** Patrulla de ida y vuelta alrededor del origen. 0 = quieto. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))

@@ -485,6 +485,16 @@ ENEMIGOS = {
              "velocidad": 500.0, "velocidad_vertical": 750.0},
         ],
     },
+    "DA_Enemigo_Escupidor": {
+        "nombre_visible": "Escupidor", "vida_maxima": 20.0, "radio_capsula": 38.0, "media_altura_capsula": 55.0,
+        "color_cuerpo": (0.05, 0.03, 0.06), "color_mascara": (0.7, 0.4, 0.95),
+        "velocidad_movimiento": 200.0, "radio_deteccion": 1300.0, "radio_perdida": 2200.0, "radio_patrulla": 120.0,
+        "danio_contacto": 10.0, "distancia_retirada": 400.0,
+        "ataques": [
+            {"nombre": "Escupitajo", "tipo": "PROYECTIL", "distancia_minima": 400.0, "distancia_maxima": 1200.0,
+             "tiempo_telegrafiar": 0.6, "duracion": 0.3, "tiempo_recuperacion": 1.1, "danio": 15.0, "velocidad": 900.0},
+        ],
+    },
     "DA_Jefe_Guardian": {
         "nombre_visible": "Guardián", "vida_maxima": 250.0, "es_jefe": True, "radio_capsula": 90.0, "media_altura_capsula": 120.0,
         "color_cuerpo": (0.06, 0.05, 0.07), "color_mascara": (1.0, 0.55, 0.15),
@@ -707,7 +717,7 @@ AVISOS_TUTORIAL = [
     (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
-    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan.\nEsquiva con dash y castiga cuando se recuperan. Derrótalos para abrir la puerta."),
+    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo."),
     (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
     (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
 ]
@@ -900,6 +910,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
         crear_enemigo(actores, "S7_Rastrero1", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16100, -400, 0)),
         crear_enemigo(actores, "S7_Rastrero2", datos_enemigos["DA_Enemigo_Rastrero"], unreal.Vector(16400, 400, 0)),
         crear_enemigo(actores, "S7_Saltador", datos_enemigos["DA_Enemigo_Saltador"], unreal.Vector(16900, 0, 0)),
+        crear_enemigo(actores, "S7_Escupidor", datos_enemigos["DA_Enemigo_Escupidor"], unreal.Vector(17200, 600, 0)),
     ]
     crear_puerta(actores, "S7_Puerta", 17500, 600, 400, enemigos_arena, materiales["Puerta"],
                  "Puerta abierta", "Sigue adelante.")

@@ -96,6 +96,11 @@ void ASAEVUSEnemigo::FijarDatos(const USAEVUSDatosEnemigo* NuevosDatos)
 	CrearMateriales();
 }
 
+UMaterialInterface* ASAEVUSEnemigo::ObtenerMaterialProyectil() const
+{
+	return MaterialMascara;
+}
+
 void ASAEVUSEnemigo::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);

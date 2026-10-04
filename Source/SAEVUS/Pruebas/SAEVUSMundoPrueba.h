@@ -15,6 +15,7 @@
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
+#include "Enemigos/SAEVUSProyectil.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/Engine.h"
@@ -201,6 +202,19 @@ namespace SAEVUSPruebas
 			if (EfectosSimulados)
 			{
 				EfectosSimulados->TickComponent(PasoSimulacion, LEVELTICK_All, &EfectosSimulados->PrimaryComponentTick);
+			}
+			// Los proyectiles en vuelo se mueven a mano (se recogen antes: pueden destruirse al moverse).
+			TArray<ASAEVUSProyectil*> Proyectiles;
+			for (TActorIterator<ASAEVUSProyectil> Proyectil(Mundo); Proyectil; ++Proyectil)
+			{
+				Proyectiles.Add(*Proyectil);
+			}
+			for (ASAEVUSProyectil* Proyectil : Proyectiles)
+			{
+				if (IsValid(Proyectil))
+				{
+					Proyectil->Tick(PasoSimulacion);
+				}
 			}
 			for (const TWeakObjectPtr<ASAEVUSEnemigo>& Enemigo : Enemigos)
 			{

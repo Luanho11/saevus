@@ -21,6 +21,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 
 - **Tajos en tres direcciones:** mira hacia arriba al atacar para el tajo hacia arriba; en el aire, mira hacia abajo para el tajo hacia abajo.
 - **Rebote (pogo):** el tajo hacia abajo que golpea algo (enemigos, muñecos, pinchos) te lanza hacia arriba y recupera el dash y el doble salto. Se puede encadenar indefinidamente.
+- **Proyectiles:** la guardia los para; un tajo los devuelve contra quien los lanzó.
 - **Contraataque:** levanta la guardia justo cuando llega el golpe: el enemigo queda aturdido y ganas alma.
 - **Tajo → guardia:** con la guardia pulsada, cada tajo vuelve a la guardia en cuanto su ventana lo permite (la "mariposa" de GunZ, a la manera de SAEVUS).
 - **Cancelaciones:** dash, salto, guardia y cambio de arma cortan un tajo desde su ventana (los tajos rápidos pronto; el remate tarde). Un ataque durante un dash lo termina.

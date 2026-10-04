@@ -14,7 +14,7 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba | Tres muñecos y uno flotando |
 | S5 Rebote | 11500 – 13500 | Tajo hacia abajo y pogo | Foso de 12 m con pinchos (se rebota en ellos) y un muñeco flotando: no se cruza sin rebotar |
 | S6 Alma | 13500 – 15000 | Alma y curación (Q) | Dos muñecos |
-| S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar | Dos rastreros y un saltador; la puerta se abre al vaciarla |
+| S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar, parar y devolver proyectiles | Dos rastreros, un saltador y un escupidor; la puerta se abre al vaciarla |
 | S8 Guardián | 17500 – 20500 | Todo junto | Mini jefe con dos fases; su puerta lleva al final |
 | S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial" |
 | S10 Reto (opcional) | 21500 – 24800 | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con pared, cornisa de 4,5 m; cartel "Reto superado" arriba |
