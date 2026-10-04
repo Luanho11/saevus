@@ -6,14 +6,14 @@ Fase de bocetos: el caballero se anima **por código** sobre su esqueleto propio
 
 | Pieza | Dónde | Qué hace |
 |---|---|---|
-| Caballero boceto | `Herramientas/Arte/blender_caballero.py` → `ArteFuente/Caballero/SK_Caballero.{fbx,blend}` | Malla de piezas rígidas (peso 1 por hueso) + esqueleto de 24 huesos con nombres en español. Se regenera con `Herramientas/Arte/Generar-Caballero.ps1`. |
+| Caballero boceto | `Herramientas/Arte/blender_caballero.py` → `ArteFuente/Caballero/SK_Caballero.{fbx,blend}` | Malla de piezas rígidas (peso 1 por hueso, unos 3 350 triángulos) + esqueleto de 25 huesos con nombres en español (segundo boceto: capa hasta las rodillas, cuernos curvos, aguijón afilado con guarda y pomo). Se regenera con `Herramientas/Arte/Generar-Caballero.ps1`. |
 | Importación | `saevus_crear_assets.py` → `importar_caballero()` | Importa el FBX a `/Game/SAEVUS/Arte/Personajes/Caballero` y lo asigna al componente `Cuerpo` del `BP_SAEVUSPersonaje`. |
 | Cuerpo | `ASAEVUSPersonaje::Cuerpo` (`UPoseableMeshComponent`) | Malla visible, colgada de la malla del personaje (hereda pies en Z = −96 y la corrección de −90°). La malla del maniquí queda vacía. |
 | Animación | `USAEVUSComponenteAnimacionProcedural` (`Source/SAEVUS/Animacion/`) | Construye la pose objetivo cada fotograma y la aplica con suavizado. |
 
 ## Esqueleto
 
-`raiz → pelvis → columna → pecho → cuello → cabeza`; `pecho → capa_1 → capa_2`; `pecho → hombro_{d,i} → brazo → antebrazo → mano`; `mano_d → arma, arma_fuego`; `pelvis → muslo_{d,i} → pierna → pie`. Enum `ESAEVUSHueso`.
+`raiz → pelvis → columna → pecho → cuello → cabeza`; `pecho → capa_1 → capa_2 → capa_3` (`capa_3` no se anima: sigue a `capa_2`); `pecho → hombro_{d,i} → brazo → antebrazo → mano`; `mano_d → arma, arma_fuego`; `pelvis → muslo_{d,i} → pierna → pie`. Enum `ESAEVUSHueso`.
 
 ## Cómo se calcula la pose
 

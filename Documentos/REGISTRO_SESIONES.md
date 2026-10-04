@@ -63,3 +63,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 20:** menú de pausa en C++ (continuar, volver al punto de control, calidad, sensibilidad, salir) con `IA_Pausa` (P/Start, dispara en pausa); la prueba de humo lo abre en pausa. 105/105 tests, humo SUPERADA.
 - **Tarea 21:** pantalla de muerte (velo negro con "Has caído" y fundidos) en la interfaz; captura en la prueba de humo. 105/105 tests, humo SUPERADA.
 - **Tarea 23:** `arquitectura.md` reescrito con todos los sistemas, el mapa de eventos entre componentes y el orden de actualización; constantes con nombre para el latido del orbe y el límite de la mirada. 105/105 tests.
+- **Tarea 22:** segundo boceto del caballero en Blender (capa de 3 tramos con `capa_3`, cuernos curvos, aguijón afilado con guarda y pomo), mismos huesos animados; reimportado. 105/105 tests, humo SUPERADA.
