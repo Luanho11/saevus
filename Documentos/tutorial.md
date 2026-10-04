@@ -55,9 +55,9 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
   - `FosoPinchos`: el foso de 12 m del tutorial se cruza rebotando en los pinchos, sin tocarlos ni ganar alma (`PeligroTocar`: tocarlos quita vida y devuelve al borde).
   - `FosoCarreraPared`: el foso de 9 m se cruza corriendo por la pared.
   - `Cornisa`: la cornisa de 4,5 m se sube escalando y rematando con doble salto.
+- **Recorrido en el juego real:** `Herramientas\Ejecutar-Recorrido.ps1` (`USAEVUSSubsistemaRecorrido`, `-SAEVUSRecorrido`) lleva al jugador, invulnerable, a cada aviso y comprueba que aparece (captura `SAEVUS_Recorrido_NN.png` por sección), y en cada arena comprueba que el jefe se activa al entrar y que la puerta se abre al vaciarla. Escribe `[SAEVUS recorrido] SUPERADO/FALLIDO`.
 - La prueba de humo funciona también aquí: `Ejecutar-PruebaHumo.ps1 -Mapa /Game/SAEVUS/Mapas/L_Tutorial` (desde Git Bash, con `MSYS_NO_PATHCONV=1`: si no, Git convierte `/Game/...` en una ruta de Windows y el juego se queda sin mapa). Por defecto la prueba usa `L_Pruebas`.
 
 ## Pendiente
 
-- Recorrido completo del tutorial en el juego real (los obstáculos ya se prueban por separado).
 - Más piezas (suelos rotos, escaleras, estalactitas) y luces de acento.

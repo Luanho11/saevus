@@ -67,3 +67,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 25:** piezas modulares de escenario en Blender (arco roto, columna rota, escombros; < 100 triángulos) importadas y colocadas por script en el tutorial como decorado sin colisión. Humo SUPERADA en el tutorial (≈ 60 fps).
 - **Tarea 24:** cuerpos de enemigos generados en Blender (rastrero con patas, saltador con patas traseras, escupidor con buche, Guardián acorazado), uno por tipo, con ranuras cuerpo/máscara; `MallaCuerpo` en el Data Asset. 105/105 tests, humo SUPERADA.
 - **Tarea 26:** `RESUMEN_PARA_EL_DUENO.md` (qué hay, cómo probar, decisiones, preguntas) con capturas en `Documentos/capturas/`.
+- **Tarea 27:** recorrido del tutorial en el juego real (`USAEVUSSubsistemaRecorrido`, `Ejecutar-Recorrido.ps1`): 11 avisos, 2 arenas con sus puertas y el jefe activo. SUPERADO.

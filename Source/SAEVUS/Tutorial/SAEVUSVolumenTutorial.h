@@ -12,6 +12,9 @@ class SAEVUS_API ASAEVUSVolumenTutorial : public ASAEVUSVolumenJugador
 {
 	GENERATED_BODY()
 
+public:
+	const FText& ObtenerTitulo() const { return Titulo; }
+
 protected:
 	virtual void AlEntrarJugador(ASAEVUSPersonaje* Personaje) override;
 

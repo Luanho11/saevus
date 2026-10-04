@@ -49,4 +49,4 @@ SAEVUS: RPG de acción 3D en tercera persona, Unreal Engine 5.8 C++. El movimien
 | interfaz | `USAEVUSWidgetInterfaz`, `FSAEVUSEstadoInterfaz`, `FSAEVUSAjusteInterfaz` |
 | tests | `SAEVUS.Movimiento.*`, `SAEVUS.Combate.*`, `SAEVUS.Armas.*`, `SAEVUS.Vida.*`, `SAEVUS.Alma.*`, `SAEVUS.Animacion.*`, `SAEVUS.Estilo.*`, `SAEVUS.Enemigo.*`, `SAEVUS.Tutorial.*`, `SAEVUS.Interfaz.*`, `SAEVUS.Audio.*`, `SAEVUS.Guardia.*` |
 | assets | `/Game/SAEVUS/{Entrada,Datos,Blueprints,Mapas,Arte}`; `IA_`, `IMC_`, `DA_`, `BP_`, `L_`, `SK_`, `SM_`, `M_`, `MI_`, `T_` |
-| herramientas | `Herramientas/` (`Verificar-Arranque.ps1`, `Ejecutar-Pruebas.ps1`, `Ejecutar-PruebaHumo.ps1`, `ScriptsEditor/`, `Pipeline/`) |
+| herramientas | `Herramientas/` (`Verificar-Arranque.ps1`, `Ejecutar-Pruebas.ps1`, `Ejecutar-PruebaHumo.ps1`, `Ejecutar-Recorrido.ps1`, `Empaquetar.ps1`, `Arte/Generar-*.ps1`, `ScriptsEditor/`, `Pipeline/`) |
