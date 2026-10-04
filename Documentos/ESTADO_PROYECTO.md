@@ -36,7 +36,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorridos del tutorial y de la Zona 1). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 121/121 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 122/122 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -62,4 +62,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 49 de `PROGRESS.md` (fundido y título), después 50 (resumen para el dueño); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 50 de `PROGRESS.md` (resumen para el dueño); después, tareas propias (ver la cola en `PROGRESS.md`).

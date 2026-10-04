@@ -73,6 +73,23 @@ struct FSAEVUSAjusteInterfaz
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
 	FVector2D TamanoBarraJefe = FVector2D(640.f, 12.f);
 
+	/** Título de zona al entrar (Hollow Knight): espera, fundido de entrada, tiempo a la vista y fundido de salida. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0", ForceUnits = "s"))
+	float RetardoTituloZona = 0.6f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0.01", ForceUnits = "s"))
+	float FundidoTituloZona = 0.9f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionTituloZona = 2.4f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "6"))
+	int32 TamanoTituloZona = 64;
+
+	/** Altura del título de zona como fracción de la pantalla (desde arriba). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0", ClampMax = "1"))
+	float AlturaTituloZona = 0.3f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Jefe")
 	FLinearColor ColorVidaJefe = FLinearColor(0.85f, 0.35f, 0.12f);
 
@@ -89,6 +106,12 @@ struct FSAEVUSAjusteInterfaz
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "6"))
 	int32 TamanoTextoMuerte = 44;
 };
+
+namespace SAEVUSInterfaz
+{
+	/** Opacidad del título de zona a los Segundos de entrar: 0, sube, se queda a 1 y baja a 0. */
+	SAEVUS_API float OpacidadTituloZona(float Segundos, const FSAEVUSAjusteInterfaz& Ajuste);
+}
 
 /**
  * Interfaz de juego: máscaras de vida y orbe de alma (arriba a la izquierda), arma y munición
@@ -135,6 +158,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoInteraccion;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UVerticalBox> BloqueTituloZona;
+
+	/** Tiempo de mundo al construirse la interfaz: de ahí cuenta el título de zona (se para con la pausa). */
+	double TiempoEntrada = 0.0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> BloqueAviso;

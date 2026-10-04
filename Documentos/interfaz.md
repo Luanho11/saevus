@@ -26,6 +26,10 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 
 `USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
 
+## Título de zona
+
+Al entrar en un mapa con `ASAEVUSInfoZona` (un actor por mapa con `Nombre` y `Subtitulo`, lo pone el script de assets), la interfaz muestra el nombre grande en el tercio de arriba, con el subtítulo encima: "Tutorial / Las Afueras" y "Zona 1 / Ruinas del Paso". Como los letreros de Hollow Knight. Espera `RetardoTituloZona`, aparece en `FundidoTituloZona`, se queda `DuracionTituloZona` y se va. La curva es una función pura (`SAEVUSInterfaz::OpacidadTituloZona`, test `SAEVUS.Interfaz.TituloZona`). Cuenta con tiempo de mundo, así que en el tutorial espera a que se pulse "Jugar" en el menú principal.
+
 ## Mapa en la pausa
 
 `USAEVUSWidgetMapa` (`Interfaz/SAEVUSMapa`), a la derecha de las opciones de la pausa: una vista cenital de la zona generada de la geometría al abrir la pausa. Cada malla estática con colisión es un rectángulo, más claro cuanto más alta es su cara de arriba. Las puertas cerradas salen en naranja, los puntos de control en cian y el jugador es un punto blanco. Los fondos de los fosos llevan la etiqueta `SinMapa` (`crear_foso`) y no salen, así el foso se lee como un hueco. El cálculo está aparte del widget y se prueba sin pantalla: `SAEVUSMapa::RecogerBloques` y `Encuadrar` (escala uniforme, centrado, margen), con el test `SAEVUS.Interfaz.Mapa`. La captura de la pausa de la prueba de humo lo muestra.

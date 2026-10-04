@@ -8,7 +8,7 @@ Prototipo de nivel con lo que ya existe (movimiento, combate, enemigos, puntos d
 
 | Tramo | X (cm) | Altura del suelo | Qué hay |
 |---|---|---|---|
-| Z0 Entrada | −500 – 1200 | 0 | Inicio, cartel "Ruinas del Paso", aviso de bienvenida |
+| Z0 Entrada | −500 – 1200 | 0 | Inicio con el título de zona "Ruinas del Paso" y el aviso "Hacia el este" |
 | Z1 Descenso | 1200 – 4600 | −100, −200, −300 | Dos escalones de 1 m; encuentro 1: dos rastreros y un revoloteador |
 | Z2 Grieta | 4600 – 5500 | −300 | Foso de 9 m con dos plataformas; caer devuelve al borde |
 | Z3 Banco | 5500 – 6500 | −300 | Banco para sentarse (E), punto de control y aviso; a la derecha, la compuerta cerrada del atajo |

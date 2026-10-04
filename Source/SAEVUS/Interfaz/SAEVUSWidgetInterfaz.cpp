@@ -13,6 +13,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
+#include "Mundo/SAEVUSInfoZona.h"
 #include "Styling/CoreStyle.h"
 
 namespace SAEVUSInterfaz
@@ -58,6 +59,22 @@ namespace SAEVUSInterfaz
 	}
 
 	using SAEVUSEstilo::PincelRedondo;
+}
+
+float SAEVUSInterfaz::OpacidadTituloZona(float Segundos, const FSAEVUSAjusteInterfaz& Ajuste)
+{
+	const float Desde = Segundos - Ajuste.RetardoTituloZona;
+	const float Fundido = FMath::Max(Ajuste.FundidoTituloZona, KINDA_SMALL_NUMBER);
+	if (Desde <= 0.f)
+	{
+		return 0.f;
+	}
+	if (Desde < Fundido)
+	{
+		return Desde / Fundido;
+	}
+	const float HastaSalida = Desde - Fundido - Ajuste.DuracionTituloZona;
+	return HastaSalida <= 0.f ? 1.f : FMath::Clamp(1.f - HastaSalida / Fundido, 0.f, 1.f);
 }
 
 TSharedRef<SWidget> USAEVUSWidgetInterfaz::RebuildWidget()
@@ -163,6 +180,25 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraBarra->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
 	BloqueJefe->SetVisibility(ESlateVisibility::Collapsed);
 
+	// Título de zona al entrar: nombre grande y subtítulo, centrados en el tercio de arriba.
+	BloqueTituloZona = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("TituloZona"));
+	UCanvasPanelSlot* RanuraTituloZona = Lienzo->AddChildToCanvas(BloqueTituloZona);
+	RanuraTituloZona->SetAnchors(FAnchors(0.5f, Ajuste.AlturaTituloZona));
+	RanuraTituloZona->SetAlignment(FVector2D(0.5f, 0.5f));
+	RanuraTituloZona->SetAutoSize(true);
+	UTextBlock* NombreZona = CrearTexto(TEXT("NombreZona"), Ajuste.TamanoTituloZona, true);
+	UTextBlock* SubtituloZona = CrearTexto(TEXT("SubtituloZona"), Ajuste.TamanoTextoAviso, true);
+	BloqueTituloZona->AddChildToVerticalBox(SubtituloZona)->SetHorizontalAlignment(HAlign_Center);
+	BloqueTituloZona->AddChildToVerticalBox(NombreZona)->SetHorizontalAlignment(HAlign_Center);
+	if (const ASAEVUSInfoZona* Zona = ASAEVUSInfoZona::Obtener(GetWorld()))
+	{
+		NombreZona->SetText(Zona->Nombre);
+		SubtituloZona->SetText(Zona->Subtitulo);
+	}
+	BloqueTituloZona->SetRenderOpacity(0.f);
+	BloqueTituloZona->SetVisibility(ESlateVisibility::Collapsed);
+	TiempoEntrada = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+
 	// Abajo al centro, encima del jefe: lo que se puede usar ("E   Sentarse").
 	TextoInteraccion = CrearTexto(TEXT("TextoInteraccion"), Ajuste.TamanoTextoArma, true);
 	UCanvasPanelSlot* RanuraInteraccion = Lienzo->AddChildToCanvas(TextoInteraccion);
@@ -262,6 +298,13 @@ void USAEVUSWidgetInterfaz::NativeTick(const FGeometry& Geometria, float DeltaTi
 {
 	Super::NativeTick(Geometria, DeltaTime);
 	const FSAEVUSEstadoInterfaz Estado = FSAEVUSEstadoInterfaz::Calcular(GetOwningPlayerPawn(), GetWorld(), Ajuste.VidaPorMascara, Ajuste.FundidoAviso);
+	if (BloqueTituloZona && ASAEVUSInfoZona::Obtener(GetWorld()))
+	{
+		// Tiempo de mundo: con el menú principal (pausa) el título espera a que empiece la partida.
+		const float Opacidad = SAEVUSInterfaz::OpacidadTituloZona(static_cast<float>(GetWorld()->GetTimeSeconds() - TiempoEntrada), Ajuste);
+		BloqueTituloZona->SetRenderOpacity(Opacidad);
+		SAEVUSInterfaz::FijarVisible(BloqueTituloZona, Opacidad > 0.f);
+	}
 	if (VeloMuerte)
 	{
 		// Fundido a negro al caer, y de vuelta (más rápido) al reaparecer.

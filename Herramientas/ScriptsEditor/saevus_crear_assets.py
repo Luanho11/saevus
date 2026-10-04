@@ -994,6 +994,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     crear_suelo(actores, "S0_Suelo", -500, 1500, materiales)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
     crear_texto(actores, "Cartel_SAEVUS", "SAEVUS", unreal.Vector(900, 0, 450), tamano=160.0)
+    crear_info_zona(actores, "Las Afueras", "Tutorial")
 
     # S1 Saltar: escalón de 1 m (salto) y bloque de 2,2 m (doble salto).
     crear_suelo(actores, "S1_Suelo", 1500, 3500, materiales)
@@ -1129,6 +1130,15 @@ def crear_banco(actores, etiqueta, x, y, altura, materiales, guinada=0.0):
     return banco
 
 
+def crear_info_zona(actores, nombre, subtitulo):
+    """Nombre de la zona que la interfaz muestra grande al entrar en el mapa."""
+    info = actores.spawn_actor_from_class(unreal.SAEVUSInfoZona, unreal.Vector(0, 0, 0))
+    info.set_actor_label("InfoZona")
+    info.set_editor_property("nombre", unreal.Text(nombre))
+    info.set_editor_property("subtitulo", unreal.Text(subtitulo))
+    return info
+
+
 def crear_caida_global(actores, etiqueta, x_inicio, x_fin, retorno):
     """Red bajo la zona: quien cae al vacío entre x_inicio y x_fin vuelve a retorno."""
     caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, -1500),
@@ -1147,8 +1157,8 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     # Z0 Entrada.
     crear_suelo(actores, "Z0_Suelo", -500, 1200, materiales)
     actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
-    crear_texto(actores, "Cartel_Zona1", "Ruinas del Paso", unreal.Vector(1100, 0, 450), tamano=120.0)
-    crear_aviso(actores, 100, "Ruinas del Paso", "Zona 1 (boceto). Las ruinas bajan hacia el este.\nMás adelante, un banco guarda tu avance.")
+    crear_info_zona(actores, "Ruinas del Paso", "Zona 1")
+    crear_aviso(actores, 100, "Hacia el este", "Zona 1 (boceto). Las ruinas bajan hacia el este.\nMás adelante, un banco guarda tu avance.")
 
     # Z1 Descenso en escalones de 1 m y primer encuentro abajo.
     crear_suelo(actores, "Z1_Escalon1", 1200, 1600, materiales, altura=-100)

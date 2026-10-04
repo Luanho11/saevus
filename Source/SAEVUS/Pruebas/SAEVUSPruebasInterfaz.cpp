@@ -7,7 +7,9 @@
 #include "Armas/SAEVUSTiposArma.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Interfaz/SAEVUSEstadoInterfaz.h"
+#include "Interfaz/SAEVUSWidgetInterfaz.h"
 #include "Interfaz/SAEVUSWidgetPausa.h"
+#include "Mundo/SAEVUSInfoZona.h"
 #include "Tutorial/SAEVUSSubsistemaTutorial.h"
 
 namespace SAEVUSPruebasInterfaz
@@ -126,6 +128,26 @@ bool FSAEVUSPruebaInterfazPausaOpciones::RunTest(const FString& Parameters)
 	TestEqual(TEXT("1 → 1,5"), SAEVUSPausa::SiguienteSensibilidad(1.f), 1.5f);
 	TestEqual(TEXT("2 → 0,5 (vuelta)"), SAEVUSPausa::SiguienteSensibilidad(2.f), 0.5f);
 	TestFalse(TEXT("Cada calidad tiene nombre"), SAEVUSPausa::NombreCalidad(2).IsEmpty());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTituloZona, "SAEVUS.Interfaz.TituloZona", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaTituloZona::RunTest(const FString& Parameters)
+{
+	constexpr float Tolerancia = 0.001f;
+	const FSAEVUSAjusteInterfaz Ajuste;
+	const float Entrada = Ajuste.RetardoTituloZona;
+	const float Salida = Entrada + Ajuste.FundidoTituloZona + Ajuste.DuracionTituloZona;
+	TestEqual(TEXT("Al entrar no se ve"), SAEVUSInterfaz::OpacidadTituloZona(0.f, Ajuste), 0.f, Tolerancia);
+	TestEqual(TEXT("A mitad del fundido de entrada"), SAEVUSInterfaz::OpacidadTituloZona(Entrada + Ajuste.FundidoTituloZona * 0.5f, Ajuste), 0.5f, Tolerancia);
+	TestEqual(TEXT("A la vista"), SAEVUSInterfaz::OpacidadTituloZona(Salida - Ajuste.DuracionTituloZona * 0.5f, Ajuste), 1.f, Tolerancia);
+	TestEqual(TEXT("A mitad del fundido de salida"), SAEVUSInterfaz::OpacidadTituloZona(Salida + Ajuste.FundidoTituloZona * 0.5f, Ajuste), 0.5f, Tolerancia);
+	TestEqual(TEXT("Después se va"), SAEVUSInterfaz::OpacidadTituloZona(Salida + Ajuste.FundidoTituloZona * 2.f, Ajuste), 0.f, Tolerancia);
+
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	TestNull(TEXT("Sin información de zona"), ASAEVUSInfoZona::Obtener(MundoPrueba.ObtenerMundo()));
+	ASAEVUSInfoZona* Zona = MundoPrueba.CrearActor<ASAEVUSInfoZona>(FVector::ZeroVector);
+	TestTrue(TEXT("Se encuentra la información de la zona"), ASAEVUSInfoZona::Obtener(MundoPrueba.ObtenerMundo()) == Zona);
 	return true;
 }
 
