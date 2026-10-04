@@ -61,6 +61,34 @@ void USAEVUSComponenteCombate::PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque Dir
 	ProcesarAtaqueEnBuffer();
 }
 
+void USAEVUSComponenteCombate::FijarAtaqueMantenido(bool bMantenido)
+{
+	const bool bListo = EstaCargado();
+	bAtaqueMantenido = bMantenido;
+	if (bMantenido)
+	{
+		return;
+	}
+	TiempoCargando = 0.f;
+	// Soltar con la carga lista: el ataque cargado, si se puede atacar (o encadenar) ahora.
+	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
+	const bool bLibre = !AtaqueActual || TiempoAtaque >= AtaqueActual->EncadenarDesde;
+	if (bListo && bLibre && PuedeAtacarAhora())
+	{
+		IndiceCombo = 0;
+		bCadenaAerea = Movimiento && Movimiento->IsFalling();
+		DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
+		bTajoEnCarrera = false;
+		bAtaqueCargado = true;
+		PrepararAtaque(ObtenerRepertorio().AtaqueCargado);
+	}
+}
+
+float USAEVUSComponenteCombate::ObtenerProgresoCarga() const
+{
+	return bAtaqueMantenido ? FMath::Clamp(TiempoCargando / ObtenerRepertorio().TiempoCarga, 0.f, 1.f) : 0.f;
+}
+
 ESAEVUSDireccionAtaque USAEVUSComponenteCombate::DireccionSegunInclinacion(float InclinacionGrados) const
 {
 	const FSAEVUSRepertorioMelee& Repertorio = ObtenerRepertorio();
@@ -129,6 +157,13 @@ void USAEVUSComponenteCombate::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	ProcesarAtaqueEnBuffer();
 	TiempoBufferAtaqueRestante = FMath::Max(0.f, TiempoBufferAtaqueRestante - DeltaTime);
+
+	// La carga crece mientras se mantiene el botón y no hay ataque en curso (o está en su recuperación).
+	const bool bPuedeCargar = !AtaqueActual || AtaqueActual->ObtenerFaseEn(TiempoAtaque) == ESAEVUSFaseAtaque::Recuperacion;
+	if (bAtaqueMantenido && bPuedeCargar)
+	{
+		TiempoCargando += DeltaTime;
+	}
 }
 
 void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
@@ -168,7 +203,7 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 		IniciarAtaqueDireccional(bEnAire, Direccion);
 		return;
 	}
-	if (DireccionAtaque != ESAEVUSDireccionAtaque::Frontal || bTajoEnCarrera)
+	if (DireccionAtaque != ESAEVUSDireccionAtaque::Frontal || bTajoEnCarrera || bAtaqueCargado)
 	{
 		IniciarAtaque(bEnAire, 0);
 		return;
@@ -203,6 +238,7 @@ void USAEVUSComponenteCombate::IniciarAtaque(bool bEnAire, int32 Indice)
 	bCadenaAerea = bEnAire;
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	bTajoEnCarrera = false;
+	bAtaqueCargado = false;
 	PrepararAtaque(Cadena[Indice]);
 }
 
@@ -212,6 +248,7 @@ void USAEVUSComponenteCombate::IniciarTajoEnCarrera(bool bEnAire, const FVector&
 	bCadenaAerea = bEnAire;
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	bTajoEnCarrera = true;
+	bAtaqueCargado = false;
 	const FVector Direccion = DireccionDash.GetSafeNormal2D();
 	PrepararAtaque(ObtenerRepertorio().TajoEnCarrera, Direccion.IsNearlyZero() ? nullptr : &Direccion);
 }
@@ -226,6 +263,7 @@ void USAEVUSComponenteCombate::IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDir
 	bCadenaAerea = bEnAire;
 	DireccionAtaque = Direccion;
 	bTajoEnCarrera = false;
+	bAtaqueCargado = false;
 	PrepararAtaque(Direccion == ESAEVUSDireccionAtaque::Arriba ? ObtenerRepertorio().TajoArriba : ObtenerRepertorio().TajoAbajo);
 }
 
@@ -267,6 +305,7 @@ void USAEVUSComponenteCombate::TerminarAtaque()
 	TiempoAtaque = 0.f;
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	bTajoEnCarrera = false;
+	bAtaqueCargado = false;
 	ActoresGolpeados.Reset();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{

@@ -195,6 +195,17 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	FSAEVUSDefinicionAtaque TajoEnCarrera;
 
 	/**
+	 * Ataque cargado (Hollow Knight, arte del aguijón): mantener el ataque TiempoCarga y soltar.
+	 * Tajo giratorio alrededor del cuerpo. No encadena.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
+	FSAEVUSDefinicionAtaque AtaqueCargado;
+
+	/** Tiempo manteniendo el ataque (sin estar atacando) hasta tener la carga lista. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entrada", meta = (ClampMin = "0.05", ForceUnits = "s"))
+	float TiempoCarga = 0.8f;
+
+	/**
 	 * Adaptación a 3D del "arriba/abajo + ataque": con la cámara inclinada al menos este ángulo
 	 * hacia arriba sale el tajo hacia arriba; inclinada hacia abajo hasta UmbralInclinacionAbajo, el tajo hacia abajo.
 	 */

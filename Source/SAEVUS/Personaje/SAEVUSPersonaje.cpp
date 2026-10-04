@@ -385,6 +385,7 @@ void ASAEVUSPersonaje::PedirAtaque()
 		Alma->CancelarCuracion();
 		// Atacar suelta la guardia; si sigue pulsada vuelve en la ventana de cancelación del tajo.
 		Guardia->Interrumpir();
+		Combate->FijarAtaqueMantenido(true);
 		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate). La inclinación de la
 		// cámara elige el tajo: arriba, de frente o abajo (en el aire).
 		const float Inclinacion = Controller ? static_cast<float>(FRotator::NormalizeAxis(GetControlRotation().Pitch)) : 0.f;
@@ -395,6 +396,7 @@ void ASAEVUSPersonaje::PedirAtaque()
 void ASAEVUSPersonaje::SoltarAtaque()
 {
 	Armas->FijarGatillo(false);
+	Combate->FijarAtaqueMantenido(false);
 }
 
 void ASAEVUSPersonaje::PedirRanuraArma(int32 Ranura)

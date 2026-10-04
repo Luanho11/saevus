@@ -95,9 +95,32 @@ void USAEVUSComponenteEfectosCombate::EmitirEstelaArma()
 	}
 }
 
+void USAEVUSComponenteEfectosCombate::EmitirCarga(float DeltaTime)
+{
+	FVector Base;
+	FVector Punta;
+	const float Progreso = Combate ? Combate->ObtenerProgresoCarga() : 0.f;
+	if (Progreso <= 0.f || !Animacion || !Animacion->ObtenerHoja(Base, Punta))
+	{
+		AcumuladoCarga = 0.f;
+		return;
+	}
+	// Más partículas cuanto más cargado; lista, al doble.
+	AcumuladoCarga += AjusteEfectos.ParticulasPorSegundoCarga * DeltaTime * (Combate->EstaCargado() ? 2.f : Progreso);
+	const int32 Cantidad = FMath::FloorToInt32(AcumuladoCarga);
+	AcumuladoCarga -= Cantidad;
+	for (int32 Indice = 0; Indice < Cantidad; ++Indice)
+	{
+		const FVector Destino = FMath::Lerp(Base, Punta, Aleatorio.FRand());
+		const FVector Desde = Destino + Aleatorio.VRand() * AjusteEfectos.RadioConvergencia * 0.5f;
+		Emitir(Desde, (Destino - Desde) / FMath::Max(ObtenerAjuste().Vida, UE_KINDA_SMALL_NUMBER));
+	}
+}
+
 void USAEVUSComponenteEfectosCombate::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	EmitirEstelaArma();
+	EmitirCarga(DeltaTime);
 	if (Alma && Alma->EstaCurando())
 	{
 		AcumuladoEmision += AjusteEfectos.ParticulasPorSegundoCurando * DeltaTime;

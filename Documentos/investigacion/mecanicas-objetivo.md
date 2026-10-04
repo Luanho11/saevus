@@ -26,7 +26,7 @@ Lista viva de mecánicas de SAEVUS, de dónde viene la idea y su estado. Diseño
 | Alma: ganar golpeando, curar concentrando | HK | hecho |
 | Hechizos | HK | más adelante |
 | Súper dash cargado | HK | más adelante |
-| Ataque cargado (arte del aguijón) | HK | más adelante |
+| Ataque cargado (arte del aguijón) | HK | hecho (giro al soltar tras 0,8 s) |
 | Contraataque (parry) | HK / GunZ | hecho (ventana al levantar la guardia) |
 | Enemigos simples + mini jefe con telegrafiado | HK | hecho |
 | Mapa tutorial que enseña todo | ambos | hecho (`L_Tutorial`) |

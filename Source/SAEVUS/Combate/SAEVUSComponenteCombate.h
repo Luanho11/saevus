@@ -38,6 +38,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Combate")
 	void PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque Direccion);
 
+	/** El botón de ataque se mantiene (cierto) o se suelta (falso): carga el ataque cargado. */
+	void FijarAtaqueMantenido(bool bMantenido);
+
+	/** La carga está lista: soltar lanza el ataque cargado. */
+	UFUNCTION(BlueprintPure, Category = "SAEVUS|Combate")
+	bool EstaCargado() const { return bAtaqueMantenido && TiempoCargando >= ObtenerRepertorio().TiempoCarga; }
+
+	/** Progreso de la carga, de 0 a 1 (para efectos). */
+	float ObtenerProgresoCarga() const;
+
+	bool EsAtaqueCargado() const { return bAtaqueCargado; }
+
 	/** Dirección de una pulsación según la inclinación vertical de la cámara (grados, positivo = arriba). */
 	ESAEVUSDireccionAtaque DireccionSegunInclinacion(float InclinacionGrados) const;
 
@@ -117,6 +129,9 @@ private:
 	/** El impacto (retroceso, rebote, parada) se aplica una vez por ataque, en su primer acierto. */
 	bool bImpactoAplicado = false;
 	bool bTajoEnCarrera = false;
+	bool bAtaqueCargado = false;
+	bool bAtaqueMantenido = false;
+	float TiempoCargando = 0.f;
 	FSAEVUSParadaGolpe ParadaGolpe;
 
 	/** Actores ya golpeados por el ataque en curso; cada uno recibe un golpe por ataque. */

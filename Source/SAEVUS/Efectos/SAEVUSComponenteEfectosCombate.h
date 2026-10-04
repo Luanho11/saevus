@@ -46,6 +46,10 @@ struct FSAEVUSAjusteEfectosCombate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0"))
 	int32 ParticulasEstelaPorFotograma = 5;
 
+	/** Partículas por segundo que se juntan en la hoja mientras se carga el ataque cargado. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carga", meta = (ClampMin = "0"))
+	float ParticulasPorSegundoCarga = 40.f;
+
 	/** Chispas del bloqueo de la guardia. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Guardia", meta = (ClampMin = "0"))
 	int32 ParticulasBloqueo = 16;
@@ -89,6 +93,11 @@ private:
 
 	/** Partículas a lo largo de la hoja mientras el tajo está en su fase activa. */
 	void EmitirEstelaArma();
+
+	/** Partículas que se juntan en la hoja mientras se carga el ataque cargado. */
+	void EmitirCarga(float DeltaTime);
+
+	float AcumuladoCarga = 0.f;
 
 	UPROPERTY()
 	TObjectPtr<USAEVUSComponenteAlma> Alma;

@@ -73,3 +73,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 33:** sacudida de cámara por trauma (golpe dado, recibido, bloqueo), ruido Perlin, desactivable. 106/106 tests, humo SUPERADA.
 - **Tarea 29:** combo aéreo de tres tajos (GunZ) con flotación por datos (`EscalaGravedadEnAire`, `FraccionCaidaConservada`; `FijarEscalaGravedadAccion` en el movimiento). 107/107 tests, verificación completa con juego en verde.
 - **Tarea 30:** tajo en carrera (atacar en el dash: estocada de 1100 cm/s en la dirección del dash, 16 de daño, no encadena). 108/108 tests, verificación completa con juego en verde.
+- **Tarea 31:** ataque cargado (mantener 0,8 s y soltar: giro de 30 de daño alrededor), partículas de carga en la hoja, giro del cuerpo en la animación. 109/109 tests, verificación completa con juego en verde.

@@ -394,4 +394,44 @@ bool FSAEVUSPruebaTajoEnCarrera::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAtaqueCargado, "SAEVUS.Combate.AtaqueCargado", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAtaqueCargado::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasCombate;
+
+	FMundoCombate Mundo;
+	if (!TestTrue(TEXT("Personaje asentado"), Mundo.bListo))
+	{
+		return false;
+	}
+	// Dos muñecos a los lados (fuera del tajo frontal): solo el giro los alcanza a los dos.
+	const ASAEVUSMunecoEntrenamiento* Izquierda = Mundo.MundoPrueba.CrearActor<ASAEVUSMunecoEntrenamiento>(FVector(0.f, -150.f, MediaAlturaMuneco));
+	const ASAEVUSMunecoEntrenamiento* Derecha = Mundo.MundoPrueba.CrearActor<ASAEVUSMunecoEntrenamiento>(FVector(0.f, 150.f, MediaAlturaMuneco));
+	const FSAEVUSRepertorioMelee& Repertorio = Mundo.Combate->ObtenerRepertorio();
+
+	// Soltar antes de tiempo: no hay ataque cargado.
+	Mundo.Personaje->PedirAtaque();
+	Mundo.AvanzarHastaReposo();
+	Mundo.Personaje->SoltarAtaque();
+	TestFalse(TEXT("Sin carga completa no sale"), Mundo.Combate->EsAtaqueCargado());
+
+	// Mantener: el primer tajo sale y, al acabar, la carga se completa.
+	Mundo.Personaje->PedirAtaque();
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMaxAtaque) && !Mundo.Combate->EstaCargado(); ++Indice)
+	{
+		Mundo.Paso();
+	}
+	if (!TestTrue(TEXT("Mantenido, se carga"), Mundo.Combate->EstaCargado()))
+	{
+		return false;
+	}
+	const int32 GolpesAntes = Izquierda->ObtenerGolpes() + Derecha->ObtenerGolpes();
+	Mundo.Personaje->SoltarAtaque();
+	TestTrue(TEXT("Soltar lanza el ataque cargado"), Mundo.Combate->EsAtaqueCargado());
+	Mundo.AvanzarHastaReposo();
+	TestEqual(TEXT("El giro alcanza a los dos lados"), Izquierda->ObtenerGolpes() + Derecha->ObtenerGolpes() - GolpesAntes, 2);
+	TestEqual(TEXT("Con su daño"), Derecha->ObtenerUltimoDanio(), Repertorio.AtaqueCargado.Danio);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

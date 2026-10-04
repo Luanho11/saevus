@@ -350,6 +350,15 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	{
 		PoseAtaque(Pose, *Combate->ObtenerAtaqueActual(), Combate->ObtenerIndiceCombo(), Combate->EsCadenaAerea(), Combate->ObtenerDireccionAtaque(),
 			Combate->ObtenerTiempoAtaque());
+		if (Combate->EsAtaqueCargado())
+		{
+			// Giro completo durante la fase activa, con el aguijón extendido de lado.
+			const FSAEVUSDefinicionAtaque& Ataque = *Combate->ObtenerAtaqueActual();
+			const float U = FMath::Clamp((Combate->ObtenerTiempoAtaque() - Ataque.TiempoPreparacion) / FMath::Max(Ataque.TiempoActivo, UE_KINDA_SMALL_NUMBER), 0.f, 1.f);
+			Pose.Huesos[Indice(ESAEVUSHueso::Raiz)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, 360.f * U) };
+			Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Derecha * 0.9f + Adelante * 0.3f).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (Derecha * 0.9f + Adelante * 0.3f).GetSafeNormal() };
+		}
 	}
 	else if (Guardia && Guardia->EstaEnGuardia())
 	{

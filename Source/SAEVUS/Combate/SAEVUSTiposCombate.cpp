@@ -105,4 +105,25 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoEnCarrera.CancelarConSaltoDesde = TajoEnCarrera.EncadenarDesde;
 	TajoEnCarrera.CancelarConCambioArmaDesde = TajoEnCarrera.EncadenarDesde;
 	TajoEnCarrera.CancelarConGuardiaDesde = TajoEnCarrera.EncadenarDesde;
+
+	// Ataque cargado: giro completo con la hoja extendida; golpea todo alrededor. Compromete.
+	AtaqueCargado = Tajo1;
+	AtaqueCargado.Nombre = TEXT("AtaqueCargado");
+	AtaqueCargado.TiempoPreparacion = 0.1f;
+	AtaqueCargado.TiempoActivo = 0.25f;
+	AtaqueCargado.TiempoRecuperacion = 0.4f;
+	AtaqueCargado.Danio = 30.f;
+	AtaqueCargado.RadioGolpe = 170.f;
+	AtaqueCargado.DesplazamientoFrontalGolpe = 0.f;
+	AtaqueCargado.AlturaGolpe = 0.f;
+	AtaqueCargado.VelocidadEstocada = 0.f;
+	AtaqueCargado.EscalaVelocidadSuelo = 0.f;
+	AtaqueCargado.RetrocesoAtacante = 0.f;
+	AtaqueCargado.EmpujeObjetivo = 600.f;
+	AtaqueCargado.DuracionParadaGolpe = 0.09f;
+	AtaqueCargado.EncadenarDesde = AtaqueCargado.TiempoPreparacion + AtaqueCargado.TiempoActivo;
+	AtaqueCargado.CancelarConDashDesde = AtaqueCargado.EncadenarDesde;
+	AtaqueCargado.CancelarConSaltoDesde = -1.f;
+	AtaqueCargado.CancelarConCambioArmaDesde = AtaqueCargado.EncadenarDesde;
+	AtaqueCargado.CancelarConGuardiaDesde = AtaqueCargado.EncadenarDesde;
 }
