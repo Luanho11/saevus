@@ -2,7 +2,7 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: EN PAUSA — el dueño abrió el editor (2026-10-04 08:10). Ninguna sesión (tampoco `loop.ps1`, aunque el latido sea viejo) debe editar, compilar ni hacer commit hasta que el dueño cambie este estado.**
+**Estado: trabajando (tarea 63, fase "Rehacer como GunZ")**
 **Último latido: 2026-10-04 08:19** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
@@ -27,6 +27,17 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 - Interfaz moldeable y escalable, bocetos mejorables, sin dirección visual compleja todavía.
 - Tutorial: mapa pequeño que enseñe a jugar, con mini enemigos y un mini jefe, simple pero escalable.
 - Presupuestos, formatos y fuentes externas: decide Claude, siempre cambiable.
+
+## Decisiones del dueño (2026-10-04) — cambio de rumbo, mandan sobre las anteriores
+- **Rehacer como GunZ**: la jugabilidad es la de GunZ; Hollow Knight solo aporta temática, diseño e inspiración artística (se estaba priorizando Hollow Knight).
+- Quitar por ahora **armas de fuego, enemigos y jefes** actuales (difíciles de golpear, alcance de espada poco intuitivo, ataques básicos). Más adelante: **goblins y jefes estilo GunZ** (modo quest) mejorados, modelados en Blender.
+- Quitar el **tajo hacia abajo** (pogo): con doble salto no sirve.
+- **Dash como GunZ**: sin latencia ni límite de uno por salto.
+- **Cámara** siempre en tercera persona desde atrás; el personaje no gira el cuerpo al hacer dash atrás (mira a donde mira la cámara).
+- Mejorar el **sombreado dibujado** (Hollow Knight en 3D): no se nota.
+- **Mapas**: tutorial mejor, sin texturas, con la estructura del mapa **Dungeon de GunZ** como referencia (salas cerradas, muros para correr, escaleras, balcones, pilares).
+- Lo principal: **personaje y animaciones**; más animaciones y partículas; limpieza de movimientos, espaciado e intuición.
+- Objetivo: **prototipo escalable probable en un ejecutable**; menús mejorados sin cosas genéricas; tutorial con mejor fuente y mensajes claros.
 
 ## Cola de tareas (prioridad de arriba abajo)
 1. [x] ~~Migración al español: CLAUDE.md, Docs, código (clases, funciones, variables, comentarios), scripts, assets regenerados, tests verdes.~~
@@ -95,11 +106,27 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 58. [x] ~~Más variedad en la Zona 1: plataformas que se mueven (ascensor boceto) y un tramo de pinchos con rebote, con su comprobación en el recorrido.~~ Plataforma móvil en la grieta (`ASAEVUSPlataformaMovil`), con test; los pinchos con rebote quedan para otra tarea.
 59. [x] ~~Pinchos con rebote en la Zona 1 (un tramo sobre la galería) y una segunda plataforma móvil vertical (ascensor) hacia la planta alta.~~ Pinchos en la planta alta y ascensor junto al muro (`crear_plataforma_movil`).
 60. [x] ~~Mapa que se descubre al explorar (Hollow Knight): celdas visitadas guardadas por mapa; el mapa de la pausa solo dibuja lo visitado (y el jugador).~~ `USAEVUSSubsistemaExploracion`, bloques recortados por celdas.
-61. [ ] Esquirlas (moneda): las sueltan los enemigos, contador en la interfaz; al morir se pierden y quedan en el sitio, se recuperan al tocarlas (sombra simplificada). Guardado.
-62. [ ] Revisión de código sin cambiar comportamiento: fixtures de tests repetidas, constantes sueltas, comentarios desfasados, includes.
+61. [-] ~~Esquirlas (moneda)~~ Aparcada por el cambio de rumbo (sin enemigos); el trabajo está en `git stash` ("WIP tarea 61").
+62. [-] ~~Revisión de código~~ Se hace dentro de las tareas de la fase nueva.
+
+### Fase "Rehacer como GunZ" (2026-10-04)
+63. [ ] Quitar las armas de fuego del juego: arsenal solo con la espada, sin cambio de arma ni recarga en la entrada, sin munición en la interfaz, sin lección de armas ni dianas. El código queda dormido y probado.
+64. [ ] Quitar enemigos y jefes de los mapas (tutorial, Zona 1, pruebas) y del recorrido; la IA queda para los goblins.
+65. [ ] Quitar el tajo hacia abajo (pogo) y la sección de rebote del tutorial.
+66. [ ] Dash como GunZ: sin enfriamiento ni límite por salto (por datos).
+67. [ ] Cámara y orientación de GunZ: el personaje mira siempre a donde mira la cámara y se mueve en ocho direcciones sin girar el cuerpo; dash en cualquier dirección sin girarse.
+68. [ ] Animación direccional: correr adelante/atrás/lados, volteretas de dash por dirección, carrera y salto de pared con giro, aterrizajes; más fluida y limpia.
+69. [ ] Sombreado dibujado de verdad (Hollow Knight en 3D): luz en bandas planas, tinta gruesa en contornos, sombras frías, niebla en capas, grano de papel procedural; medir en la Vega 8.
+70. [ ] Tutorial nuevo estilo mazmorra (estructura de referencia: Dungeon de GunZ): salas cerradas con muros para correr, escaleras, balcones, pilares y arcos; enseña paso a paso con mensajes claros.
+71. [ ] Mapa de práctica "Mazmorra" (arena estilo Dungeon de GunZ) en lugar de la Zona 1; el paso del tutorial lleva a ella.
+72. [ ] Interfaz y menús: tipografía (Roboto con contorno, espaciado y pesos), menús limpios (Tutorial, Mazmorra, Opciones, Salir), avisos con las teclas resaltadas; quitar lo genérico.
+73. [ ] Personaje: caballero mejorado en Blender (proporciones, capa, máscara, espada clara) y alcance de la espada visible e intuitivo (estela = zona de golpe).
+74. [ ] Partículas: estela y polvo direccional del dash, aterrizaje, carrera por pared, salto de pared, arcos de los tajos.
+75. [ ] Goblins estilo GunZ (Blender, mejorados): tipos con ataques variados y avisos claros, sin daño por contacto, golpeables con claridad; sala de goblins en el tutorial.
+76. [ ] Jefe goblin (rey goblin) con patrones claros.
+77. [ ] Ejecutable: empaquetado que quepa en la memoria de la máquina (cocinar solo los mapas del juego) y prueba de arranque del .exe.
 
 ## Estado del turno
-- Completado: tarea 60 (mapa explorado).
+- Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- A medias: tarea 61 (esquirlas y sombra) en `git stash` ("WIP tarea 61"): compila, sin verificar, porque el editor abierto bloqueaba la DLL. Para seguir: cerrar el editor, `git stash pop`, `Verificar-Arranque.ps1 -ConJuego`.
-- Siguiente paso exacto: terminar la tarea 61 cuando el editor esté cerrado.
+- Siguiente paso exacto: tarea 63 — quitar las armas de fuego.
