@@ -35,11 +35,13 @@ enum class ESAEVUSModoMenu : uint8
 };
 
 /**
- * Menú boceto, construido en C++ como la interfaz, en dos modos con las mismas opciones:
- * - Pausa: continuar, volver al último punto de control, calidad, sensibilidad y salir
- *   (ASAEVUSControladorJugador::AlternarPausa).
- * - Principal: título, jugar, continuar desde el punto de control guardado (si lo hay para el
- *   mapa), calidad, sensibilidad y salir (ASAEVUSControladorJugador::MostrarMenuPrincipal).
+ * Menú construido en C++ como la interfaz: título con letras espaciadas y opciones de solo texto
+ * (se iluminan al pasar por encima o con el foco del mando o del teclado). Dos modos:
+ * - Principal: Tutorial, Mazmorra, Continuar (si hay un punto de control guardado para el mapa),
+ *   Opciones y Salir (ASAEVUSControladorJugador::MostrarMenuPrincipal).
+ * - Pausa: Continuar, Volver al punto de control, Opciones, Menú principal y Salir, con el mapa de
+ *   la zona a la derecha (ASAEVUSControladorJugador::AlternarPausa).
+ * Opciones (calidad, sensibilidad, volumen y volver) sustituye a la lista principal en el mismo sitio.
  */
 UCLASS()
 class SAEVUS_API USAEVUSWidgetPausa : public UUserWidget
@@ -62,9 +64,14 @@ public:
 	/** Cierto si algún botón del menú tiene el foco del jugador. */
 	bool TieneFocoAlgunBoton() const;
 
+	/** Cierto si se ven las opciones (calidad, sensibilidad, volumen) en vez de la lista principal. */
+	bool EstaEnOpciones() const { return bEnOpciones; }
+	/** Cambia entre la lista principal y las opciones, y da el foco al primer botón que se vea. */
+	void MostrarOpciones(bool bOpciones);
+
 private:
 	void Construir();
-	UButton* CrearBoton(UVerticalBox* Columna, FName Nombre, UTextBlock*& OutTexto);
+	UButton* CrearBoton(UVerticalBox* Columna, FName Nombre, const FText& Texto, TArray<TObjectPtr<UButton>>& Grupo, UTextBlock** OutTexto = nullptr);
 	void ActualizarTextos();
 
 	UFUNCTION()
@@ -74,10 +81,22 @@ private:
 	void AlReiniciar();
 
 	UFUNCTION()
-	void AlJugar();
+	void AlTutorial();
+
+	UFUNCTION()
+	void AlMazmorra();
 
 	UFUNCTION()
 	void AlContinuarPartida();
+
+	UFUNCTION()
+	void AlOpciones();
+
+	UFUNCTION()
+	void AlVolver();
+
+	UFUNCTION()
+	void AlMenuPrincipal();
 
 	UFUNCTION()
 	void AlCambiarCalidad();
@@ -92,12 +111,6 @@ private:
 	void AlSalir();
 
 	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TextoContinuar;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TextoReiniciar;
-
-	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoCalidad;
 
 	UPROPERTY(Transient)
@@ -106,18 +119,29 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoVolumen;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TextoSalir;
-
 	/** Mapa de la zona (solo en la pausa). */
 	UPROPERTY(Transient)
 	TObjectPtr<USAEVUSWidgetMapa> Mapa;
 
 	ESAEVUSModoMenu Modo = ESAEVUSModoMenu::Pausa;
 
-	/** Botones en orden de la columna. */
+	/** Todos los botones, en orden (para el resaltado del foco). */
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UButton>> Botones;
+
+	/** Lista principal y lista de opciones: se ve una u otra. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UButton>> BotonesInicio;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UButton>> BotonesOpciones;
+
+	/** "Continuar" del menú principal: solo con un punto de control guardado para este mapa. */
+	UPROPERTY(Transient)
+	TObjectPtr<UButton> BotonContinuarPartida;
+
+	bool bHayPartidaGuardada = false;
+	bool bEnOpciones = false;
 
 	/** Si cada botón tenía el foco el último fotograma (solo se cambia el estilo al cambiar). */
 	TArray<bool> FocoBotones;

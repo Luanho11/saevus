@@ -13,6 +13,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
+#include "Interfaz/SAEVUSTextoTeclas.h"
 #include "Mundo/SAEVUSInfoZona.h"
 #include "Styling/CoreStyle.h"
 
@@ -31,6 +32,13 @@ namespace SAEVUSInterfaz
 	// La sombra del texto lo despega de fondos claros.
 	const FVector2D DesplazamientoSombra(1.5f, 1.5f);
 	const FLinearColor ColorSombra(0.f, 0.f, 0.f, 0.85f);
+	// Panel del aviso: relleno interior y separación con el título.
+	const FMargin RellenoPanelAviso(28.f, 12.f);
+	constexpr float SeparacionTituloPanel = 6.f;
+	// Tecla: relleno del texto dentro de la caja y separación con lo de alrededor; la letra, algo menor.
+	const FMargin RellenoTecla(7.f, 1.f);
+	const FMargin SeparacionTecla(2.f, 2.f);
+	constexpr int32 ReduccionLetraTecla = 2;
 
 	// Cambiar textos, barras o visibilidad invalida el diseño de Slate: solo se tocan si cambian.
 	void FijarTexto(UTextBlock* Texto, const FText& Nuevo)
@@ -89,7 +97,7 @@ TSharedRef<SWidget> USAEVUSWidgetInterfaz::RebuildWidget()
 UTextBlock* USAEVUSWidgetInterfaz::CrearTexto(FName Nombre, int32 Tamano, bool bCentrado)
 {
 	UTextBlock* Texto = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), Nombre);
-	Texto->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", Tamano));
+	Texto->SetFont(SAEVUSEstilo::FuenteTexto(Tamano));
 	Texto->SetColorAndOpacity(FSlateColor(Ajuste.ColorTexto));
 	Texto->SetShadowOffset(SAEVUSInterfaz::DesplazamientoSombra);
 	Texto->SetShadowColorAndOpacity(SAEVUSInterfaz::ColorSombra);
@@ -98,6 +106,52 @@ UTextBlock* USAEVUSWidgetInterfaz::CrearTexto(FName Nombre, int32 Tamano, bool b
 		Texto->SetJustification(ETextJustify::Center);
 	}
 	return Texto;
+}
+
+UTextBlock* USAEVUSWidgetInterfaz::CrearTitulo(FName Nombre, int32 Tamano)
+{
+	UTextBlock* Titulo = CrearTexto(Nombre, Tamano, true);
+	Titulo->SetFont(SAEVUSEstilo::FuenteTitulo(Tamano));
+	Titulo->SetTextTransformPolicy(ETextTransformPolicy::ToUpper);
+	return Titulo;
+}
+
+void USAEVUSWidgetInterfaz::RellenarLineas(UVerticalBox* Caja, const FString& Texto, int32 Tamano)
+{
+	using namespace SAEVUSInterfaz;
+	Caja->ClearChildren();
+	TArray<FString> Lineas;
+	Texto.ParseIntoArray(Lineas, TEXT("\n"), false);
+	for (const FString& Linea : Lineas)
+	{
+		UHorizontalBox* Fila = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		for (const FSAEVUSTrozoTexto& Trozo : TrocearTeclas(Linea))
+		{
+			UTextBlock* Bloque = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+			Bloque->SetText(FText::FromString(Trozo.Texto));
+			if (Trozo.bTecla)
+			{
+				Bloque->SetFont(SAEVUSEstilo::FuenteTecla(Tamano - ReduccionLetraTecla));
+				Bloque->SetColorAndOpacity(FSlateColor(SAEVUSEstilo::ColorTextoTecla()));
+				UBorder* Tecla = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
+				Tecla->SetBrush(SAEVUSEstilo::PincelTecla());
+				Tecla->SetPadding(RellenoTecla);
+				Tecla->SetContent(Bloque);
+				UHorizontalBoxSlot* Ranura = Fila->AddChildToHorizontalBox(Tecla);
+				Ranura->SetVerticalAlignment(VAlign_Center);
+				Ranura->SetPadding(SeparacionTecla);
+			}
+			else
+			{
+				Bloque->SetFont(SAEVUSEstilo::FuenteTexto(Tamano));
+				Bloque->SetColorAndOpacity(FSlateColor(Ajuste.ColorTexto));
+				Fila->AddChildToHorizontalBox(Bloque)->SetVerticalAlignment(VAlign_Center);
+			}
+		}
+		UVerticalBoxSlot* RanuraFila = Caja->AddChildToVerticalBox(Fila);
+		RanuraFila->SetHorizontalAlignment(HAlign_Center);
+		RanuraFila->SetPadding(FMargin(0.f, SeparacionLineas * 0.5f));
+	}
 }
 
 void USAEVUSWidgetInterfaz::Construir()
@@ -151,12 +205,16 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraAviso->SetAnchors(FAnchors(0.5f, Ajuste.AlturaAviso));
 	RanuraAviso->SetAlignment(FVector2D(0.5f, 0.f));
 	RanuraAviso->SetAutoSize(true);
-	TituloAviso = CrearTexto(TEXT("TituloAviso"), Ajuste.TamanoTituloAviso, true);
-	TextoAviso = CrearTexto(TEXT("TextoAviso"), Ajuste.TamanoTextoAviso, true);
+	TituloAviso = CrearTitulo(TEXT("TituloAviso"), Ajuste.TamanoTituloAviso);
 	BloqueAviso->AddChildToVerticalBox(TituloAviso)->SetHorizontalAlignment(HAlign_Center);
-	UVerticalBoxSlot* RanuraTextoAviso = BloqueAviso->AddChildToVerticalBox(TextoAviso);
-	RanuraTextoAviso->SetHorizontalAlignment(HAlign_Center);
-	RanuraTextoAviso->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
+	UBorder* PanelAviso = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("PanelAviso"));
+	PanelAviso->SetBrush(SAEVUSEstilo::PincelPanel());
+	PanelAviso->SetPadding(RellenoPanelAviso);
+	LineasAviso = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("LineasAviso"));
+	PanelAviso->SetContent(LineasAviso);
+	UVerticalBoxSlot* RanuraPanel = BloqueAviso->AddChildToVerticalBox(PanelAviso);
+	RanuraPanel->SetHorizontalAlignment(HAlign_Center);
+	RanuraPanel->SetPadding(FMargin(0.f, SeparacionTituloPanel, 0.f, 0.f));
 	BloqueAviso->SetVisibility(ESlateVisibility::Collapsed);
 
 	// Abajo al centro: nombre y barra del jefe activo.
@@ -186,7 +244,7 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraTituloZona->SetAnchors(FAnchors(0.5f, Ajuste.AlturaTituloZona));
 	RanuraTituloZona->SetAlignment(FVector2D(0.5f, 0.5f));
 	RanuraTituloZona->SetAutoSize(true);
-	UTextBlock* NombreZona = CrearTexto(TEXT("NombreZona"), Ajuste.TamanoTituloZona, true);
+	UTextBlock* NombreZona = CrearTitulo(TEXT("NombreZona"), Ajuste.TamanoTituloZona);
 	UTextBlock* SubtituloZona = CrearTexto(TEXT("SubtituloZona"), Ajuste.TamanoTextoAviso, true);
 	BloqueTituloZona->AddChildToVerticalBox(SubtituloZona)->SetHorizontalAlignment(HAlign_Center);
 	BloqueTituloZona->AddChildToVerticalBox(NombreZona)->SetHorizontalAlignment(HAlign_Center);
@@ -199,14 +257,14 @@ void USAEVUSWidgetInterfaz::Construir()
 	BloqueTituloZona->SetVisibility(ESlateVisibility::Collapsed);
 	TiempoEntrada = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 
-	// Abajo al centro, encima del jefe: lo que se puede usar ("E   Sentarse").
-	TextoInteraccion = CrearTexto(TEXT("TextoInteraccion"), Ajuste.TamanoTextoArma, true);
-	UCanvasPanelSlot* RanuraInteraccion = Lienzo->AddChildToCanvas(TextoInteraccion);
+	// Abajo al centro, encima del jefe: lo que se puede usar ("[E]  Sentarse", con la tecla dibujada).
+	CajaInteraccion = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Interaccion"));
+	UCanvasPanelSlot* RanuraInteraccion = Lienzo->AddChildToCanvas(CajaInteraccion);
 	RanuraInteraccion->SetAnchors(FAnchors(0.5f, 1.f));
 	RanuraInteraccion->SetAlignment(FVector2D(0.5f, 1.f));
 	RanuraInteraccion->SetPosition(FVector2D(0.f, -AlturaInteraccionDesdeAbajo));
 	RanuraInteraccion->SetAutoSize(true);
-	TextoInteraccion->SetVisibility(ESlateVisibility::Collapsed);
+	CajaInteraccion->SetVisibility(ESlateVisibility::Collapsed);
 
 	// Pantalla de muerte: velo negro a pantalla completa con un texto, por encima de todo.
 	VeloMuerte = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("VeloMuerte"));
@@ -216,7 +274,7 @@ void USAEVUSWidgetInterfaz::Construir()
 	UCanvasPanelSlot* RanuraVelo = Lienzo->AddChildToCanvas(VeloMuerte);
 	RanuraVelo->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
 	RanuraVelo->SetOffsets(FMargin(0.f));
-	TextoMuerte = CrearTexto(TEXT("TextoMuerte"), Ajuste.TamanoTextoMuerte, true);
+	TextoMuerte = CrearTitulo(TEXT("TextoMuerte"), Ajuste.TamanoTextoMuerte);
 	TextoMuerte->SetText(NSLOCTEXT("SAEVUSInterfaz", "HasCaido", "Has caído"));
 	VeloMuerte->SetContent(TextoMuerte);
 	VeloMuerte->SetRenderOpacity(0.f);
@@ -278,14 +336,20 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	if (Estado.bHayAviso)
 	{
 		FijarTexto(TituloAviso, Estado.TituloAviso);
-		FijarTexto(TextoAviso, Estado.TextoAviso);
+		// Las líneas solo se rehacen si cambia el texto.
+		if (Estado.TextoAviso.ToString() != TextoAvisoMostrado)
+		{
+			TextoAvisoMostrado = Estado.TextoAviso.ToString();
+			RellenarLineas(LineasAviso, TextoAvisoMostrado, Ajuste.TamanoTextoAviso);
+		}
 		BloqueAviso->SetRenderOpacity(Estado.OpacidadAviso);
 	}
 
-	FijarVisible(TextoInteraccion, !Estado.TextoInteraccion.IsEmpty());
-	if (!Estado.TextoInteraccion.IsEmpty())
+	FijarVisible(CajaInteraccion, !Estado.TextoInteraccion.IsEmpty());
+	if (!Estado.TextoInteraccion.IsEmpty() && Estado.TextoInteraccion.ToString() != TextoInteraccionMostrado)
 	{
-		FijarTexto(TextoInteraccion, Estado.TextoInteraccion);
+		TextoInteraccionMostrado = Estado.TextoInteraccion.ToString();
+		RellenarLineas(CajaInteraccion, TextoInteraccionMostrado, Ajuste.TamanoTextoArma);
 	}
 	FijarVisible(BloqueJefe, Estado.bJefeVisible);
 	if (Estado.bJefeVisible)

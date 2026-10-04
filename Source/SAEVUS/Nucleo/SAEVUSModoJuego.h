@@ -46,6 +46,10 @@ public:
 	bool LlegoPorPaso() const;
 	const FTransform& ObtenerPuntoControl() const { return PuntoControl; }
 
+	/** Mapas a los que llevan los botones del menú principal. */
+	const FString& ObtenerRutaMapaTutorial() const { return RutaMapaTutorial; }
+	const FString& ObtenerRutaMapaMazmorra() const { return RutaMapaMazmorra; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Reaparicion", meta = (ClampMin = "0", ForceUnits = "s"))
 	float RetardoReaparicion = 3.f;
@@ -53,6 +57,14 @@ protected:
 	/** Mapas (nombre corto) que arrancan con el menú principal. */
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Menu")
 	TArray<FName> MapasConMenuPrincipal;
+
+	/** Ruta del mapa del tutorial (botón "Tutorial" y "Menú principal", que arranca en él). */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Menu")
+	FString RutaMapaTutorial = TEXT("/Game/SAEVUS/Mapas/L_Tutorial");
+
+	/** Ruta del mapa de práctica (botón "Mazmorra"). */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Menu")
+	FString RutaMapaMazmorra = TEXT("/Game/SAEVUS/Mapas/L_Mazmorra");
 
 	/** Cuánto tiempo queda el cuerpo tras la reaparición. */
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Reaparicion", meta = (ClampMin = "0", ForceUnits = "s"))

@@ -857,28 +857,28 @@ PIEZAS_ESCENARIO = {
 # Avisos por sala: (x inicio del volumen, título, texto). El cartel 3D repite el título. Cada aviso dice
 # qué pulsar y qué hacer con ello en esa sala, en frases cortas.
 AVISOS_TUTORIAL = [
-    (100, "Moverse", "W A S D: moverte en ocho direcciones. Tu cuerpo mira siempre hacia la cámara.\n"
-                     "Ratón: mirar.   Mayús (mantener): esprintar.   Alt: caminar."),
-    (1450, "Saltar", "Espacio: saltar. Sube al escalón.\n"
-                     "En el aire, pulsa Espacio otra vez: doble salto. Así llegas al bloque alto."),
-    (3650, "Dash", "Toca dos veces seguidas una dirección (W W, A A, S S o D D): dash.\n"
+    (100, "Moverse", "[W] [A] [S] [D]  moverte en ocho direcciones. Tu cuerpo mira siempre hacia la cámara.\n"
+                     "[Ratón]  mirar.     Mantén [Mayús]  esprintar.     [Alt]  caminar."),
+    (1450, "Saltar", "[Espacio]  saltar. Sube al escalón.\n"
+                     "En el aire, [Espacio] otra vez: doble salto. Así llegas al bloque alto."),
+    (3650, "Dash", "Toca dos veces seguidas una dirección ([W] [W], [A] [A], [S] [S] o [D] [D]): dash.\n"
                    "Los dashes se encadenan sin espera, también en el aire.\n"
                    "Cruza el foso: corre, salta, doble salto y dash hacia delante."),
-    (5850, "Paredes", "Salta hacia una pared y pulsa Espacio al tocarla: rebotas en ella.\n"
+    (5850, "Paredes", "Salta hacia una pared y pulsa [Espacio] al tocarla: rebotas en ella.\n"
                       "Entre las dos paredes del fondo, rebota de una a otra para subir.\n"
                       "Corre de frente contra la cornisa y salta: la escalas."),
     (7650, "Carrera por pared", "Corre junto a la pared de la derecha y salta hacia ella en diagonal.\n"
-                                "Mantén W: corres por la pared. Espacio: saltas desde ella.\n"
+                                "Mantén [W]: corres por la pared. [Espacio]: saltas desde ella.\n"
                                 "Cruza así el foso."),
-    (9850, "Combate", "Clic izquierdo: tajo. Tres clics seguidos: combo de tres tajos.\n"
+    (9850, "Combate", "[Clic izq.]  tajo. Tres seguidos: combo de tres tajos.\n"
                       "Mira hacia arriba al atacar: tajo hacia arriba (para el muñeco alto).\n"
-                      "Clic derecho (mantener): guardia. Bloquea los golpes que llegan de frente."),
-    (10950, "Técnicas", "Mantén clic izquierdo y suelta: ataque cargado en giro.\n"
+                      "Mantén [Clic der.]  guardia: bloquea los golpes que llegan de frente."),
+    (10950, "Técnicas", "Mantén [Clic izq.] y suelta: ataque cargado en giro.\n"
                         "Ataca durante un dash: tajo en carrera.   En el aire: hasta tres tajos.\n"
                         "Un tajo se corta con dash, salto o guardia: encadénalos."),
     (12650, "Alma", "Cada golpe llena el alma (orbe arriba a la izquierda).\n"
-                    "Mantén Q en el suelo para gastarla y curarte.\n"
-                    "Siéntate en el banco (E): te cura del todo y guarda tu avance."),
+                    "Mantén [Q] en el suelo para gastarla y curarte.\n"
+                    "Siéntate en el banco con [E]: te cura del todo y guarda tu avance."),
     (14450, "Gran salón", "Sala libre: sube por las escaleras a los balcones,\n"
                           "corre por las paredes y salta entre columnas.\n"
                           "Todo se combina con todo: practica antes de seguir."),

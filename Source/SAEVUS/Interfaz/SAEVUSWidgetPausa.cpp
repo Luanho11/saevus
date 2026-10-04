@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
@@ -15,7 +16,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSGuardado.h"
-#include "Styling/CoreStyle.h"
+#include "Nucleo/SAEVUSModoJuego.h"
 
 #define LOCTEXT_NAMESPACE "SAEVUSPausa"
 
@@ -27,16 +28,18 @@ namespace SAEVUSPausa
 	constexpr int32 TamanoTitulo = 40;
 	// Separación entre la columna de opciones y el mapa.
 	constexpr float SeparacionMapa = 48.f;
-	constexpr int32 TamanoTituloPrincipal = 96;
-	constexpr int32 TamanoSubtitulo = 18;
+	constexpr int32 TamanoTituloPrincipal = 88;
 	// El menú principal tapa el juego algo más que la pausa.
-	const FLinearColor ColorVeloPrincipal(0.f, 0.f, 0.02f, 0.85f);
-	const FLinearColor ColorSubtitulo(0.55f, 0.6f, 0.75f);
+	const FLinearColor ColorVeloPrincipal(0.f, 0.f, 0.02f, 0.88f);
 	constexpr int32 TamanoBoton = 20;
-	constexpr float SeparacionBotones = 8.f;
+	constexpr float SeparacionBotones = 4.f;
 	constexpr float AnchoRellenoBoton = 28.f;
-	const FLinearColor ColorVelo(0.f, 0.f, 0.02f, 0.7f);
+	const FLinearColor ColorVelo(0.f, 0.f, 0.02f, 0.72f);
 	const FLinearColor ColorTexto(0.85f, 0.9f, 1.f);
+	// Raya fina bajo el título.
+	const FVector2D TamanoRaya(280.f, 2.f);
+	const FLinearColor ColorRaya(0.6f, 0.68f, 0.85f, 0.6f);
+	constexpr float SeparacionRaya = 18.f;
 
 	int32 SiguienteCalidad(int32 Actual)
 	{
@@ -74,6 +77,17 @@ namespace SAEVUSPausa
 			return LOCTEXT("Alta", "Alta");
 		}
 	}
+
+	void FijarVisibles(const TArray<TObjectPtr<UButton>>& Grupo, bool bVisible)
+	{
+		for (UButton* Boton : Grupo)
+		{
+			if (Boton)
+			{
+				Boton->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+			}
+		}
+	}
 }
 
 TSharedRef<SWidget> USAEVUSWidgetPausa::RebuildWidget()
@@ -88,6 +102,8 @@ TSharedRef<SWidget> USAEVUSWidgetPausa::RebuildWidget()
 void USAEVUSWidgetPausa::NativeConstruct()
 {
 	Super::NativeConstruct();
+	// Siempre se abre en la lista principal.
+	MostrarOpciones(false);
 	ActualizarTextos();
 	if (Mapa)
 	{
@@ -95,21 +111,28 @@ void USAEVUSWidgetPausa::NativeConstruct()
 	}
 }
 
-UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, UTextBlock*& OutTexto)
+UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, const FText& Texto, TArray<TObjectPtr<UButton>>& Grupo, UTextBlock** OutTexto)
 {
 	using namespace SAEVUSPausa;
 	UButton* Boton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Nombre);
 	Boton->SetStyle(SAEVUSEstilo::EstiloBotonMenu());
-	OutTexto = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-	OutTexto->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", TamanoBoton));
-	OutTexto->SetJustification(ETextJustify::Center);
-	OutTexto->SetColorAndOpacity(FSlateColor(ColorTexto));
-	Boton->AddChild(OutTexto);
+	UTextBlock* Etiqueta = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+	Etiqueta->SetFont(SAEVUSEstilo::FuenteTitulo(TamanoBoton));
+	Etiqueta->SetTextTransformPolicy(ETextTransformPolicy::ToUpper);
+	Etiqueta->SetJustification(ETextJustify::Center);
+	Etiqueta->SetColorAndOpacity(FSlateColor(ColorTexto));
+	Etiqueta->SetText(Texto);
+	Boton->AddChild(Etiqueta);
 	Botones.Add(Boton);
 	FocoBotones.Add(false);
+	Grupo.Add(Boton);
 	UVerticalBoxSlot* Ranura = Columna->AddChildToVerticalBox(Boton);
 	Ranura->SetPadding(FMargin(0.f, SeparacionBotones));
 	Ranura->SetHorizontalAlignment(HAlign_Fill);
+	if (OutTexto)
+	{
+		*OutTexto = Etiqueta;
+	}
 	return Boton;
 }
 
@@ -152,6 +175,25 @@ bool USAEVUSWidgetPausa::TieneFocoAlgunBoton() const
 	return false;
 }
 
+void USAEVUSWidgetPausa::MostrarOpciones(bool bOpciones)
+{
+	using namespace SAEVUSPausa;
+	bEnOpciones = bOpciones;
+	FijarVisibles(BotonesInicio, !bOpciones);
+	FijarVisibles(BotonesOpciones, bOpciones);
+	if (BotonContinuarPartida && !bOpciones && !bHayPartidaGuardada)
+	{
+		BotonContinuarPartida->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	if (IsInViewport())
+	{
+		if (UWidget* Primero = ObtenerPrimerBoton())
+		{
+			Primero->SetUserFocus(GetOwningPlayer());
+		}
+	}
+}
+
 void USAEVUSWidgetPausa::Construir()
 {
 	using namespace SAEVUSPausa;
@@ -180,62 +222,63 @@ void USAEVUSWidgetPausa::Construir()
 		RanuraMapa->SetVerticalAlignment(VAlign_Center);
 	}
 
+	// Título con letras espaciadas y una raya fina debajo.
 	UTextBlock* Titulo = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("Titulo"));
-	Titulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", bPrincipal ? TamanoTituloPrincipal : TamanoTitulo));
+	Titulo->SetFont(SAEVUSEstilo::FuenteTitulo(bPrincipal ? TamanoTituloPrincipal : TamanoTitulo));
+	Titulo->SetTextTransformPolicy(ETextTransformPolicy::ToUpper);
 	Titulo->SetColorAndOpacity(FSlateColor(ColorTexto));
 	Titulo->SetText(bPrincipal ? LOCTEXT("TituloJuego", "SAEVUS") : LOCTEXT("Pausa", "Pausa"));
 	Titulo->SetJustification(ETextJustify::Center);
-	Columna->AddChildToVerticalBox(Titulo)->SetPadding(FMargin(AnchoRellenoBoton, 0.f, AnchoRellenoBoton, bPrincipal ? 0.f : SeparacionBotones * 2.f));
-	if (bPrincipal)
-	{
-		UTextBlock* Subtitulo = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("Subtitulo"));
-		Subtitulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", TamanoSubtitulo));
-		Subtitulo->SetColorAndOpacity(FSlateColor(ColorSubtitulo));
-		Subtitulo->SetText(LOCTEXT("Subtitulo", "Boceto jugable"));
-		Subtitulo->SetJustification(ETextJustify::Center);
-		Columna->AddChildToVerticalBox(Subtitulo)->SetPadding(FMargin(0.f, 0.f, 0.f, SeparacionBotones * 4.f));
-	}
+	Columna->AddChildToVerticalBox(Titulo)->SetPadding(FMargin(AnchoRellenoBoton, 0.f));
+	UImage* Raya = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("Raya"));
+	FSlateBrush PincelRaya;
+	PincelRaya.TintColor = FSlateColor(ColorRaya);
+	PincelRaya.ImageSize = TamanoRaya;
+	Raya->SetBrush(PincelRaya);
+	UVerticalBoxSlot* RanuraRaya = Columna->AddChildToVerticalBox(Raya);
+	RanuraRaya->SetHorizontalAlignment(HAlign_Center);
+	RanuraRaya->SetPadding(FMargin(0.f, SeparacionRaya * 0.5f, 0.f, SeparacionRaya));
 
-	UTextBlock* Texto = nullptr;
 	if (bPrincipal)
 	{
-		CrearBoton(Columna, TEXT("Jugar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlJugar);
-		TextoContinuar = Texto;
+		CrearBoton(Columna, TEXT("Tutorial"), LOCTEXT("Tutorial", "Tutorial"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlTutorial);
+		CrearBoton(Columna, TEXT("Mazmorra"), LOCTEXT("Mazmorra", "Mazmorra"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlMazmorra);
 		// "Continuar" solo si hay un punto de control guardado para este mapa.
 		FTransform Punto;
 		const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(GetOwningPlayer());
-		UButton* BotonContinuar = CrearBoton(Columna, TEXT("ContinuarPartida"), Texto);
-		BotonContinuar->OnClicked.AddDynamic(this, &ThisClass::AlContinuarPartida);
-		BotonContinuar->SetVisibility(Guardado && Guardado->ObtenerPuntoControl(GetWorld(), Punto) ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-		TextoReiniciar = Texto;
+		bHayPartidaGuardada = Guardado && Guardado->ObtenerPuntoControl(GetWorld(), Punto);
+		BotonContinuarPartida = CrearBoton(Columna, TEXT("ContinuarPartida"), LOCTEXT("ContinuarPartida", "Continuar"), BotonesInicio);
+		BotonContinuarPartida->OnClicked.AddDynamic(this, &ThisClass::AlContinuarPartida);
 	}
 	else
 	{
-		CrearBoton(Columna, TEXT("Continuar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlContinuar);
-		TextoContinuar = Texto;
-		CrearBoton(Columna, TEXT("Reiniciar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlReiniciar);
-		TextoReiniciar = Texto;
+		CrearBoton(Columna, TEXT("Continuar"), LOCTEXT("Continuar", "Continuar"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlContinuar);
+		CrearBoton(Columna, TEXT("Reiniciar"), LOCTEXT("Reiniciar", "Volver al punto de control"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlReiniciar);
 	}
-	CrearBoton(Columna, TEXT("Calidad"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarCalidad);
-	TextoCalidad = Texto;
-	CrearBoton(Columna, TEXT("Sensibilidad"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarSensibilidad);
-	TextoSensibilidad = Texto;
-	CrearBoton(Columna, TEXT("Volumen"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarVolumen);
-	TextoVolumen = Texto;
-	CrearBoton(Columna, TEXT("Salir"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlSalir);
-	TextoSalir = Texto;
+	CrearBoton(Columna, TEXT("Ajustes"), LOCTEXT("Opciones", "Opciones"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlOpciones);
+	if (!bPrincipal)
+	{
+		CrearBoton(Columna, TEXT("MenuPrincipal"), LOCTEXT("MenuPrincipal", "Menú principal"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlMenuPrincipal);
+	}
+	CrearBoton(Columna, TEXT("Salir"), LOCTEXT("Salir", "Salir"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlSalir);
+
+	UTextBlock* Etiqueta = nullptr;
+	CrearBoton(Columna, TEXT("Calidad"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarCalidad);
+	TextoCalidad = Etiqueta;
+	CrearBoton(Columna, TEXT("Sensibilidad"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarSensibilidad);
+	TextoSensibilidad = Etiqueta;
+	CrearBoton(Columna, TEXT("Volumen"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarVolumen);
+	TextoVolumen = Etiqueta;
+	CrearBoton(Columna, TEXT("Volver"), LOCTEXT("Volver", "Volver"), BotonesOpciones)->OnClicked.AddDynamic(this, &ThisClass::AlVolver);
+	MostrarOpciones(false);
 }
 
 void USAEVUSWidgetPausa::ActualizarTextos()
 {
-	if (!TextoContinuar)
+	if (!TextoCalidad)
 	{
 		return;
 	}
-	const bool bPrincipal = Modo == ESAEVUSModoMenu::Principal;
-	TextoContinuar->SetText(bPrincipal ? LOCTEXT("Jugar", "Jugar") : LOCTEXT("Continuar", "Continuar"));
-	TextoReiniciar->SetText(bPrincipal ? LOCTEXT("ContinuarPartida", "Continuar desde el último punto de control")
-		: LOCTEXT("Reiniciar", "Volver al último punto de control"));
 	const UGameUserSettings* Ajustes = UGameUserSettings::GetGameUserSettings();
 	const int32 Calidad = Ajustes ? Ajustes->GetOverallScalabilityLevel() : 1;
 	TextoCalidad->SetText(FText::Format(LOCTEXT("Calidad", "Calidad: {0}"), SAEVUSPausa::NombreCalidad(Calidad)));
@@ -244,7 +287,6 @@ void USAEVUSWidgetPausa::ActualizarTextos()
 	TextoSensibilidad->SetText(FText::Format(LOCTEXT("Sensibilidad", "Sensibilidad del ratón: {0}"), FText::AsNumber(Sensibilidad)));
 	const float Volumen = Controlador ? Controlador->ObtenerVolumen() : 1.f;
 	TextoVolumen->SetText(FText::Format(LOCTEXT("Volumen", "Volumen: {0} %"), FText::AsNumber(FMath::RoundToInt32(Volumen * 100.f))));
-	TextoSalir->SetText(LOCTEXT("Salir", "Salir del juego"));
 }
 
 void USAEVUSWidgetPausa::AlContinuar()
@@ -255,11 +297,23 @@ void USAEVUSWidgetPausa::AlContinuar()
 	}
 }
 
-void USAEVUSWidgetPausa::AlJugar()
+void USAEVUSWidgetPausa::AlTutorial()
 {
-	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer());
+	if (Controlador && ModoJuego)
 	{
-		Controlador->CerrarMenuPrincipal();
+		Controlador->JugarEn(ModoJuego->ObtenerRutaMapaTutorial());
+	}
+}
+
+void USAEVUSWidgetPausa::AlMazmorra()
+{
+	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer());
+	if (Controlador && ModoJuego)
+	{
+		Controlador->JugarEn(ModoJuego->ObtenerRutaMapaMazmorra());
 	}
 }
 
@@ -276,6 +330,28 @@ void USAEVUSWidgetPausa::AlReiniciar()
 	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
 	{
 		Controlador->ReiniciarEnPuntoControl();
+	}
+}
+
+void USAEVUSWidgetPausa::AlOpciones()
+{
+	ActualizarTextos();
+	MostrarOpciones(true);
+}
+
+void USAEVUSWidgetPausa::AlVolver()
+{
+	MostrarOpciones(false);
+}
+
+void USAEVUSWidgetPausa::AlMenuPrincipal()
+{
+	// El tutorial arranca con el menú principal.
+	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer());
+	if (Controlador && ModoJuego)
+	{
+		Controlador->IrAMapa(ModoJuego->ObtenerRutaMapaTutorial());
 	}
 }
 

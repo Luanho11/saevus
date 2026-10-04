@@ -8,6 +8,7 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Interfaz/SAEVUSEstadoInterfaz.h"
 #include "Interfaz/SAEVUSWidgetInterfaz.h"
+#include "Interfaz/SAEVUSTextoTeclas.h"
 #include "Interfaz/SAEVUSWidgetPausa.h"
 #include "Mundo/SAEVUSInfoZona.h"
 #include "Tutorial/SAEVUSSubsistemaTutorial.h"
@@ -155,6 +156,28 @@ bool FSAEVUSPruebaTituloZona::RunTest(const FString& Parameters)
 	TestNull(TEXT("Sin información de zona"), ASAEVUSInfoZona::Obtener(MundoPrueba.ObtenerMundo()));
 	ASAEVUSInfoZona* Zona = MundoPrueba.CrearActor<ASAEVUSInfoZona>(FVector::ZeroVector);
 	TestTrue(TEXT("Se encuentra la información de la zona"), ASAEVUSInfoZona::Obtener(MundoPrueba.ObtenerMundo()) == Zona);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTeclasAviso, "SAEVUS.Interfaz.TeclasAviso", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaTeclasAviso::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSInterfaz;
+	const TArray<FSAEVUSTrozoTexto> Trozos = TrocearTeclas(TEXT("[W] [A]: moverte. Mantén [Mayús]"));
+	if (!TestEqual(TEXT("Cinco trozos"), Trozos.Num(), 5))
+	{
+		return false;
+	}
+	TestTrue(TEXT("W es tecla"), Trozos[0].bTecla && Trozos[0].Texto == TEXT("W"));
+	TestTrue(TEXT("El espacio entre teclas es texto"), !Trozos[1].bTecla && Trozos[1].Texto == TEXT(" "));
+	TestTrue(TEXT("A es tecla"), Trozos[2].bTecla && Trozos[2].Texto == TEXT("A"));
+	TestTrue(TEXT("Texto entre teclas"), !Trozos[3].bTecla && Trozos[3].Texto == TEXT(": moverte. Mantén "));
+	TestTrue(TEXT("Tecla con nombre largo al final"), Trozos[4].bTecla && Trozos[4].Texto == TEXT("Mayús"));
+	const TArray<FSAEVUSTrozoTexto> SinCerrar = TrocearTeclas(TEXT("Pulsa [E"));
+	TestTrue(TEXT("Un corchete sin cerrar es texto"), SinCerrar.Num() == 1 && !SinCerrar[0].bTecla && SinCerrar[0].Texto == TEXT("Pulsa [E"));
+	const TArray<FSAEVUSTrozoTexto> Vacia = TrocearTeclas(TEXT("[]"));
+	TestTrue(TEXT("Corchetes vacíos son texto"), Vacia.Num() == 1 && !Vacia[0].bTecla);
+	TestEqual(TEXT("Línea vacía: sin trozos"), TrocearTeclas(FString()).Num(), 0);
 	return true;
 }
 

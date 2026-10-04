@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 72, fase "Rehacer como GunZ")**
-**Último latido: 2026-10-04 11:41** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 73, fase "Rehacer como GunZ")**
+**Último latido: 2026-10-04 11:55** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -119,7 +119,7 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 69. [x] Sombreado dibujado de verdad (Hollow Knight en 3D): luz en bandas planas, tinta gruesa en contornos, sombras frías, niebla en capas, grano de papel procedural; medir en la Vega 8.
 70. [x] Tutorial nuevo estilo mazmorra (estructura de referencia: Dungeon de GunZ): salas cerradas con muros para correr, escaleras, balcones, pilares y arcos; enseña paso a paso con mensajes claros.
 71. [x] Mapa de práctica "Mazmorra" (arena estilo Dungeon de GunZ) en lugar de la Zona 1; el paso del tutorial lleva a ella.
-72. [ ] Interfaz y menús: tipografía (Roboto con contorno, espaciado y pesos), menús limpios (Tutorial, Mazmorra, Opciones, Salir), avisos con las teclas resaltadas; quitar lo genérico.
+72. [x] Interfaz y menús: tipografía (Roboto con contorno, espaciado y pesos), menús limpios (Tutorial, Mazmorra, Opciones, Salir), avisos con las teclas resaltadas; quitar lo genérico.
 73. [ ] Personaje: caballero mejorado en Blender (proporciones, capa, máscara, espada clara) y alcance de la espada visible e intuitivo (estela = zona de golpe).
 74. [ ] Partículas: estela y polvo direccional del dash, aterrizaje, carrera por pared, salto de pared, arcos de los tajos.
 75. [ ] Goblins estilo GunZ (Blender, mejorados): tipos con ataques variados y avisos claros, sin daño por contacto, golpeables con claridad; sala de goblins en el tutorial.
@@ -129,4 +129,4 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- Siguiente paso exacto: tarea 72 — interfaz y menús (tipografía, teclas en los avisos, menús limpios).
+- Siguiente paso exacto: tarea 73 — alcance de espada en abanico con su arco visible.

@@ -140,6 +140,10 @@ private:
 	void Construir();
 	void AjustarMascaras(int32 Numero);
 	UTextBlock* CrearTexto(FName Nombre, int32 Tamano, bool bCentrado);
+	/** Título: letras espaciadas en mayúsculas. */
+	UTextBlock* CrearTitulo(FName Nombre, int32 Tamano);
+	/** Rehace las líneas de Caja con Texto: una fila por línea y las [teclas] dibujadas como teclas. */
+	void RellenarLineas(class UVerticalBox* Caja, const FString& Texto, int32 Tamano);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UHorizontalBox> FilaMascaras;
@@ -156,8 +160,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoMunicion;
 
+	/** Lo que se puede usar cerca ("[E]  Sentarse"), con la tecla dibujada. */
 	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TextoInteraccion;
+	TObjectPtr<UVerticalBox> CajaInteraccion;
+
+	FString TextoInteraccionMostrado;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> BloqueTituloZona;
@@ -171,8 +178,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TituloAviso;
 
+	/** Líneas del aviso (con teclas), dentro de un panel translúcido. */
 	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TextoAviso;
+	TObjectPtr<UVerticalBox> LineasAviso;
+
+	FString TextoAvisoMostrado;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> BloqueJefe;

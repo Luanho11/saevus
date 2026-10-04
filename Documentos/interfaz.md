@@ -11,6 +11,17 @@ Boceto mejorable, sin dirección visual compleja todavía (decisión del dueño)
 | `FSAEVUSAjusteInterfaz` | Colores, tamaños, márgenes, tamaños de texto, vida por máscara, fundido de avisos, barra del jefe. |
 | `ASAEVUSHUDDepuracion` | Crea la interfaz al empezar (`ClaseInterfaz`, sustituible por una subclase Blueprint) y dibuja encima el texto de depuración con F6. |
 
+## Tipografía y avisos (tarea 72)
+
+Sin fuentes externas: todo es la Roboto del motor, con tres estilos (`SAEVUSEstilo::FuenteTitulo`, `FuenteTexto`, `FuenteTecla`):
+- **títulos** (avisos, zona, menús, "Has caído"): Roboto fina en mayúsculas con letras espaciadas, como un rótulo grabado;
+- **texto corrido:** Roboto normal con un contorno oscuro fino, legible sobre cualquier fondo;
+- **teclas:** Roboto negrita dentro de una "tecla" dibujada (caja clara de esquinas poco redondeadas, `PincelTecla`).
+
+**Avisos con teclas:** en el texto de un aviso, lo que va entre corchetes se dibuja como tecla: `"[W] [A] [S] [D]  moverte"`. `SAEVUSInterfaz::TrocearTeclas` (`SAEVUSTextoTeclas`, función pura, test `SAEVUS.Interfaz.TeclasAviso`) parte cada línea en trozos de texto y teclas; la interfaz rehace las filas solo cuando cambia el texto. El aviso va en un panel translúcido (`PincelPanel`) bajo su título. El aviso de interacción usa lo mismo: `"[E]  Sentarse"`.
+
+El marcador de golpes de los muñecos ("Golpes | Último | Total") es de depuración: solo se ve con el HUD de depuración (F6).
+
 ## Disposición
 
 - **Arriba a la izquierda:** orbe de alma (se llena de abajo arriba; más brillante si alcanza para curar; late mientras cura) y a su derecha las máscaras de vida (20 de vida cada una; una máscara a medias se ve gris).
@@ -24,11 +35,11 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 
 ## Menú de pausa
 
-`USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar), **Volumen** (0 → 25 → 50 → 75 → 100 %, volumen general del dispositivo de audio) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
+`USAEVUSWidgetPausa` (también construido en C++): velo oscuro, título "PAUSA" con una raya fina debajo y opciones de solo texto: **Continuar**, **Volver al punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Opciones**, **Menú principal** (abre el tutorial, que arranca con el menú principal) y **Salir**. **Opciones** sustituye la lista en el mismo sitio por **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar), **Volumen** (0 → 25 → 50 → 75 → 100 %, volumen general del dispositivo de audio) y **Volver** (`MostrarOpciones`; el menú siempre abre en la lista principal). Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
 
 ## Título de zona
 
-Al entrar en un mapa con `ASAEVUSInfoZona` (un actor por mapa con `Nombre` y `Subtitulo`, lo pone el script de assets), la interfaz muestra el nombre grande en el tercio de arriba, con el subtítulo encima: "Tutorial / Las Afueras" y "Zona 1 / Ruinas del Paso". Como los letreros de Hollow Knight. Espera `RetardoTituloZona`, aparece en `FundidoTituloZona`, se queda `DuracionTituloZona` y se va. La curva es una función pura (`SAEVUSInterfaz::OpacidadTituloZona`, test `SAEVUS.Interfaz.TituloZona`). Cuenta con tiempo de mundo, así que en el tutorial espera a que se pulse "Jugar" en el menú principal.
+Al entrar en un mapa con `ASAEVUSInfoZona` (un actor por mapa con `Nombre` y `Subtitulo`, lo pone el script de assets), la interfaz muestra el nombre grande en el tercio de arriba, con el subtítulo encima: "Tutorial / Mazmorra del Umbral" y "Práctica / La Mazmorra". Como los letreros de Hollow Knight. Espera `RetardoTituloZona`, aparece en `FundidoTituloZona`, se queda `DuracionTituloZona` y se va. La curva es una función pura (`SAEVUSInterfaz::OpacidadTituloZona`, test `SAEVUS.Interfaz.TituloZona`). Cuenta con tiempo de mundo, así que en el tutorial espera a que se pulse "Jugar" en el menú principal.
 
 ## Mapa en la pausa
 
@@ -40,9 +51,9 @@ El cálculo está aparte del widget y se prueba sin pantalla: `SAEVUSMapa::Recog
 
 **Mando y teclado:** al abrir un menú el foco va al primer botón visible (`ObtenerPrimerBoton`); se navega con la cruceta, el stick o las flechas y se confirma con el botón inferior, Intro o Espacio (navegación de Slate). El botón con el foco se resalta con `EstiloBotonMenuEnfocado`, porque el mando no tiene "pasar por encima". La prueba de humo comprueba que la pausa abre con el foco en un botón.
 
-Los botones de los dos menús usan `SAEVUSEstilo::EstiloBotonMenu` (`SAEVUSEstiloInterfaz`, compartido con la interfaz): píldora oscura translúcida con borde, que se aclara al pasar por encima.
+Los botones de los dos menús usan `SAEVUSEstilo::EstiloBotonMenu` (`SAEVUSEstiloInterfaz`, compartido con la interfaz): solo texto en mayúsculas espaciadas, sin fondo; al pasar por encima o con el foco aparece un velo claro con un filo fino.
 
-El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, título **SAEVUS** con el subtítulo "Boceto jugable", y debajo **Jugar**, **Continuar desde el último punto de control** (solo si hay uno guardado para el mapa: lleva al jugador allí con `ASAEVUSModoJuego::FijarPuntoControl` y `ReiniciarJugador`), **Calidad**, **Sensibilidad** y **Salir**. Se abre al arrancar los mapas de `ASAEVUSModoJuego::MapasConMenuPrincipal` (`L_Tutorial`), también con Play en el editor, con el juego en pausa. La tecla de pausa no lo cierra. No sale en las pruebas en el juego (`-SAEVUSPruebaHumo`, `-SAEVUSRecorrido`) ni con `-SAEVUSSinMenu`. La prueba de humo lo abre, comprueba la pausa, pulsa la tecla de pausa (sigue abierto), lo cierra con "Jugar" y guarda `SAEVUS_PruebaHumo_Menu.png`.
+El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, título **SAEVUS** grande y espaciado con una raya debajo, y **Tutorial**, **Mazmorra**, **Continuar** (solo si hay un punto de control guardado para el mapa: lleva al jugador allí con `ASAEVUSModoJuego::FijarPuntoControl` y `ReiniciarJugador`), **Opciones** y **Salir**. Tutorial y Mazmorra van a `ASAEVUSModoJuego::RutaMapaTutorial` / `RutaMapaMazmorra` con `ASAEVUSControladorJugador::JugarEn`: si ya se está en ese mapa cierra el menú y se juega; si no, lo abre (`IrAMapa`, `OpenLevel`). Se abre al arrancar los mapas de `ASAEVUSModoJuego::MapasConMenuPrincipal` (`L_Tutorial`), también con Play en el editor, con el juego en pausa. La tecla de pausa no lo cierra. No sale en las pruebas en el juego (`-SAEVUSPruebaHumo`, `-SAEVUSRecorrido`) ni con `-SAEVUSSinMenu`. La prueba de humo lo abre, comprueba la pausa, pulsa la tecla de pausa (sigue abierto), lo cierra con "Jugar" y guarda `SAEVUS_PruebaHumo_Menu.png`.
 
 **Guardado** (`Nucleo/SAEVUSGuardado`): la calidad la guarda el motor (`GameUserSettings.ini`). La sensibilidad, el volumen y el último punto de control (por mapa) van en `USAEVUSPartidaGuardada` (`Saved/SaveGames/SAEVUS.sav`), que mantiene `USAEVUSSubsistemaGuardado`: se carga al arrancar, el controlador aplica la sensibilidad y el volumen en `BeginPlay`, y se escribe al cambiar una opción o al pasar por un punto de control. El punto de control guardado no se usa al arrancar: es para "Continuar" del menú principal. Con `-SAEVUSSinGuardar` (lo pasan la prueba de humo y el recorrido) no se escribe nada. Test `SAEVUS.Guardado.IdaYVuelta`.
 
@@ -52,6 +63,6 @@ El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, títul
 
 ## Pendiente
 
-- Dirección de arte: iconos de máscara y orbe pintados, tipografía propia.
+- Dirección de arte: iconos de máscara y orbe pintados; una tipografía con más carácter (necesita una fuente externa con licencia libre: pendiente de que el dueño lo decida).
 - Opciones completas (resolución, controles, volumen).
 - Indicadores en el mundo (enemigos fuera de pantalla, interacción).

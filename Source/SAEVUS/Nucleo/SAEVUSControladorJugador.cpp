@@ -9,6 +9,8 @@
 #include "Interfaz/SAEVUSWidgetPausa.h"
 #include "Nucleo/SAEVUSGuardado.h"
 #include "Nucleo/SAEVUSModoJuego.h"
+#include "Kismet/GameplayStatics.h"
+#include "Misc/PackageName.h"
 
 ASAEVUSControladorJugador::ASAEVUSControladorJugador()
 {
@@ -105,6 +107,30 @@ void ASAEVUSControladorJugador::CerrarMenuPrincipal()
 	{
 		CerrarMenu(MenuPrincipal);
 	}
+}
+
+void ASAEVUSControladorJugador::IrAMapa(const FString& Ruta)
+{
+	if (Ruta.IsEmpty())
+	{
+		return;
+	}
+	CerrarMenuPrincipal();
+	if (EstaEnMenuPausa())
+	{
+		CerrarMenu(MenuPausa);
+	}
+	UGameplayStatics::OpenLevel(this, FName(*Ruta));
+}
+
+void ASAEVUSControladorJugador::JugarEn(const FString& Ruta)
+{
+	if (SAEVUSGuardado::NombreMapa(GetWorld()) == FName(*FPackageName::GetShortName(Ruta)))
+	{
+		CerrarMenuPrincipal();
+		return;
+	}
+	IrAMapa(Ruta);
 }
 
 void ASAEVUSControladorJugador::ContinuarPartidaGuardada()

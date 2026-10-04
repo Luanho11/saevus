@@ -1,6 +1,6 @@
 # Controles y técnicas de SAEVUS (boceto jugable)
 
-Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutorial`). Todas las teclas están en `IMC_SAEVUS` y se pueden cambiar.
+Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutorial`) con el menú principal (Tutorial, Mazmorra, Opciones, Salir). Todas las teclas están en `IMC_SAEVUS` y se pueden cambiar.
 
 ## Teclas
 
@@ -30,6 +30,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 - **Cancelaciones:** dash, salto y guardia cortan un tajo desde su ventana (los tajos rápidos pronto; el remate tarde). Un ataque durante un dash lo termina.
 - **Paredes:** salta contra una pared para rebotar; corre de frente para escalarla; llega en diagonal para correr por ella. Un salto de pared devuelve el doble salto y el dash aéreo.
 - **Salto en buffer:** pulsar salto justo antes de aterrizar salta al tocar el suelo (y conserva el doble salto).
+- **Cámara y cuerpo (GunZ):** la cámara está siempre detrás en tercera persona y el cuerpo mira siempre hacia donde mira ella; te mueves en ocho direcciones sin girarte (andar hacia atrás es andar de espaldas, y el dash hacia atrás no te da la vuelta). Los tajos salen hacia donde miras.
 - **Dash (como en GunZ):** sin espera entre dashes ni límite por salto; se encadenan sin pausa. La gravedad sigue actuando, así que encadenarlos no te hace volar. Invulnerable un instante al empezar; la cámara se queda fija mientras dura.
 - **Alma:** cada golpe a un enemigo o muñeco la llena (orbe arriba a la izquierda); mantén Q en el suelo para curarte una máscara de vida. Un golpe, saltar, atacar o el dash interrumpen la curación.
 - **Recibir un golpe:** sales despedido y eres invulnerable un segundo (el cuerpo parpadea).

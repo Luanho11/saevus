@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "Depuracion/SAEVUSSubsistemaNumerosDanio.h"
 #include "Engine/StaticMesh.h"
 #include "SAEVUS.h"
@@ -79,5 +80,7 @@ void ASAEVUSMunecoEntrenamiento::ReiniciarContadores()
 
 void ASAEVUSMunecoEntrenamiento::ActualizarLectura()
 {
+	// Es un dato de depuración: solo se ve con el HUD de depuración (F6).
+	Lectura->SetVisibility(SAEVUSDepuracion::HUDActivo());
 	Lectura->SetText(FText::FromString(FString::Printf(TEXT("Golpes %d | Último %.0f | Total %.0f"), Golpes, UltimoDanio, DanioTotal)));
 }

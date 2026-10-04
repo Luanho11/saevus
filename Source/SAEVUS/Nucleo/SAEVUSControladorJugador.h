@@ -35,6 +35,11 @@ public:
 	void ContinuarPartidaGuardada();
 	bool EstaEnMenuPrincipal() const;
 
+	/** Abre otro mapa (ruta del paquete), cerrando antes los menús. */
+	void IrAMapa(const FString& Ruta);
+	/** Botones del menú principal: si ya se está en ese mapa, cierra el menú y se juega; si no, lo abre. */
+	void JugarEn(const FString& Ruta);
+
 	/** Cierto si el menú abierto (pausa o principal) tiene el foco en un botón. */
 	bool MenuTieneFoco() const;
 

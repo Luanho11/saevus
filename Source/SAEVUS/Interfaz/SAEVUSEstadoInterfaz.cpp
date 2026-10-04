@@ -40,7 +40,7 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 		const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(Pawn);
 		if (const ISAEVUSInteractuable* Objeto = Personaje && !Personaje->EstaSentado() ? Cast<ISAEVUSInteractuable>(Personaje->ObtenerInteractuable()) : nullptr)
 		{
-			Estado.TextoInteraccion = FText::Format(LOCTEXT("Interaccion", "E   {0}"), Objeto->ObtenerTextoInteraccion());
+			Estado.TextoInteraccion = FText::Format(LOCTEXT("Interaccion", "[E]  {0}"), Objeto->ObtenerTextoInteraccion());
 		}
 		if (const USAEVUSComponenteArmas* Armas = Pawn->FindComponentByClass<USAEVUSComponenteArmas>())
 		{
