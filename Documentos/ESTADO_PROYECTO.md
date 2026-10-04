@@ -1,6 +1,6 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-03 (sesión 3c)_
+_Actualizado: 2026-10-04 (sesión 3c)_
 
 ## Objetivo actual
 
@@ -13,7 +13,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Entorno:** UE 5.8.3 (binario), VS 2022 Build Tools 17.14 / MSVC 14.44, SDK 10.0.26100, .NET 4.8 SDK, Blender 4.2.16, Git + LFS (`entorno.md`). Smart App Control desactivado.
 - **Render para hardware modesto:** sin Lumen/Nanite/RT/VSM/MegaLights/distance fields, TAA, SSR, iluminación dinámica.
 - **Movimiento** (`movimiento.md`): caminar/correr/esprint, salto con coyote y buffer, control aéreo, dash (suelo y aire), salto de pared, carrera por pared, escalada; listo para red con movimientos guardados.
-- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, tajo aéreo), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
+- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, combo aéreo de tres con flotación, tajo en carrera, ataque cargado), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
 - **Dash por doble toque** de WASD (`movimiento.md`): cámara bloqueada durante el dash, invulnerabilidad breve, estela de partículas (`USAEVUSComponenteEstelaDash`, partículas por CPU en mallas instanciadas).
 - **Caballero boceto** (`animacion.md`): malla + esqueleto propio de 24 huesos generados por script en Blender, importados por script; animación procedural en C++ (reposo, correr, aire, dash, pared, escalada, tajos por línea de tiempo, disparo, muerte, capa).
 - **Sombreado tipo Hollow Knight** (`pipeline-assets.md`, Sombreado): material de personaje dibujado con borde de luz fría, instancias por pieza del caballero, contorno por post-proceso de profundidad, viñeta y saturación baja desde la cámara.
@@ -53,8 +53,9 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - Máquina por debajo de lo recomendado (7 GB RAM, Vega 8): recompilación completa > 10 min, la primera ejecución con render es "en frío".
 - `loop.ps1` del dueño puede lanzar otra sesión de Claude; se coordina con el cerrojo de `PROGRESS.md`.
-- Los mapas siguen con la iluminación clara de pruebas (la oscura llega con `L_Tutorial`). Sin tutorial, enemigos ni interfaz de juego.
+- `L_Pruebas` sigue con la iluminación clara de pruebas; la oscura está en `L_Tutorial`.
+- Empaquetado (tarea 14) bloqueado: el proceso muere por falta de memoria; lanzar `Empaquetar.ps1` con la máquina libre.
 
 ## Siguiente paso
 
-Tarea 10 de `PROGRESS.md`: tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 35 de `PROGRESS.md` (tabla de equilibrio); después, tareas propias (ver la cola en `PROGRESS.md`).

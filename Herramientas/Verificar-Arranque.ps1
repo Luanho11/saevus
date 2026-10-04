@@ -37,6 +37,8 @@ if (-not $SinAssets) {
     $logAssets = Invocar-Editor "assets" "-ExecutePythonScript=`"$(Join-Path $PSScriptRoot 'ScriptsEditor\saevus_crear_assets.py')`""
     Select-String -Path $logAssets -Pattern "\[SAEVUS assets\]" -Encoding UTF8 | ForEach-Object { "  " + ($_.Line -replace '^.*?\[SAEVUS', '[SAEVUS') }
     if (Select-String -Path $logAssets -Pattern "\[SAEVUS assets\] FALLO" -Quiet -Encoding UTF8) { throw "Falló el script de assets (ver assets.log)" }
+    # Un error de sintaxis de Python no escribe FALLO: se exige el "hecho" final.
+    if (-not (Select-String -Path $logAssets -Pattern "\[SAEVUS assets\] hecho" -Quiet -Encoding UTF8)) { throw "El script de assets no terminó (ver assets.log)" }
 }
 
 Write-Host "== 3/4 Tests de automatización SAEVUS.*"

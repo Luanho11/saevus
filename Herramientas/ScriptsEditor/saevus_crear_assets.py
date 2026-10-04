@@ -747,6 +747,7 @@ AVISOS_TUTORIAL = [
     (5650, "Paredes", "Salta contra una pared para rebotar en ella.\nCorre de frente hacia una pared para escalarla."),
     (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
     (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
+    (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo."),
@@ -971,6 +972,9 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     for indice, y in enumerate((-250, 0, 250)):
         crear_muneco(actores, f"S4_Muneco{indice}", unreal.Vector(10400, y, 96), unreal.Rotator(0, 0, 180))
     crear_muneco(actores, "S4_MunecoAlto", unreal.Vector(11000, 0, 96 + 190), unreal.Rotator(0, 0, 180))
+    # Pareja para el ataque cargado (a los lados) y uno lejano para el tajo en carrera.
+    for indice, y in enumerate((-180, 180)):
+        crear_muneco(actores, f"S4_MunecoCargado{indice}", unreal.Vector(10900, y, 96), unreal.Rotator(0, 0, 180))
 
     # S5 Rebote: foso de 12 m (no se cruza sin rebotar) con dos muñecos flotando a media altura.
     crear_suelo(actores, "S5_Suelo", 11500, 11800, materiales)

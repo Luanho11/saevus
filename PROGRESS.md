@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 34)**
-**Último latido: 2026-10-04 00:49** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 35)**
+**Último latido: 2026-10-04 01:01** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -68,10 +68,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 31. [x] ~~Ataque cargado (Hollow Knight, arte del aguijón): mantener ataque ~0,8 s y soltar → tajo giratorio amplio; aviso visual de carga; tests.~~
 32. [x] ~~Destello del enemigo al recibir un golpe (cuerpo y máscara en blanco un instante); test.~~
 33. [x] ~~Sacudida de cámara procedural (golpe dado, golpe recibido, bloqueo, aterrizaje fuerte), con intensidad por datos y opción de desactivarla.~~
-34. [ ] Muñecos del tutorial que enseñan las técnicas nuevas: un aviso y un muñeco para el ataque cargado, el tajo en carrera y el combo aéreo (sección de combate ampliada).
+34. [x] ~~Muñecos del tutorial que enseñan las técnicas nuevas: un aviso y un muñeco para el ataque cargado, el tajo en carrera y el combo aéreo (sección de combate ampliada).~~ Además, `Verificar-Arranque` exige el "hecho" del script de assets (un error de sintaxis de Python pasaba sin aviso).
 35. [ ] Equilibrio de primera pasada con los tests: tabla de daño por segundo de cada técnica y tiempos para derrotar a cada enemigo, en un test informativo (`SAEVUS.Equilibrio.*`) que escribe la tabla en el log.
 
 ## Estado del turno
-- Completado: tarea 31 (ataque cargado).
+- Completado: tarea 34 (técnicas en el tutorial).
 - A medias: —
-- Siguiente paso exacto: tarea 34 — enseñar las técnicas nuevas en el tutorial.
+- Siguiente paso exacto: tarea 35 — tabla de equilibrio `SAEVUS.Equilibrio.*`.

@@ -11,7 +11,7 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S2 Dash | 3500 – 5600 | Dash por doble toque, también en el aire | Foso de 8 m |
 | S3 Paredes | 5600 – 7400 | Salto de pared, escalada | Chimenea de 7 m y cornisa de 4,5 m |
 | S3b Carrera por pared | 7300 – 9500 | Carrera por pared | Foso de 9 m junto a una pared de 15 m |
-| S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba | Tres muñecos y uno flotando |
+| S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba; técnicas (desde X ≈ 10650): ataque cargado, tajo en carrera, combo aéreo | Tres muñecos y uno flotando; una pareja a los lados (X = 10900) para el giro cargado |
 | S5 Rebote | 11500 – 13500 | Tajo hacia abajo y pogo | Foso de 12 m con pinchos (se rebota en ellos) y un muñeco flotando: no se cruza sin rebotar |
 | S6 Alma | 13500 – 15000 | Alma y curación (Q) | Dos muñecos |
 | S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar, parar y devolver proyectiles | Dos rastreros, un saltador y un escupidor; la puerta se abre al vaciarla |
