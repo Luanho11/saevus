@@ -4,6 +4,7 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 #include "Efectos/SAEVUSComponenteParticulas.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Engine/StaticMesh.h"
@@ -80,6 +81,7 @@ ASAEVUSEnemigo::ASAEVUSEnemigo()
 
 	Efectos = CreateDefaultSubobject<USAEVUSComponenteParticulas>(TEXT("Efectos"));
 	Efectos->SetupAttachment(RootComponent);
+	Sonido = CreateDefaultSubobject<USAEVUSComponenteSonidoEnemigo>(TEXT("Sonido"));
 }
 
 const FSAEVUSAjusteEnemigo& ASAEVUSEnemigo::ObtenerAjuste() const

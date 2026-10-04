@@ -2,6 +2,7 @@
 
 #include "Audio/SAEVUSSintesis.h"
 #include "Math/RandomStream.h"
+#include "Sound/SoundWaveProcedural.h"
 
 namespace SAEVUSSintesis
 {
@@ -38,5 +39,25 @@ namespace SAEVUSSintesis
 			Muestras[Indice] = static_cast<int16>(FMath::Clamp(Valor, -1.f, 1.f) * MaximoInt16);
 		}
 		return Muestras;
+	}
+
+	TArray<uint8> SintetizarBytes(const FSAEVUSSonidoSintetizado& Sonido)
+	{
+		const TArray<int16> Muestras = Sintetizar(Sonido);
+		TArray<uint8> Bytes;
+		Bytes.SetNumUninitialized(Muestras.Num() * sizeof(int16));
+		FMemory::Memcpy(Bytes.GetData(), Muestras.GetData(), Bytes.Num());
+		return Bytes;
+	}
+
+	USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion)
+	{
+		USoundWaveProcedural* Onda = NewObject<USoundWaveProcedural>(Propietario);
+		Onda->SetSampleRate(FrecuenciaMuestreo);
+		Onda->NumChannels = 1;
+		Onda->Duration = Duracion;
+		Onda->bLooping = false;
+		Onda->QueueAudio(Datos.GetData(), Datos.Num());
+		return Onda;
 	}
 }

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "SAEVUSSintesis.generated.h"
 
+class USoundWaveProcedural;
+
 /**
  * Un sonido boceto descrito por datos: un tono que barre de FrecuenciaInicio a FrecuenciaFin
  * mezclado con ruido filtrado, bajo una envolvente de ataque y caída. Sin archivos de audio:
@@ -58,4 +60,10 @@ namespace SAEVUSSintesis
 	constexpr int32 FrecuenciaMuestreo = 22050;
 
 	SAEVUS_API TArray<int16> Sintetizar(const FSAEVUSSonidoSintetizado& Sonido, int32 Muestreo = FrecuenciaMuestreo);
+
+	/** Las muestras de Sintetizar como bytes PCM, listas para una onda procedural. */
+	SAEVUS_API TArray<uint8> SintetizarBytes(const FSAEVUSSonidoSintetizado& Sonido);
+
+	/** Onda procedural de un solo uso con Datos (se consume al sonar). */
+	SAEVUS_API USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion);
 }

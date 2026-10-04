@@ -6,6 +6,7 @@
 
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
+#include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 
 namespace SAEVUSPruebasEnemigos
 {
@@ -141,6 +142,8 @@ bool FSAEVUSPruebaEnemigoEmbestida::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Velocidad de la embestida %s"), *Velocidad.ToCompactString()));
 	TestTrue(TEXT("Embiste hacia el jugador (-X)"), Velocidad.X < -Ataque->Velocidad * FraccionVelocidadEmbestida);
 	TestTrue(TEXT("Se recupera al acabar"), Mundo.AvanzarHastaEstado(Enemigo, ESAEVUSEstadoEnemigo::Recuperarse));
+	// Sonido: aviso y ataque.
+	TestTrue(TEXT("El aviso y el ataque suenan"), Enemigo->FindComponentByClass<USAEVUSComponenteSonidoEnemigo>()->ObtenerReproducciones() >= 2);
 	return true;
 }
 

@@ -11,6 +11,7 @@ class UMaterialInstanceDynamic;
 class UStaticMeshComponent;
 class USAEVUSComponenteIAEnemigo;
 class USAEVUSComponenteParticulas;
+class USAEVUSComponenteSonidoEnemigo;
 class USAEVUSComponenteVida;
 class ASAEVUSEnemigo;
 
@@ -95,6 +96,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<USAEVUSComponenteParticulas> Efectos;
+
+	UPROPERTY(VisibleAnywhere, Category = "Componentes")
+	TObjectPtr<USAEVUSComponenteSonidoEnemigo> Sonido;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> MaterialCuerpo;

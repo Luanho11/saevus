@@ -11,6 +11,7 @@ class ASAEVUSEnemigo;
 class USAEVUSComponenteVida;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoFaseEnemigo, int32 /*Fase*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoEstadoEnemigo, ESAEVUSEstadoEnemigo /*NuevoEstado*/);
 
 /**
  * IA de estados de un enemigo: patrulla, persigue, avisa, ataca y se recupera; se aturde al
@@ -49,6 +50,9 @@ public:
 	void Actualizar(float DeltaTime);
 
 	FSAEVUSEventoFaseEnemigo AlCambiarFase;
+
+	/** Se emite al cambiar de estado (sonido, efectos). */
+	FSAEVUSEventoEstadoEnemigo AlCambiarEstado;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

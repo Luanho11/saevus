@@ -96,10 +96,15 @@ float USAEVUSComponenteIAEnemigo::ObtenerProgresoAviso() const
 
 void USAEVUSComponenteIAEnemigo::CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado)
 {
+	const bool bCambia = Estado != NuevoEstado;
 	Estado = NuevoEstado;
 	TiempoEstado = 0.f;
 	// Fuera del reposo lejano, la IA vuelve a actualizarse cada fotograma.
 	SetComponentTickInterval(0.f);
+	if (bCambia)
+	{
+		AlCambiarEstado.Broadcast(Estado);
+	}
 }
 
 void USAEVUSComponenteIAEnemigo::Aturdir()

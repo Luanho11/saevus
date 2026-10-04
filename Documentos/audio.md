@@ -23,12 +23,18 @@ Sin archivos de audio: los efectos se **sintetizan por código** al empezar la p
 | Dash | `AlIniciarDash` | soplo |
 | Doble salto | `AlSaltoAereo` | bocanada suave |
 
+## Enemigos
+
+`USAEVUSComponenteSonidoEnemigo` (en cada `ASAEVUSEnemigo`, `FSAEVUSAjusteSonidosEnemigo`): gruñido que sube al **avisar**, arrastre al **atacar** y chillido que cae al **morir**, disparados por `USAEVUSComponenteIAEnemigo::AlCambiarEstado` y reproducidos en la posición del enemigo. El aviso sonoro refuerza la lectura del ataque.
+
+`SAEVUSSintesis::SintetizarBytes` y `CrearOnda` son las piezas compartidas por los dos componentes.
+
 ## Tests
 
-`SAEVUS.Audio.Sintesis` (longitud, no silencio, pico dentro del volumen, envolvente que se apaga, determinismo) y `SAEVUS.Audio.Eventos` (un tajo que acierta suena dos veces; el dash suena).
+`SAEVUS.Audio.Sintesis` (longitud, no silencio, pico dentro del volumen, envolvente que se apaga, determinismo) y `SAEVUS.Audio.Eventos` (un tajo que acierta suena dos veces; el dash suena); `SAEVUS.Enemigo.AvisoYEmbestida` comprueba que el aviso y el ataque del enemigo suenan.
 
 ## Pendiente
 
-- Sonidos de enemigos (aviso, embestida, muerte), pasos, aterrizaje, música ambiental.
+- Pasos, aterrizaje, música ambiental.
 - Posicionales (3D) para lo que no sea del jugador; mezcla y atenuación.
 - Sustituir por sonidos diseñados a mano cuando haya dirección de audio.

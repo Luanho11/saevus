@@ -99,10 +99,8 @@ FSAEVUSAjusteSonidos::FSAEVUSAjusteSonidos()
 
 void USAEVUSComponenteSonido::Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido)
 {
-	const TArray<int16> Muestras = SAEVUSSintesis::Sintetizar(Sonido);
 	FEfecto& Destino = Efectos[static_cast<int32>(Efecto)];
-	Destino.Datos.SetNumUninitialized(Muestras.Num() * sizeof(int16));
-	FMemory::Memcpy(Destino.Datos.GetData(), Muestras.GetData(), Destino.Datos.Num());
+	Destino.Datos = SAEVUSSintesis::SintetizarBytes(Sonido);
 	Destino.Duracion = Sonido.Duracion;
 }
 
@@ -186,13 +184,7 @@ void USAEVUSComponenteSonido::Reproducir(EEfecto Efecto, float VolumenCategoria)
 	}
 	++Reproducciones;
 	// Una onda procedural nueva por reproducción: se consume al sonar.
-	USoundWaveProcedural* Onda = NewObject<USoundWaveProcedural>(this);
-	Onda->SetSampleRate(SAEVUSSintesis::FrecuenciaMuestreo);
-	Onda->NumChannels = 1;
-	Onda->Duration = Datos.Duracion;
-	Onda->bLooping = false;
-	Onda->QueueAudio(Datos.Datos.GetData(), Datos.Datos.Num());
-	UGameplayStatics::PlaySound2D(this, Onda, Ajuste.VolumenGeneral * VolumenCategoria);
+	UGameplayStatics::PlaySound2D(this, SAEVUSSintesis::CrearOnda(this, Datos.Datos, Datos.Duracion), Ajuste.VolumenGeneral * VolumenCategoria);
 }
 
 void USAEVUSComponenteSonido::AlIniciarAtaque()
