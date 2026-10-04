@@ -125,6 +125,23 @@ void ASAEVUSEnemigo::AplicarAjuste()
 	GetCharacterMovement()->MaxWalkSpeed = Ajuste.VelocidadMovimiento;
 	Vida->FijarVidaMaxima(Ajuste.VidaMaxima);
 
+	// Con cuerpo generado en Blender, ese cuerpo (ya a la medida de la cápsula) sustituye a las formas.
+	const bool bMallaPropia = Datos && Datos->MallaCuerpo;
+	Mascara->SetVisibility(!bMallaPropia);
+	CuernoD->SetVisibility(!bMallaPropia);
+	CuernoI->SetVisibility(!bMallaPropia);
+	if (bMallaPropia)
+	{
+		Cuerpo->SetStaticMesh(Datos->MallaCuerpo);
+		Cuerpo->SetRelativeScale3D(FVector::OneVector);
+		return;
+	}
+	if (Cuerpo->GetStaticMesh() != Mascara->GetStaticMesh())
+	{
+		// Vuelta a las formas del motor (la máscara siempre es la esfera).
+		Cuerpo->SetStaticMesh(Mascara->GetStaticMesh());
+	}
+
 	// Cuerpo: elipsoide que llena la cápsula; máscara delante y arriba; cuernos encima.
 	Cuerpo->SetRelativeScale3D(FVector(2.f * Radio, 2.f * Radio, 2.f * MediaAltura) / TamanoForma);
 	const float TamanoMascara = 2.f * Radio * FraccionMascara;
@@ -154,6 +171,11 @@ void ASAEVUSEnemigo::CrearMateriales()
 	MaterialMascara->SetVectorParameterValue(ParametroColor, Ajuste.ColorMascara);
 	MaterialMascara->SetScalarParameterValue(ParametroAutoIluminacion, BrilloReposo);
 	Cuerpo->SetMaterial(0, MaterialCuerpo);
+	if (Datos->MallaCuerpo)
+	{
+		// Ranura 1 del cuerpo generado: la máscara (brilla con el aviso).
+		Cuerpo->SetMaterial(1, MaterialMascara);
+	}
 	CuernoD->SetMaterial(0, MaterialCuerpo);
 	CuernoI->SetMaterial(0, MaterialCuerpo);
 	Mascara->SetMaterial(0, MaterialMascara);

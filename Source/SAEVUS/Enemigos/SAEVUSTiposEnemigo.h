@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "SAEVUSTiposEnemigo.generated.h"
 
@@ -215,6 +216,13 @@ public:
 	/** Material de personaje dibujado; cada pieza usa una instancia dinámica con su color. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
 	TObjectPtr<UMaterialInterface> MaterialBase;
+
+	/**
+	 * Cuerpo boceto generado en Blender (Herramientas/Arte/blender_enemigos.py): ranura 0 = cuerpo,
+	 * ranura 1 = máscara. Sin él, el enemigo se arma con formas del motor.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
+	TObjectPtr<UStaticMesh> MallaCuerpo;
 
 	/** Material de las partículas de muerte. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")

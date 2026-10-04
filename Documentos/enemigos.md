@@ -9,7 +9,8 @@ Prototipo de enemigos para el tutorial: mini enemigos y un mini jefe, todo por d
 | `ASAEVUSEnemigo` | `Source/SAEVUS/Enemigos/` | `ACharacter` con vida, IA y un cuerpo boceto de formas del motor (cuerpo, máscara, dos cuernos) coloreado por su tipo con instancias dinámicas de `M_SAEVUS_PersonajeDibujado`. Sin controlador: el movimiento simula igual (`bRunPhysicsWithNoController`) y no cae por bordes. |
 | `USAEVUSComponenteIAEnemigo` | `Enemigos/` | Máquina de estados; ver abajo. |
 | `FSAEVUSAjusteEnemigo` / `USAEVUSDatosEnemigo` | `Enemigos/SAEVUSTiposEnemigo.h` | Tipo de enemigo: vida, cápsula, colores, velocidad, sentidos, contacto, aturdimiento, empuje recibido, muerte, ataques y fases. Sin Data Asset: el rastrero por defecto. |
-| `DA_Enemigo_Rastrero`, `DA_Enemigo_Saltador`, `DA_Jefe_Guardian` | `/Game/SAEVUS/Datos/Enemigos/` | Los tres tipos, creados por `saevus_crear_assets.py` (tabla `ENEMIGOS`). |
+| Cuerpos generados | `Herramientas/Arte/blender_enemigos.py` (`Generar-Enemigos.ps1` → `ArteFuente/Enemigos/`) | Una malla estática por tipo (`SM_Enemigo_Rastrero/Saltador/Escupidor`, `SM_Jefe_Guardian`, unos 1 000 triángulos), a la medida de su cápsula y mirando a +X; ranura 0 cuerpo, ranura 1 máscara. `USAEVUSDatosEnemigo::MallaCuerpo`; sin ella, formas del motor. El aspecto procedural (agacharse, estirarse, máscara que brilla, encogerse al morir) funciona igual. |
+| `DA_Enemigo_Rastrero`, `DA_Enemigo_Saltador`, `DA_Enemigo_Escupidor`, `DA_Jefe_Guardian` | `/Game/SAEVUS/Datos/Enemigos/` | Los tres tipos, creados por `saevus_crear_assets.py` (tabla `ENEMIGOS`). |
 
 ## Estados
 

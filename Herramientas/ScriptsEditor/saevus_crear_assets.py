@@ -523,6 +523,31 @@ ENEMIGOS = {
     },
 }
 DIR_ENEMIGOS = f"{RAIZ}/Datos/Enemigos"
+DIR_ARTE_ENEMIGOS = f"{RAIZ}/Arte/Enemigos"
+# Cuerpo generado en Blender por tipo (Herramientas/Arte/Generar-Enemigos.ps1 → ArteFuente/Enemigos).
+CUERPOS_ENEMIGOS = {
+    "DA_Enemigo_Rastrero": "SM_Enemigo_Rastrero",
+    "DA_Enemigo_Saltador": "SM_Enemigo_Saltador",
+    "DA_Enemigo_Escupidor": "SM_Enemigo_Escupidor",
+    "DA_Jefe_Guardian": "SM_Jefe_Guardian",
+}
+
+
+def importar_estatica(nombre, carpeta_fuente, destino):
+    fbx = os.path.join(unreal.Paths.project_dir(), "ArteFuente", carpeta_fuente, f"{nombre}.fbx")
+    if not os.path.exists(fbx):
+        raise RuntimeError(f"Falta {fbx}; genera el arte con Herramientas/Arte/")
+    tarea = unreal.AssetImportTask()
+    tarea.filename = fbx
+    tarea.destination_path = destino
+    tarea.automated = True
+    tarea.replace_existing = True
+    tarea.save = False
+    herramientas_assets.import_asset_tasks([tarea])
+    malla = next((m for m in (unreal.load_asset(r) for r in tarea.imported_object_paths) if isinstance(m, unreal.StaticMesh)), None)
+    if malla is None:
+        raise RuntimeError(f"La importación de {fbx} no produjo una malla estática")
+    return malla
 
 
 def crear_datos_enemigos(material_base, material_particulas):
@@ -562,6 +587,8 @@ def crear_datos_enemigos(material_base, material_particulas):
         datos.set_editor_property("enemigo", ajuste)
         datos.set_editor_property("material_base", material_base)
         datos.set_editor_property("material_particulas", material_particulas)
+        if nombre in CUERPOS_ENEMIGOS:
+            datos.set_editor_property("malla_cuerpo", importar_estatica(CUERPOS_ENEMIGOS[nombre], "Enemigos", DIR_ARTE_ENEMIGOS))
         resultado[nombre] = datos
     return resultado
 

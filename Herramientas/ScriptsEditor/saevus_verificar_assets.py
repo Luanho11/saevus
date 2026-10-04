@@ -85,6 +85,7 @@ def main():
                   ajuste_jefe.get_editor_property("es_jefe") and len(ajuste_jefe.get_editor_property("ataques")) == 3
                   and len(ajuste_jefe.get_editor_property("fases")) == 2)
         comprobar("material de los enemigos asignado", jefe.get_editor_property("material_base") is not None)
+        comprobar("cuerpo generado del Guardián asignado", jefe.get_editor_property("malla_cuerpo") is not None)
 
     camara = eal.load_asset("/Game/SAEVUS/Datos/DA_AjustesCamara_Base")
     comprobar("contorno asignado en DA_AjustesCamara_Base",
