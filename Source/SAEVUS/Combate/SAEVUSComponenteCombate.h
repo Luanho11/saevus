@@ -59,6 +59,7 @@ public:
 	/** Posición del ataque en curso en su cadena (0 = primero), o INDEX_NONE. */
 	int32 ObtenerIndiceCombo() const { return IndiceCombo; }
 	bool EsCadenaAerea() const { return bCadenaAerea; }
+	bool EsTajoEnCarrera() const { return bTajoEnCarrera; }
 	ESAEVUSDireccionAtaque ObtenerDireccionAtaque() const { return DireccionAtaque; }
 	bool EstaEnParadaGolpe() const { return ParadaGolpe.EstaActiva(); }
 	float ObtenerTiempoAtaque() const { return TiempoAtaque; }
@@ -92,8 +93,10 @@ private:
 	bool PuedeAtacarAhora() const;
 	void IniciarAtaque(bool bEnAire, int32 Indice);
 	void IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDireccionAtaque Direccion);
-	/** Pone en marcha AtaqueActual: giro, estocada y escala de velocidad. */
-	void PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque);
+	/** Tajo en carrera: el ataque que sale de un dash, en la dirección del dash. */
+	void IniciarTajoEnCarrera(bool bEnAire, const FVector& DireccionDash);
+	/** Pone en marcha AtaqueActual: giro, estocada y escala de velocidad (hacia DireccionForzada si se da). */
+	void PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada = nullptr);
 	void TerminarAtaque();
 	void DetectarGolpes(const FSAEVUSDefinicionAtaque& Ataque);
 	/** Retroceso, empuje, rebote y parada de golpe del primer acierto de un ataque. */
@@ -113,6 +116,7 @@ private:
 	ESAEVUSDireccionAtaque DireccionPedida = ESAEVUSDireccionAtaque::Frontal;
 	/** El impacto (retroceso, rebote, parada) se aplica una vez por ataque, en su primer acierto. */
 	bool bImpactoAplicado = false;
+	bool bTajoEnCarrera = false;
 	FSAEVUSParadaGolpe ParadaGolpe;
 
 	/** Actores ya golpeados por el ataque en curso; cada uno recibe un golpe por ataque. */

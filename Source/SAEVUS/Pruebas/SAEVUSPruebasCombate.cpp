@@ -363,4 +363,35 @@ bool FSAEVUSPruebaComboAereo::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTajoEnCarrera, "SAEVUS.Combate.TajoEnCarrera", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaTajoEnCarrera::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasCombate;
+
+	FMundoCombate Mundo;
+	if (!TestTrue(TEXT("Personaje asentado"), Mundo.bListo))
+	{
+		return false;
+	}
+	// Un muñeco más lejos que el alcance de un tajo normal (unos 2,5 m), en la dirección del dash (+X).
+	constexpr float DistanciaLejana = 350.f;
+	const ASAEVUSMunecoEntrenamiento* Muneco = Mundo.CrearMuneco(DistanciaLejana);
+	Mundo.Personaje->PedirDashHacia(FVector::ForwardVector);
+	Mundo.Paso();
+	if (!TestTrue(TEXT("En dash"), Mundo.Movimiento->EstaEnDash()))
+	{
+		return false;
+	}
+	Mundo.Personaje->PedirAtaque();
+	TestTrue(TEXT("Atacar en el dash da el tajo en carrera"), Mundo.Combate->EsTajoEnCarrera());
+	const FSAEVUSDefinicionAtaque& Tajo = Mundo.Combate->ObtenerRepertorio().TajoEnCarrera;
+	Mundo.Paso();
+	AddInfo(FString::Printf(TEXT("Velocidad del tajo en carrera %.0f cm/s"), Mundo.Movimiento->Velocity.Size2D()));
+	TestTrue(TEXT("Sigue en la dirección del dash a la velocidad de su estocada"), Mundo.Movimiento->Velocity.X > Tajo.VelocidadEstocada * 0.8f);
+	Mundo.AvanzarHastaReposo();
+	TestEqual(TEXT("Alcanza al muñeco lejano"), Muneco->ObtenerGolpes(), 1);
+	TestEqual(TEXT("Con el daño del tajo en carrera"), Muneco->ObtenerDanioTotal(), Tajo.Danio);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

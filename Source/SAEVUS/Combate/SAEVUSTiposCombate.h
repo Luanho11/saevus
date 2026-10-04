@@ -188,6 +188,13 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	FSAEVUSDefinicionAtaque TajoAbajo;
 
 	/**
+	 * Tajo en carrera (GunZ): atacar durante un dash. Sigue en la dirección del dash con su propia
+	 * estocada rápida y pega más fuerte. No encadena. Necesita bAtaqueTerminaDash.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
+	FSAEVUSDefinicionAtaque TajoEnCarrera;
+
+	/**
 	 * Adaptación a 3D del "arriba/abajo + ataque": con la cámara inclinada al menos este ángulo
 	 * hacia arriba sale el tajo hacia arriba; inclinada hacia abajo hasta UmbralInclinacionAbajo, el tajo hacia abajo.
 	 */

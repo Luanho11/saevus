@@ -51,6 +51,7 @@ Cada ataque declara, por acción, desde cuándo puede cortarse (negativo = nunca
 | Tajo2 | 0,10 / 0,08 / 0,30 | 12 | 450 cm/s × 0,12 s | 0,18 | 0,18 | 0,18 | 0,18 |
 | Remate | 0,18 / 0,12 / 0,45 | 25 | 650 cm/s × 0,18 s | (último) | 0,40 | nunca | 0,40 |
 | TajoAereo, TajoAereo2 | 0,08 / 0,10 / 0,25 | 12 | ninguna; flota (gravedad ×0,35, conserva 25 % de la caída) | 0,18 | 0,18 | 0,18 | 0,18 |
+| TajoEnCarrera (atacar en un dash) | 0,05 / 0,14 / 0,30 | 16 | 1100 cm/s × 0,16 s en la dirección del dash | (no encadena) | 0,19 | 0,19 | 0,19 |
 | RemateAereo | 0,08 / 0,10 / 0,35 | 18 | ninguna; ya no flota | (último) | 0,18 | 0,18 | 0,18 |
 
 Escala de velocidad en el suelo: 0,25 en los tajos, 0 en el remate. Esfera: radio 60 cm a 90 cm (remate 75 cm a 100 cm). Buffer 0,2 s. Valores de primera pasada.

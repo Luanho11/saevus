@@ -87,4 +87,22 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoAbajo.DesplazamientoFrontalGolpe = 15.f;
 	TajoAbajo.AlturaGolpe = -130.f;
 	TajoAbajo.VelocidadRebote = 750.f;
+
+	// Tajo en carrera: el impulso del dash se convierte en una estocada larga y un golpe amplio.
+	TajoEnCarrera = Tajo1;
+	TajoEnCarrera.Nombre = TEXT("TajoEnCarrera");
+	TajoEnCarrera.TiempoPreparacion = 0.05f;
+	TajoEnCarrera.TiempoActivo = 0.14f;
+	TajoEnCarrera.TiempoRecuperacion = 0.3f;
+	TajoEnCarrera.Danio = 16.f;
+	TajoEnCarrera.RadioGolpe = 80.f;
+	TajoEnCarrera.DesplazamientoFrontalGolpe = 100.f;
+	TajoEnCarrera.VelocidadEstocada = 1100.f;
+	TajoEnCarrera.DuracionEstocada = 0.16f;
+	TajoEnCarrera.EscalaVelocidadSuelo = 0.f;
+	TajoEnCarrera.EncadenarDesde = TajoEnCarrera.TiempoPreparacion + TajoEnCarrera.TiempoActivo;
+	TajoEnCarrera.CancelarConDashDesde = TajoEnCarrera.EncadenarDesde;
+	TajoEnCarrera.CancelarConSaltoDesde = TajoEnCarrera.EncadenarDesde;
+	TajoEnCarrera.CancelarConCambioArmaDesde = TajoEnCarrera.EncadenarDesde;
+	TajoEnCarrera.CancelarConGuardiaDesde = TajoEnCarrera.EncadenarDesde;
 }

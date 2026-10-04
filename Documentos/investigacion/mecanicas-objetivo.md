@@ -30,4 +30,6 @@ Lista viva de mecánicas de SAEVUS, de dónde viene la idea y su estado. Diseño
 | Contraataque (parry) | HK / GunZ | hecho (ventana al levantar la guardia) |
 | Enemigos simples + mini jefe con telegrafiado | HK | hecho |
 | Mapa tutorial que enseña todo | ambos | hecho (`L_Tutorial`) |
+| Tajo en carrera (atacar en el dash) | GunZ | hecho |
+| Combo aéreo con flotación | GunZ | hecho |
 | Dash con espada distinto del dash con arma de fuego | GunZ | hecho (voltereta con arma de fuego) |

@@ -143,7 +143,12 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 	const ESAEVUSDireccionAtaque Direccion = (DireccionPedida == ESAEVUSDireccionAtaque::Abajo && !bEnAire) ? ESAEVUSDireccionAtaque::Frontal : DireccionPedida;
 	if (!AtaqueActual)
 	{
-		if (Direccion == ESAEVUSDireccionAtaque::Frontal)
+		// Atacar durante un dash: tajo en carrera en su dirección (GunZ).
+		if (Direccion == ESAEVUSDireccionAtaque::Frontal && Movimiento && Movimiento->EstaEnDash())
+		{
+			IniciarTajoEnCarrera(bEnAire, Movimiento->ObtenerDireccionDash());
+		}
+		else if (Direccion == ESAEVUSDireccionAtaque::Frontal)
 		{
 			IniciarAtaque(bEnAire, 0);
 		}
@@ -163,7 +168,7 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 		IniciarAtaqueDireccional(bEnAire, Direccion);
 		return;
 	}
-	if (DireccionAtaque != ESAEVUSDireccionAtaque::Frontal)
+	if (DireccionAtaque != ESAEVUSDireccionAtaque::Frontal || bTajoEnCarrera)
 	{
 		IniciarAtaque(bEnAire, 0);
 		return;
@@ -197,7 +202,18 @@ void USAEVUSComponenteCombate::IniciarAtaque(bool bEnAire, int32 Indice)
 	IndiceCombo = Indice;
 	bCadenaAerea = bEnAire;
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
+	bTajoEnCarrera = false;
 	PrepararAtaque(Cadena[Indice]);
+}
+
+void USAEVUSComponenteCombate::IniciarTajoEnCarrera(bool bEnAire, const FVector& DireccionDash)
+{
+	IndiceCombo = 0;
+	bCadenaAerea = bEnAire;
+	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
+	bTajoEnCarrera = true;
+	const FVector Direccion = DireccionDash.GetSafeNormal2D();
+	PrepararAtaque(ObtenerRepertorio().TajoEnCarrera, Direccion.IsNearlyZero() ? nullptr : &Direccion);
 }
 
 void USAEVUSComponenteCombate::IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDireccionAtaque Direccion)
@@ -209,10 +225,11 @@ void USAEVUSComponenteCombate::IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDir
 	IndiceCombo = 0;
 	bCadenaAerea = bEnAire;
 	DireccionAtaque = Direccion;
+	bTajoEnCarrera = false;
 	PrepararAtaque(Direccion == ESAEVUSDireccionAtaque::Arriba ? ObtenerRepertorio().TajoArriba : ObtenerRepertorio().TajoAbajo);
 }
 
-void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque)
+void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada)
 {
 	USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	AtaqueActual = &Ataque;
@@ -224,7 +241,8 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 
 	// Ataca hacia la entrada de movimiento si la hay; si no, de frente.
 	const FVector DireccionEntrada = Movimiento->GetCurrentAcceleration().GetSafeNormal2D();
-	const FVector Direccion = DireccionEntrada.IsNearlyZero() ? GetOwner()->GetActorForwardVector().GetSafeNormal2D() : DireccionEntrada;
+	const FVector Direccion = DireccionForzada ? *DireccionForzada
+		: (DireccionEntrada.IsNearlyZero() ? GetOwner()->GetActorForwardVector().GetSafeNormal2D() : DireccionEntrada);
 
 	Movimiento->CancelarDash();
 	Movimiento->GirarHacia(Direccion);
@@ -248,6 +266,7 @@ void USAEVUSComponenteCombate::TerminarAtaque()
 	IndiceCombo = INDEX_NONE;
 	TiempoAtaque = 0.f;
 	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
+	bTajoEnCarrera = false;
 	ActoresGolpeados.Reset();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
