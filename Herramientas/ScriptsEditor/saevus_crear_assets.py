@@ -1162,6 +1162,19 @@ def crear_llegada(actores, etiqueta, posicion, guinada, nombre_llegada):
     return inicio
 
 
+def crear_plataforma_movil(actores, etiqueta, centro, tamano_cm, recorrido, velocidad, pausa, material):
+    """Plataforma que va y viene (ASAEVUSPlataformaMovil) entre centro y centro + recorrido."""
+    plataforma = actores.spawn_actor_from_class(unreal.SAEVUSPlataformaMovil, centro, unreal.Rotator(0, 0, 0))
+    plataforma.set_actor_label(etiqueta)
+    plataforma.set_actor_scale3d(unreal.Vector(tamano_cm[0] / 100.0, tamano_cm[1] / 100.0, tamano_cm[2] / 100.0))
+    plataforma.set_editor_property("recorrido", recorrido)
+    plataforma.set_editor_property("velocidad", velocidad)
+    plataforma.set_editor_property("pausa_extremo", pausa)
+    plataforma.get_component_by_class(unreal.StaticMeshComponent).set_material(0, material)
+    plataforma.set_folder_path("Mundo")
+    return plataforma
+
+
 def crear_info_zona(actores, nombre, subtitulo):
     """Nombre de la zona que la interfaz muestra grande al entrar en el mapa."""
     info = actores.spawn_actor_from_class(unreal.SAEVUSInfoZona, unreal.Vector(0, 0, 0))
@@ -1225,14 +1238,8 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     # Z2 Grieta: foso con dos plataformas.
     crear_foso(actores, "Z2_Grieta", 4600, 5500, unreal.Vector(4450, 0, -200), materiales, altura=-300)
     # Una plataforma que va y viene de un lado al otro de la grieta: hay que esperarla.
-    plataforma = actores.spawn_actor_from_class(unreal.SAEVUSPlataformaMovil, unreal.Vector(4850, 0, -350), unreal.Rotator(0, 0, 0))
-    plataforma.set_actor_label("Z2_PlataformaMovil")
-    plataforma.set_actor_scale3d(unreal.Vector(2.0, 3.0, 1.0))
-    plataforma.set_editor_property("recorrido", unreal.Vector(400, 0, 0))
-    plataforma.set_editor_property("velocidad", 200.0)
-    plataforma.set_editor_property("pausa_extremo", 0.8)
-    plataforma.get_component_by_class(unreal.StaticMeshComponent).set_material(0, materiales["Acento"])
-    plataforma.set_folder_path("Mundo")
+    crear_plataforma_movil(actores, "Z2_PlataformaMovil", unreal.Vector(4850, 0, -350), (200, 300, 100), unreal.Vector(400, 0, 0), 200.0, 0.8,
+                           materiales["Acento"])
 
     # Z3 Banco: suelo ancho que llega hasta el carril de la galería (cerrado por la compuerta del atajo).
     ancho_banco = ANCHO_PASILLO / 2 + Y_GALERIA + ANCHO_GALERIA / 2
@@ -1245,8 +1252,13 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
 
     # Z4 Torre: muro de 4,5 m que se escala y planta alta con el segundo encuentro.
     crear_bloque(actores, "Z4_Muro", unreal.Vector(6800, 0, -75), (600, ANCHO_PASILLO, 450), materiales["Acento"])
+    # Ascensor junto al muro: sube del banco a lo alto del muro (otra forma de subir, sin escalar).
+    crear_plataforma_movil(actores, "Z4_Ascensor", unreal.Vector(6390, -250, -348), (200, 200, 100), unreal.Vector(0, 0, 450), 150.0, 1.2,
+                           materiales["Acento"])
     crear_suelo(actores, "Z4_PlantaAlta", 7100, 9600, materiales, altura=150)
     enemigo("Z4_Saltador", "DA_Enemigo_Saltador", 8200, 0, 150)
+    # Franja de pinchos de 4 m en la planta alta: saltarla (o rebotar con el tajo hacia abajo).
+    crear_peligro(actores, "Z4_Pinchos", unreal.Vector(8600, 0, 180), (200, ANCHO_PASILLO / 2, 30), unreal.Vector(8250, 0, 250), materiales["Puerta"])
     enemigo("Z4_Revoloteador", "DA_Enemigo_Revoloteador", 8700, -200, 150)
     enemigo("Z4_Escupidor", "DA_Enemigo_Escupidor", 9300, 250, 150)
     enemigo("Z4_Acorazado", "DA_Enemigo_Acorazado", 7800, 0, 150)

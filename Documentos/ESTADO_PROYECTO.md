@@ -63,4 +63,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 59 de `PROGRESS.md` (pinchos y ascensor en la Zona 1); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 60 de `PROGRESS.md` (mapa que se descubre), después 61 (esquirlas) y 62 (revisión de código); después, tareas propias (ver la cola en `PROGRESS.md`).
