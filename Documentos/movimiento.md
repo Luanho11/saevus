@@ -54,7 +54,7 @@ Mecánica tomada de Hollow Knight (alas de monarca), con números propios (`FSAE
 - Una pulsación **nueva** de salto en el aire, fuera de la ventana coyote, fija la velocidad vertical a `VelocidadDobleSalto` (650 cm/s; sustituye a la de caída, así siempre sube lo mismo). Hay `MaxSaltosAereos` (1) antes de aterrizar; 0 desactiva la mecánica.
 - Prioridades en la misma pulsación: salto de suelo/coyote → salto de pared (si hay pared al alcance) → doble salto. Un doble salto termina el dash en curso.
 - **Gana el buffer cerca del suelo:** cayendo, si un barrido de la cápsula encuentra suelo caminable a menos de `velocidad de caída × TiempoBufferSalto`, la pulsación queda en el buffer: sale un salto de suelo completo y el doble salto se conserva.
-- Recargas: al tocar suelo (`RecargarRecursosAereos()`, que también devuelve los dashes aéreos; lo usará el rebote del tajo hacia abajo) y con cada salto de pared (`bRecargaSaltosAereos`).
+- Recargas: al tocar suelo (`RecargarRecursosAereos()`, que también devuelve los dashes aéreos) y con cada salto de pared (`bRecargaSaltosAereos`).
 - Efectos: el movimiento emite `AlSaltoAereo`; la estela suelta una bocanada de partículas bajo los pies y la animación recoge las piernas (`DuracionRecogidaSaltoAereo`, `RecogidaSaltoAereo`).
 - Red: el contador viaja en el movimiento guardado como los dashes aéreos; la pulsación es la de salto replicada.
 
@@ -62,11 +62,12 @@ Mecánica tomada de Hollow Knight (alas de monarca), con números propios (`FSAE
 
 Primera habilidad avanzada (objetivos en `investigacion/gunz.md`). En teclado: **doble toque** de una dirección (WASD); en mando: `IA_Dash` (botón derecho). Lo resuelve `USAEVUSComponenteMovimiento`:
 
-- **Inicio.** `PedirDash()` deja una petición que se consume en la siguiente actualización de movimiento (`UpdateCharacterStateBeforeMovement`). Si entonces no se puede (ya en dash, enfriamiento, agachado, sin dashes aéreos), la pulsación se descarta.
+- **Inicio.** `PedirDash()` deja una petición que se consume en la siguiente actualización de movimiento (`UpdateCharacterStateBeforeMovement`). Si entonces no se puede (ya en dash, enfriamiento si lo hay, agachado, sin dashes aéreos si hay límite), la pulsación se descarta.
 - **Dirección.** La dirección de la entrada de movimiento en esa actualización (`Acceleration`, que viaja con el movimiento), o la orientación si no hay entrada. Fija durante todo el dash. Con `bGirarHaciaDash` el cuerpo gira hacia ella.
 - **Durante.** `CalcVelocity` mantiene la velocidad horizontal en `Velocidad`: sin dirigir, sin fricción, sin frenado. En el aire, `GetGravityZ()` devuelve 0 mientras `bSuspenderGravedadEnDash` esté activo, así se mantiene la velocidad vertical fijada al inicio (`VelocidadVerticalDashAereo`, 0 = plano). Salir de un borde en pleno dash sigue cruzando el hueco.
 - **Fin.** Tras `Duracion`, o cuando un salto cancela un dash de suelo: la velocidad horizontal se limita a `VelocidadSalida` y empieza el `Enfriamiento`.
-- **Presupuesto aéreo.** `MaxDashesAereos` por estancia en el aire; se recarga al aterrizar y (por defecto) con un salto de pared, una carrera por pared o una escalada.
+- **Como en GunZ (2026-10-04).** Por defecto `Enfriamiento` = 0 (un dash se encadena con otro en cuanto acaba), `MaxDashesAereos` = −1 (sin límite por salto) y `bSuspenderGravedadEnDash` = falso (la gravedad impide volar encadenando dashes). Todo sigue siendo ajustable.
+- **Presupuesto aéreo.** Con `MaxDashesAereos` ≥ 0, ese número por estancia en el aire; se recarga al aterrizar y (por defecto) con un salto de pared, una carrera por pared o una escalada.
 - **Cancelación diseñada.** Saltar durante un dash de suelo: termina el dash y el salto sale a `VelocidadSalida`.
 - **Doble toque** (`Personaje/SAEVUSDetectorDobleToque.h`): pulsar, soltar y volver a pulsar una dirección en menos de `VentanaDobleToque` (0,25 s, en `DA_ConfigEntrada`; umbral `UmbralDobleToque`). Cada dirección se sigue por separado: mantener W y tocar dos veces D da dash a la derecha. La dirección se pide explícitamente (`PedirDashEnDireccion`) relativa a la cámara.
 - **Cámara bloqueada** durante el dash (`bBloquearCamaraEnDash`), como en GunZ.
@@ -79,15 +80,15 @@ Primera habilidad avanzada (objetivos en `investigacion/gunz.md`). En teclado: *
 | Velocidad | 1600 cm/s | |
 | Duracion | 0,18 s | unos 2,9 m por dash |
 | VelocidadSalida | 700 cm/s | entre correr y esprint |
-| Enfriamiento | 0,3 s | desde el final del dash |
+| Enfriamiento | 0 s | desde el final del dash (0 = encadenar sin espera, GunZ) |
 | bGirarHaciaDash | cierto | |
-| MaxDashesAereos | 1 | 0 desactiva el dash aéreo |
+| MaxDashesAereos | −1 | negativo = sin límite (GunZ); 0 desactiva el dash aéreo |
 | VelocidadVerticalDashAereo | 0 cm/s | |
 | bSuspenderGravedadEnDash | cierto | |
 
 ## Dash según el arma
 
-Con un arma de fuego equipada el dash es una **voltereta** (`USAEVUSAjustesMovimiento::DashArmaFuego`, valores de `SAEVUSDash::CrearVoltereta`): 1150 cm/s durante 0,24 s (frente a 1600 × 0,18 del aguijón), enfriamiento 0,45 s, invulnerable 0,1 s, sin estela y sin cámara fija (se sigue apuntando). Idea tomada de GunZ (con espada el dash es más rápido y vistoso), con números propios. El personaje fija el tipo al pedir el dash (`FijarDashArmaFuego`); falta llevarlo al movimiento guardado en la fase de red. Test `SAEVUS.Movimiento.Dash.SegunArma`.
+(Armas de fuego retiradas por ahora, 2026-10-04; el código sigue.) Con un arma de fuego equipada el dash es una **voltereta** (`USAEVUSAjustesMovimiento::DashArmaFuego`, valores de `SAEVUSDash::CrearVoltereta`): 1150 cm/s durante 0,24 s (frente a 1600 × 0,18 del aguijón), enfriamiento 0,45 s, invulnerable 0,1 s, sin estela y sin cámara fija (se sigue apuntando). Idea tomada de GunZ (con espada el dash es más rápido y vistoso), con números propios. El personaje fija el tipo al pedir el dash (`FijarDashArmaFuego`); falta llevarlo al movimiento guardado en la fase de red. Test `SAEVUS.Movimiento.Dash.SegunArma`.
 
 ## Salto de pared
 
@@ -184,7 +185,7 @@ Límite conocido: el paso en el aire y los temporizadores coyote/buffer son esta
 | `AsistenciaSalto.BloqueoPasoAire` | esprint en el aire no sube el tope si está bloqueado; sí si no; un despegue con salto no abre coyote |
 | `DobleSalto.Basico` / `CercaDelSueloGanaBuffer` / `RecargaSaltoPared` | velocidad fijada, uno por estancia aérea, aterrizar recarga; cerca del suelo gana el buffer; el salto de pared tiene prioridad y la recarga devuelve doble salto y dash |
 | `DobleToque.Detector` / `Dash` / `Invulnerabilidad` | ventana, mantener no cuenta, direcciones separadas, W mantenida + D doble; dash hacia la dirección tocada con cámara bloqueada; invulnerable al inicio y luego no |
-| `Dash.Suelo` / `Direccion` / `Enfriamiento` / `PresupuestoAereo` / `CancelarConSalto` | velocidad, dirección, distancia (293 vs 288 cm), enfriamiento, presupuesto aéreo con gravedad suspendida, cancelación con salto |
+| `Dash.Suelo` / `Direccion` / `Enfriamiento` / `PresupuestoAereo` / `CancelarConSalto` / `ComoGunZ` | velocidad, dirección, distancia (293 vs 288 cm), enfriamiento (con 0,3 s), presupuesto aéreo con límite 1 y gravedad suspendida, cancelación con salto, dashes encadenados sin espera y varios en un salto |
 | `SaltoPared.Basico` / `SinPared` / `NoDesdeBorde` / `Tangencial` / `Presupuesto` / `RecargaDashAereo` | impulso, ausencia de pared, el borde no es pared, fracción tangencial, presupuesto, recarga |
 | `CarreraPared.Entrar` / `CondicionesEntrada` / `Duracion` / `Aterrizaje` / `FinPared` / `Saltar` / `Soltar` | entrada, rechazos, 72 pasos = 1,2 s, misma pared, aterrizaje, final de pared, salto, soltar |
 | `Escalada.Entrar` / `CondicionesEntrada` / `Voltereta` / `Cornisa` / `UnaPorEstanciaAerea` / `Saltar` / `Soltar` | entrada, rechazos, altura (340 vs 358 cm) y voltereta, subir a una cornisa de 3,5 m, una por estancia, salto, soltar |

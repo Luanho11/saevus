@@ -126,9 +126,13 @@ bool FSAEVUSPruebaDashEnfriamiento::RunTest(const FString& Parameters)
 {
 	using namespace SAEVUSPruebasDash;
 
+	// El enfriamiento sigue disponible por datos (por defecto es 0, como en GunZ).
+	constexpr float EnfriamientoPrueba = 0.3f;
+	USAEVUSAjustesMovimiento* Ajustes = CrearAjustes();
+	Ajustes->Dash.Enfriamiento = EnfriamientoPrueba;
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
 	MundoPrueba.CrearBloque(CentroPlataforma, TamanoPlataforma);
-	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(PosicionDePie);
+	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(PosicionDePie, Ajustes);
 	USAEVUSComponenteMovimiento* Movimiento = Personaje->ObtenerMovimiento();
 	if (!MundoPrueba.AsentarEnSuelo())
 	{
@@ -154,9 +158,11 @@ bool FSAEVUSPruebaDashPresupuestoAereo::RunTest(const FString& Parameters)
 {
 	using namespace SAEVUSPruebasDash;
 
-	// Sin enfriamiento, así solo el presupuesto aéreo puede rechazar el segundo dash aéreo.
+	// Presupuesto de un dash aéreo y gravedad suspendida (opciones por datos; por defecto, sin límite).
 	USAEVUSAjustesMovimiento* Ajustes = CrearAjustes();
 	Ajustes->Dash.Enfriamiento = 0.f;
+	Ajustes->Dash.MaxDashesAereos = 1;
+	Ajustes->Dash.bSuspenderGravedadEnDash = true;
 
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
 	MundoPrueba.CrearBloque(CentroPlataforma, TamanoPlataforma);
@@ -194,6 +200,43 @@ bool FSAEVUSPruebaDashPresupuestoAereo::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("Aterrizar recarga los dashes aéreos"), Movimiento->DashesAereosRestantes(), Ajustes->Dash.MaxDashesAereos);
 	TestTrue(TEXT("El dash de suelo funciona tras aterrizar"), DashAhora(MundoPrueba, Movimiento));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaDashComoGunZ, "SAEVUS.Movimiento.Dash.ComoGunZ", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaDashComoGunZ::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasDash;
+
+	// Con los ajustes por defecto: un dash detrás de otro sin espera, y varios en el mismo salto.
+	constexpr int32 DashesEncadenados = 3;
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	MundoPrueba.CrearBloque(CentroPlataforma, TamanoPlataforma);
+	ASAEVUSPersonaje* Personaje = MundoPrueba.CrearPersonaje(PosicionDePie);
+	USAEVUSComponenteMovimiento* Movimiento = Personaje->ObtenerMovimiento();
+	if (!MundoPrueba.AsentarEnSuelo())
+	{
+		AddError(TEXT("El personaje nunca aterrizó en la plataforma"));
+		return false;
+	}
+	TestTrue(TEXT("Primer dash"), DashAhora(MundoPrueba, Movimiento));
+	AvanzarHastaFinDash(MundoPrueba, Movimiento);
+	TestTrue(TEXT("Otro dash en el acto, sin enfriamiento"), DashAhora(MundoPrueba, Movimiento));
+	AvanzarHastaFinDash(MundoPrueba, Movimiento);
+
+	Personaje->PedirSalto();
+	for (int32 Indice = 0; Indice < PasosEnAire; ++Indice)
+	{
+		MundoPrueba.Paso();
+	}
+	int32 Hechos = 0;
+	for (int32 Dash = 0; Dash < DashesEncadenados && Movimiento->IsFalling(); ++Dash)
+	{
+		Hechos += DashAhora(MundoPrueba, Movimiento) ? 1 : 0;
+		AvanzarHastaFinDash(MundoPrueba, Movimiento);
+	}
+	AddInfo(FString::Printf(TEXT("Dashes aéreos en un salto: %d"), Hechos));
+	TestTrue(TEXT("Más de un dash por salto"), Hechos >= 2);
 	return true;
 }
 

@@ -102,3 +102,13 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 59:** Zona 1: franja de pinchos de 4 m en la planta alta y ascensor (plataforma móvil vertical) junto al muro del banco; ayudante `crear_plataforma_movil` en el script. 127/127 tests, humo y recorrido encadenado SUPERADOS. Nuevas tareas 60–62.
 - **Tarea 60:** mapa que se descubre al explorar: `USAEVUSSubsistemaExploracion` marca celdas de 8 m alrededor del jugador y las guarda por mapa; el mapa de la pausa recorta los bloques a las celdas exploradas (`RecortarBloques`). Test `SAEVUS.Interfaz.MapaExplorado`. 128/128 tests, humo y recorrido encadenado SUPERADOS.
 - **Pausa (08:19):** el dueño abrió el editor (bloquea `UnrealEditor-SAEVUS.dll`). La tarea 61 (esquirlas: moneda de los enemigos, sombra al morir, contador en la interfaz, guardado y test) queda en `git stash`, compilando pero sin verificar. Cerrojo de `PROGRESS.md` en pausa explícita para que `loop.ps1` no compile con el editor abierto.
+
+## 2026-10-04 — Sesión 3d (fase "Rehacer como GunZ")
+
+- El dueño pidió rehacer el juego como GunZ, con Hollow Knight solo para el arte y la temática. Nueva cola de tareas 63–77 en `PROGRESS.md` y memoria de decisiones.
+- **Tareas 63–66:**
+  - armas de fuego fuera del juego: solo la espada, sin teclas de recarga, cambio ni ranuras; la interfaz oculta el nombre del arma cuando solo hay una, y la prueba de humo solo dispara si hay arma de fuego;
+  - enemigos y jefes fuera de los mapas (`ENEMIGOS_EN_MAPAS`; sin puertas de arena sin enemigos);
+  - fuera el tajo hacia abajo, el rebote y su foso del tutorial;
+  - dash como GunZ: `Enfriamiento` 0, `MaxDashesAereos` −1 (sin límite), gravedad durante el dash. Test nuevo `Dash.ComoGunZ`; los tests de enfriamiento y presupuesto fijan sus propios límites.
+- 126/126 tests, verificación de assets (ahora exige que no queden teclas de armas), prueba de humo y recorrido encadenado SUPERADOS.

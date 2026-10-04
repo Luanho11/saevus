@@ -53,7 +53,7 @@ ASSETS_OBLIGATORIOS = (
 
 PROPIEDADES_CONFIG_ENTRADA = (
     "accion_mover", "accion_mirar", "accion_mirar_raton", "accion_saltar", "accion_esprint", "accion_caminar",
-    "accion_dash", "accion_atacar", "accion_recargar", "accion_siguiente_arma", "accion_curar", "accion_guardia",
+    "accion_dash", "accion_atacar", "accion_curar", "accion_guardia",
 )
 
 
@@ -80,7 +80,10 @@ def main():
     if config_entrada:
         for propiedad in PROPIEDADES_CONFIG_ENTRADA:
             comprobar(f"DA_ConfigEntrada.{propiedad} asignada", config_entrada.get_editor_property(propiedad) is not None)
-        comprobar("4 acciones de ranura de arma", len(config_entrada.get_editor_property("acciones_ranura_arma")) == 4)
+        # Armas de fuego retiradas por ahora (2026-10-04): sin recarga, cambio ni ranuras de arma.
+        for propiedad in ("accion_recargar", "accion_siguiente_arma"):
+            comprobar(f"DA_ConfigEntrada.{propiedad} vacía (sin armas de fuego)", config_entrada.get_editor_property(propiedad) is None)
+        comprobar("sin acciones de ranura de arma", len(config_entrada.get_editor_property("acciones_ranura_arma")) == 0)
 
     jefe = eal.load_asset("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_Guardian")
     if jefe:
@@ -113,7 +116,7 @@ def main():
         comprobar("repertorio de combate asignado", combate is not None and combate.get_editor_property("datos_repertorio") is not None)
         armas = personaje.get_editor_property("armas")
         arsenal = armas.get_editor_property("arsenal") if armas else []
-        comprobar("el arsenal tiene 4 armas", len(arsenal) == 4 and all(arsenal))
+        comprobar("el arsenal tiene solo la espada", len(arsenal) == 1 and all(arsenal))
         estela = personaje.get_editor_property("estela_dash")
         comprobar("material de la estela del dash asignado", estela is not None and len(estela.get_editor_property("override_materials")) > 0)
         efectos = personaje.get_editor_property("efectos_combate")

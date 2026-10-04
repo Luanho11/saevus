@@ -136,11 +136,6 @@ namespace SAEVUSAnimacion
 			// De delante-abajo a por encima de la cabeza, con el cuerpo echado atrás.
 			return { (Adelante * 0.8f - Arriba * 0.2f + Derecha * 0.2f).GetSafeNormal(), (Arriba * 0.95f - Adelante * 0.3f).GetSafeNormal(), 10.f, -5.f, -5.f, -18.f };
 		}
-		if (Direccion == ESAEVUSDireccionAtaque::Abajo)
-		{
-			// De arriba-delante a recto bajo los pies, con el cuerpo volcado hacia el golpe.
-			return { (Arriba * 0.6f + Adelante * 0.5f).GetSafeNormal(), (-Arriba * 0.95f + Adelante * 0.2f).GetSafeNormal(), 0.f, 0.f, 15.f, 35.f };
-		}
 		if (bAereo)
 		{
 			// Diagonal de arriba-derecha a abajo-izquierda.

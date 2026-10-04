@@ -96,7 +96,7 @@ ESAEVUSDireccionAtaque USAEVUSComponenteCombate::DireccionSegunInclinacion(float
 	{
 		return ESAEVUSDireccionAtaque::Arriba;
 	}
-	return InclinacionGrados <= Repertorio.UmbralInclinacionAbajo ? ESAEVUSDireccionAtaque::Abajo : ESAEVUSDireccionAtaque::Frontal;
+	return ESAEVUSDireccionAtaque::Frontal;
 }
 
 void USAEVUSComponenteCombate::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -174,8 +174,7 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 	}
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	const bool bEnAire = Movimiento && Movimiento->IsFalling();
-	// Abajo solo existe en el aire.
-	const ESAEVUSDireccionAtaque Direccion = (DireccionPedida == ESAEVUSDireccionAtaque::Abajo && !bEnAire) ? ESAEVUSDireccionAtaque::Frontal : DireccionPedida;
+	const ESAEVUSDireccionAtaque Direccion = DireccionPedida;
 	if (!AtaqueActual)
 	{
 		// Atacar durante un dash: tajo en carrera en su dirección (GunZ).
@@ -264,7 +263,7 @@ void USAEVUSComponenteCombate::IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDir
 	DireccionAtaque = Direccion;
 	bTajoEnCarrera = false;
 	bAtaqueCargado = false;
-	PrepararAtaque(Direccion == ESAEVUSDireccionAtaque::Arriba ? ObtenerRepertorio().TajoArriba : ObtenerRepertorio().TajoAbajo);
+	PrepararAtaque(ObtenerRepertorio().TajoArriba);
 }
 
 void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada)
@@ -370,8 +369,6 @@ FVector USAEVUSComponenteCombate::DireccionEmpuje(const AActor* Objetivo) const
 	{
 	case ESAEVUSDireccionAtaque::Arriba:
 		return FVector::UpVector;
-	case ESAEVUSDireccionAtaque::Abajo:
-		return FVector::DownVector;
 	case ESAEVUSDireccionAtaque::Frontal:
 	default:
 	{
@@ -400,11 +397,7 @@ void USAEVUSComponenteCombate::AplicarImpacto(const FSAEVUSDefinicionAtaque& Ata
 	USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	if (Personaje && Movimiento)
 	{
-		if (Ataque.VelocidadRebote > 0.f && Movimiento->IsFalling())
-		{
-			Movimiento->Rebotar(Ataque.VelocidadRebote);
-		}
-		else if (Ataque.RetrocesoAtacante > 0.f)
+		if (Ataque.RetrocesoAtacante > 0.f)
 		{
 			// El golpe frena la estocada y echa al atacante hacia atrás: se siente el contacto.
 			Movimiento->TerminarEstocada();

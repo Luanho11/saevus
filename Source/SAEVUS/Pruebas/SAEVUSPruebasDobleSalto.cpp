@@ -158,7 +158,9 @@ bool FSAEVUSPruebaDobleSaltoRecargaPared::RunTest(const FString& Parameters)
 
 	Movimiento->RecargarRecursosAereos();
 	TestEqual(TEXT("La recarga devuelve el doble salto"), Movimiento->SaltosAereosRestantes(), Maximo);
-	TestEqual(TEXT("La recarga devuelve el dash aéreo"), Movimiento->DashesAereosRestantes(), Movimiento->ObtenerAjusteDash().MaxDashesAereos);
+	// Sin límite (por defecto) quedan "todos"; con límite, el máximo.
+	const int32 MaximoDashes = Movimiento->ObtenerAjusteDash().MaxDashesAereos;
+	TestEqual(TEXT("La recarga devuelve el dash aéreo"), Movimiento->DashesAereosRestantes(), MaximoDashes < 0 ? MAX_int32 : MaximoDashes);
 	return true;
 }
 

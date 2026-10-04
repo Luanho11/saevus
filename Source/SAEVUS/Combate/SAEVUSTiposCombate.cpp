@@ -81,12 +81,6 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	TajoArriba.CancelarConCambioArmaDesde = TajoArriba.EncadenarDesde;
 	TajoArriba.CancelarConGuardiaDesde = TajoArriba.EncadenarDesde;
 
-	// Tajo hacia abajo: esfera bajo los pies; al acertar rebota (pogo), así se encadenan saltos sobre enemigos.
-	TajoAbajo = TajoArriba;
-	TajoAbajo.Nombre = TEXT("TajoAbajo");
-	TajoAbajo.DesplazamientoFrontalGolpe = 15.f;
-	TajoAbajo.AlturaGolpe = -130.f;
-	TajoAbajo.VelocidadRebote = 750.f;
 
 	// Tajo en carrera: el impulso del dash se convierte en una estocada larga y un golpe amplio.
 	TajoEnCarrera = Tajo1;

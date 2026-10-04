@@ -24,9 +24,7 @@ UENUM(BlueprintType)
 enum class ESAEVUSDireccionAtaque : uint8
 {
 	Frontal,
-	Arriba,
-	/** Solo en el aire; en el suelo se convierte en frontal. */
-	Abajo
+	Arriba
 };
 
 /** Acciones del jugador que pueden cortar un ataque, cada una con su ventana en los datos del ataque. */
@@ -96,9 +94,6 @@ struct FSAEVUSDefinicionAtaque
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "s"))
 	float DuracionParadaGolpe = 0.06f;
 
-	/** Rebote (pogo): al acertar en el aire, la velocidad vertical pasa a este valor y se recargan dash y doble salto. 0 = sin rebote. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ForceUnits = "cm/s"))
-	float VelocidadRebote = 0.f;
 
 	/** En el aire: multiplica la gravedad mientras dura el ataque (menos de 1 = flota, GunZ). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aire", meta = (ClampMin = "0"))
@@ -183,9 +178,6 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
 	FSAEVUSDefinicionAtaque TajoArriba;
 
-	/** Tajo hacia abajo, solo en el aire; rebota al acertar (pogo). No encadena. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Repertorio")
-	FSAEVUSDefinicionAtaque TajoAbajo;
 
 	/**
 	 * Tajo en carrera (GunZ): atacar durante un dash. Sigue en la dirección del dash con su propia
@@ -207,13 +199,11 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 
 	/**
 	 * Adaptación a 3D del "arriba/abajo + ataque": con la cámara inclinada al menos este ángulo
-	 * hacia arriba sale el tajo hacia arriba; inclinada hacia abajo hasta UmbralInclinacionAbajo, el tajo hacia abajo.
+	 * hacia arriba sale el tajo hacia arriba.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dirección", meta = (ClampMin = "0", ClampMax = "90", ForceUnits = "deg"))
 	float UmbralInclinacionArriba = 30.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dirección", meta = (ClampMin = "-90", ClampMax = "0", ForceUnits = "deg"))
-	float UmbralInclinacionAbajo = -40.f;
 
 	/** Escala de tiempo de los actores durante la parada de golpe (0 = congelados, 1 = sin parada). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impacto", meta = (ClampMin = "0", ClampMax = "1"))

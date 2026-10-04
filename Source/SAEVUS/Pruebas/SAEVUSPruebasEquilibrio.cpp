@@ -150,7 +150,6 @@ bool FSAEVUSPruebaEquilibrioTecnicas::RunTest(const FString& Parameters)
 		Cadena(TEXT("Combo de suelo"), Repertorio->ComboSuelo),
 		Cadena(TEXT("Combo aéreo"), Repertorio->ComboAire),
 		Suelto(TEXT("Tajo hacia arriba"), Repertorio->TajoArriba),
-		Suelto(TEXT("Tajo hacia abajo (sin contar el rebote)"), Repertorio->TajoAbajo),
 		Suelto(TEXT("Tajo en carrera (sin contar el dash)"), Repertorio->TajoEnCarrera),
 		Cargado(*Repertorio),
 	};

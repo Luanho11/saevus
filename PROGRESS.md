@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 63, fase "Rehacer como GunZ")**
-**Último latido: 2026-10-04 08:19** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 67, fase "Rehacer como GunZ")**
+**Último latido: 2026-10-04 10:26** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -110,10 +110,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 62. [-] ~~Revisión de código~~ Se hace dentro de las tareas de la fase nueva.
 
 ### Fase "Rehacer como GunZ" (2026-10-04)
-63. [ ] Quitar las armas de fuego del juego: arsenal solo con la espada, sin cambio de arma ni recarga en la entrada, sin munición en la interfaz, sin lección de armas ni dianas. El código queda dormido y probado.
-64. [ ] Quitar enemigos y jefes de los mapas (tutorial, Zona 1, pruebas) y del recorrido; la IA queda para los goblins.
-65. [ ] Quitar el tajo hacia abajo (pogo) y la sección de rebote del tutorial.
-66. [ ] Dash como GunZ: sin enfriamiento ni límite por salto (por datos).
+63. [x] Quitar las armas de fuego del juego: arsenal solo con la espada, sin cambio de arma ni recarga en la entrada, sin munición en la interfaz, sin lección de armas ni dianas. El código queda dormido y probado.
+64. [x] Quitar enemigos y jefes de los mapas (tutorial, Zona 1, pruebas) y del recorrido; la IA queda para los goblins.
+65. [x] Quitar el tajo hacia abajo (pogo) y la sección de rebote del tutorial.
+66. [x] Dash como GunZ: sin enfriamiento ni límite por salto (por datos).
 67. [ ] Cámara y orientación de GunZ: el personaje mira siempre a donde mira la cámara y se mueve en ocho direcciones sin girar el cuerpo; dash en cualquier dirección sin girarse.
 68. [ ] Animación direccional: correr adelante/atrás/lados, volteretas de dash por dirección, carrera y salto de pared con giro, aterrizajes; más fluida y limpia.
 69. [ ] Sombreado dibujado de verdad (Hollow Knight en 3D): luz en bandas planas, tinta gruesa en contornos, sombras frías, niebla en capas, grano de papel procedural; medir en la Vega 8.
@@ -129,4 +129,4 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- Siguiente paso exacto: tarea 63 — quitar las armas de fuego.
+- Siguiente paso exacto: tarea 67 — el cuerpo mira hacia la cámara (GunZ).

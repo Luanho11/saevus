@@ -53,18 +53,12 @@ ASIGNACIONES_SAEVUS = {
     # En teclado el dash es doble toque de WASD (lo detecta el personaje); aquí solo el mando.
     "IA_Dash": ["Gamepad_FaceButton_Right"],
     "IA_Atacar": ["LeftMouseButton", "Gamepad_FaceButton_Left"],
-    "IA_Recargar": ["R", "Gamepad_FaceButton_Top"],
     # Mantener para la guardia con el arma cuerpo a cuerpo (GunZ).
     "IA_Guardia": ["RightMouseButton", "Gamepad_LeftTrigger"],
     # Mantener para gastar alma y curar (Hollow Knight).
     "IA_Curar": ["Q", "Gamepad_LeftShoulder"],
-    "IA_SiguienteArma": ["MouseScrollDown", "Gamepad_RightShoulder"],
     # Usar lo que hay cerca (bancos).
     "IA_Interactuar": ["E", "Gamepad_DPad_Up"],
-    "IA_RanuraArma1": ["One"],
-    "IA_RanuraArma2": ["Two"],
-    "IA_RanuraArma3": ["Three"],
-    "IA_RanuraArma4": ["Four"],
     # F1-F5, F9 y F11 son atajos de depuración del motor (BaseInput.ini).
     "IA_AlternarHUD": ["F6"],
     # Esc detiene el Play en el editor: la pausa va en P (y Start en el mando).
@@ -388,14 +382,13 @@ def crear_data_assets(acciones):
     config_entrada.set_editor_property("accion_caminar", acciones["IA_Caminar"])
     config_entrada.set_editor_property("accion_dash", acciones["IA_Dash"])
     config_entrada.set_editor_property("accion_atacar", acciones["IA_Atacar"])
-    config_entrada.set_editor_property("accion_recargar", acciones["IA_Recargar"])
+    # Armas de fuego retiradas por ahora (decisión del dueño, 2026-10-04): sin recarga ni cambio de arma.
+    config_entrada.set_editor_property("accion_recargar", None)
     config_entrada.set_editor_property("accion_curar", acciones["IA_Curar"])
     config_entrada.set_editor_property("accion_interactuar", acciones["IA_Interactuar"])
     config_entrada.set_editor_property("accion_guardia", acciones["IA_Guardia"])
-    config_entrada.set_editor_property("accion_siguiente_arma", acciones["IA_SiguienteArma"])
-    config_entrada.set_editor_property(
-        "acciones_ranura_arma", [acciones[f"IA_RanuraArma{ranura}"] for ranura in range(1, len(ARMAS) + 1)]
-    )
+    config_entrada.set_editor_property("accion_siguiente_arma", None)
+    config_entrada.set_editor_property("acciones_ranura_arma", [])
 
     # Los valores se quedan en los del código hasta ajustarlos en el editor.
     movimiento = data_asset("DA_AjustesMovimiento_Base", unreal.SAEVUSAjustesMovimiento)
@@ -447,7 +440,8 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     personaje.get_editor_property("character_movement").set_editor_property("ajustes_movimiento", movimiento)
     personaje.get_editor_property("camara").set_editor_property("ajustes_camara", camara)
     personaje.get_editor_property("combate").set_editor_property("datos_repertorio", repertorio)
-    personaje.get_editor_property("armas").set_editor_property("arsenal", armas)
+    espadas = [arma for arma in armas if arma.get_editor_property("tipo") == valor_enum(unreal.SAEVUSTipoArma, "CUERPO_A_CUERPO", "CUERPO_ACUERPO")]
+    personaje.get_editor_property("armas").set_editor_property("arsenal", espadas)
     # Polvo claro y frío para la estela del dash: resalta sobre el escenario oscuro.
     material_estela = crear_material_color("M_ParticulaPolvo", (0.75, 0.78, 0.85, 1.0), sin_luz=True)
     personaje.get_editor_property("estela_dash").set_editor_property("override_materials", [material_estela])
@@ -647,8 +641,15 @@ def crear_datos_enemigos(material_base, material_particulas):
     return resultado
 
 
+# Decisión del dueño (2026-10-04): sin enemigos ni jefes en los mapas hasta los goblins de GunZ.
+ENEMIGOS_EN_MAPAS = False
+
+
 def crear_enemigo(actores, etiqueta, datos, posicion):
-    """De pie en el suelo (posicion.z = altura del suelo); los voladores, a su altura de vuelo sobre él."""
+    """De pie en el suelo (posicion.z = altura del suelo); los voladores, a su altura de vuelo sobre él.
+    Con ENEMIGOS_EN_MAPAS apagado no crea nada y devuelve None."""
+    if not ENEMIGOS_EN_MAPAS:
+        return None
     ajuste = datos.get_editor_property("enemigo")
     altura = ajuste.get_editor_property("media_altura_capsula")
     if ajuste.get_editor_property("volador"):
@@ -807,12 +808,8 @@ AVISOS_TUTORIAL = [
     (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
     (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
     (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
-    (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe.\nLos bancos (E) te curan del todo y guardan tu avance."),
-    (14600, "Armas de fuego", "1-4 o la rueda: cambiar de arma. Dispara a los muñecos de arriba.\nLas balas de reserva se gastan: cada golpe de espada las devuelve. R: recargar."),
-    (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo.\nA los voladores: salta y tajo hacia arriba, o rebota encima."),
     (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
-    (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
 ]
 
 
@@ -930,7 +927,12 @@ def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, anch
 
 
 def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, texto, altura=0.0, y=0.0):
-    """Puerta de arena (se abre al morir sus enemigos) o, sin enemigos, compuerta de una palanca."""
+    """Puerta de arena (se abre al morir sus enemigos) o, sin enemigos, compuerta de una palanca.
+    Una puerta de arena cuyos enemigos no se crearon no se pone (se quedaría cerrada para siempre)."""
+    vivos = [enemigo for enemigo in enemigos if enemigo is not None]
+    if enemigos and not vivos:
+        return None
+    enemigos = vivos
     puerta = actores.spawn_actor_from_class(unreal.SAEVUSPuertaArena, unreal.Vector(x, y, altura + alto / 2.0))
     puerta.set_actor_label(etiqueta)
     puerta.set_actor_scale3d(unreal.Vector(0.6, ancho / 100.0, alto / 100.0))
@@ -1040,14 +1042,8 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     for indice, y in enumerate((-180, 180)):
         crear_muneco(actores, f"S4_MunecoCargado{indice}", unreal.Vector(10900, y, 96), unreal.Rotator(0, 0, 180))
 
-    # S5 Rebote: foso de 12 m (no se cruza sin rebotar) con dos muñecos flotando a media altura.
-    crear_suelo(actores, "S5_Suelo", 11500, 11800, materiales)
-    crear_foso(actores, "S5_Foso", 11800, 13000, unreal.Vector(11650, 0, 100), materiales)
-    # Pinchos a lo largo del foso (se rebota en ellos) y un muñeco flotando para practicar primero.
-    crear_peligro(actores, "S5_Pinchos", unreal.Vector(12400, 0, -120), (600, ANCHO_PASILLO / 2, 30), unreal.Vector(11650, 0, 100),
-                  materiales["Puerta"])
-    crear_muneco(actores, "S5_MunecoRebote1", unreal.Vector(12200, 0, -60))
-    crear_suelo(actores, "S5_Llegada", 13000, 13500, materiales)
+    # S5: suelo de paso (el tajo hacia abajo y su foso de rebote se retiraron).
+    crear_suelo(actores, "S5_Suelo", 11500, 13500, materiales)
 
     # S6 Alma: muñecos para llenar el alma antes de la arena.
     crear_suelo(actores, "S6_Suelo", 13500, 15000, materiales)
@@ -1055,9 +1051,6 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     for indice, y in enumerate((-200, 200)):
         crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(14300, y, 96), unreal.Rotator(0, 0, 180))
     crear_banco(actores, "S6_Banco", 13900, -280, 0, materiales)
-    # Armas de fuego: dos muñecos altos a los lados, mejor a tiros; los de abajo rellenan la reserva con la espada.
-    for indice, y in enumerate((-(ANCHO_PASILLO / 2 - 80), ANCHO_PASILLO / 2 - 80)):
-        crear_muneco(actores, f"S6_MunecoDiana{indice}", unreal.Vector(14850, y, 96 + 330), unreal.Rotator(0, 0, 180))
 
     # S7 Arena de mini enemigos; la puerta se abre al vaciarla.
     crear_arena(actores, "S7_Arena", 15000, 17500, 2000, 400, materiales, 600)
@@ -1280,7 +1273,7 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
 
     # Z6 Antesala; por la derecha se cae a la galería.
     crear_suelo(actores, "Z6_Suelo", 12000, 13000, materiales, altura=150)
-    crear_aviso(actores, 12100, "Antesala", "A la derecha, una bajada lleva a la galería del atajo.\nAdelante espera la Madre Alada.", altura=150)
+    crear_aviso(actores, 12100, "Antesala", "A la derecha, una bajada lleva a la galería del atajo.", altura=150)
 
     # Z7 Arena de la Madre Alada (jefe volador); su puerta lleva al final.
     crear_punto_control(actores, "Control_Jefe", 13100, z=150)

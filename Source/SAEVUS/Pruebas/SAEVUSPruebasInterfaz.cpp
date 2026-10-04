@@ -51,19 +51,22 @@ bool FSAEVUSPruebaInterfazVitales::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Fracción de alma"), Estado.FraccionAlma, Alma->ObtenerAjuste().CosteCuracion / Alma->ObtenerAlmaMaxima(), Tolerancia);
 	TestTrue(TEXT("Alma suficiente para curar"), Estado.bAlmaParaCurar);
 
-	TestFalse(TEXT("Sin arsenal: nombre del arma por defecto"), Estado.TextoArma.IsEmpty());
+	TestTrue(TEXT("Con una sola arma (o ninguna) no se muestra el nombre"), Estado.TextoArma.IsEmpty());
 	TestTrue(TEXT("Sin arma de fuego no hay munición"), Estado.TextoMunicion.IsEmpty());
 	USAEVUSDefinicionArma* Pistola = NewObject<USAEVUSDefinicionArma>(GetTransientPackage());
 	Pistola->NombreVisible = TEXT("Pistola");
 	Pistola->Tipo = ESAEVUSTipoArma::ArmaFuego;
-	Jugador->ObtenerArmas()->FijarArsenal({ Pistola });
+	// Con dos armas se muestra el nombre de la equipada (con una sola no hay nada que elegir).
+	USAEVUSDefinicionArma* Espada = NewObject<USAEVUSDefinicionArma>(GetTransientPackage());
+	Espada->Tipo = ESAEVUSTipoArma::CuerpoACuerpo;
+	Jugador->ObtenerArmas()->FijarArsenal({ Pistola, Espada });
 	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
 	TestEqual(TEXT("Nombre del arma"), Estado.TextoArma.ToString(), FString(TEXT("Pistola")));
 	TestTrue(TEXT("Sin pawn: pantalla de muerte"), FSAEVUSEstadoInterfaz::Calcular(nullptr, Mundo, VidaPorMascara, Fundido).bJugadorMuerto);
 	TestEqual(TEXT("Munición del cargador, reserva infinita"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / ∞"), Pistola->ArmaFuego.TamanoCargador));
 	constexpr int32 Reserva = 24;
 	Pistola->ArmaFuego.MunicionReserva = Reserva;
-	Jugador->ObtenerArmas()->FijarArsenal({ Pistola });
+	Jugador->ObtenerArmas()->FijarArsenal({ Pistola, Espada });
 	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
 	TestEqual(TEXT("Munición del cargador y de la reserva"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / %d"), Pistola->ArmaFuego.TamanoCargador, Reserva));
 	return true;

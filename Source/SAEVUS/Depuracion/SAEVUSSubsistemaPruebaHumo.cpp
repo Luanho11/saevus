@@ -358,6 +358,7 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		{
 			// Se apunta ahora: el pawn reaparecido tiene componentes nuevos.
 			DisparosRealizados = Armas->ObtenerDisparosRealizados();
+			bHayArmaFuego = Armas->TieneArmaFuegoEquipada();
 			UGameplayStatics::ApplyDamage(Pawn, DanioPrueba, nullptr, nullptr, UDamageType::StaticClass());
 			VidaTrasGolpe = Pawn->ObtenerVida()->ObtenerVida();
 			// Justo después del golpe el jugador es invulnerable: el golpe letal se ignora.
@@ -463,7 +464,10 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("el menú abre con el foco en un botón (mando y teclado)"), bMenuConFoco ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("menú principal (en pausa, la tecla de pausa no lo cierra)"), bMenuPrincipalVisto ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("\"Jugar\" cierra el menú principal y quita la pausa"), bMenuPrincipalCerrado ? 1.f : 0.f, 1.f, 0.f);
-		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);
+		if (bHayArmaFuego)
+		{
+			Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);
+		}
 		Comprobar(TEXT("vida tras un golpe"), VidaTrasGolpe, Pawn->ObtenerVida()->ObtenerVidaMaxima() - DanioPrueba, 0.f);
 		Comprobar(TEXT("golpe ignorado durante la invulnerabilidad"), VidaTrasGolpeInvulnerable, VidaTrasGolpe, 0.f);
 		Comprobar(TEXT("murió"), bMurio ? 1.f : 0.f, 1.f, 0.f);

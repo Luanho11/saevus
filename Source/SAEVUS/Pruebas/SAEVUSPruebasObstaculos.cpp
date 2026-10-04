@@ -180,76 +180,6 @@ bool FSAEVUSPruebaObstaculoFosoDash::RunTest(const FString& Parameters)
 	return false;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaObstaculoFosoRebote, "SAEVUS.Tutorial.Obstaculos.FosoRebote", SAEVUSPruebas::BanderasPrueba)
-bool FSAEVUSPruebaObstaculoFosoRebote::RunTest(const FString& Parameters)
-{
-	using namespace SAEVUSPruebasObstaculos;
-
-	SAEVUSPruebas::FMundoPrueba Mundo;
-	CrearSuelo(Mundo, -2000.f, 0.f);
-	CrearSuelo(Mundo, AnchoFosoRebote, AnchoFosoRebote + 1000.f);
-	for (const float X : XMunecosRebote)
-	{
-		Mundo.CrearActor<ASAEVUSMunecoEntrenamiento>(FVector(X, 0.f, ZMunecosRebote));
-	}
-	ASAEVUSPersonaje* Jugador = CrearJugador(Mundo, -1500.f);
-	if (!TestNotNull(TEXT("Jugador de pie"), Jugador))
-	{
-		return false;
-	}
-	USAEVUSComponenteMovimiento* Movimiento = Jugador->ObtenerMovimiento();
-	USAEVUSComponenteCombate* Combate = Jugador->ObtenerCombate();
-	bool bSalto = false;
-	int32 Rebotes = 0;
-	bool bDobleSalto = false;
-	bool bDash = false;
-	float VelocidadAnterior = 0.f;
-	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax) && Jugador->GetActorLocation().Z > ZCaida; ++Indice)
-	{
-		Jugador->AddMovementInput(FVector::ForwardVector, 1.f);
-		const FVector Posicion = Jugador->GetActorLocation();
-		if (!bSalto && Posicion.X >= -MargenBorde)
-		{
-			Saltar(Jugador);
-			bSalto = true;
-		}
-		else if (bSalto && Rebotes < UE_ARRAY_COUNT(XMunecosRebote))
-		{
-			// Cayendo cerca del siguiente muñeco: tajo hacia abajo.
-			const float XMuneco = XMunecosRebote[Rebotes];
-			if (Movimiento->IsFalling() && Movimiento->Velocity.Z < 0.f && FMath::Abs(Posicion.X - XMuneco) < AlcanceRebote && !Combate->EstaAtacando())
-			{
-				Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Abajo);
-			}
-		}
-		else if (Rebotes >= UE_ARRAY_COUNT(XMunecosRebote) && !bDobleSalto && Movimiento->Velocity.Z <= 0.f)
-		{
-			Saltar(Jugador);
-			bDobleSalto = true;
-		}
-		else if (bDobleSalto && !bDash)
-		{
-			Jugador->PedirDashHacia(FVector::ForwardVector);
-			bDash = true;
-		}
-		Mundo.Paso();
-		// Un rebote: la velocidad vertical pasa de bajar a subir sin estar en el suelo.
-		if (VelocidadAnterior < 0.f && Movimiento->Velocity.Z > 0.f && Movimiento->IsFalling() && Rebotes < UE_ARRAY_COUNT(XMunecosRebote))
-		{
-			++Rebotes;
-		}
-		VelocidadAnterior = static_cast<float>(Movimiento->Velocity.Z);
-		if (DePieSobre(Jugador, AnchoFosoRebote, AnchoFosoRebote + 1000.f, 0.f))
-		{
-			AddInfo(FString::Printf(TEXT("Cruzó el foso de %.0f cm con %d rebotes"), AnchoFosoRebote, Rebotes));
-			TestTrue(TEXT("Usó los rebotes"), Rebotes > 0);
-			return true;
-		}
-	}
-	AddError(FString::Printf(TEXT("No cruzó el foso de rebote (%d rebotes, X final %.0f, Z %.0f)"), Rebotes, Jugador->GetActorLocation().X, Jugador->GetActorLocation().Z));
-	return false;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaObstaculoCarreraPared, "SAEVUS.Tutorial.Obstaculos.FosoCarreraPared", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaObstaculoCarreraPared::RunTest(const FString& Parameters)
 {
@@ -339,61 +269,6 @@ bool FSAEVUSPruebaObstaculoCornisa::RunTest(const FString& Parameters)
 		}
 	}
 	AddError(FString::Printf(TEXT("No subió a la cornisa de %.0f cm (Z final %.0f)"), AlturaCornisa, Jugador->GetActorLocation().Z));
-	return false;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaObstaculoPinchos, "SAEVUS.Tutorial.Obstaculos.FosoPinchos", SAEVUSPruebas::BanderasPrueba)
-bool FSAEVUSPruebaObstaculoPinchos::RunTest(const FString& Parameters)
-{
-	using namespace SAEVUSPruebasObstaculos;
-
-	SAEVUSPruebas::FMundoPrueba Mundo;
-	CrearSuelo(Mundo, -2000.f, 0.f);
-	CrearSuelo(Mundo, AnchoFosoRebote, AnchoFosoRebote + 1000.f);
-	ASAEVUSPeligro* Pinchos = Mundo.CrearActor<ASAEVUSPeligro>(FVector(AnchoFosoRebote * 0.5f, 0.f, ZCentroPinchos));
-	Pinchos->FindComponentByClass<UBoxComponent>()->SetBoxExtent(FVector(AnchoFosoRebote * 0.5f, AnchoPasillo * 0.5f, MediaAlturaPinchos));
-	Pinchos->FijarPuntoRetorno(FVector(-100.f, 0.f, AlturaInicio));
-	ASAEVUSPersonaje* Jugador = CrearJugador(Mundo, -1500.f);
-	if (!TestNotNull(TEXT("Jugador de pie"), Jugador))
-	{
-		return false;
-	}
-	USAEVUSComponenteMovimiento* Movimiento = Jugador->ObtenerMovimiento();
-	USAEVUSComponenteCombate* Combate = Jugador->ObtenerCombate();
-	const float VidaInicial = Jugador->ObtenerVida()->ObtenerVida();
-	bool bSalto = false;
-	int32 Rebotes = 0;
-	float VelocidadAnterior = 0.f;
-	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax); ++Indice)
-	{
-		Jugador->AddMovementInput(FVector::ForwardVector, 1.f);
-		const FVector Posicion = Jugador->GetActorLocation();
-		if (!bSalto && Posicion.X >= -MargenBorde)
-		{
-			Saltar(Jugador);
-			bSalto = true;
-		}
-		else if (bSalto && Movimiento->IsFalling() && Movimiento->Velocity.Z < 0.f && Posicion.Z < AlturaAtaquePinchos
-			&& Posicion.X > 0.f && Posicion.X < AnchoFosoRebote && !Combate->EstaAtacando())
-		{
-			Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Abajo);
-		}
-		Mundo.Paso();
-		if (VelocidadAnterior < 0.f && Movimiento->Velocity.Z > 0.f && Movimiento->IsFalling())
-		{
-			++Rebotes;
-		}
-		VelocidadAnterior = static_cast<float>(Movimiento->Velocity.Z);
-		if (DePieSobre(Jugador, AnchoFosoRebote, AnchoFosoRebote + 1000.f, 0.f))
-		{
-			AddInfo(FString::Printf(TEXT("Cruzó los pinchos con %d rebotes"), Rebotes));
-			TestTrue(TEXT("Rebotando en los pinchos"), Rebotes > 0);
-			TestEqual(TEXT("Sin tocarlos: la vida intacta"), Jugador->ObtenerVida()->ObtenerVida(), VidaInicial);
-			TestEqual(TEXT("Los pinchos no dan alma"), Jugador->ObtenerAlma()->ObtenerAlma(), 0.f);
-			return true;
-		}
-	}
-	AddError(FString::Printf(TEXT("No cruzó los pinchos (%d rebotes, X final %.0f, vida %.0f)"), Rebotes, Jugador->GetActorLocation().X, Jugador->ObtenerVida()->ObtenerVida()));
 	return false;
 }
 

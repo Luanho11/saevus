@@ -117,11 +117,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	int32 SaltosAereosRestantes() const;
 
-	/** Devuelve los dashes aéreos y los dobles saltos (aterrizar, rebote de un tajo hacia abajo). */
+	/** Devuelve los dashes aéreos y los dobles saltos (al aterrizar). */
 	void RecargarRecursosAereos();
-
-	/** Rebote (pogo) de un tajo hacia abajo: fija la velocidad vertical, termina el dash y recarga los recursos aéreos. */
-	void Rebotar(float VelocidadVertical);
 
 	/** Corta la estocada en curso (p. ej. al golpear algo). */
 	void TerminarEstocada() { TiempoEstocadaRestante = 0.f; }

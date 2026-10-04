@@ -45,7 +45,9 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 		if (const USAEVUSComponenteArmas* Armas = Pawn->FindComponentByClass<USAEVUSComponenteArmas>())
 		{
 			const USAEVUSDefinicionArma* Arma = Armas->ObtenerArmaActual();
-			Estado.TextoArma = Arma ? FText::FromName(Arma->NombreVisible) : LOCTEXT("SinArma", "Aguijón");
+			// Con una sola arma no hay nada que elegir: no se muestra su nombre.
+			Estado.TextoArma = Armas->ObtenerNumeroRanuras() <= 1 ? FText::GetEmpty()
+				: (Arma ? FText::FromName(Arma->NombreVisible) : LOCTEXT("SinArma", "Aguijón"));
 			if (Armas->TieneArmaFuegoEquipada())
 			{
 				Estado.TextoMunicion = Armas->EstaRecargando()

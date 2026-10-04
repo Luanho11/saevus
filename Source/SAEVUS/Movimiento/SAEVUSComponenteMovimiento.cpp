@@ -262,7 +262,8 @@ void USAEVUSComponenteMovimiento::GuardarSaltoEnBuffer()
 
 int32 USAEVUSComponenteMovimiento::DashesAereosRestantes() const
 {
-	return FMath::Max(0, ObtenerAjusteDash().MaxDashesAereos - DashesAereosUsados);
+	const int32 Maximo = ObtenerAjusteDash().MaxDashesAereos;
+	return Maximo < 0 ? MAX_int32 : FMath::Max(0, Maximo - DashesAereosUsados);
 }
 
 bool USAEVUSComponenteMovimiento::PuedeDash() const
@@ -430,17 +431,6 @@ void USAEVUSComponenteMovimiento::RecargarRecursosAereos()
 {
 	DashesAereosUsados = 0;
 	SaltosAereosUsados = 0;
-}
-
-void USAEVUSComponenteMovimiento::Rebotar(float VelocidadVertical)
-{
-	if (EstaEnDash())
-	{
-		TerminarDash();
-	}
-	TerminarEstocada();
-	Velocity.Z = VelocidadVertical;
-	RecargarRecursosAereos();
 }
 
 bool USAEVUSComponenteMovimiento::IntentarSaltoAereo()

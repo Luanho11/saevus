@@ -87,6 +87,8 @@ private:
 	bool bCapturaMuerteHecha = false;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;
+	/** El arsenal tiene arma de fuego (ahora solo la espada): si no, no se comprueba el disparo. */
+	bool bHayArmaFuego = false;
 	int32 DisparosRealizados = 0;
 	float VidaTrasGolpe = 0.f;
 	/** Vida tras un golpe letal durante la invulnerabilidad que sigue al primero (debe ignorarse). */

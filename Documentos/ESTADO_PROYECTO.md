@@ -1,10 +1,10 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-04 (sesión 3c)_
+_Actualizado: 2026-10-04 (sesión 3d, fase "Rehacer como GunZ")_
 
 ## Objetivo actual
 
-Que el juego **se vea y se sienta**: dash por doble toque con partículas, caballero boceto animado con esqueleto propio, sombreado tipo Hollow Knight, mecánicas de Hollow Knight, enemigos y mini jefe, mapa tutorial e interfaz. Orden y detalle en `PROGRESS.md` y `hoja-de-ruta.md`.
+**Rehacer como GunZ** (decisión del dueño, 2026-10-04): la jugabilidad es la de GunZ (movimiento, dash sin espera ni límite, cámara siempre detrás, cuerpo que mira a la cámara); Hollow Knight queda para temática, arte y sombreado. Objetivo: un prototipo escalable que se pueda probar en un ejecutable, con animaciones mejores, tutorial de salas tipo mazmorra (referencia: mapa Dungeon de GunZ), menús limpios y, más adelante, goblins y jefes al estilo GunZ. Orden en `PROGRESS.md` (tareas 63–77).
 
 **Al volver, empieza por `RESUMEN_PARA_EL_DUENO.md`.** Para jugar: abrir el proyecto y pulsar Play (arranca en `L_Tutorial`); teclas y técnicas en `controles.md`.
 
@@ -13,13 +13,14 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Entorno:** UE 5.8.3 (binario), VS 2022 Build Tools 17.14 / MSVC 14.44, SDK 10.0.26100, .NET 4.8 SDK, Blender 4.2.16, Git + LFS (`entorno.md`). Smart App Control desactivado.
 - **Render para hardware modesto:** sin Lumen/Nanite/RT/VSM/MegaLights/distance fields, TAA, SSR, iluminación dinámica.
 - **Movimiento** (`movimiento.md`): caminar/correr/esprint, salto con coyote y buffer, control aéreo, dash (suelo y aire), salto de pared, carrera por pared, escalada; listo para red con movimientos guardados.
-- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, combo aéreo de tres con flotación, tajo en carrera, ataque cargado), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga, munición de reserva que se rellena con la espada; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
+- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, combo aéreo de tres con flotación, tajo en carrera, ataque cargado), combos con buffer, cancelaciones por datos (dash, salto, guardia), estocada; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento. **Armas de fuego retiradas del juego por ahora** (código y Data Assets inactivos): solo la espada.
 - **Dash por doble toque** de WASD (`movimiento.md`): cámara bloqueada durante el dash, invulnerabilidad breve, estela de partículas (`USAEVUSComponenteEstelaDash`, partículas por CPU en mallas instanciadas).
 - **Caballero boceto** (`animacion.md`): malla + esqueleto propio de 24 huesos generados por script en Blender, importados por script; animación procedural en C++ (reposo, correr, aire, dash, pared, escalada, tajos por línea de tiempo, disparo, muerte, capa).
 - **Sombreado tipo Hollow Knight** (`pipeline-assets.md`, Sombreado): material de personaje dibujado con borde de luz fría, instancias por pieza del caballero, contorno por post-proceso de profundidad, viñeta y saturación baja desde la cámara.
-- **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
-- **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, siete tipos por datos (rastrero, saltador, escupidor, revoloteador volador, acorazado con escudo, mini jefe Guardián y jefe volador Madre Alada, con dos fases), el jugador sale despedido al recibir golpes.
-- **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
+- **Dash como GunZ** (`movimiento.md`): sin enfriamiento ni límite por salto (por datos: `Enfriamiento` 0, `MaxDashesAereos` −1), con gravedad durante el dash.
+- **Mecánicas** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajo hacia arriba por la inclinación de la cámara (el tajo hacia abajo y el rebote se retiraron), retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
+- **Enemigos** (`enemigos.md`, **retirados de los mapas por ahora**: `ENEMIGOS_EN_MAPAS = False` en el script de assets; volverán como goblins de GunZ): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, siete tipos por datos (rastrero, saltador, escupidor, revoloteador volador, acorazado con escudo, mini jefe Guardián y jefe volador Madre Alada, con dos fases), el jugador sale despedido al recibir golpes.
+- **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: secciones de moverse, saltar, dash, paredes, carrera por pared, combate y alma (sin rebote, armas, arena ni jefe desde 2026-10-04; se rehará como mazmorra), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
 - **Secretos** (`zona1.md`): pared falsa que cae a tajos, fragmentos de máscara (dos = una máscara de vida más, guardados).
 - **Bancos** (`zona1.md`): sentarse con E cura, rellena la munición, fija el punto de control y guarda (Zona 1 y tutorial).
 - **Zona 1** (`zona1.md`): `L_Zona1`, ruinas con desniveles, tres encuentros, banco, arena, un atajo con palanca y compuerta y el jefe Madre Alada; se llega desde el final del tutorial.

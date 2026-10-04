@@ -19,12 +19,8 @@ namespace SAEVUSPruebasTajos
 	const FVector PosicionMunecoAlto(30.f, 0.f, 96.f + 190.f);
 	// Muñeco delante, al alcance del tajo frontal.
 	const FVector PosicionMunecoDelante(150.f, 0.f, MediaAlturaMuneco);
-	// El personaje cae desde aquí sobre un muñeco en el suelo, y ataca hacia abajo al pasar esta altura.
-	const FVector PosicionSobreMuneco(0.f, 0.f, 450.f);
-	constexpr float AlturaAtaqueAbajo = 380.f;
 
 	constexpr float TiempoMax = 2.f;
-	constexpr float FraccionMinRebote = 0.9f;
 
 	// Inclinaciones de cámara de prueba (grados).
 	constexpr float InclinacionHorizontal = 0.f;
@@ -68,16 +64,8 @@ bool FSAEVUSPruebaTajosInclinacion::RunTest(const FString& Parameters)
 	FMundoTajos Mundo(PosicionDePie);
 	TestEqual(TEXT("Cámara horizontal: tajo frontal"), Mundo.Combate->DireccionSegunInclinacion(InclinacionHorizontal), ESAEVUSDireccionAtaque::Frontal);
 	TestEqual(TEXT("Cámara hacia arriba: tajo hacia arriba"), Mundo.Combate->DireccionSegunInclinacion(InclinacionArribaClara), ESAEVUSDireccionAtaque::Arriba);
-	TestEqual(TEXT("Cámara hacia abajo: tajo hacia abajo"), Mundo.Combate->DireccionSegunInclinacion(InclinacionAbajoClara), ESAEVUSDireccionAtaque::Abajo);
-
-	// En el suelo, abajo se convierte en frontal.
-	if (!TestTrue(TEXT("Asentado"), Mundo.MundoPrueba.AsentarEnSuelo()))
-	{
-		return false;
-	}
-	Mundo.Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Abajo);
-	TestEqual(TEXT("Abajo en el suelo es frontal"), Mundo.Combate->ObtenerDireccionAtaque(), ESAEVUSDireccionAtaque::Frontal);
-	TestTrue(TEXT("Y usa el primer ataque del combo de suelo"), Mundo.Combate->ObtenerAtaqueActual() == &Mundo.Combate->ObtenerRepertorio().ComboSuelo[0]);
+	// Sin tajo hacia abajo (como en GunZ): mirar abajo da el tajo normal.
+	TestEqual(TEXT("Cámara hacia abajo: tajo frontal"), Mundo.Combate->DireccionSegunInclinacion(InclinacionAbajoClara), ESAEVUSDireccionAtaque::Frontal);
 	return true;
 }
 
@@ -94,48 +82,6 @@ bool FSAEVUSPruebaTajoArriba::RunTest(const FString& Parameters)
 	const ASAEVUSMunecoEntrenamiento* Muneco = Mundo.MundoPrueba.CrearActor<ASAEVUSMunecoEntrenamiento>(PosicionMunecoAlto);
 	TestEqual(TEXT("El tajo frontal no alcanza lo que está encima"), Mundo.GolpesConAtaque(ESAEVUSDireccionAtaque::Frontal, Muneco), 0);
 	TestEqual(TEXT("El tajo hacia arriba sí"), Mundo.GolpesConAtaque(ESAEVUSDireccionAtaque::Arriba, Muneco), 1);
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTajoAbajoRebote, "SAEVUS.Combate.Tajos.AbajoRebote", SAEVUSPruebas::BanderasPrueba)
-bool FSAEVUSPruebaTajoAbajoRebote::RunTest(const FString& Parameters)
-{
-	using namespace SAEVUSPruebasTajos;
-
-	FMundoTajos Mundo(PosicionSobreMuneco);
-	const ASAEVUSMunecoEntrenamiento* Muneco = Mundo.MundoPrueba.CrearActor<ASAEVUSMunecoEntrenamiento>(FVector(0.f, 0.f, MediaAlturaMuneco));
-	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax) && Mundo.Personaje->GetActorLocation().Z > AlturaAtaqueAbajo; ++Indice)
-	{
-		Mundo.MundoPrueba.Paso();
-	}
-	if (!TestTrue(TEXT("Cayendo sobre el muñeco"), Mundo.Movimiento->IsFalling()))
-	{
-		return false;
-	}
-	// Gasta el dash aéreo para comprobar que el rebote lo devuelve.
-	Mundo.Movimiento->PedirDash();
-	Mundo.MundoPrueba.Paso();
-	TestEqual(TEXT("Dash aéreo gastado"), Mundo.Movimiento->DashesAereosRestantes(), Mundo.Movimiento->ObtenerAjusteDash().MaxDashesAereos - 1);
-	Mundo.Personaje->SetActorLocation(FVector(0.f, 0.f, AlturaAtaqueAbajo));
-	Mundo.Movimiento->Velocity = FVector::ZeroVector;
-
-	Mundo.Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Abajo);
-	TestEqual(TEXT("Tajo hacia abajo en el aire"), Mundo.Combate->ObtenerDireccionAtaque(), ESAEVUSDireccionAtaque::Abajo);
-	float MaxVelocidadSubida = 0.f;
-	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax) && Muneco->ObtenerGolpes() == 0; ++Indice)
-	{
-		Mundo.MundoPrueba.Paso();
-		MaxVelocidadSubida = FMath::Max(MaxVelocidadSubida, static_cast<float>(Mundo.Movimiento->Velocity.Z));
-	}
-	if (!TestEqual(TEXT("El tajo hacia abajo golpea al muñeco"), Muneco->ObtenerGolpes(), 1))
-	{
-		return false;
-	}
-	const float VelocidadRebote = Mundo.Combate->ObtenerRepertorio().TajoAbajo.VelocidadRebote;
-	AddInfo(FString::Printf(TEXT("Velocidad vertical tras el rebote %.0f cm/s"), Mundo.Movimiento->Velocity.Z));
-	TestTrue(TEXT("Rebota hacia arriba (pogo)"), Mundo.Movimiento->Velocity.Z > VelocidadRebote * FraccionMinRebote);
-	TestEqual(TEXT("El rebote devuelve el dash aéreo"), Mundo.Movimiento->DashesAereosRestantes(), Mundo.Movimiento->ObtenerAjusteDash().MaxDashesAereos);
-	TestEqual(TEXT("Y el doble salto"), Mundo.Movimiento->SaltosAereosRestantes(), Mundo.Movimiento->ObtenerAjusteAire().MaxSaltosAereos);
 	return true;
 }
 

@@ -270,6 +270,7 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	OrbeAlma->SetRenderScale(FVector2D(Latido));
 
 	FijarTexto(TextoArma, Estado.TextoArma);
+	FijarVisible(TextoArma, !Estado.TextoArma.IsEmpty());
 	FijarTexto(TextoMunicion, Estado.TextoMunicion);
 	FijarVisible(TextoMunicion, !Estado.TextoMunicion.IsEmpty());
 

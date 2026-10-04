@@ -186,6 +186,8 @@ bool FSAEVUSPruebaSaltoParedRecargaDash::RunTest(const FString& Parameters)
 	{
 		USAEVUSAjustesMovimiento* Ajustes = CrearAjustes();
 		Ajustes->SaltoPared.bRecargaDashesAereos = bRecarga;
+		// Un dash aéreo por salto para ver el gasto y la recarga (por defecto no hay límite).
+		Ajustes->Dash.MaxDashesAereos = 1;
 
 		SAEVUSPruebas::FMundoPrueba MundoPrueba;
 		ASAEVUSPersonaje* Personaje = Preparar(MundoPrueba, PosicionJuntoPared, Ajustes);

@@ -61,19 +61,18 @@ Lectura: los tajos rápidos se pueden dejar en cuanto golpean (fin de la fase ac
 
 Pares de cancelación diseñados: ataque → dash/salto/cambio de arma (tabla), dash → ataque (`bAtaqueTerminaDash`), salto durante un dash de suelo y salto de pared durante un dash (movimiento).
 
-## Tajos direccionales, rebote e impacto (Hollow Knight)
+## Tajos direccionales e impacto
 
 Mecánicas de Hollow Knight adaptadas a 3D, con números propios:
 
-- **Dirección por la cámara.** En 2D se apunta con arriba/abajo; en tercera persona, W y S ya mueven. `ASAEVUSPersonaje::PedirAtaque` lee la inclinación vertical de la cámara: desde `UmbralInclinacionArriba` (30°) sale `TajoArriba`; hasta `UmbralInclinacionAbajo` (−40°), `TajoAbajo`. Abajo solo existe en el aire (en el suelo es el combo frontal). Umbrales en el repertorio; cambiables.
-- **Tajos direccionales** (`FSAEVUSRepertorioMelee::TajoArriba` / `TajoAbajo`): 0,08 / 0,10 / 0,25 s, 12 de daño, esfera de 70 cm a ±130 cm de altura, sin estocada. No encadenan: salen desde la ventana de encadenar de cualquier ataque, y tras ellos vuelve a empezar el combo.
-- **Golpear sin daño:** lo que no recibe daño (pinchos, `ASAEVUSPeligro`) cuenta para el impacto y el rebote, pero no es un golpe: no emite `AlGolpear`, así no da alma ni chispas (como en Hollow Knight).
-- **Rebote (pogo)**: `VelocidadRebote` (750 cm/s en el tajo hacia abajo). Al acertar en el aire, `USAEVUSComponenteMovimiento::Rebotar` fija la velocidad vertical, corta dash y estocada y **recarga dash aéreo y doble salto**: se puede encadenar rebote → doble salto → dash → rebote.
+- **Dirección por la cámara.** En 2D se apunta con arriba/abajo; en tercera persona, W y S ya mueven. `ASAEVUSPersonaje::PedirAtaque` lee la inclinación vertical de la cámara: desde `UmbralInclinacionArriba` (30°) sale `TajoArriba`; si no, el tajo frontal. El tajo hacia abajo y el rebote (pogo) se retiraron el 2026-10-04 (decisión del dueño: con doble salto no aportan; la jugabilidad es GunZ).
+- **Tajos direccionales** (`FSAEVUSRepertorioMelee::TajoArriba`): 0,08 / 0,10 / 0,25 s, 12 de daño, esfera de 70 cm a ±130 cm de altura, sin estocada. No encadenan: salen desde la ventana de encadenar de cualquier ataque, y tras ellos vuelve a empezar el combo.
+- **Golpear sin daño:** lo que no recibe daño (pinchos, `ASAEVUSPeligro`) cuenta para el impacto, pero no es un golpe: no emite `AlGolpear`, así no da alma ni chispas (como en Hollow Knight).
 - **Impacto** (una vez por ataque, en el primer acierto):
   - `RetrocesoAtacante` (250 cm/s; 0 en los tajos direccionales): corta la estocada y echa al atacante hacia atrás, así el golpe se siente y no se atraviesa al enemigo.
-  - `EmpujeObjetivo` (350 cm/s): lanza a los personajes golpeados en la dirección del tajo (horizontal, arriba o abajo).
+  - `EmpujeObjetivo` (350 cm/s): lanza a los personajes golpeados en la dirección del tajo (horizontal o arriba).
   - **Parada de golpe** `DuracionParadaGolpe` (0,06 s reales) a la escala `EscalaTiempoParada` (0,05) del repertorio: `FSAEVUSParadaGolpe` baja `CustomTimeDilation` del atacante y de los golpeados y la devuelve a 1, contando tiempo real.
-- Animación: trayectorias propias para arriba (cuerpo echado atrás) y abajo (volcado hacia el golpe).
+- Animación: trayectoria propia para arriba (cuerpo echado atrás).
 
 ## Guardia (GunZ)
 
@@ -106,7 +105,9 @@ La otra mitad de la "mariposa" de GunZ (salto → dash → tajo → guardia), di
 
 ## Armas y cambio
 
-El arsenal es una lista de `USAEVUSDefinicionArma` en el componente de armas. Por defecto (`BP_SAEVUSPersonaje`): 1 Espada, 2 Pistola, 3 Rifle, 4 Escopeta.
+> **Retiradas por ahora (2026-10-04, decisión del dueño).** `BP_SAEVUSPersonaje` lleva solo la espada; no hay teclas de recarga, cambio ni ranuras, y la interfaz oculta el nombre del arma con una sola. El código y los Data Assets de las armas de fuego siguen, inactivos, para volver más adelante.
+
+El arsenal es una lista de `USAEVUSDefinicionArma` en el componente de armas. Antes: 1 Espada, 2 Pistola, 3 Rifle, 4 Escopeta.
 
 - **Cambio.** Elegir una ranura empieza su `TiempoEquipar`; no se dispara ni se ataca hasta que acaba. Cambiar descarta una recarga y un disparo pendiente. A mitad de un ataque obedece `CancelarConCambioArmaDesde`. Equipar un arma cuerpo a cuerpo pasa su repertorio al combate (nulo = el del código).
 - **Disparo.** Una pulsación pide un disparo (si llega en el enfriamiento, dispara al acabar); un arma automática sigue mientras se mantiene, a `IntervaloDisparo` (el enfriamiento arrastra como mucho un fotograma, así la cadencia se mantiene a cualquier fps). Cada ranura tiene su cargador; el gatillo en seco recarga. Disparar nunca bloquea el movimiento.
@@ -144,7 +145,7 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 
 ## Tests
 
-`SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
+`SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.RetrocesoYParada`.
 `SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Reserva` (recarga parcial, sin reserva no recarga y suena en seco, golpes que devuelven balas hasta el máximo, rellenar), `Cambio`, `CambioCancela`, `RepertorioMelee`.
 `SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`, `InvulnerableTrasGolpe`.
 `SAEVUS.Guardia.*`: `Contraataque` (dentro de la ventana aturde, da alma e invulnerabilidad; fuera, bloqueo normal), `BloqueaDeFrente` (frente sí; espalda y sin causante no), `MovimientoYArma` (más lenta, sin curación, se suelta con arma de fuego), `CancelaTajo` (espera la ventana, corta el tajo, atacar la suelta y vuelve).

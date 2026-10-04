@@ -121,25 +121,28 @@ struct FSAEVUSAjusteDash
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadSalida = 700.f;
 
-	/** Tiempo tras terminar un dash antes de poder empezar otro. */
+	/** Tiempo tras terminar un dash antes de poder empezar otro. 0 = encadenar en el acto (GunZ). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
-	float Enfriamiento = 0.3f;
+	float Enfriamiento = 0.f;
 
 	/** Gira el cuerpo hacia la dirección del dash al empezar, para que se lea bien. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
 	bool bGirarHaciaDash = true;
 
-	/** Dashes permitidos por cada estancia en el aire; se recargan al aterrizar. 0 desactiva el dash aéreo. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash aéreo", meta = (ClampMin = "0"))
-	int32 MaxDashesAereos = 1;
+	/** Dashes por cada estancia en el aire (se recargan al aterrizar). Negativo = sin límite (GunZ); 0 = sin dash aéreo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash aéreo", meta = (ClampMin = "-1"))
+	int32 MaxDashesAereos = -1;
 
 	/** Velocidad vertical fijada al empezar un dash aéreo (0 = plano). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash aéreo", meta = (ForceUnits = "cm/s"))
 	float VelocidadVerticalDashAereo = 0.f;
 
-	/** Sin gravedad mientras dura un dash aéreo, así se mantiene la velocidad vertical de arriba. */
+	/**
+	 * Sin gravedad mientras dura un dash aéreo. Apagado por defecto: sin límite de dashes, la gravedad
+	 * es lo que impide volar encadenándolos.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash aéreo")
-	bool bSuspenderGravedadEnDash = true;
+	bool bSuspenderGravedadEnDash = false;
 
 	/** La cámara no gira mientras dura el dash (como en GunZ); la dirección del dash queda fija. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
