@@ -13,7 +13,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Entorno:** UE 5.8.3 (binario), VS 2022 Build Tools 17.14 / MSVC 14.44, SDK 10.0.26100, .NET 4.8 SDK, Blender 4.2.16, Git + LFS (`entorno.md`). Smart App Control desactivado.
 - **Render para hardware modesto:** sin Lumen/Nanite/RT/VSM/MegaLights/distance fields, TAA, SSR, iluminación dinámica.
 - **Movimiento** (`movimiento.md`): caminar/correr/esprint, salto con coyote y buffer, control aéreo, dash (suelo y aire), salto de pared, carrera por pared, escalada; listo para red con movimientos guardados.
-- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, combo aéreo de tres con flotación, tajo en carrera, ataque cargado), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
+- **Combate** (`combate.md`): ataques por línea de tiempo (tajos, remate, combo aéreo de tres con flotación, tajo en carrera, ataque cargado), combos con buffer, cancelaciones por datos (dash, salto, cambio de arma), estocada; armas de fuego hitscan (pistola, rifle, escopeta), cambio de arma, recarga, munición de reserva que se rellena con la espada; vida, muerte con ragdoll, reaparición; muñecos de entrenamiento.
 - **Dash por doble toque** de WASD (`movimiento.md`): cámara bloqueada durante el dash, invulnerabilidad breve, estela de partículas (`USAEVUSComponenteEstelaDash`, partículas por CPU en mallas instanciadas).
 - **Caballero boceto** (`animacion.md`): malla + esqueleto propio de 24 huesos generados por script en Blender, importados por script; animación procedural en C++ (reposo, correr, aire, dash, pared, escalada, tajos por línea de tiempo, disparo, muerte, capa).
 - **Sombreado tipo Hollow Knight** (`pipeline-assets.md`, Sombreado): material de personaje dibujado con borde de luz fría, instancias por pieza del caballero, contorno por post-proceso de profundidad, viñeta y saturación baja desde la cámara.
@@ -33,7 +33,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorrido del tutorial).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 111/111 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 112/112 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -59,4 +59,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 36 de `PROGRESS.md` (munición de reserva); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 37 de `PROGRESS.md` (números de daño de depuración); después, tareas propias (ver la cola en `PROGRESS.md`).

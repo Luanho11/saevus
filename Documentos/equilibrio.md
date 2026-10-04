@@ -38,6 +38,16 @@ Si un cambio de datos rompe una regla, el test falla. Para cambiar el diseño, s
 | Escopeta (ráfaga, todos los perdigones) | 56 | 0,80 | 70,0 |
 | Escopeta (sostenido, con recarga) | 336 | 6,80 | 49,4 |
 
+### Munición (tarea 36)
+
+| Arma | Cargador | Reserva | Daño con todo lleno | Golpes de espada para llenar la reserva |
+|---|---|---|---|---|
+| Pistola | 12 | 24 | 720 | 12 |
+| Rifle | 30 | 60 | 810 | 12 |
+| Escopeta | 6 | 12 | 1008 | 12 |
+
+Con todo lleno, cada arma tiene daño para unos tres Guardianes. La reserva vuelve con la espada (doce golpes la llenan) y en los puntos de control. Se comprueba que ninguna arma tenga reserva infinita.
+
 ## Enemigos (vida del jugador: 100)
 
 | Enemigo | Vida | Primeros tajos | Combos de suelo | Tiempo con el combo (s) |
@@ -62,7 +72,7 @@ Si un cambio de datos rompe una regla, el test falla. Para cambiar el diseño, s
 
 ## Lectura
 
-- **Las armas de fuego superan al cuerpo a cuerpo** incluso contando la recarga (≈ 50–57 frente a 42 daño/s), sin riesgo y a distancia. Ni en GunZ ni en Hollow Knight la opción segura es la más rentable. Pendiente de decisión (ver `RESUMEN_PARA_EL_DUENO.md`); la propuesta es munición de reserva limitada (tarea 36), no bajar el daño.
+- **Las armas de fuego superan al cuerpo a cuerpo** en daño/s, incluso contando la recarga (≈ 50–57 frente a 42), sin riesgo y a distancia. Ni en GunZ ni en Hollow Knight la opción segura es la más rentable. Solución adoptada (tarea 36, cambiable): munición de reserva limitada que se rellena con golpes de espada. El daño de las armas no se toca, pero cuesta acercarse.
 - **El ataque cargado** tiene el menor daño/s a un solo objetivo. Es aceptable porque golpea todo alrededor (radio 170) y empuja, pero no compensa contra el Guardián.
 - **El Guardián** cae en unos 6 s de combo puro. Contando esquivas y castigos, son de 30 a 40 s reales: suficiente para un mini jefe de tutorial, poco para un jefe de verdad.
 - **Castigos:** todos los ataques enemigos dejan meter al menos dos tajos, y la mayoría el combo entero. Es generoso, a propósito para el tutorial.

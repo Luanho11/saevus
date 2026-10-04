@@ -45,6 +45,16 @@ struct FSAEVUSAjusteArmaFuego
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Munición", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoRecarga = 1.2f;
 
+	/** Balas de reserva (además del cargador) al aparecer y al rellenar; la recarga sale de aquí. Negativo = infinita. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Munición", meta = (ClampMin = "-1"))
+	int32 MunicionReserva = -1;
+
+	/** Balas que vuelven a la reserva por cada golpe cuerpo a cuerpo que acierta (GunZ: espada y arma se alimentan). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Munición", meta = (ClampMin = "0"))
+	int32 ReservaPorGolpeCuerpoACuerpo = 0;
+
+	bool TieneReservaInfinita() const { return MunicionReserva < 0; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Puntería", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float Alcance = 5000.f;
 

@@ -15,7 +15,7 @@ Boceto mejorable, sin dirección visual compleja todavía (decisión del dueño)
 
 - **Arriba a la izquierda:** orbe de alma (se llena de abajo arriba; más brillante si alcanza para curar; late mientras cura) y a su derecha las máscaras de vida (20 de vida cada una; una máscara a medias se ve gris).
 - **Arriba al centro:** aviso del tutorial (título y texto, con fundido de entrada y salida).
-- **Abajo a la derecha:** arma equipada y munición (o "Recargando...").
+- **Abajo a la derecha:** arma equipada y munición como `cargador / reserva` (`∞` si la reserva es infinita), o "Recargando...".
 - **Abajo al centro:** nombre y barra de vida del jefe, solo mientras hay un jefe vivo y activo (fuera del reposo).
 
 Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de la pantalla; a 720p todo es dos tercios del tamaño a 1080p). Las medidas del struct están en unidades de 1080p.

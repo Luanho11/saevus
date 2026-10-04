@@ -151,6 +151,7 @@ bool FSAEVUSPruebaEquilibrioTecnicas::RunTest(const FString& Parameters)
 		Suelto(TEXT("Tajo en carrera (sin contar el dash)"), Repertorio->TajoEnCarrera),
 		Cargado(*Repertorio),
 	};
+	TArray<FString> LineasMunicion;
 	for (const TCHAR* Ruta : RutasArmas)
 	{
 		const USAEVUSDefinicionArma* Arma = LoadObject<USAEVUSDefinicionArma>(nullptr, Ruta);
@@ -158,6 +159,14 @@ bool FSAEVUSPruebaEquilibrioTecnicas::RunTest(const FString& Parameters)
 		{
 			continue;
 		}
+		const FSAEVUSAjusteArmaFuego& Municion = Arma->ArmaFuego;
+		const int32 Balas = Municion.TamanoCargador + FMath::Max(Municion.MunicionReserva, 0);
+		LineasMunicion.Add(FString::Printf(TEXT("| %s | %d | %s | %.0f | %s |"), *Arma->NombreVisible.ToString(), Municion.TamanoCargador,
+			Municion.TieneReservaInfinita() ? TEXT("infinita") : *FString::FromInt(Municion.MunicionReserva),
+			Municion.Danio * Municion.PerdigonesPorDisparo * Balas,
+			Municion.ReservaPorGolpeCuerpoACuerpo > 0 ? *FString::FromInt(FMath::DivideAndRoundUp(FMath::Max(Municion.MunicionReserva, 0), Municion.ReservaPorGolpeCuerpoACuerpo)) : TEXT("—")));
+		// Las armas ya no son una fuente infinita de daño: la reserva se gana con la espada.
+		TestFalse(FString::Printf(TEXT("%s tiene la reserva limitada"), *Arma->NombreVisible.ToString()), Municion.TieneReservaInfinita());
 		const FSAEVUSAjusteArmaFuego& Fuego = Arma->ArmaFuego;
 		const float DanioDisparo = Fuego.Danio * Fuego.PerdigonesPorDisparo;
 		const FString Nombre = Arma->NombreVisible.ToString();
@@ -172,6 +181,13 @@ bool FSAEVUSPruebaEquilibrioTecnicas::RunTest(const FString& Parameters)
 	{
 		Linea(FString::Printf(TEXT("| %s | %.0f | %.2f | %.1f |"), *Tecnica.Nombre, Tecnica.Danio, Tecnica.Tiempo, Tecnica.DanioPorSegundo()));
 		TestTrue(FString::Printf(TEXT("%s hace daño"), *Tecnica.Nombre), Tecnica.DanioPorSegundo() > 0.f);
+	}
+
+	Linea(TEXT("| Arma | Cargador | Reserva | Daño con todo lleno | Golpes de espada para llenar la reserva |"));
+	Linea(TEXT("|---|---|---|---|---|"));
+	for (const FString& Fila : LineasMunicion)
+	{
+		Linea(Fila);
 	}
 
 	// El giro cargado compromete más, así que cada golpe suyo vale más que cualquier tajo del combo.

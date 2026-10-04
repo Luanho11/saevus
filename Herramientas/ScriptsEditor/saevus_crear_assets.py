@@ -76,17 +76,20 @@ ARMAS = {
     "DA_Arma_Pistola": {
         "nombre_visible": "Pistola", "tipo": "arma_fuego", "tiempo_equipar": 0.25,
         "arma_fuego": {"danio": 20.0, "intervalo_disparo": 0.25, "automatica": False, "tamano_cargador": 12,
-                       "tiempo_recarga": 1.2, "alcance": 5000.0, "dispersion_grados": 0.5, "perdigones_por_disparo": 1},
+                       "tiempo_recarga": 1.2, "alcance": 5000.0, "dispersion_grados": 0.5, "perdigones_por_disparo": 1,
+                       "municion_reserva": 24, "reserva_por_golpe_cuerpo_a_cuerpo": 2},
     },
     "DA_Arma_Rifle": {
         "nombre_visible": "Rifle", "tipo": "arma_fuego", "tiempo_equipar": 0.4,
         "arma_fuego": {"danio": 9.0, "intervalo_disparo": 0.1, "automatica": True, "tamano_cargador": 30,
-                       "tiempo_recarga": 1.8, "alcance": 6000.0, "dispersion_grados": 1.5, "perdigones_por_disparo": 1},
+                       "tiempo_recarga": 1.8, "alcance": 6000.0, "dispersion_grados": 1.5, "perdigones_por_disparo": 1,
+                       "municion_reserva": 60, "reserva_por_golpe_cuerpo_a_cuerpo": 5},
     },
     "DA_Arma_Escopeta": {
         "nombre_visible": "Escopeta", "tipo": "arma_fuego", "tiempo_equipar": 0.45,
         "arma_fuego": {"danio": 7.0, "intervalo_disparo": 0.8, "automatica": False, "tamano_cargador": 6,
-                       "tiempo_recarga": 2.0, "alcance": 2000.0, "dispersion_grados": 6.0, "perdigones_por_disparo": 8},
+                       "tiempo_recarga": 2.0, "alcance": 2000.0, "dispersion_grados": 6.0, "perdigones_por_disparo": 8,
+                       "municion_reserva": 12, "reserva_por_golpe_cuerpo_a_cuerpo": 1},
     },
 }
 

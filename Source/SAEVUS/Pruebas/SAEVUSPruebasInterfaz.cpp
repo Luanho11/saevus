@@ -58,7 +58,12 @@ bool FSAEVUSPruebaInterfazVitales::RunTest(const FString& Parameters)
 	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
 	TestEqual(TEXT("Nombre del arma"), Estado.TextoArma.ToString(), FString(TEXT("Pistola")));
 	TestTrue(TEXT("Sin pawn: pantalla de muerte"), FSAEVUSEstadoInterfaz::Calcular(nullptr, Mundo, VidaPorMascara, Fundido).bJugadorMuerto);
-	TestEqual(TEXT("Munición del cargador"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / %d"), Pistola->ArmaFuego.TamanoCargador, Pistola->ArmaFuego.TamanoCargador));
+	TestEqual(TEXT("Munición del cargador, reserva infinita"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / ∞"), Pistola->ArmaFuego.TamanoCargador));
+	constexpr int32 Reserva = 24;
+	Pistola->ArmaFuego.MunicionReserva = Reserva;
+	Jugador->ObtenerArmas()->FijarArsenal({ Pistola });
+	Estado = FSAEVUSEstadoInterfaz::Calcular(Jugador, Mundo, VidaPorMascara, Fundido);
+	TestEqual(TEXT("Munición del cargador y de la reserva"), Estado.TextoMunicion.ToString(), FString::Printf(TEXT("%d / %d"), Pistola->ArmaFuego.TamanoCargador, Reserva));
 	return true;
 }
 

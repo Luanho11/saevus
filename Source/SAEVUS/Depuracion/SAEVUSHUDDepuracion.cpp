@@ -82,7 +82,7 @@ void ASAEVUSHUDDepuracion::DibujarDepuracion()
 			LineaArma = FString::Printf(TEXT("Arma: %s [%d/%d]"), *Arma->NombreVisible.ToString(), Armas->ObtenerRanuraActual() + 1, Armas->ObtenerNumeroRanuras());
 			if (Arma->EsArmaFuego())
 			{
-				LineaArma += FString::Printf(TEXT(" munición %d/%d"), Armas->ObtenerMunicionActual(), Arma->ArmaFuego.TamanoCargador);
+				LineaArma += FString::Printf(TEXT(" munición %d/%d reserva %d"), Armas->ObtenerMunicionActual(), Arma->ArmaFuego.TamanoCargador, Armas->ObtenerReservaActual());
 			}
 		}
 		if (Armas->EstaCambiando())

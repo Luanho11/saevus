@@ -44,7 +44,7 @@ También: doble salto, rebote (pogo, también en pinchos), alma y curación, con
 - **Preguntas abiertas:**
   - ¿Te gusta la inclinación de cámara para los tajos arriba/abajo, o prefieres una tecla?
   - ¿Ritmo del dash, la guardia y la curación? (todo en Data Assets).
-  - **Armas de fuego frente a espada:** con los números actuales las armas hacen más daño por segundo que el combo, y desde lejos (`equilibrio.md`). Propongo limitar la munición de reserva (tarea 36) en vez de bajarles el daño. ¿De acuerdo, o prefieres otra cosa?
+  - **Armas de fuego frente a espada:** con los números actuales las armas hacen más daño por segundo que el combo, y desde lejos (`equilibrio.md`). Lo resolví limitando la munición de reserva (se rellena con golpes de espada y en los puntos de control) en vez de bajarles el daño. ¿Te parece bien, o prefieres otra cosa?
   - Dirección de arte cuando quieras pasar de bocetos: personaje final, iconos de interfaz, escenario.
 - **Siguiente en la cola** (`PROGRESS.md`): lo que propongo después; puedes reordenarlo.
 

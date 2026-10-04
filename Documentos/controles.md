@@ -13,7 +13,7 @@ Abrir el proyecto en el editor y pulsar Play: arranca en el tutorial (`L_Tutoria
 | Atacar / disparar | clic izquierdo | X |
 | Guardia (con el aguijón) | clic derecho (mantener) | gatillo izquierdo |
 | Curar (gasta alma) | Q (mantener, en el suelo) | botón superior izquierdo |
-| Recargar | R | Y |
+| Recargar (de la reserva; la espada la rellena) | R | Y |
 | Armas | 1–4, rueda del ratón | botón superior derecho |
 | Pausa (opciones) | P | Start |
 | Datos de depuración | F6 | — |

@@ -110,18 +110,19 @@ El arsenal es una lista de `USAEVUSDefinicionArma` en el componente de armas. Po
 
 - **Cambio.** Elegir una ranura empieza su `TiempoEquipar`; no se dispara ni se ataca hasta que acaba. Cambiar descarta una recarga y un disparo pendiente. A mitad de un ataque obedece `CancelarConCambioArmaDesde`. Equipar un arma cuerpo a cuerpo pasa su repertorio al combate (nulo = el del código).
 - **Disparo.** Una pulsación pide un disparo (si llega en el enfriamiento, dispara al acabar); un arma automática sigue mientras se mantiene, a `IntervaloDisparo` (el enfriamiento arrastra como mucho un fotograma, así la cadencia se mantiene a cualquier fps). Cada ranura tiene su cargador; el gatillo en seco recarga. Disparar nunca bloquea el movimiento.
+- **Munición de reserva.** La recarga pasa balas de la reserva (`MunicionReserva`, negativo = infinita) al cargador; con poca reserva el cargador se llena en parte, y sin reserva el gatillo en seco solo suena (`AlGatilloEnSeco`). Cada golpe cuerpo a cuerpo que acierta devuelve `ReservaPorGolpeCuerpoACuerpo` balas a la reserva de cada arma de fuego, hasta su máximo: la espada alimenta las armas (GunZ), así las armas no superan al combo sin riesgo (`equilibrio.md`). Los puntos de control y la reaparición lo rellenan todo.
 - **Hitscan, dos trazas por perdigón.** (1) Desde la vista (cámara del jugador, ojos en otro caso) para encontrar el punto de mira. (2) Desde la boca (`DesplazamientoBoca` del dueño) hacia ese punto, hasta `Alcance`: la cobertura delante del personaje bloquea aunque la cámara vea más allá. Daño por `ApplyPointDamage`. El cuerpo gira hacia el disparo.
 - **Colisión.** Canal de traza propio **Arma** (`ECC_GameTraceChannel1`, `Config/DefaultEngine.ini`, `Nucleo/SAEVUSCanalesColision.h`). Bloquea por defecto, también a los pawns, que ignoran Visibility.
 - **Dispersión.** Cada perdigón cae al azar en un cono de `DispersionGrados` (flujo aleatorio propio del componente, listo para sembrar por disparo en red).
 
-| Arma (`DA_Arma_*`) | Tipo | Daño | Perdigones | Intervalo | Modo | Cargador | Recarga | Alcance | Dispersión | Equipar |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Espada | cuerpo a cuerpo | — | — | — | — | — | — | — | — | 0,2 s |
-| Pistola | fuego | 20 | 1 | 0,25 s | semi | 12 | 1,2 s | 50 m | 0,5° | 0,25 s |
-| Rifle | fuego | 9 | 1 | 0,1 s | auto | 30 | 1,8 s | 60 m | 1,5° | 0,4 s |
-| Escopeta | fuego | 7 | 8 | 0,8 s | semi | 6 | 2,0 s | 20 m | 6° | 0,45 s |
+| Arma (`DA_Arma_*`) | Tipo | Daño | Perdigones | Intervalo | Modo | Cargador | Reserva (por golpe) | Recarga | Alcance | Dispersión | Equipar |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Espada | cuerpo a cuerpo | — | — | — | — | — | — | — | — | — | 0,2 s |
+| Pistola | fuego | 20 | 1 | 0,25 s | semi | 12 | 24 (+2) | 1,2 s | 50 m | 0,5° | 0,25 s |
+| Rifle | fuego | 9 | 1 | 0,1 s | auto | 30 | 60 (+5) | 1,8 s | 60 m | 1,5° | 0,4 s |
+| Escopeta | fuego | 7 | 8 | 0,8 s | semi | 6 | 12 (+1) | 2,0 s | 20 m | 6° | 0,45 s |
 
-Valores en la tabla `ARMAS` del script de assets y en los Data Assets; arquetipos genéricos. Munición de reserva, recogida de armas e inventario quedan fuera por ahora.
+Valores en la tabla `ARMAS` del script de assets y en los Data Assets; arquetipos genéricos. Recogida de armas e inventario quedan fuera por ahora.
 
 ## Vida, muerte y reaparición
 
@@ -136,14 +137,14 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 
 ## Depuración
 
-- HUD F6: `Ataque: <nombre> #<índice> <fase> <tiempo>` y `(en buffer)`; `Arma: <nombre> [ranura/total] munición n/m`, `(cambiando a n)`, `(recargando)`; `Vida: n/max`.
+- HUD F6: `Ataque: <nombre> #<índice> <fase> <tiempo>` y `(en buffer)`; `Arma: <nombre> [ranura/total] munición n/m reserva r` (−1 = infinita), `(cambiando a n)`, `(recargando)`; `Vida: n/max`.
 - `SAEVUS.Depuracion.Combate 1`: dibuja la esfera de golpe activa y cada traza de disparo (amarillo: sin golpe, rojo: golpe).
 - Mapa de pruebas: tres muñecos cerca del inicio y una galería de tiro a 10, 20 y 30 m.
 
 ## Tests
 
 `SAEVUS.Combate.*`: `LineaTiempo`, `GolpeaMuneco`, `Combo`, `Cancelaciones`, `Movimiento` (estocada 60 vs 54 cm), `AtaqueAereo`, `AtaqueTerminaDash`, `Tajos.Inclinacion` (cámara → dirección; abajo en el suelo es frontal), `Tajos.Arriba` (solo el tajo hacia arriba alcanza lo de encima), `Tajos.AbajoRebote` (rebote y recarga de dash y doble salto), `Tajos.RetrocesoYParada`.
-`SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Cambio`, `CambioCancela`, `RepertorioMelee`.
+`SAEVUS.Armas.*`: `Hitscan` (golpe, alcance, cobertura), `ModosDisparo` (semi, 10 disparos/s automático, perdigones), `Recarga`, `Reserva` (recarga parcial, sin reserva no recarga y suena en seco, golpes que devuelven balas hasta el máximo, rellenar), `Cambio`, `CambioCancela`, `RepertorioMelee`.
 `SAEVUS.Vida.*`: `Reglas`, `DanioMotor`, `MuertePersonaje`, `InvulnerableTrasGolpe`.
 `SAEVUS.Guardia.*`: `Contraataque` (dentro de la ventana aturde, da alma e invulnerabilidad; fuera, bloqueo normal), `BloqueaDeFrente` (frente sí; espalda y sin causante no), `MovimientoYArma` (más lenta, sin curación, se suelta con arma de fuego), `CancelaTajo` (espera la ventana, corta el tajo, atacar la suelta y vuelve).
 `SAEVUS.Alma.*`: `GanarAlGolpear`, `Curacion` (no se mueve, cura y gasta), `CuracionInterrumpida` (golpe y salto la cortan sin gastar), `SinAlmaNoCura`.

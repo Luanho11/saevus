@@ -37,6 +37,9 @@ struct SAEVUS_API FSAEVUSAjusteSonidos
 	FSAEVUSSonidoSintetizado Disparo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
+	FSAEVUSSonidoSintetizado GatilloEnSeco;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
 	FSAEVUSSonidoSintetizado Danio;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combate")
@@ -86,7 +89,7 @@ private:
 		float Duracion = 0.f;
 	};
 
-	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Total };
+	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, GatilloEnSeco, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Total };
 
 	void Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido);
 	void Reproducir(EEfecto Efecto, float VolumenCategoria);
@@ -103,6 +106,9 @@ private:
 
 	UFUNCTION()
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
+
+	UFUNCTION()
+	void AlGatilloEnSeco();
 
 	UFUNCTION()
 	void AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);

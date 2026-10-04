@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 36)**
-**Último latido: 2026-10-04 01:12** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 37)**
+**Último latido: 2026-10-04 01:27** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -70,11 +70,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 33. [x] ~~Sacudida de cámara procedural (golpe dado, golpe recibido, bloqueo, aterrizaje fuerte), con intensidad por datos y opción de desactivarla.~~
 34. [x] ~~Muñecos del tutorial que enseñan las técnicas nuevas: un aviso y un muñeco para el ataque cargado, el tajo en carrera y el combo aéreo (sección de combate ampliada).~~ Además, `Verificar-Arranque` exige el "hecho" del script de assets (un error de sintaxis de Python pasaba sin aviso).
 35. [x] ~~Equilibrio de primera pasada con los tests: tabla de daño por segundo de cada técnica y tiempos para derrotar a cada enemigo, en un test informativo (`SAEVUS.Equilibrio.*`) que escribe la tabla en el log.~~ `equilibrio.md`; reglas de diseño comprobadas.
-36. [ ] Munición de reserva limitada para las armas de fuego (las armas superan al combo en daño/s, ver `equilibrio.md`): reserva por arma en datos, recarga desde la reserva, se rellena en los puntos de control; interfaz muestra cargador/reserva; tests.
+36. [x] ~~Munición de reserva limitada para las armas de fuego (las armas superan al combo en daño/s, ver `equilibrio.md`): reserva por arma en datos, recarga desde la reserva, se rellena en los puntos de control; interfaz muestra cargador/reserva; tests.~~ La reserva también vuelve con los golpes de espada; chasquido en seco.
 37. [ ] Números de daño flotantes de depuración (CVar `SAEVUS.Depuracion.NumerosDanio`) para ajustar el equilibrio jugando.
 38. [ ] Hilo de juego: medir el tutorial con `stat game`/`stat unit` en la prueba de humo, localizar lo más caro (animación procedural, IA, partículas) y bajar del presupuesto actual (11–13 ms).
 
 ## Estado del turno
-- Completado: tarea 35 (tabla de equilibrio).
+- Completado: tarea 36 (munición de reserva).
 - A medias: —
-- Siguiente paso exacto: tarea 36 — munición de reserva limitada.
+- Siguiente paso exacto: tarea 37 — números de daño de depuración.

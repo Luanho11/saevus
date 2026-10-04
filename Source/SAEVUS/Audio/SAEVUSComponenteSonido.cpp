@@ -47,6 +47,17 @@ FSAEVUSAjusteSonidos::FSAEVUSAjusteSonidos()
 	Disparo.Volumen = 0.7f;
 	Disparo.Semilla = 37;
 
+	// Gatillo en seco: clic metálico corto y flojo.
+	GatilloEnSeco.Duracion = 0.06f;
+	GatilloEnSeco.FrecuenciaInicio = 2400.f;
+	GatilloEnSeco.FrecuenciaFin = 1800.f;
+	GatilloEnSeco.Aspereza = 0.3f;
+	GatilloEnSeco.MezclaRuido = 0.5f;
+	GatilloEnSeco.FiltroRuido = 0.9f;
+	GatilloEnSeco.Caida = 0.012f;
+	GatilloEnSeco.Volumen = 0.35f;
+	GatilloEnSeco.Semilla = 41;
+
 	// Daño recibido: zumbido áspero que baja.
 	Danio.Duracion = 0.28f;
 	Danio.FrecuenciaInicio = 320.f;
@@ -121,6 +132,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	Preparar(EEfecto::Tajo, Ajuste.Tajo);
 	Preparar(EEfecto::Golpe, Ajuste.Golpe);
 	Preparar(EEfecto::Disparo, Ajuste.Disparo);
+	Preparar(EEfecto::GatilloEnSeco, Ajuste.GatilloEnSeco);
 	Preparar(EEfecto::Danio, Ajuste.Danio);
 	Preparar(EEfecto::Curacion, Ajuste.Curacion);
 	Preparar(EEfecto::Bloqueo, Ajuste.Bloqueo);
@@ -137,6 +149,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	if (USAEVUSComponenteArmas* Armas = Duenio->FindComponentByClass<USAEVUSComponenteArmas>())
 	{
 		Armas->AlDisparar.AddUniqueDynamic(this, &ThisClass::AlDisparar);
+		Armas->AlGatilloEnSeco.AddUniqueDynamic(this, &ThisClass::AlGatilloEnSeco);
 	}
 	if (USAEVUSComponenteVida* Vida = Duenio->FindComponentByClass<USAEVUSComponenteVida>())
 	{
@@ -214,6 +227,11 @@ void USAEVUSComponenteSonido::AlGolpear(AActor* ActorGolpeado, float Cantidad)
 void USAEVUSComponenteSonido::AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado)
 {
 	Reproducir(EEfecto::Disparo, Ajuste.VolumenCombate);
+}
+
+void USAEVUSComponenteSonido::AlGatilloEnSeco()
+{
+	Reproducir(EEfecto::GatilloEnSeco, Ajuste.VolumenCombate);
 }
 
 void USAEVUSComponenteSonido::AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)

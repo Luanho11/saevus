@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Armas/SAEVUSTiposArma.h"
+#include "Audio/SAEVUSComponenteSonido.h"
 #include "Combate/SAEVUSTiposCombate.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 
@@ -191,6 +192,62 @@ bool FSAEVUSPruebaRecarga::RunTest(const FString& Parameters)
 	Mundo.AvanzarDurante(Rifle->ArmaFuego.IntervaloDisparo);
 	Mundo.Personaje->PedirRecarga();
 	TestTrue(TEXT("Recarga tras un disparo"), Mundo.Armas->EstaRecargando());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaReservaMunicion, "SAEVUS.Armas.Reserva", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaReservaMunicion::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasArmas;
+
+	constexpr int32 Cargador = 3;
+	constexpr int32 Reserva = 4;
+	constexpr int32 PorGolpe = 2;
+	USAEVUSDefinicionArma* Rifle = CrearRifle(Cargador);
+	Rifle->ArmaFuego.MunicionReserva = Reserva;
+	Rifle->ArmaFuego.ReservaPorGolpeCuerpoACuerpo = PorGolpe;
+	FMundoArmas Mundo({ Rifle }, false);
+	USAEVUSComponenteArmas* Armas = Mundo.Armas;
+	TestEqual(TEXT("Empieza con la reserva llena"), Armas->ObtenerReservaActual(), Reserva);
+
+	// Mantiene el gatillo hasta disparar Balas y un intento más, y espera la recarga que eso dispare.
+	auto Vaciar = [&Mundo, Rifle](int32 Balas)
+	{
+		Mundo.Personaje->PedirAtaque();
+		Mundo.AvanzarDurante(Rifle->ArmaFuego.IntervaloDisparo * (Balas + 1));
+		Mundo.Personaje->SoltarAtaque();
+		Mundo.AvanzarDurante(Rifle->ArmaFuego.TiempoRecarga + MargenAsentar);
+	};
+	Vaciar(Cargador);
+	TestEqual(TEXT("La recarga llena el cargador"), Armas->ObtenerMunicionActual(), Cargador);
+	TestEqual(TEXT("y gasta de la reserva"), Armas->ObtenerReservaActual(), Reserva - Cargador);
+	Vaciar(Cargador);
+	TestEqual(TEXT("Con poca reserva, el cargador solo se llena en parte"), Armas->ObtenerMunicionActual(), Reserva - Cargador);
+	TestEqual(TEXT("Reserva agotada"), Armas->ObtenerReservaActual(), 0);
+
+	const USAEVUSComponenteSonido* Sonido = Mundo.Personaje->FindComponentByClass<USAEVUSComponenteSonido>();
+	const int32 SonidosAntes = Sonido ? Sonido->ObtenerReproducciones() : 0;
+	const int32 DisparosAntes = Armas->ObtenerDisparosRealizados();
+	Vaciar(Reserva - Cargador);
+	TestEqual(TEXT("Dispara lo que quedaba"), Armas->ObtenerDisparosRealizados(), DisparosAntes + Reserva - Cargador);
+	TestFalse(TEXT("Sin reserva no recarga"), Armas->EstaRecargando());
+	TestEqual(TEXT("Cargador vacío"), Armas->ObtenerMunicionActual(), 0);
+	if (Sonido)
+	{
+		// Los disparos y al menos un chasquido en seco.
+		TestTrue(TEXT("El gatillo en seco suena"), Sonido->ObtenerReproducciones() > SonidosAntes + Reserva - Cargador);
+	}
+
+	// Los golpes cuerpo a cuerpo devuelven balas a la reserva, hasta su máximo.
+	Mundo.Combate->AlGolpear.Broadcast(nullptr, 1.f);
+	TestEqual(TEXT("Un golpe devuelve balas"), Armas->ObtenerReservaActual(), PorGolpe);
+	Mundo.Combate->AlGolpear.Broadcast(nullptr, 1.f);
+	Mundo.Combate->AlGolpear.Broadcast(nullptr, 1.f);
+	TestEqual(TEXT("La reserva no pasa de su máximo"), Armas->ObtenerReservaActual(), Reserva);
+
+	Armas->RellenarMunicion();
+	TestEqual(TEXT("Rellenar llena el cargador"), Armas->ObtenerMunicionActual(), Cargador);
+	TestEqual(TEXT("y la reserva"), Armas->ObtenerReservaActual(), Reserva);
 	return true;
 }
 

@@ -27,7 +27,11 @@ USAEVUSComponenteArmas::USAEVUSComponenteArmas()
 void USAEVUSComponenteArmas::BeginPlay()
 {
 	Super::BeginPlay();
-	ReiniciarCargadores();
+	RellenarMunicion();
+	if (USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>())
+	{
+		Combate->AlGolpear.AddUniqueDynamic(this, &ThisClass::AlGolpearCuerpoACuerpo);
+	}
 	if (Arsenal.IsValidIndex(RanuraInicial))
 	{
 		Equipar(RanuraInicial);
@@ -44,20 +48,52 @@ void USAEVUSComponenteArmas::FijarArsenal(const TArray<const USAEVUSDefinicionAr
 	RanuraActual = RanuraPendiente = INDEX_NONE;
 	TiempoCambioRestante = TiempoRecargaRestante = EnfriamientoDisparo = 0.f;
 	bDisparoPedido = false;
-	ReiniciarCargadores();
+	RellenarMunicion();
 	if (Arsenal.IsValidIndex(RanuraInicio))
 	{
 		Equipar(RanuraInicio);
 	}
 }
 
-void USAEVUSComponenteArmas::ReiniciarCargadores()
+void USAEVUSComponenteArmas::RellenarMunicion()
 {
 	Cargadores.SetNumZeroed(Arsenal.Num());
+	Reservas.SetNumZeroed(Arsenal.Num());
 	for (int32 Ranura = 0; Ranura < Arsenal.Num(); ++Ranura)
 	{
 		const USAEVUSDefinicionArma* Arma = Arsenal[Ranura];
-		Cargadores[Ranura] = (Arma && Arma->EsArmaFuego()) ? Arma->ArmaFuego.TamanoCargador : 0;
+		const bool bFuego = Arma && Arma->EsArmaFuego();
+		Cargadores[Ranura] = bFuego ? Arma->ArmaFuego.TamanoCargador : 0;
+		Reservas[Ranura] = !bFuego ? 0 : (Arma->ArmaFuego.TieneReservaInfinita() ? INDEX_NONE : Arma->ArmaFuego.MunicionReserva);
+	}
+}
+
+void USAEVUSComponenteArmas::AlGolpearCuerpoACuerpo(AActor* ActorGolpeado, float Danio)
+{
+	for (int32 Ranura = 0; Ranura < Arsenal.Num(); ++Ranura)
+	{
+		const USAEVUSDefinicionArma* Arma = Arsenal[Ranura];
+		if (Arma && Arma->EsArmaFuego() && Reservas[Ranura] != INDEX_NONE)
+		{
+			Reservas[Ranura] = FMath::Min(Reservas[Ranura] + Arma->ArmaFuego.ReservaPorGolpeCuerpoACuerpo, Arma->ArmaFuego.MunicionReserva);
+		}
+	}
+}
+
+void USAEVUSComponenteArmas::CompletarRecarga()
+{
+	const USAEVUSDefinicionArma* Arma = ObtenerArmaActual();
+	if (!Arma || !Arma->EsArmaFuego())
+	{
+		return;
+	}
+	const int32 Faltan = FMath::Max(Arma->ArmaFuego.TamanoCargador - Cargadores[RanuraActual], 0);
+	const bool bInfinita = Reservas[RanuraActual] == INDEX_NONE;
+	const int32 Pasan = bInfinita ? Faltan : FMath::Min(Faltan, Reservas[RanuraActual]);
+	Cargadores[RanuraActual] += Pasan;
+	if (!bInfinita)
+	{
+		Reservas[RanuraActual] -= Pasan;
 	}
 }
 
@@ -75,6 +111,11 @@ bool USAEVUSComponenteArmas::TieneArmaFuegoEquipada() const
 int32 USAEVUSComponenteArmas::ObtenerMunicion(int32 Ranura) const
 {
 	return Cargadores.IsValidIndex(Ranura) ? Cargadores[Ranura] : 0;
+}
+
+int32 USAEVUSComponenteArmas::ObtenerReserva(int32 Ranura) const
+{
+	return Reservas.IsValidIndex(Ranura) ? Reservas[Ranura] : 0;
 }
 
 bool USAEVUSComponenteArmas::PuedeCambiarA(int32 Ranura) const
@@ -138,7 +179,8 @@ void USAEVUSComponenteArmas::FijarGatillo(bool bPresionado)
 void USAEVUSComponenteArmas::PedirRecarga()
 {
 	const USAEVUSDefinicionArma* Arma = ObtenerArmaActual();
-	if (!Arma || !Arma->EsArmaFuego() || EstaCambiando() || EstaRecargando() || ObtenerMunicionActual() >= Arma->ArmaFuego.TamanoCargador)
+	if (!Arma || !Arma->EsArmaFuego() || EstaCambiando() || EstaRecargando() || ObtenerMunicionActual() >= Arma->ArmaFuego.TamanoCargador
+		|| ObtenerReservaActual() == 0)
 	{
 		return;
 	}
@@ -146,7 +188,7 @@ void USAEVUSComponenteArmas::PedirRecarga()
 	bDisparoPedido = false;
 	if (TiempoRecargaRestante <= 0.f)
 	{
-		Cargadores[RanuraActual] = Arma->ArmaFuego.TamanoCargador;
+		CompletarRecarga();
 	}
 }
 
@@ -168,10 +210,7 @@ void USAEVUSComponenteArmas::TickComponent(float DeltaTime, ELevelTick TickType,
 		if (TiempoRecargaRestante <= 0.f)
 		{
 			TiempoRecargaRestante = 0.f;
-			if (const USAEVUSDefinicionArma* Arma = ObtenerArmaActual())
-			{
-				Cargadores[RanuraActual] = Arma->ArmaFuego.TamanoCargador;
-			}
+			CompletarRecarga();
 		}
 	}
 	IntentarDisparar(DeltaTime);
@@ -196,7 +235,13 @@ void USAEVUSComponenteArmas::IntentarDisparar(float DeltaTime)
 	bDisparoPedido = false;
 	if (Cargadores[RanuraActual] <= 0)
 	{
-		// Gatillo en seco: recarga en su lugar.
+		// Gatillo en seco: recarga en su lugar, o el chasquido si no queda reserva.
+		if (ObtenerReservaActual() == 0)
+		{
+			EnfriamientoDisparo += Ajuste.IntervaloDisparo;
+			AlGatilloEnSeco.Broadcast();
+			return;
+		}
 		PedirRecarga();
 		return;
 	}

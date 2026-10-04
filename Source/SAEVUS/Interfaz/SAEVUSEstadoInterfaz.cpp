@@ -43,7 +43,9 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 			{
 				Estado.TextoMunicion = Armas->EstaRecargando()
 					? LOCTEXT("Recargando", "Recargando...")
-					: FText::Format(LOCTEXT("Municion", "{0} / {1}"), Armas->ObtenerMunicionActual(), Arma->ArmaFuego.TamanoCargador);
+					: (Armas->ObtenerReservaActual() == INDEX_NONE
+						? FText::Format(LOCTEXT("MunicionInfinita", "{0} / ∞"), Armas->ObtenerMunicionActual())
+						: FText::Format(LOCTEXT("Municion", "{0} / {1}"), Armas->ObtenerMunicionActual(), Armas->ObtenerReservaActual()));
 			}
 		}
 	}
