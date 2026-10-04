@@ -15,6 +15,7 @@ $Proyecto = Join-Path $RaizProyecto "SAEVUS.uproject"
 $Salida = Join-Path $RaizProyecto "Saved\Empaquetado"
 $DirLogs = Join-Path $RaizProyecto "Saved\Logs\Verificacion"
 New-Item -ItemType Directory -Force $DirLogs | Out-Null
+& (Join-Path $PSScriptRoot "Limpiar-Logs.ps1") -DirLogs $DirLogs
 $log = Join-Path $DirLogs "empaquetado.log"
 
 # El tutorial es el mapa por defecto; el de pruebas va para la prueba de humo empaquetada.

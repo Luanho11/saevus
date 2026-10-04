@@ -15,6 +15,7 @@ $Proyecto = Join-Path $RaizProyecto "SAEVUS.uproject"
 $EditorCmd = Join-Path $RaizMotor "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 $DirLogs = Join-Path $RaizProyecto "Saved\Logs\Verificacion"
 New-Item -ItemType Directory -Force $DirLogs | Out-Null
+& (Join-Path $PSScriptRoot "Limpiar-Logs.ps1") -DirLogs $DirLogs
 
 # ArgsEditor se pasa literal: Windows PowerShell 5.1 estropea los argumentos nativos entre comillas con espacios.
 function Invocar-Editor([string]$Nombre, [string]$ArgsEditor) {

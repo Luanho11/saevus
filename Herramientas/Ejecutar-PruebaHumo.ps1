@@ -22,6 +22,7 @@ $RaizProyecto = Split-Path -Parent $PSScriptRoot
 $Proyecto = Join-Path $RaizProyecto "SAEVUS.uproject"
 $DirLogs = Join-Path $RaizProyecto "Saved\Logs\Verificacion"
 New-Item -ItemType Directory -Force $DirLogs | Out-Null
+& (Join-Path $PSScriptRoot "Limpiar-Logs.ps1") -DirLogs $DirLogs
 $log = Join-Path $DirLogs "humo.log"
 
 $comandos = @()
