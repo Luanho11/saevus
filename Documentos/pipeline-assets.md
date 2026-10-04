@@ -64,6 +64,10 @@ Verificado con `Herramientas/Pipeline/Ejecutar-SondaPipeline.ps1` (Blender 4.2 �
 - Origen en el centro de los pies (personajes, objetos) o en el punto de rejilla (piezas modulares). Aplicar transformaciones antes de exportar.
 - Archivos fuente (`.blend`, `.psd`, `.png`) en `ArteFuente/`, fuera de `Content/`, con LFS.
 
+## Escenario (boceto)
+
+`Herramientas/Arte/blender_escenario.py` genera piezas modulares estáticas (FBX por pieza, origen en la base, metros, semilla fija) que `saevus_crear_assets.py` importa a `/Game/SAEVUS/Arte/Escenario/` con el material de escenario. Presupuesto del boceto: menos de 100 triángulos por pieza.
+
 ## Nombres y carpetas
 
 Carpeta por asset: `/Game/SAEVUS/Arte/<Categoría>/<Nombre>/` (`Personajes`, `Enemigos`, `Armas`, `Objetos`, `Escenario/<Kit>`). Prefijos: `SM_`, `SK_`, `SKEL_`, `PHYS_`, `ABP_`, `AM_`, `BS_`, `M_`, `MI_`, `MF_`, `T_`, `PP_`. Sufijos de textura: `_BC` (color base, sRGB), `_N` (normal, BC5), `_ORM` (oclusión/rugosidad/metálico, lineal), `_M` (máscaras), `_E` (emisivo).

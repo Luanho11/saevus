@@ -64,3 +64,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 21:** pantalla de muerte (velo negro con "Has caído" y fundidos) en la interfaz; captura en la prueba de humo. 105/105 tests, humo SUPERADA.
 - **Tarea 23:** `arquitectura.md` reescrito con todos los sistemas, el mapa de eventos entre componentes y el orden de actualización; constantes con nombre para el latido del orbe y el límite de la mirada. 105/105 tests.
 - **Tarea 22:** segundo boceto del caballero en Blender (capa de 3 tramos con `capa_3`, cuernos curvos, aguijón afilado con guarda y pomo), mismos huesos animados; reimportado. 105/105 tests, humo SUPERADA.
+- **Tarea 25:** piezas modulares de escenario en Blender (arco roto, columna rota, escombros; < 100 triángulos) importadas y colocadas por script en el tutorial como decorado sin colisión. Humo SUPERADA en el tutorial (≈ 60 fps).

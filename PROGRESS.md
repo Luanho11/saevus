@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 25)**
-**Último latido: 2026-10-03 23:16** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 24)**
+**Último latido: 2026-10-03 23:22** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -59,9 +59,9 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 22. [x] ~~Vista previa del caballero mejorada: segundo boceto de Blender con más volumen (capa con 3 huesos, cuernos más marcados, aguijón con guarda), manteniendo los mismos nombres de hueso; regenerar e importar; tests de animación verdes.~~
 23. [x] ~~Revisión de código general (limpieza, comentarios, números mágicos que queden) y actualización de `arquitectura.md` con todos los sistemas nuevos.~~
 24. [ ] Cuerpos de enemigos generados en Blender (como el caballero, piezas rígidas sobre un esqueleto pequeño) en vez de formas del motor, con animación procedural sencilla (respirar, avisar, atacar).
-25. [ ] Escenario boceto del tutorial: piezas modulares generadas en Blender (bordes rotos, columnas, escombros) colocadas por el script del mapa; presupuesto de triángulos.
+25. [x] ~~Escenario boceto del tutorial: piezas modulares generadas en Blender (bordes rotos, columnas, escombros) colocadas por el script del mapa; presupuesto de triángulos.~~
 
 ## Estado del turno
-- Completado: tarea 22 (segundo boceto del caballero).
+- Completado: tarea 25 (decorado modular del tutorial).
 - A medias: —
-- Siguiente paso exacto: tarea 25 — piezas modulares del escenario en Blender para dar forma al tutorial (más visible para el dueño que la 24).
+- Siguiente paso exacto: tarea 24 — cuerpos de enemigos generados en Blender con animación procedural sencilla.

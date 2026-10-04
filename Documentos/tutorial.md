@@ -41,6 +41,7 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 - Luz: "Luna" direccional azulada de 2,5 lux con sombras y prioridad de sombreado forward, más "Relleno" de 0,8 lux sin sombras desde el lado contrario. Sin atmósfera ni luz de cielo: el cielo queda oscuro. Niebla de altura densa y azul oscuro.
 - Exposición manual (sin adaptación) en un volumen de post-proceso: la oscuridad no se aclara sola.
 - Carteles: `TextRenderActor` mirando hacia el jugador que avanza.
+- **Decorado** (sin colisión, fuera del recorrido probado): piezas modulares generadas en Blender (`Herramientas/Arte/blender_escenario.py`, `Generar-Escenario.ps1` → `ArteFuente/Escenario/`, importadas a `/Game/SAEVUS/Arte/Escenario/`): `SM_ArcoSeccion` (arco roto en cada paso de sección, con pilares que bajan al vacío), `SM_ColumnaRota` (a ambos lados del pasillo) y `SM_Escombros` (en las zonas de descanso). Menos de 100 triángulos cada una, con `MI_Escenario_Acento`.
 
 ## Pruebas
 
@@ -59,4 +60,4 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 ## Pendiente
 
 - Recorrido completo del tutorial en el juego real (los obstáculos ya se prueban por separado).
-- Arte del escenario: piezas modulares, decorado, luces de acento.
+- Más piezas (suelos rotos, escaleras, estalactitas) y luces de acento.

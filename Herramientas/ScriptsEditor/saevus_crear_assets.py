@@ -781,6 +781,58 @@ def crear_peligro(actores, etiqueta, centro, extension, retorno, material):
     return peligro
 
 
+# Piezas modulares del escenario (Herramientas/Arte/Generar-Escenario.ps1 → ArteFuente/Escenario).
+DIR_ESCENARIO = f"{RAIZ}/Arte/Escenario"
+PIEZAS_DECORADO = ("SM_ColumnaRota", "SM_ArcoSeccion", "SM_Escombros")
+
+
+def importar_decorado(material):
+    """Importa las piezas modulares y les pone el material de escenario. Devuelve {nombre: malla}."""
+    mallas = {}
+    for nombre in PIEZAS_DECORADO:
+        fbx = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Escenario", f"{nombre}.fbx")
+        if not os.path.exists(fbx):
+            raise RuntimeError(f"Falta {fbx}; ejecuta Herramientas/Arte/Generar-Escenario.ps1")
+        tarea = unreal.AssetImportTask()
+        tarea.filename = fbx
+        tarea.destination_path = DIR_ESCENARIO
+        tarea.automated = True
+        tarea.replace_existing = True
+        tarea.save = False
+        herramientas_assets.import_asset_tasks([tarea])
+        malla = next((m for m in (unreal.load_asset(r) for r in tarea.imported_object_paths) if isinstance(m, unreal.StaticMesh)), None)
+        if malla is None:
+            raise RuntimeError(f"La importación de {fbx} no produjo una malla estática")
+        malla.set_material(0, material)
+        mallas[nombre] = malla
+    registrar(f"decorado importado: {list(mallas)}")
+    return mallas
+
+
+def crear_decorado(actores, etiqueta, malla, posicion, guinada=0.0, escala=1.0):
+    """Pieza de decorado sin colisión: no cambia las medidas probadas del recorrido."""
+    actor = actores.spawn_actor_from_object(malla, posicion, unreal.Rotator(0, 0, guinada))
+    actor.set_actor_label(etiqueta)
+    actor.set_actor_scale3d(unreal.Vector(escala, escala, escala))
+    actor.static_mesh_component.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+    actor.set_folder_path("Decorado")
+    return actor
+
+
+def decorar_tutorial(actores, mallas):
+    # Arcos en los pasos de sección: pilares a los lados del pasillo, que bajan al vacío.
+    for x in (1500, 3500, 5600, 7300, 9500, 11500, 13500, 21500):
+        crear_decorado(actores, f"Arco_{x}", mallas["SM_ArcoSeccion"], unreal.Vector(x, 0, 0), guinada=90.0)
+    # Columnas rotas a ambos lados, fuera del suelo (flotan sobre la niebla del vacío).
+    for indice, x in enumerate(range(700, 15000, 1500)):
+        for lado, y in (("I", -620), ("D", 620)):
+            crear_decorado(actores, f"Columna_{lado}{x}", mallas["SM_ColumnaRota"], unreal.Vector(x + (indice % 2) * 300, y, -250),
+                           guinada=(indice * 47) % 360, escala=1.2)
+    # Escombros junto a los bordes en las zonas de descanso.
+    for x, y in ((600, -300), (1100, 320), (9800, 300), (10900, -320), (13900, 310), (14600, -300)):
+        crear_decorado(actores, f"Escombros_{x}", mallas["SM_Escombros"], unreal.Vector(x, y, 0), guinada=(x * 13) % 360)
+
+
 def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, ancho=ANCHO_PASILLO):
     largo = x_fin - x_inicio
     return crear_bloque(actores, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, altura - GROSOR_SUELO / 2), (largo, ancho, GROSOR_SUELO),
@@ -945,6 +997,8 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
 
     for x, titulo, texto in AVISOS_TUTORIAL:
         crear_aviso(actores, x, titulo, texto)
+
+    decorar_tutorial(actores, importar_decorado(materiales["Acento"]))
 
     crear_iluminacion_oscura(actores)
     mundo = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
