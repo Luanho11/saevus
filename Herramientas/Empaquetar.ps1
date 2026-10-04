@@ -19,7 +19,7 @@ New-Item -ItemType Directory -Force $DirLogs | Out-Null
 $log = Join-Path $DirLogs "empaquetado.log"
 
 # El tutorial es el mapa por defecto; el de pruebas va para la prueba de humo empaquetada.
-$Mapas = "/Game/SAEVUS/Mapas/L_Tutorial+/Game/SAEVUS/Mapas/L_Pruebas"
+$Mapas = "/Game/SAEVUS/Mapas/L_Tutorial+/Game/SAEVUS/Mapas/L_Zona1+/Game/SAEVUS/Mapas/L_Pruebas"
 
 & (Join-Path $RaizMotor "Engine\Build\BatchFiles\RunUAT.bat") BuildCookRun "-project=$Proyecto" -noP4 -platform=Win64 `
     "-clientconfig=$Configuracion" -build -cook -stage -pak -archive "-archivedirectory=$Salida" "-map=$Mapas" -utf8output -unattended |

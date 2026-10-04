@@ -799,12 +799,12 @@ def crear_volumen(actores, clase, etiqueta, centro, extension, carpeta):
     return volumen
 
 
-def crear_aviso(actores, x, titulo, texto):
-    volumen = crear_volumen(actores, unreal.SAEVUSVolumenTutorial, f"Aviso_{titulo}", unreal.Vector(x + 150, 0, 150),
+def crear_aviso(actores, x, titulo, texto, altura=0.0):
+    volumen = crear_volumen(actores, unreal.SAEVUSVolumenTutorial, f"Aviso_{titulo}", unreal.Vector(x + 150, 0, altura + 150),
                             (150, ANCHO_PASILLO / 2, 300), "Tutorial")
     volumen.set_editor_property("titulo", unreal.Text(titulo))
     volumen.set_editor_property("texto", unreal.Text(texto))
-    crear_texto(actores, f"Cartel_{titulo}", titulo, unreal.Vector(x + 300, -ANCHO_PASILLO / 2 + 40, 260))
+    crear_texto(actores, f"Cartel_{titulo}", titulo, unreal.Vector(x + 300, -ANCHO_PASILLO / 2 + 40, altura + 260))
 
 
 def crear_punto_control(actores, etiqueta, x, y=0.0, z=0.0):
@@ -812,12 +812,12 @@ def crear_punto_control(actores, etiqueta, x, y=0.0, z=0.0):
     return volumen
 
 
-def crear_foso(actores, etiqueta, x_inicio, x_fin, retorno, materiales):
+def crear_foso(actores, etiqueta, x_inicio, x_fin, retorno, materiales, altura=0.0):
     """Hueco entre x_inicio y x_fin con fondo y volumen de caída que devuelve a retorno."""
     largo = x_fin - x_inicio
     centro_x = (x_inicio + x_fin) / 2.0
-    crear_bloque(actores, f"{etiqueta}_Fondo", unreal.Vector(centro_x, 0, FONDO_FOSO - 50), (largo, ANCHO_PASILLO * 2, 100), materiales["Piedra"])
-    caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, f"{etiqueta}_Caida", unreal.Vector(centro_x, 0, FONDO_FOSO + 150),
+    crear_bloque(actores, f"{etiqueta}_Fondo", unreal.Vector(centro_x, 0, altura + FONDO_FOSO - 50), (largo, ANCHO_PASILLO * 2, 100), materiales["Piedra"])
+    caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, f"{etiqueta}_Caida", unreal.Vector(centro_x, 0, altura + FONDO_FOSO + 150),
                           (largo / 2, ANCHO_PASILLO, 150), "Tutorial")
     caida.set_editor_property("punto_retorno", retorno - caida.get_actor_location())
     return caida
@@ -889,8 +889,9 @@ def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, anch
                         materiales["Piedra"])
 
 
-def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, texto):
-    puerta = actores.spawn_actor_from_class(unreal.SAEVUSPuertaArena, unreal.Vector(x, 0, alto / 2.0))
+def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, texto, altura=0.0, y=0.0):
+    """Puerta de arena (se abre al morir sus enemigos) o, sin enemigos, compuerta de una palanca."""
+    puerta = actores.spawn_actor_from_class(unreal.SAEVUSPuertaArena, unreal.Vector(x, y, altura + alto / 2.0))
     puerta.set_actor_label(etiqueta)
     puerta.set_actor_scale3d(unreal.Vector(0.6, ancho / 100.0, alto / 100.0))
     puerta.get_component_by_class(unreal.StaticMeshComponent).set_material(0, material)
@@ -901,17 +902,17 @@ def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, 
     return puerta
 
 
-def crear_arena(actores, etiqueta, x_inicio, x_fin, ancho, alto_muros, materiales, hueco_salida):
+def crear_arena(actores, etiqueta, x_inicio, x_fin, ancho, alto_muros, materiales, hueco_salida, altura=0.0):
     """Suelo y muros laterales; el muro de salida deja un hueco central de hueco_salida para la puerta."""
-    crear_suelo(actores, f"{etiqueta}_Suelo", x_inicio, x_fin, materiales, ancho=ancho)
+    crear_suelo(actores, f"{etiqueta}_Suelo", x_inicio, x_fin, materiales, altura=altura, ancho=ancho)
     largo = x_fin - x_inicio
     centro_x = (x_inicio + x_fin) / 2.0
     for lado, y in (("I", -ancho / 2), ("D", ancho / 2)):
-        crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, y, alto_muros / 2), (largo, 100, alto_muros), materiales["Acento"])
+        crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, y, altura + alto_muros / 2), (largo, 100, alto_muros), materiales["Acento"])
     tramo = (ancho - hueco_salida) / 2.0
     for lado, signo in (("I", -1), ("D", 1)):
         y = signo * (hueco_salida / 2.0 + tramo / 2.0)
-        crear_bloque(actores, f"{etiqueta}_Salida{lado}", unreal.Vector(x_fin, y, alto_muros / 2), (100, tramo, alto_muros), materiales["Acento"])
+        crear_bloque(actores, f"{etiqueta}_Salida{lado}", unreal.Vector(x_fin, y, altura + alto_muros / 2), (100, tramo, alto_muros), materiales["Acento"])
 
 
 def crear_iluminacion_oscura(actores):
@@ -1039,6 +1040,10 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     # S9 Fin.
     crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
     crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
+    portal = crear_volumen(actores, unreal.SAEVUSVolumenCambioMapa, "S9_PasoZona1", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 150),
+                           (80, 60, 200), "Tutorial")
+    portal.set_editor_property("mapa", unreal.load_asset(RUTA_MAPA_ZONA1))
+    crear_texto(actores, "Cartel_Zona1", "Zona 1  ->", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 330), tamano=50.0)
 
     # S10 Reto opcional: obstáculos ya probados (SAEVUS.Tutorial.Obstaculos.*) encadenados sin descanso.
     crear_punto_control(actores, "Control_Reto", 21300)
@@ -1064,6 +1069,134 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     registrar(f"mapa tutorial: {RUTA_MAPA_TUTORIAL}")
 
 
+# --- Zona 1: Ruinas del Paso -------------------------------------------------------
+RUTA_MAPA_ZONA1 = f"{RAIZ}/Mapas/L_Zona1"
+# Galería del atajo: carril a la derecha del camino principal, por debajo de la planta alta.
+Y_GALERIA = 650.0
+ANCHO_GALERIA = 500.0
+ALTURA_GALERIA = -300.0
+
+
+def crear_palanca(actores, etiqueta, posicion, puertas, materiales, titulo, texto):
+    """Palanca que se acciona de un golpe y abre sus puertas (compuertas sin enemigos)."""
+    palanca = actores.spawn_actor_from_class(unreal.SAEVUSPalanca, unreal.Vector(posicion.x, posicion.y, posicion.z + 80), unreal.Rotator(0, 0, 0))
+    palanca.set_actor_label(etiqueta)
+    palanca.set_editor_property("puertas", puertas)
+    palanca.set_editor_property("titulo_al_accionar", unreal.Text(titulo))
+    palanca.set_editor_property("texto_al_accionar", unreal.Text(texto))
+    for componente in palanca.get_components_by_class(unreal.StaticMeshComponent):
+        componente.set_material(0, materiales["Puerta"] if componente.get_name() == "Brazo" else materiales["Acento"])
+    palanca.set_folder_path("Mundo")
+    return palanca
+
+
+def crear_caida_global(actores, etiqueta, x_inicio, x_fin, retorno):
+    """Red bajo la zona: quien cae al vacío entre x_inicio y x_fin vuelve a retorno."""
+    caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, -1500),
+                          ((x_fin - x_inicio) / 2.0, 4000, 200), "Mundo")
+    caida.set_editor_property("punto_retorno", retorno - caida.get_actor_location())
+    return caida
+
+
+def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
+    """Zona 1 boceto: ruinas con desniveles, tres encuentros, un banco y un atajo con palanca."""
+    editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_ZONA1)
+    materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
+                  for nombre, valores in PIEZAS_ESCENARIO.items()}
+    enemigo = lambda etiqueta, tipo, x, y, z: crear_enemigo(actores, etiqueta, datos_enemigos[tipo], unreal.Vector(x, y, z))
+
+    # Z0 Entrada.
+    crear_suelo(actores, "Z0_Suelo", -500, 1200, materiales)
+    actores.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(0, 0, 100)).set_actor_label("Inicio")
+    crear_texto(actores, "Cartel_Zona1", "Ruinas del Paso", unreal.Vector(1100, 0, 450), tamano=120.0)
+    crear_aviso(actores, 100, "Ruinas del Paso", "Zona 1 (boceto). Las ruinas bajan hacia el este.\nMás adelante, un banco guarda tu avance.")
+
+    # Z1 Descenso en escalones de 1 m y primer encuentro abajo.
+    crear_suelo(actores, "Z1_Escalon1", 1200, 1600, materiales, altura=-100)
+    crear_suelo(actores, "Z1_Escalon2", 1600, 2000, materiales, altura=-200)
+    crear_suelo(actores, "Z1_Suelo", 2000, 4600, materiales, altura=-300)
+    enemigo("Z1_Rastrero1", "DA_Enemigo_Rastrero", 3300, -250, -300)
+    enemigo("Z1_Rastrero2", "DA_Enemigo_Rastrero", 3800, 250, -300)
+    enemigo("Z1_Revoloteador", "DA_Enemigo_Revoloteador", 4100, 0, -300)
+
+    # Z2 Grieta: foso con dos plataformas.
+    crear_foso(actores, "Z2_Grieta", 4600, 5500, unreal.Vector(4450, 0, -200), materiales, altura=-300)
+    for indice, x in enumerate((4850, 5250)):
+        crear_bloque(actores, f"Z2_Plataforma{indice}", unreal.Vector(x, 0, -350), (200, 300, 100), materiales["Acento"])
+
+    # Z3 Banco: suelo ancho que llega hasta el carril de la galería (cerrado por la compuerta del atajo).
+    ancho_banco = ANCHO_PASILLO / 2 + Y_GALERIA + ANCHO_GALERIA / 2
+    crear_bloque(actores, "Z3_Suelo", unreal.Vector(6000, (Y_GALERIA + ANCHO_GALERIA / 2 - ANCHO_PASILLO / 2) / 2, -300 - GROSOR_SUELO / 2),
+                 (1000, ancho_banco, GROSOR_SUELO), materiales["Piedra"])
+    crear_punto_control(actores, "Control_Banco", 5700, z=-300)
+    crear_bloque(actores, "Z3_Banco", unreal.Vector(5950, -280, -280), (220, 70, 40), materiales["Acento"])
+    crear_texto(actores, "Cartel_Banco", "Banco", unreal.Vector(5950, -280, -120), tamano=50.0)
+    crear_aviso(actores, 5550, "Banco", "Los bancos guardan tu avance: si caes o mueres, vuelves aquí.\n"
+                "A la derecha, una compuerta cerrada: se abre desde el otro lado.", altura=-300)
+
+    # Z4 Torre: muro de 4,5 m que se escala y planta alta con el segundo encuentro.
+    crear_bloque(actores, "Z4_Muro", unreal.Vector(6800, 0, -75), (600, ANCHO_PASILLO, 450), materiales["Acento"])
+    crear_suelo(actores, "Z4_PlantaAlta", 7100, 9600, materiales, altura=150)
+    enemigo("Z4_Saltador", "DA_Enemigo_Saltador", 8200, 0, 150)
+    enemigo("Z4_Revoloteador", "DA_Enemigo_Revoloteador", 8700, -200, 150)
+    enemigo("Z4_Escupidor", "DA_Enemigo_Escupidor", 9300, 250, 150)
+
+    # Z5 Arena de las ruinas: la puerta se abre al vaciarla.
+    crear_punto_control(actores, "Control_Arena", 9700, z=150)
+    crear_arena(actores, "Z5_Arena", 9600, 12000, 2000, 400, materiales, 600, altura=150)
+    enemigos_arena = [
+        enemigo("Z5_Rastrero1", "DA_Enemigo_Rastrero", 10400, -500, 150),
+        enemigo("Z5_Rastrero2", "DA_Enemigo_Rastrero", 10700, 500, 150),
+        enemigo("Z5_Saltador", "DA_Enemigo_Saltador", 11000, 0, 150),
+        enemigo("Z5_Escupidor", "DA_Enemigo_Escupidor", 11500, 600, 150),
+        enemigo("Z5_Revoloteador1", "DA_Enemigo_Revoloteador", 10800, -300, 150),
+        enemigo("Z5_Revoloteador2", "DA_Enemigo_Revoloteador", 11300, 300, 150),
+    ]
+    crear_puerta(actores, "Z5_Puerta", 12000, 600, 400, enemigos_arena, materiales["Puerta"],
+                 "Ruinas despejadas", "Sigue: a la derecha de la salida se baja a la galería del atajo.", altura=150)
+
+    # Z6 Salida; por la derecha se cae a la galería.
+    crear_suelo(actores, "Z6_Suelo", 12000, 13000, materiales, altura=150)
+    crear_texto(actores, "Cartel_Fin", "Fin de la Zona 1 (boceto)", unreal.Vector(12850, 0, 450), tamano=80.0)
+    crear_aviso(actores, 12100, "Salida", "Fin de la zona boceto.\nA la derecha, una bajada lleva a la galería del atajo.", altura=150)
+
+    # Galería del atajo: de la salida al banco, por debajo; la compuerta junto al banco solo la abre su palanca.
+    largo_galeria = 13000 - 6500
+    crear_bloque(actores, "Galeria_Suelo", unreal.Vector(6500 + largo_galeria / 2, Y_GALERIA, ALTURA_GALERIA - GROSOR_SUELO / 2),
+                 (largo_galeria, ANCHO_GALERIA, GROSOR_SUELO), materiales["Piedra"])
+    alto_galeria = 150 - ALTURA_GALERIA
+    crear_bloque(actores, "Galeria_MuroExterior", unreal.Vector(6500 + largo_galeria / 2, Y_GALERIA + ANCHO_GALERIA / 2 + 50, ALTURA_GALERIA + alto_galeria / 2),
+                 (largo_galeria, 100, alto_galeria), materiales["Acento"])
+    # Muro interior bajo la planta alta y la arena (antes, el muro de la torre ya cierra el carril).
+    crear_bloque(actores, "Galeria_MuroInterior", unreal.Vector((7100 + 12000) / 2, ANCHO_PASILLO / 2 - 50, ALTURA_GALERIA + (50 - ALTURA_GALERIA) / 2),
+                 (12000 - 7100, 100, 50 - ALTURA_GALERIA), materiales["Acento"])
+    crear_bloque(actores, "Galeria_Fondo", unreal.Vector(13050, Y_GALERIA, ALTURA_GALERIA + alto_galeria / 2), (100, ANCHO_GALERIA, alto_galeria), materiales["Acento"])
+    compuerta = crear_puerta(actores, "Galeria_Compuerta", 6550, ANCHO_GALERIA, 350, [], materiales["Puerta"], "", "",
+                             altura=ALTURA_GALERIA, y=Y_GALERIA)
+    crear_palanca(actores, "Galeria_Palanca", unreal.Vector(6750, Y_GALERIA, ALTURA_GALERIA), [compuerta], materiales,
+                  "Atajo abierto", "La compuerta lleva al banco.")
+
+    # Redes bajo el vacío: antes del banco se vuelve a la entrada; después, al banco.
+    crear_caida_global(actores, "Caida_Entrada", -1000, 5500, unreal.Vector(300, 0, 100))
+    crear_caida_global(actores, "Caida_Banco", 5500, 14000, unreal.Vector(5700, 0, -200))
+
+    # Decorado: columnas rotas a los lados y arcos en los cambios de tramo.
+    mallas = importar_decorado(materiales["Acento"])
+    for x, z in ((1200, -100), (4600, -300), (7100, 150), (12000, 150)):
+        crear_decorado(actores, f"Arco_{x}", mallas["SM_ArcoSeccion"], unreal.Vector(x, 0, z), guinada=90.0)
+    for indice, x in enumerate(range(500, 13000, 1400)):
+        crear_decorado(actores, f"Columna_I{x}", mallas["SM_ColumnaRota"], unreal.Vector(x + (indice % 2) * 250, -650, -450),
+                       guinada=(indice * 53) % 360, escala=1.4)
+    for x, y, z in ((2600, -300, -300), (3900, 320, -300), (6200, -320, -300), (7600, 300, 150), (12600, -300, 150)):
+        crear_decorado(actores, f"Escombros_{x}", mallas["SM_Escombros"], unreal.Vector(x, y, z), guinada=(x * 7) % 360)
+
+    crear_iluminacion_oscura(actores)
+    mundo = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    mundo.get_world_settings().set_editor_property("default_game_mode", bp_modo_juego.generated_class())
+    editor_niveles.save_current_level()
+    registrar(f"mapa zona 1: {RUTA_MAPA_ZONA1}")
+
+
 def main():
     acciones, imc = crear_assets_entrada()
     config_entrada, movimiento, camara, repertorio, armas = crear_data_assets(acciones)
@@ -1071,6 +1204,8 @@ def main():
     datos_enemigos = crear_datos_enemigos(
         cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"), cargar(f"{DIR_MATERIALES}/M_ParticulaAlma"))
     construir_mapa_pruebas(bp_modo_juego, datos_enemigos)
+    # La Zona 1 antes que el tutorial: el paso del final del tutorial apunta a ella.
+    construir_mapa_zona1(bp_modo_juego, datos_enemigos, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
     construir_mapa_tutorial(bp_modo_juego, datos_enemigos, cargar(f"{DIR_ESTILO}/M_SAEVUS_PersonajeDibujado"))
     if not eal.save_directory(RAIZ, only_if_is_dirty=False, recursive=True):
         raise RuntimeError(f"Falló el guardado de {RAIZ}")

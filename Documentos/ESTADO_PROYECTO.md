@@ -20,6 +20,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
 - **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, cinco tipos por datos (rastrero, saltador, escupidor, revoloteador volador, mini jefe Guardián con dos fases), el jugador sale despedido al recibir golpes.
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
+- **Zona 1** (`zona1.md`): `L_Zona1`, ruinas con desniveles, tres encuentros, banco, arena y un atajo con palanca y compuerta; se llega desde el final del tutorial.
 - **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa; sensibilidad y punto de control guardados entre sesiones.
 - **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Sonido boceto** (`audio.md`): efectos sintetizados por código (tajo, golpe, disparo, daño, curación, dash, doble salto) disparados por eventos.
@@ -32,7 +33,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Verificación
 
-- **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorrido del tutorial). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
+- **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorridos del tutorial y de la Zona 1). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
 
 - `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 116/116 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
@@ -60,4 +61,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 44 de `PROGRESS.md` (Zona 1 boceto); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 45 de `PROGRESS.md` (sonidos de mundo), después 46 (jefe de la Zona 1) y 47 (mapa en la pausa); después, tareas propias (ver la cola en `PROGRESS.md`).

@@ -12,6 +12,7 @@
 #include "HAL/PlatformMisc.h"
 #include "Misc/CommandLine.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
+#include "Mundo/SAEVUSPalanca.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "SAEVUS.h"
 #include "Tutorial/SAEVUSPuertaArena.h"
@@ -42,6 +43,10 @@ namespace SAEVUSRecorrido
 	constexpr float TiempoEquiparDiana = 0.8f;
 	constexpr float TiempoApuntarDiana = 0.4f;
 	constexpr float TiempoComprobarDiana = 0.4f;
+	// Palancas: el jugador se pone delante (en -X) mirando a +X y tira un tajo.
+	constexpr float DistanciaPalanca = 110.f;
+	constexpr float TiempoAntesTajoPalanca = 0.3f;
+	constexpr float TiempoComprobarPalanca = 0.6f;
 }
 
 bool USAEVUSSubsistemaRecorrido::ShouldCreateSubsystem(UObject* Outer) const
@@ -92,13 +97,24 @@ void USAEVUSSubsistemaRecorrido::Preparar(ASAEVUSPersonaje* Jugador)
 	});
 	for (TActorIterator<ASAEVUSPuertaArena> Puerta(GetWorld()); Puerta; ++Puerta)
 	{
-		Puertas.Add(*Puerta);
+		if (Puerta->TieneEnemigos())
+		{
+			Puertas.Add(*Puerta);
+		}
 	}
+	for (TActorIterator<ASAEVUSPalanca> Palanca(GetWorld()); Palanca; ++Palanca)
+	{
+		Palancas.Add(*Palanca);
+	}
+	Palancas.Sort([](const TWeakObjectPtr<ASAEVUSPalanca>& A, const TWeakObjectPtr<ASAEVUSPalanca>& B)
+	{
+		return A->GetActorLocation().X < B->GetActorLocation().X;
+	});
 	Puertas.Sort([](const TWeakObjectPtr<ASAEVUSPuertaArena>& A, const TWeakObjectPtr<ASAEVUSPuertaArena>& B)
 	{
 		return A->GetActorLocation().X < B->GetActorLocation().X;
 	});
-	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos y %d puertas en el mapa"), Avisos.Num(), Puertas.Num());
+	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena y %d palancas en el mapa"), Avisos.Num(), Puertas.Num(), Palancas.Num());
 	Comprobar(TEXT("el mapa tiene avisos de tutorial"), !Avisos.IsEmpty());
 }
 
@@ -147,6 +163,12 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 			ActualizarArenas(Jugador);
 		}
 		break;
+	case EPaso::Palancas:
+		if (Jugador)
+		{
+			ActualizarPalancas(Jugador);
+		}
+		break;
 	default:
 		break;
 	}
@@ -165,7 +187,8 @@ void USAEVUSSubsistemaRecorrido::ActualizarAvisos(ASAEVUSPersonaje* Jugador)
 	ASAEVUSVolumenTutorial* Volumen = Avisos[Indice].Get();
 	if (!bLlevado)
 	{
-		Llevar(Jugador, FVector(Volumen->GetActorLocation().X, Volumen->GetActorLocation().Y, AlturaLlevar));
+		// El centro del volumen queda a la altura de un jugador de pie sobre el suelo del aviso.
+		Llevar(Jugador, Volumen->GetActorLocation());
 		bLlevado = true;
 		TiempoPaso = 0.f;
 		return;
@@ -214,9 +237,14 @@ void USAEVUSSubsistemaRecorrido::ActualizarDiana(ASAEVUSPersonaje* Jugador)
 			const USAEVUSDefinicionArma* Arma = Armas->ObtenerArma(Ranura);
 			RanuraFuego = Arma && Arma->EsArmaFuego() ? Ranura : INDEX_NONE;
 		}
-		Comprobar(TEXT("hay una diana alta para las armas"), Diana.IsValid());
+		if (!Diana.IsValid())
+		{
+			UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] sin diana alta en el mapa: no se prueban las armas"));
+			PasarAArenas();
+			return;
+		}
 		Comprobar(TEXT("el arsenal tiene un arma de fuego"), RanuraFuego != INDEX_NONE);
-		if (!Diana.IsValid() || RanuraFuego == INDEX_NONE || !Controlador)
+		if (RanuraFuego == INDEX_NONE || !Controlador)
 		{
 			PasarAArenas();
 			return;
@@ -257,19 +285,77 @@ void USAEVUSSubsistemaRecorrido::ActualizarDiana(ASAEVUSPersonaje* Jugador)
 	}
 }
 
+float USAEVUSSubsistemaRecorrido::AlturaJunto(const AActor* Actor)
+{
+	return static_cast<float>(Actor->GetComponentsBoundingBox(true).Min.Z) + SAEVUSRecorrido::AlturaLlevar;
+}
+
+void USAEVUSSubsistemaRecorrido::ActualizarPalancas(ASAEVUSPersonaje* Jugador)
+{
+	using namespace SAEVUSRecorrido;
+	if (!Palancas.IsValidIndex(Indice))
+	{
+		Terminar();
+		return;
+	}
+	ASAEVUSPalanca* Palanca = Palancas[Indice].Get();
+	if (!bLlevado)
+	{
+		// Delante de la palanca, mirando hacia ella.
+		const FVector Posicion = Palanca->GetActorLocation();
+		Llevar(Jugador, FVector(Posicion.X - DistanciaPalanca, Posicion.Y, AlturaJunto(Palanca)));
+		Jugador->SetActorRotation(FRotator::ZeroRotator);
+		if (AController* Controlador = Jugador->GetController())
+		{
+			Controlador->SetControlRotation(FRotator::ZeroRotator);
+		}
+		bLlevado = true;
+		bVaciada = false;
+		TiempoPaso = 0.f;
+		return;
+	}
+	if (!bVaciada && TiempoPaso >= TiempoAntesTajoPalanca)
+	{
+		// Un tajo de verdad: comprueba que la palanca se puede golpear.
+		Jugador->PedirAtaque();
+		Jugador->SoltarAtaque();
+		bVaciada = true;
+		TiempoPaso = 0.f;
+		return;
+	}
+	if (!bVaciada || TiempoPaso < TiempoComprobarPalanca)
+	{
+		return;
+	}
+	bool bPuertasAbiertas = !Palanca->ObtenerPuertas().IsEmpty();
+	for (const ASAEVUSPuertaArena* Compuerta : Palanca->ObtenerPuertas())
+	{
+		bPuertasAbiertas &= Compuerta && Compuerta->EstaAbierta();
+	}
+	Comprobar(FString::Printf(TEXT("un tajo acciona la palanca %d en X = %.0f"), Indice, Palanca->GetActorLocation().X), Palanca->EstaAccionada());
+	Comprobar(FString::Printf(TEXT("la palanca %d abre sus compuertas"), Indice), bPuertasAbiertas);
+	FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("SAEVUS_Recorrido_Palanca%d.png"), Indice), true, false);
+	++Indice;
+	bLlevado = false;
+	bVaciada = false;
+}
+
 void USAEVUSSubsistemaRecorrido::ActualizarArenas(ASAEVUSPersonaje* Jugador)
 {
 	using namespace SAEVUSRecorrido;
 	if (!Puertas.IsValidIndex(Indice))
 	{
-		Terminar();
+		Paso = EPaso::Palancas;
+		Indice = 0;
+		TiempoPaso = 0.f;
+		bLlevado = false;
 		return;
 	}
 	ASAEVUSPuertaArena* Puerta = Puertas[Indice].Get();
 	if (!bLlevado)
 	{
 		// Dentro de la arena, delante de su puerta: los enemigos (y el jefe) reaccionan.
-		Llevar(Jugador, FVector(Puerta->GetActorLocation().X - DistanciaAntesPuerta, 0.f, AlturaLlevar));
+		Llevar(Jugador, FVector(Puerta->GetActorLocation().X - DistanciaAntesPuerta, 0.f, AlturaJunto(Puerta)));
 		bLlevado = true;
 		TiempoPaso = 0.f;
 		return;

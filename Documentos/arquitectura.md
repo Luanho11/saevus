@@ -21,6 +21,7 @@ Un módulo de juego, `SAEVUS` (`Source/SAEVUS/`), dividido en carpetas por funci
 | `Tutorial/` | `USAEVUSSubsistemaTutorial`, volúmenes (aviso, punto de control, caída), `ASAEVUSPeligro`, `ASAEVUSPuertaArena` |
 | `Interfaz/` | `FSAEVUSEstadoInterfaz`, `USAEVUSWidgetInterfaz`, `USAEVUSWidgetPausa` (UMG construida en C++) |
 | `Mundo/` | `ASAEVUSMunecoEntrenamiento` |
+| `Mundo/` (nuevas) | `ASAEVUSPalanca` (se golpea y abre compuertas), `ASAEVUSVolumenCambioMapa` (paso entre mapas) |
 | `Depuracion/` | `ASAEVUSHUDDepuracion` (crea la interfaz; texto de depuración con F6), variables de consola, `USAEVUSSubsistemaPruebaHumo`, `USAEVUSSubsistemaNumerosDanio` (números de daño flotantes) |
 | `Pruebas/` | 105 tests `SAEVUS.*` y el fixture `SAEVUSMundoPrueba.h` |
 

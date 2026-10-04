@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 44)**
-**Último latido: 2026-10-04 03:24** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 45)**
+**Último latido: 2026-10-04 03:43** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -78,9 +78,12 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 41. [x] ~~Sección de armas de fuego en el tutorial: aviso ("Las armas gastan reserva; la espada la rellena"), dianas a distancia y un muñeco cerca para rellenar; comprobado por el recorrido.~~ Aviso en S6 y dos muñecos altos; el recorrido dispara con la pistola a la diana y comprueba el impacto.
 42. [x] ~~Guardar opciones y progreso (`USaveGame`): calidad y sensibilidad del menú de pausa y el último punto de control; se aplican al arrancar. Tests.~~ La calidad ya la guardaba el motor; sensibilidad y punto de control en `SAEVUS.sav`; `-SAEVUSSinGuardar` en las pruebas.
 43. [x] ~~Menú principal boceto en C++ (Jugar, Continuar desde el punto de control, Opciones, Salir) sobre el tutorial en pausa, con la estética de la interfaz; prueba de humo.~~ Modo `Principal` del widget de pausa, al arrancar `L_Tutorial`; botones con estilo propio.
-44. [ ] Zona 1 boceto (`L_Zona1`, generado por script): ruinas tras el tutorial con plataformas, tres encuentros de enemigos mezclados, un banco (punto de control) y un atajo; recorrido propio.
+44. [x] ~~Zona 1 boceto (`L_Zona1`, generado por script): ruinas tras el tutorial con plataformas, tres encuentros de enemigos mezclados, un banco (punto de control) y un atajo; recorrido propio.~~ `L_Zona1` con palanca y compuerta, paso desde el tutorial, recorrido generalizado (alturas, palancas) en `Verificar-Arranque -ConJuego`.
+45. [ ] Sonidos de mundo: palanca, compuerta/puerta que se abre, aleteo del revoloteador y chasquido del picado (síntesis, como el resto).
+46. [ ] Jefe de la Zona 1 boceto: un segundo mini jefe con un patrón nuevo (p. ej. volador grande con picados y proyectiles en abanico), arena al final de la galería.
+47. [ ] Mapa de la zona en la pausa: esquema 2D generado de la geometría (bloques vistos desde arriba) con la posición del jugador y los bancos.
 
 ## Estado del turno
-- Completado: tarea 43 (menú principal).
+- Completado: tarea 44 (Zona 1).
 - A medias: —
-- Siguiente paso exacto: tarea 44 — Zona 1 boceto.
+- Siguiente paso exacto: tarea 45 — sonidos de mundo.

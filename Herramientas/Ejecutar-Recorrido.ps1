@@ -1,6 +1,6 @@
 ﻿# Recorre el tutorial en el juego real (USAEVUSSubsistemaRecorrido): avisos, arenas, puertas y jefe, con capturas.
 # Uso (desde la raíz del proyecto):
-#   powershell -ExecutionPolicy Bypass -File Herramientas\Ejecutar-Recorrido.ps1 [-Escalabilidad 0..3] [-ResX 1280 -ResY 720] [-ComandosExtra "r.ScreenPercentage 75"] [-PerfilGPU] [-Mapa /Game/SAEVUS/Mapas/L_Tutorial]
+#   powershell -ExecutionPolicy Bypass -File Herramientas\Ejecutar-Recorrido.ps1 [-Escalabilidad 0..3] [-ResX 1280 -ResY 720] [-ComandosExtra "r.ScreenPercentage 75"] [-PerfilGPU] [-Mapa /Game/SAEVUS/Mapas/L_Tutorial] [-NombreLog recorrido]
 # Muestra las líneas [SAEVUS recorrido]; código de salida 0 solo si SUPERADO. Capturas: Saved\Screenshots\WindowsEditor\SAEVUS_Recorrido_*.png
 
 param(
@@ -10,6 +10,8 @@ param(
     [string]$ComandosExtra = "",
     [switch]$PerfilGPU,
     [string]$Mapa = "/Game/SAEVUS/Mapas/L_Tutorial",
+    # Nombre del log en Saved\Logs\Verificacion (uno por mapa si se recorren varios).
+    [string]$NombreLog = "recorrido",
     [string]$RaizMotor = "C:\Program Files\Epic Games\UE_5.8"
 )
 
@@ -19,7 +21,7 @@ $Proyecto = Join-Path $RaizProyecto "SAEVUS.uproject"
 $DirLogs = Join-Path $RaizProyecto "Saved\Logs\Verificacion"
 New-Item -ItemType Directory -Force $DirLogs | Out-Null
 & (Join-Path $PSScriptRoot "Limpiar-Logs.ps1") -DirLogs $DirLogs
-$log = Join-Path $DirLogs "recorrido.log"
+$log = Join-Path $DirLogs "$NombreLog.log"
 
 $comandos = @()
 if ($Escalabilidad -ge 0) { $comandos += "scalability $Escalabilidad" }

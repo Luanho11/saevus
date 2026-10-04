@@ -16,7 +16,7 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S6 Alma y armas | 13500 – 15000 | Alma y curación (Q); armas de fuego, reserva y recarga (desde X = 14600) | Dos muñecos (alma y rellenar la reserva con la espada) y dos muñecos altos a los lados (X = 14850, 4,3 m) para disparar |
 | S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar, parar y devolver proyectiles, golpear voladores | Dos rastreros, un saltador, un escupidor y un revoloteador; la puerta se abre al vaciarla |
 | S8 Guardián | 17500 – 20500 | Todo junto | Mini jefe con dos fases; su puerta lleva al final |
-| S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial" |
+| S9 Fin | 20500 – 21500 | — | Cartel "Fin del tutorial"; a la derecha, "Zona 1 ->" lleva a la Zona 1 (`zona1.md`) |
 | S10 Reto (opcional) | 21500 – 24800 | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con pared, cornisa de 4,5 m; cartel "Reto superado" arriba |
 
 Puntos de control antes del combate, del alma, de la arena, del jefe y del reto: al morir se reaparece en el último.

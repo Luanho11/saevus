@@ -7,6 +7,7 @@
 #include "SAEVUSSubsistemaRecorrido.generated.h"
 
 class ASAEVUSMunecoEntrenamiento;
+class ASAEVUSPalanca;
 class ASAEVUSPersonaje;
 class ASAEVUSPuertaArena;
 class ASAEVUSVolumenTutorial;
@@ -14,8 +15,9 @@ class ASAEVUSVolumenTutorial;
 /**
  * Recorrido del tutorial en el juego real (`-SAEVUSRecorrido`, Herramientas/Ejecutar-Recorrido.ps1):
  * lleva al jugador (invulnerable) a cada aviso y comprueba que aparece, con una captura por
- * sección; dispara con la pistola a una diana alta (un muñeco elevado); después vacía cada arena
- * y comprueba que su puerta se abre y que el jefe se activa.
+ * sección; dispara con la pistola a una diana alta (un muñeco elevado, si el mapa la tiene);
+ * después vacía cada arena y comprueba que su puerta se abre y que el jefe se activa; por último
+ * golpea cada palanca y comprueba que abre sus compuertas. Sirve para cualquier mapa con avisos.
  * Escribe "[SAEVUS recorrido]" en el log y cierra el juego. No existe en Shipping.
  */
 UCLASS()
@@ -38,6 +40,7 @@ private:
 		Avisos,
 		Diana,
 		Arenas,
+		Palancas,
 		Hecho
 	};
 
@@ -45,6 +48,9 @@ private:
 	void ActualizarAvisos(ASAEVUSPersonaje* Jugador);
 	void ActualizarDiana(ASAEVUSPersonaje* Jugador);
 	void ActualizarArenas(ASAEVUSPersonaje* Jugador);
+	void ActualizarPalancas(ASAEVUSPersonaje* Jugador);
+	/** Suelo bajo Actor (la parte de abajo de sus límites) más AlturaLlevar: donde dejar al jugador. */
+	static float AlturaJunto(const AActor* Actor);
 	void Comprobar(const FString& Descripcion, bool bBien);
 	void Terminar();
 	void Llevar(ASAEVUSPersonaje* Jugador, const FVector& Posicion);
@@ -60,6 +66,8 @@ private:
 	int32 SubpasoDiana = 0;
 	TWeakObjectPtr<ASAEVUSMunecoEntrenamiento> Diana;
 	TArray<TWeakObjectPtr<ASAEVUSVolumenTutorial>> Avisos;
+	/** Puertas de arena (con enemigos); las compuertas sin enemigos son de las palancas. */
 	TArray<TWeakObjectPtr<ASAEVUSPuertaArena>> Puertas;
+	TArray<TWeakObjectPtr<ASAEVUSPalanca>> Palancas;
 	int32 Fallos = 0;
 };

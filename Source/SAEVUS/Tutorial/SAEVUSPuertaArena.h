@@ -25,6 +25,9 @@ public:
 
 	bool EstaAbierta() const { return bAbierta; }
 
+	/** Sin enemigos asignados es una compuerta: solo la abre una palanca (ASAEVUSPalanca) o Abrir(). */
+	bool TieneEnemigos() const { return !Enemigos.IsEmpty(); }
+
 	/** Abre la puerta (sin colisión al instante; se hunde en DuracionApertura). */
 	void Abrir();
 

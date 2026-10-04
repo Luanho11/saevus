@@ -1,6 +1,6 @@
 ﻿# Compila SAEVUS, crea los assets, ejecuta los tests de automatización y verifica los assets.
 # Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets] [-ConJuego]
-# -ConJuego añade la prueba de humo (L_Pruebas) y el recorrido del tutorial en el juego real (con render; varios minutos).
+# -ConJuego añade la prueba de humo (L_Pruebas) y los recorridos del tutorial y de la Zona 1 en el juego real (con render; varios minutos).
 # Los logs van a Saved\Logs\Verificacion\. Código de salida 0 solo si pasan todos los pasos.
 
 param(
@@ -52,12 +52,16 @@ Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] (FALLO|SUPERADA
 if (-not (Select-String -Path $logVerificar -Pattern "\[SAEVUS verificar\] SUPERADA" -Quiet -Encoding UTF8)) { throw "Falló la verificación de assets (ver verificar.log)" }
 
 if ($ConJuego) {
-    Write-Host "== 5/6 Prueba de humo en el juego (L_Pruebas)"
+    Write-Host "== 5/7 Prueba de humo en el juego (L_Pruebas)"
     & (Join-Path $PSScriptRoot "Ejecutar-PruebaHumo.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADA|FALLIDA|fotogramas"
     if ($LASTEXITCODE -ne 0) { throw "Falló la prueba de humo (ver humo.log)" }
-    Write-Host "== 6/6 Recorrido del tutorial (L_Tutorial)"
+    Write-Host "== 6/7 Recorrido del tutorial (L_Tutorial)"
     & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 | Select-String -Pattern "FALLO|SUPERADO|FALLIDO"
     if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido del tutorial (ver recorrido.log)" }
+
+    Write-Host "== 7/7 Recorrido de la Zona 1 (L_Zona1)"
+    & (Join-Path $PSScriptRoot "Ejecutar-Recorrido.ps1") -RaizMotor $RaizMotor -Escalabilidad 1 -Mapa "/Game/SAEVUS/Mapas/L_Zona1" -NombreLog "recorrido-zona1" | Select-String -Pattern "FALLO|SUPERADO|FALLIDO"
+    if ($LASTEXITCODE -ne 0) { throw "Falló el recorrido de la Zona 1 (ver recorrido-zona1.log)" }
 }
 
 Write-Host "Todas las comprobaciones pasaron."

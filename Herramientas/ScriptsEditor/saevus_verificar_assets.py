@@ -34,6 +34,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Datos/DA_Arma_Escopeta",
     "/Game/SAEVUS/Mapas/L_Pruebas",
     "/Game/SAEVUS/Mapas/L_Tutorial",
+    "/Game/SAEVUS/Mapas/L_Zona1",
     "/Game/SAEVUS/Arte/Materiales/M_ParticulaPolvo",
     "/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero",
     "/Game/SAEVUS/Arte/Estilo/M_SAEVUS_PersonajeDibujado",
