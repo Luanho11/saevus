@@ -26,6 +26,12 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 
 `USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
 
+## Menú principal
+
+Los botones de los dos menús usan `SAEVUSEstilo::EstiloBotonMenu` (`SAEVUSEstiloInterfaz`, compartido con la interfaz): píldora oscura translúcida con borde, que se aclara al pasar por encima.
+
+El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, título **SAEVUS** con el subtítulo "Boceto jugable", y debajo **Jugar**, **Continuar desde el último punto de control** (solo si hay uno guardado para el mapa: lleva al jugador allí con `ASAEVUSModoJuego::FijarPuntoControl` y `ReiniciarJugador`), **Calidad**, **Sensibilidad** y **Salir**. Se abre al arrancar los mapas de `ASAEVUSModoJuego::MapasConMenuPrincipal` (`L_Tutorial`), también con Play en el editor, con el juego en pausa. La tecla de pausa no lo cierra. No sale en las pruebas en el juego (`-SAEVUSPruebaHumo`, `-SAEVUSRecorrido`) ni con `-SAEVUSSinMenu`. La prueba de humo lo abre, comprueba la pausa, pulsa la tecla de pausa (sigue abierto), lo cierra con "Jugar" y guarda `SAEVUS_PruebaHumo_Menu.png`.
+
 **Guardado** (`Nucleo/SAEVUSGuardado`): la calidad la guarda el motor (`GameUserSettings.ini`). La sensibilidad y el último punto de control (por mapa) van en `USAEVUSPartidaGuardada` (`Saved/SaveGames/SAEVUS.sav`), que mantiene `USAEVUSSubsistemaGuardado`: se carga al arrancar, el controlador aplica la sensibilidad en `BeginPlay`, y se escribe al cambiar la sensibilidad o al pasar por un punto de control. El punto de control guardado no se usa al arrancar: es para "Continuar" del menú principal. Con `-SAEVUSSinGuardar` (lo pasan la prueba de humo y el recorrido) no se escribe nada. Test `SAEVUS.Guardado.IdaYVuelta`.
 
 ## Tests
@@ -35,5 +41,5 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 ## Pendiente
 
 - Dirección de arte: iconos de máscara y orbe pintados, tipografía propia.
-- Opciones completas (resolución, controles, volumen), menú principal.
+- Opciones completas (resolución, controles, volumen).
 - Indicadores en el mundo (enemigos fuera de pantalla, interacción).

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 43)**
-**Último latido: 2026-10-04 03:05** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 44)**
+**Último latido: 2026-10-04 03:24** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -77,10 +77,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 40. [x] ~~Enemigo volador ("Revoloteador", Hollow Knight): flota a media altura, se lanza en picado tras avisar; obliga a usar el tajo hacia arriba y el pogo. Cuerpo en Blender, datos, IA (estado de vuelo sin gravedad), tests, en el tutorial (S4b o arena).~~ `bVolador`, ataque `Picado`, `DA_Enemigo_Revoloteador` en la arena S7 y en `L_Pruebas`; captura de enemigos por arena en el recorrido.
 41. [x] ~~Sección de armas de fuego en el tutorial: aviso ("Las armas gastan reserva; la espada la rellena"), dianas a distancia y un muñeco cerca para rellenar; comprobado por el recorrido.~~ Aviso en S6 y dos muñecos altos; el recorrido dispara con la pistola a la diana y comprueba el impacto.
 42. [x] ~~Guardar opciones y progreso (`USaveGame`): calidad y sensibilidad del menú de pausa y el último punto de control; se aplican al arrancar. Tests.~~ La calidad ya la guardaba el motor; sensibilidad y punto de control en `SAEVUS.sav`; `-SAEVUSSinGuardar` en las pruebas.
-43. [ ] Menú principal boceto en C++ (Jugar, Continuar desde el punto de control, Opciones, Salir) sobre el tutorial en pausa, con la estética de la interfaz; prueba de humo.
+43. [x] ~~Menú principal boceto en C++ (Jugar, Continuar desde el punto de control, Opciones, Salir) sobre el tutorial en pausa, con la estética de la interfaz; prueba de humo.~~ Modo `Principal` del widget de pausa, al arrancar `L_Tutorial`; botones con estilo propio.
 44. [ ] Zona 1 boceto (`L_Zona1`, generado por script): ruinas tras el tutorial con plataformas, tres encuentros de enemigos mezclados, un banco (punto de control) y un atajo; recorrido propio.
 
 ## Estado del turno
-- Completado: tarea 42 (guardado).
+- Completado: tarea 43 (menú principal).
 - A medias: —
-- Siguiente paso exacto: tarea 43 — menú principal.
+- Siguiente paso exacto: tarea 44 — Zona 1 boceto.

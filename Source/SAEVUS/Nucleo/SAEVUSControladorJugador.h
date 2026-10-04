@@ -27,6 +27,14 @@ public:
 	/** Vuelve al último punto de control (o al inicio) y quita la pausa. */
 	void ReiniciarEnPuntoControl();
 
+	/** Menú principal con el juego en pausa (al arrancar los mapas que lo piden, ver ASAEVUSModoJuego). */
+	void MostrarMenuPrincipal();
+	/** "Jugar": cierra el menú principal y quita la pausa. */
+	void CerrarMenuPrincipal();
+	/** "Continuar": lleva al jugador al punto de control guardado de este mapa y cierra el menú. */
+	void ContinuarPartidaGuardada();
+	bool EstaEnMenuPrincipal() const;
+
 	/** Multiplicador de la entrada de mirar (ratón y stick). Se guarda entre sesiones. */
 	float ObtenerSensibilidad() const { return Sensibilidad; }
 	void FijarSensibilidad(float Nueva);
@@ -52,6 +60,12 @@ protected:
 
 private:
 	void AlternarHUDDepuracion();
+	/** Añade el menú a la pantalla con el juego en pausa y el cursor visible, o lo quita y devuelve el control. */
+	void AbrirMenu(USAEVUSWidgetPausa* Menu);
+	void CerrarMenu(USAEVUSWidgetPausa* Menu);
+
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSWidgetPausa> MenuPrincipal;
 
 	UPROPERTY(Transient)
 	TObjectPtr<USAEVUSWidgetPausa> MenuPausa;

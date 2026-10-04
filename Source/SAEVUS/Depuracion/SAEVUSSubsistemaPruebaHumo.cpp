@@ -68,6 +68,7 @@ namespace SAEVUSPruebaHumo
 	constexpr float RetardoCapturaMuerte = 1.5f;
 	const TCHAR* const NombreCapturaMuerte = TEXT("SAEVUS_PruebaHumo_Muerte.png");
 	const TCHAR* const NombreCapturaPausa = TEXT("SAEVUS_PruebaHumo_Pausa.png");
+	const TCHAR* const NombreCapturaMenu = TEXT("SAEVUS_PruebaHumo_Menu.png");
 	constexpr float DuracionEtapaDisparo = 1.5f;
 	// Daño, muerte y reaparición por la vía de daño del motor (necesita el modo de juego).
 	constexpr float DanioPrueba = 10.f;
@@ -304,6 +305,36 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 			{
 				Controlador->AlternarPausa();
 			}
+			if (Controlador)
+			{
+				Controlador->MostrarMenuPrincipal();
+			}
+			EntrarEtapa(EEtapa::MenuPrincipal);
+		}
+		break;
+	}
+
+	case EEtapa::MenuPrincipal:
+	{
+		// El menú principal (normalmente al arrancar el tutorial): en pausa, la tecla de pausa no lo cierra, "Jugar" sí.
+		ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(Pawn->GetController());
+		if (!bMenuPrincipalVisto && TiempoEtapa >= DuracionEtapaPausa * 0.5f)
+		{
+			bMenuPrincipalVisto = Controlador && Controlador->EstaEnMenuPrincipal() && GetWorld()->IsPaused();
+			if (Controlador)
+			{
+				Controlador->AlternarPausa();
+				bMenuPrincipalVisto &= Controlador->EstaEnMenuPrincipal();
+			}
+			FScreenshotRequest::RequestScreenshot(NombreCapturaMenu, true, false);
+		}
+		if (TiempoEtapa >= DuracionEtapaPausa)
+		{
+			if (Controlador)
+			{
+				Controlador->CerrarMenuPrincipal();
+				bMenuPrincipalCerrado = !Controlador->EstaEnMenuPrincipal() && !GetWorld()->IsPaused();
+			}
 			Pawn->PedirRanuraArma(RanuraArmaFuego);
 			EntrarEtapa(EEtapa::Disparar);
 		}
@@ -428,6 +459,8 @@ void USAEVUSSubsistemaPruebaHumo::Tick(float DeltaTime)
 		Comprobar(TEXT("duración del ataque"), DuracionAtaque, Pawn->ObtenerCombate()->ObtenerRepertorio().ComboSuelo[0].ObtenerTiempoTotal(), ToleranciaDuracionAtaque);
 		Comprobar(TEXT("guardia activa"), bGuardiaActiva ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("menú de pausa (juego en pausa)"), bMenuPausaVisto ? 1.f : 0.f, 1.f, 0.f);
+		Comprobar(TEXT("menú principal (en pausa, la tecla de pausa no lo cierra)"), bMenuPrincipalVisto ? 1.f : 0.f, 1.f, 0.f);
+		Comprobar(TEXT("\"Jugar\" cierra el menú principal y quita la pausa"), bMenuPrincipalCerrado ? 1.f : 0.f, 1.f, 0.f);
 		Comprobar(TEXT("disparos"), static_cast<float>(DisparosRealizados), 1.f, 0.f);
 		Comprobar(TEXT("vida tras un golpe"), VidaTrasGolpe, Pawn->ObtenerVida()->ObtenerVidaMaxima() - DanioPrueba, 0.f);
 		Comprobar(TEXT("golpe ignorado durante la invulnerabilidad"), VidaTrasGolpeInvulnerable, VidaTrasGolpe, 0.f);

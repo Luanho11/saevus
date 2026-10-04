@@ -22,29 +22,90 @@ bool ASAEVUSControladorJugador::EstaEnMenuPausa() const
 
 void ASAEVUSControladorJugador::AlternarPausa()
 {
+	// El menú principal no se cierra con la tecla de pausa: hay que elegir.
+	if (EstaEnMenuPrincipal())
+	{
+		return;
+	}
 	if (EstaEnMenuPausa())
 	{
-		MenuPausa->RemoveFromParent();
-		SetPause(false);
-		SetShowMouseCursor(false);
-		SetInputMode(FInputModeGameOnly());
+		CerrarMenu(MenuPausa);
 		return;
 	}
 	if (!MenuPausa && ClaseMenuPausa)
 	{
 		MenuPausa = CreateWidget<USAEVUSWidgetPausa>(this, ClaseMenuPausa);
 	}
-	if (!MenuPausa)
+	AbrirMenu(MenuPausa);
+}
+
+void ASAEVUSControladorJugador::AbrirMenu(USAEVUSWidgetPausa* Menu)
+{
+	if (!Menu)
 	{
 		return;
 	}
-	MenuPausa->AddToViewport(1);
+	Menu->AddToViewport(1);
 	SetPause(true);
 	SetShowMouseCursor(true);
 	FInputModeGameAndUI Modo;
-	Modo.SetWidgetToFocus(MenuPausa->TakeWidget());
+	Modo.SetWidgetToFocus(Menu->TakeWidget());
 	Modo.SetHideCursorDuringCapture(false);
 	SetInputMode(Modo);
+}
+
+void ASAEVUSControladorJugador::CerrarMenu(USAEVUSWidgetPausa* Menu)
+{
+	if (Menu)
+	{
+		Menu->RemoveFromParent();
+	}
+	SetPause(false);
+	SetShowMouseCursor(false);
+	SetInputMode(FInputModeGameOnly());
+}
+
+bool ASAEVUSControladorJugador::EstaEnMenuPrincipal() const
+{
+	return MenuPrincipal && MenuPrincipal->IsInViewport();
+}
+
+void ASAEVUSControladorJugador::MostrarMenuPrincipal()
+{
+	if (EstaEnMenuPausa())
+	{
+		CerrarMenu(MenuPausa);
+	}
+	if (!MenuPrincipal && ClaseMenuPausa)
+	{
+		MenuPrincipal = CreateWidget<USAEVUSWidgetPausa>(this, ClaseMenuPausa);
+		MenuPrincipal->FijarModo(ESAEVUSModoMenu::Principal);
+	}
+	if (!EstaEnMenuPrincipal())
+	{
+		AbrirMenu(MenuPrincipal);
+	}
+}
+
+void ASAEVUSControladorJugador::CerrarMenuPrincipal()
+{
+	if (EstaEnMenuPrincipal())
+	{
+		CerrarMenu(MenuPrincipal);
+	}
+}
+
+void ASAEVUSControladorJugador::ContinuarPartidaGuardada()
+{
+	CerrarMenuPrincipal();
+	FTransform Punto;
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	if (Guardado && ModoJuego && Guardado->ObtenerPuntoControl(GetWorld(), Punto))
+	{
+		ModoJuego->FijarPuntoControl(Punto);
+		ModoJuego->ReiniciarJugador(this);
+	}
 }
 
 void ASAEVUSControladorJugador::ReiniciarEnPuntoControl()
@@ -102,6 +163,11 @@ void ASAEVUSControladorJugador::BeginPlay()
 	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
 		Sensibilidad = Guardado->ObtenerSensibilidad();
+	}
+	const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
+	if (IsLocalPlayerController() && ModoJuego && ModoJuego->DebeMostrarMenuPrincipal())
+	{
+		MostrarMenuPrincipal();
 	}
 }
 

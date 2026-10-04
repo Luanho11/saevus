@@ -22,10 +22,20 @@ namespace SAEVUSPausa
 	SAEVUS_API FText NombreCalidad(int32 Nivel);
 }
 
+/** Para qué se abre el menú: la pausa en partida o el menú principal al arrancar. */
+UENUM()
+enum class ESAEVUSModoMenu : uint8
+{
+	Pausa,
+	Principal
+};
+
 /**
- * Menú de pausa boceto, construido en C++ como la interfaz: continuar, reiniciar en el último
- * punto de control, calidad gráfica, sensibilidad del ratón y salir. Lo abre y cierra el
- * controlador (ASAEVUSControladorJugador::AlternarPausa).
+ * Menú boceto, construido en C++ como la interfaz, en dos modos con las mismas opciones:
+ * - Pausa: continuar, volver al último punto de control, calidad, sensibilidad y salir
+ *   (ASAEVUSControladorJugador::AlternarPausa).
+ * - Principal: título, jugar, continuar desde el punto de control guardado (si lo hay para el
+ *   mapa), calidad, sensibilidad y salir (ASAEVUSControladorJugador::MostrarMenuPrincipal).
  */
 UCLASS()
 class SAEVUS_API USAEVUSWidgetPausa : public UUserWidget
@@ -35,6 +45,11 @@ class SAEVUS_API USAEVUSWidgetPausa : public UUserWidget
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	virtual void NativeConstruct() override;
+
+public:
+	/** Antes de añadirlo a la pantalla. */
+	void FijarModo(ESAEVUSModoMenu NuevoModo) { Modo = NuevoModo; }
+	ESAEVUSModoMenu ObtenerModo() const { return Modo; }
 
 private:
 	void Construir();
@@ -46,6 +61,12 @@ private:
 
 	UFUNCTION()
 	void AlReiniciar();
+
+	UFUNCTION()
+	void AlJugar();
+
+	UFUNCTION()
+	void AlContinuarPartida();
 
 	UFUNCTION()
 	void AlCambiarCalidad();
@@ -70,4 +91,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoSalir;
+
+	ESAEVUSModoMenu Modo = ESAEVUSModoMenu::Pausa;
 };

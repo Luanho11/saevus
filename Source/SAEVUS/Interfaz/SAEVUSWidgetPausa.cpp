@@ -8,8 +8,10 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Interfaz/SAEVUSEstiloInterfaz.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Styling/CoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "SAEVUSPausa"
@@ -19,6 +21,11 @@ namespace SAEVUSPausa
 	const float Sensibilidades[] = { 0.5f, 0.75f, 1.f, 1.5f, 2.f };
 	constexpr int32 NumeroCalidades = 3;
 	constexpr int32 TamanoTitulo = 40;
+	constexpr int32 TamanoTituloPrincipal = 96;
+	constexpr int32 TamanoSubtitulo = 18;
+	// El menú principal tapa el juego algo más que la pausa.
+	const FLinearColor ColorVeloPrincipal(0.f, 0.f, 0.02f, 0.85f);
+	const FLinearColor ColorSubtitulo(0.55f, 0.6f, 0.75f);
 	constexpr int32 TamanoBoton = 20;
 	constexpr float SeparacionBotones = 8.f;
 	constexpr float AnchoRellenoBoton = 28.f;
@@ -75,9 +82,11 @@ UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, UTe
 {
 	using namespace SAEVUSPausa;
 	UButton* Boton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Nombre);
+	Boton->SetStyle(SAEVUSEstilo::EstiloBotonMenu());
 	OutTexto = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
 	OutTexto->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", TamanoBoton));
 	OutTexto->SetJustification(ETextJustify::Center);
+	OutTexto->SetColorAndOpacity(FSlateColor(ColorTexto));
 	Boton->AddChild(OutTexto);
 	UVerticalBoxSlot* Ranura = Columna->AddChildToVerticalBox(Boton);
 	Ranura->SetPadding(FMargin(0.f, SeparacionBotones));
@@ -89,8 +98,9 @@ void USAEVUSWidgetPausa::Construir()
 {
 	using namespace SAEVUSPausa;
 	// Velo oscuro a pantalla completa con la columna de opciones en el centro.
+	const bool bPrincipal = Modo == ESAEVUSModoMenu::Principal;
 	UBorder* Velo = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Velo"));
-	Velo->SetBrushColor(ColorVelo);
+	Velo->SetBrushColor(bPrincipal ? ColorVeloPrincipal : ColorVelo);
 	Velo->SetHorizontalAlignment(HAlign_Center);
 	Velo->SetVerticalAlignment(VAlign_Center);
 	WidgetTree->RootWidget = Velo;
@@ -99,17 +109,41 @@ void USAEVUSWidgetPausa::Construir()
 	Velo->SetContent(Columna);
 
 	UTextBlock* Titulo = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("Titulo"));
-	Titulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", TamanoTitulo));
+	Titulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", bPrincipal ? TamanoTituloPrincipal : TamanoTitulo));
 	Titulo->SetColorAndOpacity(FSlateColor(ColorTexto));
-	Titulo->SetText(LOCTEXT("Pausa", "Pausa"));
+	Titulo->SetText(bPrincipal ? LOCTEXT("TituloJuego", "SAEVUS") : LOCTEXT("Pausa", "Pausa"));
 	Titulo->SetJustification(ETextJustify::Center);
-	Columna->AddChildToVerticalBox(Titulo)->SetPadding(FMargin(AnchoRellenoBoton, 0.f, AnchoRellenoBoton, SeparacionBotones * 2.f));
+	Columna->AddChildToVerticalBox(Titulo)->SetPadding(FMargin(AnchoRellenoBoton, 0.f, AnchoRellenoBoton, bPrincipal ? 0.f : SeparacionBotones * 2.f));
+	if (bPrincipal)
+	{
+		UTextBlock* Subtitulo = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("Subtitulo"));
+		Subtitulo->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", TamanoSubtitulo));
+		Subtitulo->SetColorAndOpacity(FSlateColor(ColorSubtitulo));
+		Subtitulo->SetText(LOCTEXT("Subtitulo", "Boceto jugable"));
+		Subtitulo->SetJustification(ETextJustify::Center);
+		Columna->AddChildToVerticalBox(Subtitulo)->SetPadding(FMargin(0.f, 0.f, 0.f, SeparacionBotones * 4.f));
+	}
 
 	UTextBlock* Texto = nullptr;
-	CrearBoton(Columna, TEXT("Continuar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlContinuar);
-	TextoContinuar = Texto;
-	CrearBoton(Columna, TEXT("Reiniciar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlReiniciar);
-	TextoReiniciar = Texto;
+	if (bPrincipal)
+	{
+		CrearBoton(Columna, TEXT("Jugar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlJugar);
+		TextoContinuar = Texto;
+		// "Continuar" solo si hay un punto de control guardado para este mapa.
+		FTransform Punto;
+		const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(GetOwningPlayer());
+		UButton* BotonContinuar = CrearBoton(Columna, TEXT("ContinuarPartida"), Texto);
+		BotonContinuar->OnClicked.AddDynamic(this, &ThisClass::AlContinuarPartida);
+		BotonContinuar->SetVisibility(Guardado && Guardado->ObtenerPuntoControl(GetWorld(), Punto) ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		TextoReiniciar = Texto;
+	}
+	else
+	{
+		CrearBoton(Columna, TEXT("Continuar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlContinuar);
+		TextoContinuar = Texto;
+		CrearBoton(Columna, TEXT("Reiniciar"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlReiniciar);
+		TextoReiniciar = Texto;
+	}
 	CrearBoton(Columna, TEXT("Calidad"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarCalidad);
 	TextoCalidad = Texto;
 	CrearBoton(Columna, TEXT("Sensibilidad"), Texto)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarSensibilidad);
@@ -124,8 +158,10 @@ void USAEVUSWidgetPausa::ActualizarTextos()
 	{
 		return;
 	}
-	TextoContinuar->SetText(LOCTEXT("Continuar", "Continuar"));
-	TextoReiniciar->SetText(LOCTEXT("Reiniciar", "Volver al último punto de control"));
+	const bool bPrincipal = Modo == ESAEVUSModoMenu::Principal;
+	TextoContinuar->SetText(bPrincipal ? LOCTEXT("Jugar", "Jugar") : LOCTEXT("Continuar", "Continuar"));
+	TextoReiniciar->SetText(bPrincipal ? LOCTEXT("ContinuarPartida", "Continuar desde el último punto de control")
+		: LOCTEXT("Reiniciar", "Volver al último punto de control"));
 	const UGameUserSettings* Ajustes = UGameUserSettings::GetGameUserSettings();
 	const int32 Calidad = Ajustes ? Ajustes->GetOverallScalabilityLevel() : 1;
 	TextoCalidad->SetText(FText::Format(LOCTEXT("Calidad", "Calidad: {0}"), SAEVUSPausa::NombreCalidad(Calidad)));
@@ -140,6 +176,22 @@ void USAEVUSWidgetPausa::AlContinuar()
 	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
 	{
 		Controlador->AlternarPausa();
+	}
+}
+
+void USAEVUSWidgetPausa::AlJugar()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->CerrarMenuPrincipal();
+	}
+}
+
+void USAEVUSWidgetPausa::AlContinuarPartida()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->ContinuarPartidaGuardada();
 	}
 }
 

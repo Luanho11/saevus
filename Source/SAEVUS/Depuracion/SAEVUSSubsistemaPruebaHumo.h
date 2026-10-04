@@ -45,6 +45,7 @@ private:
 		Atacar,
 		Guardia,
 		Pausa,
+		MenuPrincipal,
 		Disparar,
 		Morir,
 		Reaparecer,
@@ -80,6 +81,8 @@ private:
 	float DuracionAtaque = 0.f;
 	bool bGuardiaActiva = false;
 	bool bMenuPausaVisto = false;
+	bool bMenuPrincipalVisto = false;
+	bool bMenuPrincipalCerrado = false;
 	bool bCapturaMuerteHecha = false;
 	bool bAtaqueEmpezo = false;
 	bool bGatilloPulsado = false;

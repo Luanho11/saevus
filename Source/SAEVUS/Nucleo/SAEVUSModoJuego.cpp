@@ -3,6 +3,7 @@
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Depuracion/SAEVUSHUDDepuracion.h"
 #include "GameFramework/Controller.h"
+#include "Misc/CommandLine.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSGuardado.h"
 #include "Personaje/SAEVUSPersonaje.h"
@@ -13,6 +14,19 @@ ASAEVUSModoJuego::ASAEVUSModoJuego()
 	DefaultPawnClass = ASAEVUSPersonaje::StaticClass();
 	PlayerControllerClass = ASAEVUSControladorJugador::StaticClass();
 	HUDClass = ASAEVUSHUDDepuracion::StaticClass();
+	MapasConMenuPrincipal = { TEXT("L_Tutorial") };
+}
+
+bool ASAEVUSModoJuego::DebeMostrarMenuPrincipal() const
+{
+	for (const TCHAR* Parametro : { TEXT("SAEVUSPruebaHumo"), TEXT("SAEVUSRecorrido"), TEXT("SAEVUSSinMenu") })
+	{
+		if (FParse::Param(FCommandLine::Get(), Parametro))
+		{
+			return false;
+		}
+	}
+	return MapasConMenuPrincipal.Contains(SAEVUSGuardado::NombreMapa(GetWorld()));
 }
 
 void ASAEVUSModoJuego::NotificarMuerteJugador(AController* Controlador)

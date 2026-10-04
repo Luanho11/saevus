@@ -12,6 +12,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Interfaz/SAEVUSEstiloInterfaz.h"
 #include "Styling/CoreStyle.h"
 
 namespace SAEVUSInterfaz
@@ -20,7 +21,6 @@ namespace SAEVUSInterfaz
 	constexpr float SeparacionMascaras = 6.f;
 	constexpr float SeparacionOrbeMascaras = 18.f;
 	constexpr float SeparacionLineas = 4.f;
-	constexpr float GrosorBorde = 2.f;
 	constexpr float AlturaBarraJefeDesdeAbajo = 70.f;
 	// Latido del orbe mientras cura: amplitud de escala y rapidez (rad/s).
 	constexpr float AmplitudLatido = 0.08f;
@@ -55,17 +55,7 @@ namespace SAEVUSInterfaz
 		}
 	}
 
-	/** Pincel redondeado sin textura: círculo o píldora (radio = media altura). */
-	FSlateBrush PincelRedondo(const FLinearColor& Color, const FLinearColor& Borde = FLinearColor::Transparent)
-	{
-		FSlateBrush Pincel;
-		Pincel.DrawAs = ESlateBrushDrawType::RoundedBox;
-		Pincel.TintColor = FSlateColor(Color);
-		Pincel.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
-		Pincel.OutlineSettings.Color = FSlateColor(Borde);
-		Pincel.OutlineSettings.Width = Borde.A > 0.f ? GrosorBorde : 0.f;
-		return Pincel;
-	}
+	using SAEVUSEstilo::PincelRedondo;
 }
 
 TSharedRef<SWidget> USAEVUSWidgetInterfaz::RebuildWidget()

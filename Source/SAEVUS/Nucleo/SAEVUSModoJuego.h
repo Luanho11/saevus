@@ -29,11 +29,21 @@ public:
 	void FijarPuntoControl(const FTransform& Punto);
 
 	bool TienePuntoControl() const { return bTienePuntoControl; }
+
+	/**
+	 * Cierto si este mapa abre con el menú principal (MapasConMenuPrincipal), salvo en las pruebas
+	 * en el juego (-SAEVUSPruebaHumo, -SAEVUSRecorrido) o con -SAEVUSSinMenu.
+	 */
+	bool DebeMostrarMenuPrincipal() const;
 	const FTransform& ObtenerPuntoControl() const { return PuntoControl; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Reaparicion", meta = (ClampMin = "0", ForceUnits = "s"))
 	float RetardoReaparicion = 3.f;
+
+	/** Mapas (nombre corto) que arrancan con el menú principal. */
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Menu")
+	TArray<FName> MapasConMenuPrincipal;
 
 	/** Cuánto tiempo queda el cuerpo tras la reaparición. */
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Reaparicion", meta = (ClampMin = "0", ForceUnits = "s"))

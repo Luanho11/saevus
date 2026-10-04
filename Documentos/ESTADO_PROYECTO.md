@@ -20,6 +20,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
 - **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, cinco tipos por datos (rastrero, saltador, escupidor, revoloteador volador, mini jefe Guardián con dos fases), el jugador sale despedido al recibir golpes.
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
+- **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa; sensibilidad y punto de control guardados entre sesiones.
 - **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Sonido boceto** (`audio.md`): efectos sintetizados por código (tajo, golpe, disparo, daño, curación, dash, doble salto) disparados por eventos.
 - **Guardia** (GunZ, `combate.md`): bloqueo frontal por filtro de daño, cancela el tajo por datos (tajo → guardia), empuje y chispas al bloquear.
@@ -59,4 +60,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 43 de `PROGRESS.md` (menú principal), después 44 (Zona 1); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 44 de `PROGRESS.md` (Zona 1 boceto); después, tareas propias (ver la cola en `PROGRESS.md`).
