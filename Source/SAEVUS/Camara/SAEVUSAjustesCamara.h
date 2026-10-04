@@ -49,11 +49,12 @@ struct FSAEVUSAjusteCamara
 	float VelocidadInterpCampoVision = 6.f;
 
 	/**
-	 * Post-proceso de contorno dibujado (M_PP_Contorno, por profundidad: 5 lecturas, apto para la
-	 * Vega 8). Nulo = sin contorno. Grosor, umbral y color son parámetros del material.
+	 * Post-proceso dibujado (M_PP_Dibujado, una sola pasada barata para la Vega 8): bandas de luz
+	 * planas con sombra fría, tinta por profundidad y por normales, niebla en capas y grano de papel.
+	 * Nulo = sin él. Todos sus valores son parámetros del material.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo")
-	TObjectPtr<UMaterialInterface> MaterialContorno;
+	TObjectPtr<UMaterialInterface> MaterialDibujado;
 
 	/** Oscurece los bordes de la pantalla: centra la mirada y da tono sombrío. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "1"))

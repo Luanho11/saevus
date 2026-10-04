@@ -38,7 +38,7 @@ ASSETS_OBLIGATORIOS = (
     "/Game/SAEVUS/Arte/Materiales/M_ParticulaPolvo",
     "/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero",
     "/Game/SAEVUS/Arte/Estilo/M_SAEVUS_PersonajeDibujado",
-    "/Game/SAEVUS/Arte/Estilo/M_PP_Contorno",
+    "/Game/SAEVUS/Arte/Estilo/M_PP_Dibujado",
     "/Game/SAEVUS/Arte/Escenario/SM_ColumnaRota",
     "/Game/SAEVUS/Arte/Escenario/SM_ArcoSeccion",
     "/Game/SAEVUS/Arte/Escenario/SM_Escombros",
@@ -95,8 +95,9 @@ def main():
         comprobar("cuerpo generado del Guardián asignado", jefe.get_editor_property("malla_cuerpo") is not None)
 
     camara = eal.load_asset("/Game/SAEVUS/Datos/DA_AjustesCamara_Base")
-    comprobar("contorno asignado en DA_AjustesCamara_Base",
-              camara is not None and camara.get_editor_property("camara").get_editor_property("material_contorno") is not None)
+    comprobar("post-proceso dibujado asignado en DA_AjustesCamara_Base",
+              camara is not None and camara.get_editor_property("camara").get_editor_property("material_dibujado") is not None)
+    comprobar("M_PP_Contorno ya no existe (lo sustituye M_PP_Dibujado)", not eal.does_asset_exist("/Game/SAEVUS/Arte/Estilo/M_PP_Contorno"))
 
     personaje = cdo("/Game/SAEVUS/Blueprints/BP_SAEVUSPersonaje")
     if personaje:

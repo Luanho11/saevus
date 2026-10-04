@@ -24,7 +24,7 @@ bool FSAEVUSPruebaEstiloCamara::RunTest(const FString& Parameters)
 	USAEVUSComponenteCamara* Camara = Personaje->ObtenerCamara();
 
 	USAEVUSAjustesCamara* Ajustes = NewObject<USAEVUSAjustesCamara>(GetTransientPackage());
-	Ajustes->Camara.MaterialContorno = UMaterial::GetDefaultMaterial(MD_PostProcess);
+	Ajustes->Camara.MaterialDibujado = UMaterial::GetDefaultMaterial(MD_PostProcess);
 	Ajustes->Camara.IntensidadVineta = 0.3f;
 	Ajustes->Camara.Saturacion = 0.6f;
 	Camara->FijarAjustesCamara(Ajustes);
@@ -33,14 +33,14 @@ bool FSAEVUSPruebaEstiloCamara::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Un blendable: el contorno"), Ajuste.WeightedBlendables.Array.Num(), 1);
 	if (Ajuste.WeightedBlendables.Array.Num() == 1)
 	{
-		TestTrue(TEXT("El blendable es el material de contorno"), Ajuste.WeightedBlendables.Array[0].Object == Ajustes->Camara.MaterialContorno);
+		TestTrue(TEXT("El blendable es el material dibujado"), Ajuste.WeightedBlendables.Array[0].Object == Ajustes->Camara.MaterialDibujado);
 	}
 	TestTrue(TEXT("Viñeta activada"), Ajuste.bOverride_VignetteIntensity != 0);
 	TestEqual(TEXT("Intensidad de viñeta"), Ajuste.VignetteIntensity, 0.3f, Tolerancia);
 	TestEqual(TEXT("Saturación"), static_cast<float>(Ajuste.ColorSaturation.X), 0.6f, Tolerancia);
 
 	// Sin material: sin contorno, y reaplicar no acumula blendables.
-	Ajustes->Camara.MaterialContorno = nullptr;
+	Ajustes->Camara.MaterialDibujado = nullptr;
 	Camara->FijarAjustesCamara(Ajustes);
 	Camara->FijarAjustesCamara(Ajustes);
 	TestEqual(TEXT("Sin material no hay contorno"), Camara->PostProcessSettings.WeightedBlendables.Array.Num(), 0);

@@ -258,7 +258,8 @@ def crear_material_personaje():
     color = parametro_vector(material, "Color", (0.5, 0.5, 0.5, 1.0), -900, 0)
     edicion.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
     edicion.connect_material_property(parametro_escalar(material, "Rugosidad", 1.0, -900, 150), "", unreal.MaterialProperty.MP_ROUGHNESS)
-    edicion.connect_material_property(parametro_escalar(material, "Especular", 0.15, -900, 250), "", unreal.MaterialProperty.MP_SPECULAR)
+    # Casi sin especular: en un dibujo no hay brillos de luz.
+    edicion.connect_material_property(parametro_escalar(material, "Especular", 0.04, -900, 250), "", unreal.MaterialProperty.MP_SPECULAR)
 
     fresnel = nodo(material, unreal.MaterialExpressionFresnel, -600, 400)
     edicion.connect_material_expressions(parametro_escalar(material, "ExponenteBorde", 3.0, -900, 400), "", fresnel, "ExponentIn")
@@ -293,19 +294,72 @@ def crear_instancia_material(nombre, directorio, padre, parametros):
     return instancia
 
 
-# Contorno por profundidad: laplaciano de la inversa de la profundidad (una superficie plana da 0 en
-# pantalla, así el suelo no se raya) en 4 vecinos. Siluetas y pliegues fuertes se oscurecen; se
-# desvanece con la distancia para no ensuciar el fondo.
-CODIGO_CONTORNO = """
+# Post-proceso dibujado (Hollow Knight en 3D), una sola pasada después del DOF (color lineal, antes
+# del tonemapper), 10 lecturas de textura:
+# - Bandas de luz: la luz recibida (color / albedo difuso) se cuantiza en bandas planas con bordes
+#   suaves (en raíz cuadrada, más cerca de lo que ve el ojo); las bandas bajas se enfrían.
+# - Tinta: laplaciano de la inversa de la profundidad (siluetas; una superficie plana da 0, así el
+#   suelo no se raya) y cambios de normal (pliegues), a Grosor píxeles.
+# - Niebla en capas: la distancia se reparte en capas planas que se aclaran hacia un azul gris, como
+#   los fondos pintados; lo cercano queda en silueta oscura.
+# - Grano de papel fijo en pantalla.
+CODIGO_DIBUJADO = """
 float d = max(Profundidad.r, 1.0);
+float cerca = saturate(1.0 - d / DistanciaMaxima);
+float3 c = Escena.rgb;
+const float3 Luma = float3(0.299, 0.587, 0.114);
+
+// Bandas de luz planas y sombra fría.
+float3 albedo = SceneTextureFetch(PPI_DiffuseColor, float2(0, 0)).rgb;
+float la = dot(albedo, Luma);
+float luz = sqrt(max(dot(c, Luma), 0.0) / max(la, 0.03));
+float escalon = luz * Bandas;
+float banda = (floor(escalon) + smoothstep(0.5 - SuavidadBandas, 0.5 + SuavidadBandas, frac(escalon))) / Bandas;
+float peso = saturate(la * 12.0) * cerca * IntensidadBandas;
+float3 bandeado = c * (banda * banda) / max(luz * luz, 1e-4);
+float frio = saturate(1.0 - banda * 2.0);
+bandeado = lerp(bandeado, bandeado * ColorSombra.rgb, frio);
+c = lerp(c, bandeado, peso);
+
+// Niebla en capas.
+float f = saturate((d - InicioNiebla) / RangoNiebla);
+float capa = f * CapasNiebla;
+float fq = (floor(capa) + smoothstep(0.3, 0.7, frac(capa))) / CapasNiebla;
+c = lerp(c, ColorNiebla.rgb, fq * IntensidadNiebla);
+
+// Tinta: siluetas por profundidad y pliegues por normales.
 float il = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(-Grosor, 0)).r, 1.0);
 float ir = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(Grosor, 0)).r, 1.0);
 float iu = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(0, -Grosor)).r, 1.0);
 float id = 1.0 / max(SceneTextureFetch(PPI_SceneDepth, float2(0, Grosor)).r, 1.0);
 float laplaciano = (abs(il + ir - 2.0 / d) + abs(iu + id - 2.0 / d)) * d;
-float borde = saturate((laplaciano - Umbral) * Nitidez) * saturate(1.0 - d / DistanciaMaxima);
-return lerp(Escena.rgb, ColorBorde.rgb, borde * Intensidad);
+float silueta = saturate((laplaciano - Umbral) * Nitidez);
+float3 n = SceneTextureFetch(PPI_WorldNormal, float2(0, 0)).xyz;
+float dn = (1.0 - dot(n, SceneTextureFetch(PPI_WorldNormal, float2(Grosor, 0)).xyz))
+         + (1.0 - dot(n, SceneTextureFetch(PPI_WorldNormal, float2(0, Grosor)).xyz));
+float pliegue = saturate((dn - UmbralNormal) * NitidezNormal);
+float tinta = max(silueta, pliegue * IntensidadPliegue) * cerca * (1.0 - fq * 0.7);
+c = lerp(c, ColorTinta.rgb, tinta * IntensidadTinta);
+
+// Grano de papel (fijo en pantalla, en celdas de 2 píxeles).
+float2 celda = floor(Parameters.SvPosition.xy * 0.5);
+float ruido = frac(sin(dot(celda, float2(12.9898, 78.233))) * 43758.5453);
+c *= 1.0 + (ruido - 0.5) * Grano;
+return c;
 """
+
+# Valores de partida de M_PP_Dibujado (todos parámetros del material: se ajustan sin código).
+PARAMETROS_DIBUJADO = (
+    ("DistanciaMaxima", 7000.0), ("Bandas", 3.0), ("SuavidadBandas", 0.08), ("IntensidadBandas", 0.85),
+    ("InicioNiebla", 900.0), ("RangoNiebla", 5000.0), ("CapasNiebla", 4.0), ("IntensidadNiebla", 0.55),
+    ("Grosor", 2.0), ("Umbral", 0.06), ("Nitidez", 6.0), ("UmbralNormal", 0.35), ("NitidezNormal", 4.0),
+    ("IntensidadPliegue", 0.7), ("IntensidadTinta", 0.9), ("Grano", 0.06),
+)
+COLORES_DIBUJADO = (
+    ("ColorSombra", (0.55, 0.65, 0.95, 1.0)),
+    ("ColorNiebla", (0.10, 0.13, 0.19, 1.0)),
+    ("ColorTinta", (0.006, 0.006, 0.012, 1.0)),
+)
 
 
 def entrada_personalizada(nombre):
@@ -314,17 +368,17 @@ def entrada_personalizada(nombre):
     return entrada
 
 
-def crear_material_contorno():
+def crear_material_dibujado():
     edicion = unreal.MaterialEditingLibrary
-    material = material_vacio("M_PP_Contorno", DIR_ESTILO)
+    material = material_vacio("M_PP_Dibujado", DIR_ESTILO)
     material.set_editor_property("material_domain", unreal.MaterialDomain.MD_POST_PROCESS)
     material.set_editor_property("blendable_location", valor_enum(unreal.BlendableLocation, "BL_SCENE_COLOR_AFTER_DOF", "BL_AFTER_DOF"))
 
     personalizado = nodo(material, unreal.MaterialExpressionCustom, -300, 0)
-    personalizado.set_editor_property("code", CODIGO_CONTORNO)
+    personalizado.set_editor_property("code", CODIGO_DIBUJADO)
     personalizado.set_editor_property("output_type", unreal.CustomMaterialOutputType.CMOT_FLOAT3)
-    personalizado.set_editor_property("description", "Contorno")
-    entradas = ["Escena", "Profundidad", "Grosor", "Umbral", "Nitidez", "Intensidad", "DistanciaMaxima", "ColorBorde"]
+    personalizado.set_editor_property("description", "Dibujado")
+    entradas = ["Escena", "Profundidad"] + [nombre for nombre, _ in PARAMETROS_DIBUJADO] + [nombre for nombre, _ in COLORES_DIBUJADO]
     personalizado.set_editor_property("inputs", [entrada_personalizada(nombre) for nombre in entradas])
 
     escena = nodo(material, unreal.MaterialExpressionSceneTexture, -800, -200)
@@ -333,19 +387,20 @@ def crear_material_contorno():
     profundidad.set_editor_property("scene_texture_id", unreal.SceneTextureId.PPI_SCENE_DEPTH)
     edicion.connect_material_expressions(escena, "Color", personalizado, "Escena")
     edicion.connect_material_expressions(profundidad, "Color", personalizado, "Profundidad")
-    valores = (("Grosor", 1.0), ("Umbral", 0.08), ("Nitidez", 6.0), ("Intensidad", 0.85), ("DistanciaMaxima", 6000.0))
-    for indice, (nombre, valor) in enumerate(valores):
+    for indice, (nombre, valor) in enumerate(PARAMETROS_DIBUJADO):
         edicion.connect_material_expressions(parametro_escalar(material, nombre, valor, -800, 100 + indice * 100), "", personalizado, nombre)
-    edicion.connect_material_expressions(parametro_vector(material, "ColorBorde", (0.01, 0.01, 0.015, 1.0), -800, 650), "", personalizado, "ColorBorde")
+    for indice, (nombre, color) in enumerate(COLORES_DIBUJADO):
+        y = 100 + (len(PARAMETROS_DIBUJADO) + indice) * 100
+        edicion.connect_material_expressions(parametro_vector(material, nombre, color, -800, y), "", personalizado, nombre)
     edicion.connect_material_property(personalizado, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     edicion.recompile_material(material)
     return material
 
 
 def borrar_materiales_obsoletos():
-    """Los M_Caballero_* de color plano los sustituyen las instancias MI_Caballero_*."""
-    for clave in PIEZAS_CABALLERO:
-        ruta = f"{DIR_CABALLERO}/M_Caballero_{clave}"
+    """Los M_Caballero_* de color plano los sustituyen las instancias MI_Caballero_*; M_PP_Contorno, M_PP_Dibujado."""
+    rutas = [f"{DIR_CABALLERO}/M_Caballero_{clave}" for clave in PIEZAS_CABALLERO] + [f"{DIR_ESTILO}/M_PP_Contorno"]
+    for ruta in rutas:
         if eal.does_asset_exist(ruta) and eal.delete_asset(ruta):
             registrar(f"borrado {ruta}")
 
@@ -394,7 +449,7 @@ def crear_data_assets(acciones):
     movimiento = data_asset("DA_AjustesMovimiento_Base", unreal.SAEVUSAjustesMovimiento)
     camara = data_asset("DA_AjustesCamara_Base", unreal.SAEVUSAjustesCamara)
     ajuste_camara = camara.get_editor_property("camara")
-    ajuste_camara.set_editor_property("material_contorno", crear_material_contorno())
+    ajuste_camara.set_editor_property("material_dibujado", crear_material_dibujado())
     camara.set_editor_property("camara", ajuste_camara)
     repertorio = data_asset("DA_RepertorioMelee_Base", unreal.SAEVUSDatosRepertorioMelee)
     # Copia del repertorio del código (su constructor): mientras no se ajuste a mano, el asset sigue

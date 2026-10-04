@@ -128,9 +128,9 @@ void USAEVUSComponenteCamara::AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste)
 {
 	PostProcessBlendWeight = 1.f;
 	PostProcessSettings.WeightedBlendables.Array.Reset();
-	if (Ajuste.MaterialContorno)
+	if (Ajuste.MaterialDibujado)
 	{
-		PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.f, Ajuste.MaterialContorno));
+		PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.f, Ajuste.MaterialDibujado));
 	}
 	PostProcessSettings.bOverride_VignetteIntensity = true;
 	PostProcessSettings.VignetteIntensity = Ajuste.IntensidadVineta;

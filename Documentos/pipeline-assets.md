@@ -17,8 +17,14 @@ Default Lit + colores planos casi sin especular (rugosidad alta), paleta oscura 
 **Hecho (tarea 5)**, todo en `/Game/SAEVUS/Arte/Estilo/` y creado por `saevus_crear_assets.py`:
 - `M_SAEVUS_PersonajeDibujado`: maestro de personaje. Parámetros `Color`, `Rugosidad` (1), `Especular` (0,15), `ColorBorde` + `IntensidadBorde` + `ExponenteBorde` (borde de luz fría por Fresnel, separa la silueta oscura del fondo oscuro) y `AutoIluminacion` (la máscara brilla un poco). Sin texturas.
 - `MI_Caballero_{Cuerpo,Mascara,Capa,Metal,Ojos}`: instancias por pieza, aplicadas como *override* del componente `Cuerpo` (Interchange rehace los materiales del asset al reimportar).
-- `M_PP_Contorno`: post-proceso (después de DOF) con laplaciano de la **inversa** de la profundidad en 4 vecinos: una superficie plana da 0 en pantalla, así el suelo no se raya; siluetas y pliegues se oscurecen. Parámetros `Grosor`, `Umbral`, `Nitidez`, `Intensidad`, `DistanciaMaxima`, `ColorBorde`. 5 lecturas de textura.
-- La cámara lo aplica: `FSAEVUSAjusteCamara` → `MaterialContorno` (nulo = sin contorno), `IntensidadVineta` (0,55) y `Saturacion` (0,8), en `DA_AjustesCamara_Base`. Test `SAEVUS.Estilo.PostProcesoCamara`.
+- `M_PP_Dibujado` (tarea 69, sustituye a `M_PP_Contorno`): un solo post-proceso después del DOF (color lineal, antes del tonemapper), 10 lecturas de textura:
+  - **Bandas de luz:** la luz recibida (color / albedo difuso del GBuffer) se cuantiza en `Bandas` (3) planas con bordes suaves (`SuavidadBandas`), en raíz cuadrada; las bandas bajas se enfrían hacia `ColorSombra` (azul). Peso según el albedo (lo negro no se toca) y la distancia.
+  - **Niebla en capas:** desde `InicioNiebla` (9 m) a lo largo de `RangoNiebla` (50 m), en `CapasNiebla` (4) capas planas que se aclaran hacia `ColorNiebla`: lo cercano queda en silueta oscura sobre fondos más claros, como los fondos pintados.
+  - **Tinta:** siluetas por laplaciano de la **inversa** de la profundidad (una superficie plana da 0, así el suelo no se raya) y pliegues por cambio de normal, a `Grosor` (2) píxeles, en `ColorTinta`; se aclara con la niebla.
+  - **Grano de papel** fijo en pantalla (`Grano`, 6 %).
+  - Todo son parámetros del material (`PARAMETROS_DIBUJADO` y `COLORES_DIBUJADO` en el script).
+- `M_SAEVUS_PersonajeDibujado`: especular bajado a 0,04 (sin brillos de luz).
+- La cámara lo aplica: `FSAEVUSAjusteCamara` → `MaterialDibujado` (nulo = sin él), `IntensidadVineta` (0,55) y `Saturacion` (0,8), en `DA_AjustesCamara_Base`. Test `SAEVUS.Estilo.PostProcesoCamara`. Prueba de humo con él: 47 fps de media en Media a 720p (antes 44).
 - Coste medido: prueba de humo a 720p en Media, media de 63 fps (la línea base era 51–68).
 - Pendiente: iluminación oscura de los mapas (llega con `L_Tutorial`); bajar el contorno por escalabilidad si hace falta.
 
