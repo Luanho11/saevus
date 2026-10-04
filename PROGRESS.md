@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 10e)**
-**Último latido: 2026-10-03 20:38** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 11)**
+**Último latido: 2026-10-03 20:40** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -30,7 +30,7 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 
 ## Cola de tareas (prioridad de arriba abajo)
 1. [x] ~~Migración al español: CLAUDE.md, Docs, código (clases, funciones, variables, comentarios), scripts, assets regenerados, tests verdes.~~
-2. [ ] Investigación Hollow Knight + ampliación GunZ → `Docs/investigacion/` y plan de mecánicas.
+2. [x] ~~Investigación Hollow Knight + ampliación GunZ → `Docs/investigacion/` y plan de mecánicas.~~
 3. [x] ~~Dash por doble toque WASD, cámara bloqueada, invulnerabilidad breve, partículas de dash.~~
 4. [x] ~~Caballero boceto: malla + esqueleto personalizado generados en Blender por script, importados; animación procedural en C++ (reposo, correr, saltar, caer, dash, wall run, escalar, ataques sincronizados con la línea de tiempo, disparo, muerte).~~
 5. [x] ~~Sombreado tipo Hollow Knight (materiales oscuros, máscara clara, contorno por post-proceso barato).~~
@@ -43,10 +43,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
     - 10b. [x] ~~Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.~~
     - 10c. [x] ~~Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.~~
     - 10d. [x] ~~Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.~~
-    - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
+    - 10e. [x] ~~Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.~~
     - 10f. [ ] Hilo de juego: la animación procedural solo se actualiza para mallas visibles (y a menos frecuencia lejos de la cámara); la IA de enemigos lejanos en reposo, a menos frecuencia.
+11. [ ] Guardia (GunZ): mantener clic derecho con el arma cuerpo a cuerpo → postura de guardia que bloquea daño frontal (golpes de enemigos y disparos dentro de un cono), con retroceso y chispa al bloquear; la guardia cancela la recuperación del tajo (nueva acción de cancelación `Guardia` en la tabla de cada ataque); no se puede atacar ni curar en guardia; movimiento reducido. Datos en un struct; tests; aviso en el tutorial (sección de combate).
 
 ## Estado del turno
-- Completado: tarea 10d (medición: tutorial 67–68 fps, pruebas 57–63 fps; ProfileGPU sin datos en este driver).
+- Completado: tarea 10e (investigación con búsqueda web: guardia como mitad de la "mariposa" de GunZ, dos tipos de dash, rebote y concentración de Hollow Knight; `Documentos/investigacion/`).
 - A medias: —
-- Siguiente paso exacto: tarea 10e — investigación Hollow Knight/GunZ con búsqueda web (WebSearch disponible): sensación de combate, ventanas de invulnerabilidad, rebote, curación, técnicas de GunZ (K-style, cancelaciones); ampliar `Documentos/investigacion/` y contrastar con lo implementado, sin copiar datos.
+- Siguiente paso exacto: tarea 11 — guardia (GunZ) con cancelación del tajo por datos.

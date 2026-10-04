@@ -80,3 +80,15 @@ La identidad real del juego vino de las cancelaciones: el tajo interrumpía much
 | 6. Bloqueo | Decide Claude, siempre cambiable | Guardia direccional simple más adelante (frontal), como datos |
 
 Además: "el objetivo es poder tener todas las mecánicas de GunZ con Hollow Knight" → ver `hollow-knight.md` y `mecanicas-objetivo.md`.
+
+## Ampliación (2026-10-04, con búsqueda web)
+
+Fuentes: [Korean Style and Advanced Techniques (StrategyWiki)](https://strategywiki.org/wiki/GunZ_The_Duel/Korean-Style_and_Advanced_Techniques) (resumen de búsqueda), [MTM: Gunz – Legendkiller 2 (critpoints.net)](https://critpoints.net/2016/04/21/mtm-gunz-legendkiller-2/).
+
+- **La guardia es la otra mitad de la "mariposa"** (salto → dash → tajo → guardia): la guardia corta el tajo, así se tajea mucho más rápido y se pasa la mitad del tiempo cubierto. Sin guardia no hay identidad GunZ. En SAEVUS **falta**: es la siguiente mecánica (tarea 11), diseñada como cancelación por datos (no como fallo del juego).
+- **El tajo reiniciaba contadores** (p. ej. el enfriamiento del dash): de ahí las cadenas aéreas de tres tajos sin caer. En SAEVUS las cadenas se diseñan con ventanas explícitas; decidir si un tajo aéreo que acierta debe devolver el dash aéreo (lo hace ya el rebote hacia abajo).
+- **Dos dashes distintos:** con espada, más rápido, cancelable y con estela; con arma de fuego, una voltereta más lenta que no se cancela. Idea para SAEVUS: el ajuste del dash por tipo de arma.
+- **Bucle de cambio de arma** (arma de fuego → tajo → guardia → arma de fuego) para disparar más rápido que la cadencia: en SAEVUS el cambio cancela por datos; vigilar que no rompa la cadencia de las armas (decisión de equilibrio pendiente).
+- **Mapas en 3D de verdad:** carrera por pared → salto → cancelación → dash de vuelta a la pared; el nivel deja de ser un suelo. Los mapas de SAEVUS deberían tener paredes útiles para encadenar.
+- Lo que la comunidad hizo después (mapas de entrenamiento, como en *surf*/*bhop*) indica que el tutorial debe poder ampliarse con retos de técnica.
+

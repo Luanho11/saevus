@@ -48,3 +48,13 @@ Estado: borrador (2026-10-03). Fuentes públicas y conocimiento general del jueg
 8. **Estética:** sombreado oscuro con aspecto dibujado, silueta oscura con máscara clara (decisión del dueño).
 
 Qué no se toma ahora: amuletos e inventario, mapa con cartógrafo, economía.
+
+## Ampliación (2026-10-04, con búsqueda web)
+
+Fuentes: [Nail (hollowknight.wiki)](https://hollowknight.wiki/w/Nail), [Quick Focus (hollowknight.wiki)](https://hollowknight.wiki/w/Quick_Focus), debates de la comunidad en [Steam](https://steamcommunity.com/app/367520/discussions/0/2568690592363928014).
+
+- **Rebote:** basta golpear hacia abajo algo justo antes de caer encima; el rebote es automático, sin pulsar salto. Depende del retroceso del golpe (un amuleto que lo quita impide rebotar). SAEVUS lo hace igual en espíritu: el rebote es un efecto del impacto del tajo hacia abajo (`VelocidadRebote`), automático.
+- **Concentración (curar):** cuesta un tercio del alma por máscara; tarda alrededor de un segundo y medio (menos con un amuleto). SAEVUS: 33 de 99 de alma en 1 s (más rápido, a propósito, por el ritmo de GunZ; ajustable).
+- **Invulnerabilidad tras un golpe:** existe y un amuleto la alarga lo justo para curar dentro de ella. SAEVUS: 1 s; la curación se interrumpe con un golpe pero no durante la invulnerabilidad (no llegan golpes).
+- **Rebotar en pinchos y setas** es parte del diseño de niveles: añadir peligros y elementos de rebote al tutorial (pendiente).
+
