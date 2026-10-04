@@ -33,6 +33,10 @@ public:
 
 	UPROPERTY()
 	FTransform PuntoControl;
+
+	/** Fragmentos de máscara recogidos (por identificador). */
+	UPROPERTY()
+	TArray<FName> FragmentosMascara;
 };
 
 namespace SAEVUSGuardado
@@ -71,6 +75,10 @@ public:
 
 	float ObtenerVolumen() const { return Partida->Volumen; }
 	void GuardarVolumen(float Volumen);
+
+	int32 ObtenerNumeroFragmentos() const { return Partida->FragmentosMascara.Num(); }
+	bool FragmentoRecogido(FName Identificador) const { return Partida->FragmentosMascara.Contains(Identificador); }
+	void GuardarFragmento(FName Identificador);
 
 	void GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto);
 	/** Cierto si hay un punto de control guardado para el mapa de Mundo. */

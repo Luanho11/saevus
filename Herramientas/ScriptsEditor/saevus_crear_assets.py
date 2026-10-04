@@ -1099,6 +1099,8 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     crear_suelo(actores, "S10_Suelo2", 23600, 24200, materiales)
     crear_bloque(actores, "S10_Cornisa450", unreal.Vector(24500, 0, 225), (600, ANCHO_PASILLO, 450), materiales["Acento"])
     crear_texto(actores, "Cartel_RetoSuperado", "Reto superado", unreal.Vector(24600, 0, 650), tamano=90.0)
+    # Premio del reto: un fragmento de máscara en lo alto de la cornisa.
+    crear_fragmento(actores, "S10_Fragmento", unreal.Vector(24500, 0, 450 + 100), "Tutorial_Reto", materiales["Puerta"])
 
     for x, titulo, texto in AVISOS_TUTORIAL:
         crear_aviso(actores, x, titulo, texto)
@@ -1150,6 +1152,26 @@ def crear_info_zona(actores, nombre, subtitulo):
     info.set_editor_property("nombre", unreal.Text(nombre))
     info.set_editor_property("subtitulo", unreal.Text(subtitulo))
     return info
+
+
+def crear_pared_rompible(actores, etiqueta, centro, tamano_cm, material):
+    """Pared falsa: un bloque que cae a golpes (ASAEVUSParedRompible)."""
+    pared = actores.spawn_actor_from_class(unreal.SAEVUSParedRompible, centro, unreal.Rotator(0, 0, 0))
+    pared.set_actor_label(etiqueta)
+    pared.set_actor_scale3d(unreal.Vector(tamano_cm[0] / 100.0, tamano_cm[1] / 100.0, tamano_cm[2] / 100.0))
+    pared.get_component_by_class(unreal.StaticMeshComponent).set_material(0, material)
+    pared.set_folder_path("Mundo")
+    return pared
+
+
+def crear_fragmento(actores, etiqueta, posicion, identificador, material):
+    """Fragmento de máscara; identificador único en todo el juego (se guarda al recogerlo)."""
+    fragmento = actores.spawn_actor_from_class(unreal.SAEVUSFragmentoMascara, posicion, unreal.Rotator(0, 0, 0))
+    fragmento.set_actor_label(etiqueta)
+    fragmento.set_editor_property("identificador", identificador)
+    fragmento.get_component_by_class(unreal.StaticMeshComponent).set_material(0, material)
+    fragmento.set_folder_path("Mundo")
+    return fragmento
 
 
 def crear_caida_global(actores, etiqueta, x_inicio, x_fin, retorno):
@@ -1244,7 +1266,18 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     # Muro interior bajo la planta alta y la arena (antes, el muro de la torre ya cierra el carril).
     crear_bloque(actores, "Galeria_MuroInterior", unreal.Vector((7100 + 12000) / 2, ANCHO_PASILLO / 2 - 50, ALTURA_GALERIA + (50 - ALTURA_GALERIA) / 2),
                  (12000 - 7100, 100, 50 - ALTURA_GALERIA), materiales["Acento"])
-    crear_bloque(actores, "Galeria_Fondo", unreal.Vector(13050, Y_GALERIA, ALTURA_GALERIA + alto_galeria / 2), (100, ANCHO_GALERIA, alto_galeria), materiales["Acento"])
+    # Fondo de la galería: una pared falsa; detrás, una sala secreta con un fragmento de máscara (fuera del mapa de la pausa).
+    crear_pared_rompible(actores, "Galeria_ParedFalsa", unreal.Vector(13050, Y_GALERIA, ALTURA_GALERIA + alto_galeria / 2),
+                         (100, ANCHO_GALERIA, alto_galeria), materiales["Acento"])
+    sala = [
+        crear_bloque(actores, "Secreto_Suelo", unreal.Vector(13350, Y_GALERIA, ALTURA_GALERIA - GROSOR_SUELO / 2), (700, ANCHO_GALERIA, GROSOR_SUELO), materiales["Piedra"]),
+        crear_bloque(actores, "Secreto_Fondo", unreal.Vector(13750, Y_GALERIA, ALTURA_GALERIA + alto_galeria / 2), (100, ANCHO_GALERIA, alto_galeria), materiales["Acento"]),
+        crear_bloque(actores, "Secreto_MuroExterior", unreal.Vector(13400, Y_GALERIA + ANCHO_GALERIA / 2 + 50, ALTURA_GALERIA + alto_galeria / 2), (800, 100, alto_galeria), materiales["Acento"]),
+        crear_bloque(actores, "Secreto_MuroInterior", unreal.Vector(13400, Y_GALERIA - ANCHO_GALERIA / 2 - 50, ALTURA_GALERIA + alto_galeria / 2), (800, 100, alto_galeria), materiales["Acento"]),
+    ]
+    for pieza in sala:
+        pieza.set_editor_property("tags", [unreal.Name("SinMapa")])
+    crear_fragmento(actores, "Secreto_Fragmento", unreal.Vector(13450, Y_GALERIA, ALTURA_GALERIA + 100), "Zona1_Galeria", materiales["Puerta"])
     compuerta = crear_puerta(actores, "Galeria_Compuerta", 6550, ANCHO_GALERIA, 350, [], materiales["Puerta"], "", "",
                              altura=ALTURA_GALERIA, y=Y_GALERIA)
     crear_palanca(actores, "Galeria_Palanca", unreal.Vector(6750, Y_GALERIA, ALTURA_GALERIA), [compuerta], materiales,

@@ -20,6 +20,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 - **Mecánicas de Hollow Knight** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajos hacia arriba y abajo por la inclinación de la cámara, rebote (pogo) que recarga dash y doble salto, retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
 - **Enemigos** (`enemigos.md`): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, siete tipos por datos (rastrero, saltador, escupidor, revoloteador volador, acorazado con escudo, mini jefe Guardián y jefe volador Madre Alada, con dos fases), el jugador sale despedido al recibir golpes.
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: diez secciones (moverse, saltar, dash, paredes, carrera por pared, combate, rebote, alma, arena de mini enemigos, Guardián), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
+- **Secretos** (`zona1.md`): pared falsa que cae a tajos, fragmentos de máscara (dos = una máscara de vida más, guardados).
 - **Bancos** (`zona1.md`): sentarse con E cura, rellena la munición, fija el punto de control y guarda (Zona 1 y tutorial).
 - **Zona 1** (`zona1.md`): `L_Zona1`, ruinas con desniveles, tres encuentros, banco, arena, un atajo con palanca y compuerta y el jefe Madre Alada; se llega desde el final del tutorial.
 - **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa con mapa de la zona; sensibilidad y punto de control guardados entre sesiones.
@@ -36,7 +37,7 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 - **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y recorridos del tutorial y de la Zona 1). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
 
-- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 123/123 tests `SAEVUS.*`, verificación de assets — todo superado.
+- `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 125/125 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.
 
 ## Arquitectura (resumen)
@@ -62,4 +63,4 @@ Que el juego **se vea y se sienta**: dash por doble toque con partículas, cabal
 
 ## Siguiente paso
 
-Tarea 55 de `PROGRESS.md` (secreto con fragmento de máscara), después 56 (regreso al tutorial); después, tareas propias (ver la cola en `PROGRESS.md`).
+Tarea 56 de `PROGRESS.md` (regreso al tutorial); después, tareas propias (ver la cola en `PROGRESS.md`).

@@ -13,8 +13,10 @@
 #include "HAL/PlatformMisc.h"
 #include "Misc/CommandLine.h"
 #include "Mundo/SAEVUSBanco.h"
+#include "Mundo/SAEVUSFragmentoMascara.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Mundo/SAEVUSPalanca.h"
+#include "Mundo/SAEVUSParedRompible.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "RenderTimer.h"
 #include "SAEVUS.h"
@@ -53,6 +55,11 @@ namespace SAEVUSRecorrido
 	// Bancos: tiempo para que el solape avise al jugador y para ver la pose sentada.
 	constexpr float TiempoAnteBanco = 0.3f;
 	constexpr float TiempoSentado = 0.6f;
+	// Paredes falsas: tajos espaciados (el combo encadena) y un máximo por si no se rompe.
+	constexpr float TiempoEntreTajos = 0.55f;
+	constexpr int32 TajosMaximosPared = 8;
+	// Fragmentos: tiempo para que el solape lo recoja.
+	constexpr float TiempoRecogida = 0.4f;
 }
 
 bool USAEVUSSubsistemaRecorrido::ShouldCreateSubsystem(UObject* Outer) const
@@ -127,6 +134,14 @@ void USAEVUSSubsistemaRecorrido::Preparar(ASAEVUSPersonaje* Jugador)
 	{
 		Bancos.Add(*Banco);
 	}
+	for (TActorIterator<ASAEVUSParedRompible> Pared(GetWorld()); Pared; ++Pared)
+	{
+		Paredes.Add(*Pared);
+	}
+	for (TActorIterator<ASAEVUSFragmentoMascara> Fragmento(GetWorld()); Fragmento; ++Fragmento)
+	{
+		Fragmentos.Add(*Fragmento);
+	}
 	Bancos.Sort([](const TWeakObjectPtr<ASAEVUSBanco>& A, const TWeakObjectPtr<ASAEVUSBanco>& B)
 	{
 		return A->GetActorLocation().X < B->GetActorLocation().X;
@@ -135,7 +150,8 @@ void USAEVUSSubsistemaRecorrido::Preparar(ASAEVUSPersonaje* Jugador)
 	{
 		return A->GetActorLocation().X < B->GetActorLocation().X;
 	});
-	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena, %d palancas y %d bancos en el mapa"), Avisos.Num(), Puertas.Num(), Palancas.Num(), Bancos.Num());
+	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena, %d palancas, %d bancos, %d paredes falsas y %d fragmentos en el mapa"),
+		Avisos.Num(), Puertas.Num(), Palancas.Num(), Bancos.Num(), Paredes.Num(), Fragmentos.Num());
 	Comprobar(TEXT("el mapa tiene avisos de tutorial"), !Avisos.IsEmpty());
 }
 
@@ -202,6 +218,12 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 		if (Jugador)
 		{
 			ActualizarBancos(Jugador);
+		}
+		break;
+	case EPaso::Secretos:
+		if (Jugador)
+		{
+			ActualizarSecretos(Jugador);
 		}
 		break;
 	default:
@@ -325,7 +347,11 @@ void USAEVUSSubsistemaRecorrido::ActualizarBancos(ASAEVUSPersonaje* Jugador)
 	using namespace SAEVUSRecorrido;
 	if (!Bancos.IsValidIndex(Indice))
 	{
-		Terminar();
+		Paso = EPaso::Secretos;
+		Indice = 0;
+		TiempoPaso = 0.f;
+		bLlevado = false;
+		TajosDados = 0;
 		return;
 	}
 	ASAEVUSBanco* Banco = Bancos[Indice].Get();
@@ -364,6 +390,72 @@ void USAEVUSSubsistemaRecorrido::ActualizarBancos(ASAEVUSPersonaje* Jugador)
 	++Indice;
 	bLlevado = false;
 	bVaciada = false;
+}
+
+void USAEVUSSubsistemaRecorrido::ActualizarSecretos(ASAEVUSPersonaje* Jugador)
+{
+	using namespace SAEVUSRecorrido;
+	// Primero las paredes falsas (a tajos de verdad), después los fragmentos (tocándolos).
+	if (Paredes.IsValidIndex(Indice))
+	{
+		ASAEVUSParedRompible* Pared = Paredes[Indice].Get();
+		if (!bLlevado)
+		{
+			const FVector Posicion = Pared->GetActorLocation();
+			const float MitadAncho = static_cast<float>(Pared->GetComponentsBoundingBox().GetExtent().X);
+			Llevar(Jugador, FVector(Posicion.X - MitadAncho - DistanciaPalanca, Posicion.Y, AlturaJunto(Pared)));
+			Jugador->SetActorRotation(FRotator::ZeroRotator);
+			if (AController* Controlador = Jugador->GetController())
+			{
+				Controlador->SetControlRotation(FRotator::ZeroRotator);
+			}
+			bLlevado = true;
+			TajosDados = 0;
+			TiempoPaso = 0.f;
+			return;
+		}
+		if (!Pared->EstaRota() && TajosDados < TajosMaximosPared)
+		{
+			if (TiempoPaso >= TiempoEntreTajos)
+			{
+				Jugador->PedirAtaque();
+				Jugador->SoltarAtaque();
+				++TajosDados;
+				TiempoPaso = 0.f;
+			}
+			return;
+		}
+		Comprobar(FString::Printf(TEXT("la pared falsa %d cae a tajos (%d)"), Indice, TajosDados), Pared->EstaRota());
+		FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("SAEVUS_Recorrido_Pared%d.png"), Indice), true, false);
+		++Indice;
+		bLlevado = false;
+		return;
+	}
+	const int32 IndiceFragmento = Indice - Paredes.Num();
+	if (!Fragmentos.IsValidIndex(IndiceFragmento))
+	{
+		Terminar();
+		return;
+	}
+	if (!bLlevado)
+	{
+		FragmentosAntes = Jugador->ObtenerFragmentosMascara();
+		if (Fragmentos[IndiceFragmento].IsValid())
+		{
+			Llevar(Jugador, Fragmentos[IndiceFragmento]->GetActorLocation());
+		}
+		bLlevado = true;
+		TiempoPaso = 0.f;
+		return;
+	}
+	if (TiempoPaso < TiempoRecogida)
+	{
+		return;
+	}
+	Comprobar(FString::Printf(TEXT("el fragmento de máscara %d se recoge al tocarlo"), IndiceFragmento),
+		!Fragmentos[IndiceFragmento].IsValid() && Jugador->ObtenerFragmentosMascara() == FragmentosAntes + 1);
+	++Indice;
+	bLlevado = false;
 }
 
 float USAEVUSSubsistemaRecorrido::AlturaJunto(const AActor* Actor)

@@ -1,7 +1,6 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Personaje/SAEVUSPersonaje.h"
-#include "Mundo/SAEVUSInteractuable.h"
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Audio/SAEVUSComponenteSonido.h"
@@ -21,14 +20,20 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
+#include "Mundo/SAEVUSInteractuable.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Personaje/SAEVUSConfigEntrada.h"
 #include "PhysicsEngine/PhysicsAsset.h"
 #include "SAEVUS.h"
+#include "Tutorial/SAEVUSSubsistemaTutorial.h"
 
 namespace SAEVUSPersonaje
 {
+	// Aviso al recoger un fragmento de máscara (s).
+	constexpr float DuracionAvisoFragmento = 3.f;
+
 	// Cápsula a la medida del cuerpo provisional.
 	constexpr float RadioCapsula = 42.f;
 	constexpr float MediaAlturaCapsula = 96.f;
@@ -165,6 +170,45 @@ void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AAct
 	if (ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>())
 	{
 		ModoJuego->NotificarMuerteJugador(ControladorDuenio);
+	}
+}
+
+void ASAEVUSPersonaje::BeginPlay()
+{
+	Super::BeginPlay();
+	// Máscaras extra de los fragmentos guardados.
+	VidaMaximaBase = Vida->ObtenerVidaMaxima();
+	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		FragmentosMascara = Guardado->ObtenerNumeroFragmentos();
+		const int32 Extra = FragmentosMascara / FMath::Max(Progreso.FragmentosPorMascara, 1);
+		if (Extra > 0)
+		{
+			Vida->FijarVidaMaxima(VidaMaximaBase + Extra * Progreso.VidaPorMascara);
+		}
+	}
+}
+
+void ASAEVUSPersonaje::RecogerFragmentoMascara(FName Identificador)
+{
+	++FragmentosMascara;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarFragmento(Identificador);
+	}
+	const int32 PorMascara = FMath::Max(Progreso.FragmentosPorMascara, 1);
+	const bool bMascaraEntera = FragmentosMascara % PorMascara == 0;
+	if (bMascaraEntera)
+	{
+		// Una máscara más, con la vida llena.
+		Vida->FijarVidaMaxima(Vida->ObtenerVidaMaxima() + Progreso.VidaPorMascara);
+	}
+	if (USAEVUSSubsistemaTutorial* Tutorial = GetWorld()->GetSubsystem<USAEVUSSubsistemaTutorial>())
+	{
+		Tutorial->MostrarMensaje(NSLOCTEXT("SAEVUSPersonaje", "Fragmento", "Fragmento de máscara"),
+			bMascaraEntera ? NSLOCTEXT("SAEVUSPersonaje", "MascaraEntera", "La máscara está entera: una máscara de vida más.")
+				: FText::Format(NSLOCTEXT("SAEVUSPersonaje", "FragmentosFaltan", "{0} de {1}."), FragmentosMascara % PorMascara, PorMascara),
+			SAEVUSPersonaje::DuracionAvisoFragmento);
 	}
 }
 

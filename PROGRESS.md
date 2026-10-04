@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 55)**
-**Último latido: 2026-10-04 06:28** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 56)**
+**Último latido: 2026-10-04 06:59** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -89,10 +89,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 52. [x] ~~Volumen general en los menús (0–100 % en pasos), guardado con las demás opciones.~~
 53. [x] ~~Menús con mando y teclado: foco en el primer botón al abrir, navegación con la cruceta y confirmar con el botón inferior; prueba de humo.~~ Botón enfocado resaltado.
 54. [x] ~~Enemigo con escudo ("Acorazado"): bloquea los golpes de frente (filtro de daño como la guardia del jugador), hay que rodearlo, saltarle por encima (pogo) o romper su guardia con el giro cargado; en la Zona 1.~~ `USAEVUSComponenteEscudo`, `DA_Enemigo_Acorazado` (cuerpo con escudo en Blender).
-55. [ ] Secreto en la Zona 1: pared falsa que se rompe a golpes y da a una sala con un fragmento de máscara (+1 máscara de vida al juntar dos; guardado).
+55. [x] ~~Secreto en la Zona 1: pared falsa que se rompe a golpes y da a una sala con un fragmento de máscara (+1 máscara de vida al juntar dos; guardado).~~ `ASAEVUSParedRompible`, `ASAEVUSFragmentoMascara`; el segundo fragmento es el premio del reto del tutorial.
 56. [ ] Regreso de la Zona 1 al tutorial (paso en la entrada) y aparición junto al paso correspondiente al cambiar de mapa.
 
 ## Estado del turno
-- Completado: tarea 54 (enemigo con escudo).
+- Completado: tarea 55 (secreto y fragmentos de máscara).
 - A medias: —
-- Siguiente paso exacto: tarea 55 — secreto con fragmento de máscara.
+- Siguiente paso exacto: tarea 56 — regreso al tutorial.

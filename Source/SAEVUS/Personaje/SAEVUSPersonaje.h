@@ -36,6 +36,21 @@ struct FSAEVUSAjusteGolpeRecibido
 	float VelocidadVertical = 350.f;
 };
 
+/** Progreso del personaje (Hollow Knight): fragmentos de máscara que suman vida máxima. */
+USTRUCT(BlueprintType)
+struct FSAEVUSAjusteProgreso
+{
+	GENERATED_BODY()
+
+	/** Fragmentos que hacen una máscara entera. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Progreso", meta = (ClampMin = "1"))
+	int32 FragmentosPorMascara = 2;
+
+	/** Vida que suma cada máscara entera (la interfaz pinta una máscara cada 20). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Progreso", meta = (ClampMin = "0"))
+	float VidaPorMascara = 20.f;
+};
+
 /**
  * Personaje del jugador de SAEVUS.
  *
@@ -133,6 +148,10 @@ public:
 	void Levantarse();
 	bool EstaSentado() const { return bSentado; }
 
+	/** Suma un fragmento de máscara (se guarda): con FragmentosPorMascara, una máscara más y vida llena. */
+	void RecogerFragmentoMascara(FName Identificador);
+	int32 ObtenerFragmentosMascara() const { return FragmentosMascara; }
+
 	//~ Inicio de la interfaz de ACharacter
 	virtual bool CanJumpWhileFalling() const override;
 	//~ Fin de la interfaz de ACharacter
@@ -153,6 +172,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Combate")
 	FSAEVUSAjusteGolpeRecibido GolpeRecibido;
 
+	UPROPERTY(EditDefaultsOnly, Category = "SAEVUS|Progreso")
+	FSAEVUSAjusteProgreso Progreso;
+
+	virtual void BeginPlay() override;
+
 private:
 	void ManejarMover(const FInputActionValue& Valor);
 	void ManejarMoverSoltar(const FInputActionValue& Valor);
@@ -164,6 +188,9 @@ private:
 
 	TWeakObjectPtr<AActor> Interactuable;
 	bool bSentado = false;
+	int32 FragmentosMascara = 0;
+	/** Vida máxima sin máscaras extra (la de la vida al empezar). */
+	float VidaMaximaBase = 0.f;
 
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);

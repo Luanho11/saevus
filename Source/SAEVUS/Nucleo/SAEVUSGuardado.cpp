@@ -72,6 +72,12 @@ void USAEVUSSubsistemaGuardado::GuardarVolumen(float Volumen)
 	Guardar();
 }
 
+void USAEVUSSubsistemaGuardado::GuardarFragmento(FName Identificador)
+{
+	Partida->FragmentosMascara.AddUnique(Identificador);
+	Guardar();
+}
+
 void USAEVUSSubsistemaGuardado::GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto)
 {
 	Partida->bTienePuntoControl = true;

@@ -43,7 +43,8 @@ Si algo no compila o falta un asset, `powershell -ExecutionPolicy Bypass -File H
 - doble salto, rebote (pogo, también en pinchos), alma y curación, contraataque (parry);
 - retroceso y parada de golpe, sacudida de cámara;
 - munición de reserva que se rellena con la espada (ver la pregunta de abajo);
-- bancos para sentarse (curan, rellenan munición y guardan) y palancas que abren atajos.
+- bancos para sentarse (curan, rellenan munición y guardan) y palancas que abren atajos;
+- secretos: una pared falsa en la Zona 1 y fragmentos de máscara (dos dan una máscara de vida más; uno está tras la pared y otro en lo alto del reto del tutorial).
 
 **Sistemas:**
 
