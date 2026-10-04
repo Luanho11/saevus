@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 10a)**
-**Último latido: 2026-10-03 19:19** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10b)**
+**Último latido: 2026-10-03 20:13** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -39,13 +39,13 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 8. [x] ~~Mapa tutorial `L_Tutorial`: secciones con carteles y avisos en pantalla, mini enemigos, mini jefe al final.~~
 9. [x] ~~Interfaz UMG en C++ escalable: vida, almas, arma/munición, avisos de tutorial, barra del jefe.~~
 10. [ ] Tareas propias (Claude), en este orden:
-    - 10a. [ ] Recorrido automático del tutorial: prueba de humo `-SAEVUSRecorridoTutorial` que mueve al jugador por cada sección (saltos, dash, paredes, rebote) y comprueba que llega al final; detecta mapas imposibles.
+    - 10a. [x] ~~Obstáculos del tutorial comprobados con tests de entradas simuladas (`SAEVUS.Tutorial.Obstaculos.*`).~~
     - 10b. [ ] Sonido boceto generado por código (golpes, dash, salto, daño) con `USoundWaveProcedural` o síntesis simple; volumen por categorías.
     - 10c. [ ] Pulido de animación: anticipación y estela del arma en los tajos, aterrizaje del doble salto, giro de la cabeza hacia el objetivo, reacción al recibir golpe.
     - 10d. [ ] Rendimiento: medir el tutorial con enemigos en la Vega 8, escalabilidad del contorno y de partículas, presupuesto por sección.
     - 10e. [ ] Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.
 
 ## Estado del turno
-- Completado: tarea 9 (interfaz UMG en C++: máscaras, orbe de alma, arma, avisos, barra del jefe; 85/85 tests; humo SUPERADA).
+- Completado: tarea 10a (tests de obstáculos del tutorial; 90/90 tests).
 - A medias: —
-- Siguiente paso exacto: tarea 10a — recorrido automático del tutorial (modo de la prueba de humo que lleva al jugador por las secciones de `L_Tutorial` con entradas reales y comprueba que cada obstáculo se supera).
+- Siguiente paso exacto: tarea 10b — sonido boceto generado por código (`USAEVUSComponenteSonido` o subsistema): síntesis simple a `USoundWaveProcedural` para tajo, golpe, dash, salto, daño y curación; volumen por categoría en un struct; disparado por los eventos que ya existen (AlGolpear, AlIniciarDash, AlSaltoAereo, AlCambiarVida, AlCurar).

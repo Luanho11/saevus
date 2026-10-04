@@ -45,9 +45,15 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 - `SAEVUS.Tutorial.Aviso`: el volumen publica el aviso una vez; los avisos caducan.
 - `SAEVUS.Tutorial.PuertaArena`: solo abre con sus enemigos muertos; los de otra arena no cuentan.
 - `SAEVUS.Tutorial.VolumenCaida`: devuelve al punto de retorno y quita vida sin matar.
+- `SAEVUS.Tutorial.Obstaculos.*`: cada obstáculo con sus medidas del mapa, superado con entradas simuladas de jugador. Si se cambia una medida del mapa o un ajuste de movimiento, hay que actualizar las constantes del test (`SAEVUSPruebasObstaculos.cpp`) y comprobar que sigue pasando:
+  - `BloqueDobleSalto`: con doble salto se sube al bloque de 2,2 m; con solo el salto normal (sin doble salto, escalada ni salto de pared), no.
+  - `FosoDash`: el foso de 8 m se cruza con salto, doble salto y dash (aterriza a unos 90 cm del borde: justo, a propósito).
+  - `FosoRebote`: el foso de 12 m se cruza rebotando en los dos muñecos y rematando con doble salto y dash.
+  - `FosoCarreraPared`: el foso de 9 m se cruza corriendo por la pared.
+  - `Cornisa`: la cornisa de 4,5 m se sube escalando y rematando con doble salto.
 - La prueba de humo funciona también aquí: `Ejecutar-PruebaHumo.ps1 -Mapa /Game/SAEVUS/Mapas/L_Tutorial` (desde Git Bash, con `MSYS_NO_PATHCONV=1`: si no, Git convierte `/Game/...` en una ruta de Windows y el juego se queda sin mapa). Por defecto la prueba usa `L_Pruebas`.
 
 ## Pendiente
 
-- Recorrido automático completo del tutorial (un "fantasma" que lo supere) como prueba.
+- Recorrido completo del tutorial en el juego real (los obstáculos ya se prueban por separado).
 - Arte del escenario: piezas modulares, decorado, luces de acento.
