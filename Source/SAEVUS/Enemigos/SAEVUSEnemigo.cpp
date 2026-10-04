@@ -99,6 +99,10 @@ void ASAEVUSEnemigo::FijarDatos(const USAEVUSDatosEnemigo* NuevosDatos)
 	Datos = NuevosDatos;
 	AplicarAjuste();
 	CrearMateriales();
+	if (HasActorBegunPlay())
+	{
+		Sonido->ActualizarTipo();
+	}
 }
 
 UMaterialInterface* ASAEVUSEnemigo::ObtenerMaterialProyectil() const

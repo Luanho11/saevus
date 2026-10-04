@@ -2,6 +2,7 @@
 
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
+#include "Enemigos/SAEVUSEnemigo.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundWaveProcedural.h"
 
@@ -40,6 +41,24 @@ FSAEVUSAjusteSonidosEnemigo::FSAEVUSAjusteSonidosEnemigo()
 	Muerte.Caida = 0.2f;
 	Muerte.Volumen = 0.6f;
 	Muerte.Semilla = 127;
+
+	// Aleteo: soplo corto y suave, casi solo ruido grave.
+	Aleteo.Duracion = 0.12f;
+	Aleteo.FrecuenciaInicio = 140.f;
+	Aleteo.FrecuenciaFin = 90.f;
+	Aleteo.MezclaRuido = 0.9f;
+	Aleteo.FiltroRuido = 0.15f;
+	Aleteo.Ataque = 0.02f;
+	Aleteo.Caida = 0.05f;
+	Aleteo.Volumen = 0.25f;
+	Aleteo.Semilla = 131;
+}
+
+USAEVUSComponenteSonidoEnemigo::USAEVUSComponenteSonidoEnemigo()
+{
+	// Solo los voladores lo encienden (aleteo).
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void USAEVUSComponenteSonidoEnemigo::BeginPlay()
@@ -48,6 +67,7 @@ void USAEVUSComponenteSonidoEnemigo::BeginPlay()
 	DatosAviso = SAEVUSSintesis::SintetizarBytes(Ajuste.Aviso);
 	DatosAtaque = SAEVUSSintesis::SintetizarBytes(Ajuste.Ataque);
 	DatosMuerte = SAEVUSSintesis::SintetizarBytes(Ajuste.Muerte);
+	ActualizarTipo();
 	if (USAEVUSComponenteIAEnemigo* IA = GetOwner()->FindComponentByClass<USAEVUSComponenteIAEnemigo>())
 	{
 		Manejador = IA->AlCambiarEstado.AddUObject(this, &ThisClass::AlCambiarEstado);
@@ -78,6 +98,41 @@ void USAEVUSComponenteSonidoEnemigo::AlCambiarEstado(ESAEVUSEstadoEnemigo NuevoE
 		break;
 	default:
 		break;
+	}
+}
+
+void USAEVUSComponenteSonidoEnemigo::ActualizarTipo()
+{
+	const ASAEVUSEnemigo* Enemigo = Cast<ASAEVUSEnemigo>(GetOwner());
+	const bool bVolador = Enemigo && Enemigo->ObtenerAjuste().bVolador;
+	if (bVolador && DatosAleteo.IsEmpty())
+	{
+		DatosAleteo = SAEVUSSintesis::SintetizarBytes(Ajuste.Aleteo);
+	}
+	SetComponentTickEnabled(bVolador);
+}
+
+void USAEVUSComponenteSonidoEnemigo::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	const ASAEVUSEnemigo* Enemigo = Cast<ASAEVUSEnemigo>(GetOwner());
+	const USAEVUSComponenteIAEnemigo* IA = Enemigo ? Enemigo->ObtenerIA() : nullptr;
+	if (!IA || IA->ObtenerEstado() == ESAEVUSEstadoEnemigo::Muerto)
+	{
+		return;
+	}
+	// Un batido por ciclo de aleteo (el mismo ritmo que el balanceo del cuerpo).
+	const float Periodo = 1.f / FMath::Max(Enemigo->ObtenerAjuste().FrecuenciaAleteo, KINDA_SMALL_NUMBER);
+	TiempoAleteo += DeltaTime;
+	if (TiempoAleteo < Periodo)
+	{
+		return;
+	}
+	TiempoAleteo -= Periodo;
+	const APawn* Objetivo = IA->ObtenerObjetivo();
+	if (Objetivo && FVector::Dist(Objetivo->GetActorLocation(), Enemigo->GetActorLocation()) <= Ajuste.DistanciaAleteo)
+	{
+		Reproducir(DatosAleteo, Ajuste.Aleteo.Duracion);
 	}
 }
 

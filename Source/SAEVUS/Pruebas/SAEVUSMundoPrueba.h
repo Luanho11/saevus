@@ -7,6 +7,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
+#include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 #include "Combate/SAEVUSComponenteAlma.h"
 #include "Combate/SAEVUSComponenteGuardia.h"
 #include "Armas/SAEVUSComponenteArmas.h"
@@ -223,6 +224,12 @@ namespace SAEVUSPruebas
 					Enemigo->ObtenerIA()->Actualizar(PasoSimulacion);
 					UCharacterMovementComponent* MovimientoEnemigo = Enemigo->GetCharacterMovement();
 					MovimientoEnemigo->TickComponent(PasoSimulacion, LEVELTICK_All, &MovimientoEnemigo->PrimaryComponentTick);
+					// El sonido solo tiene tick en los voladores (aleteo).
+					USAEVUSComponenteSonidoEnemigo* SonidoEnemigo = Enemigo->FindComponentByClass<USAEVUSComponenteSonidoEnemigo>();
+					if (SonidoEnemigo && SonidoEnemigo->IsComponentTickEnabled())
+					{
+						SonidoEnemigo->TickComponent(PasoSimulacion, LEVELTICK_All, &SonidoEnemigo->PrimaryComponentTick);
+					}
 				}
 			}
 		}

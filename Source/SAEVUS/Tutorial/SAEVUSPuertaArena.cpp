@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Tutorial/SAEVUSPuertaArena.h"
+#include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/StaticMeshComponent.h"
 #include "Enemigos/SAEVUSEnemigo.h"
@@ -76,6 +77,7 @@ void ASAEVUSPuertaArena::Abrir()
 	}
 	bAbierta = true;
 	TiempoAbriendo = 0.f;
+	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Puerta, GetActorLocation());
 	Malla->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(true);
 	if (!TituloAlAbrir.IsEmpty())

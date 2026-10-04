@@ -22,16 +22,21 @@ Sin archivos de audio: los efectos se **sintetizan por código** al empezar la p
 | Curación | `USAEVUSComponenteAlma::AlCurar` | campanilla que sube |
 | Dash | `AlIniciarDash` | soplo |
 | Doble salto | `AlSaltoAereo` | bocanada suave |
+| Gatillo en seco | `USAEVUSComponenteArmas::AlGatilloEnSeco` (sin reserva) | clic metálico flojo |
 
 ## Enemigos
 
-`USAEVUSComponenteSonidoEnemigo` (en cada `ASAEVUSEnemigo`, `FSAEVUSAjusteSonidosEnemigo`): gruñido que sube al **avisar**, arrastre al **atacar** y chillido que cae al **morir**, disparados por `USAEVUSComponenteIAEnemigo::AlCambiarEstado` y reproducidos en la posición del enemigo. El aviso sonoro refuerza la lectura del ataque.
+`USAEVUSComponenteSonidoEnemigo` (en cada `ASAEVUSEnemigo`, `FSAEVUSAjusteSonidosEnemigo`): gruñido que sube al **avisar**, arrastre al **atacar** y chillido que cae al **morir**, disparados por `USAEVUSComponenteIAEnemigo::AlCambiarEstado` y reproducidos en la posición del enemigo. El aviso sonoro refuerza la lectura del ataque. Los **voladores** además aletean: un soplo grave y suave por ciclo de aleteo (`FrecuenciaAleteo`), solo con su objetivo a menos de `DistanciaAleteo` (12 m); el componente solo tiene tick en los voladores (`ActualizarTipo`, también al cambiar los datos).
 
-`SAEVUSSintesis::SintetizarBytes` y `CrearOnda` son las piezas compartidas por los dos componentes.
+## Mundo
+
+`USAEVUSSubsistemaSonidoMundo` (`FSAEVUSAjusteSonidosMundo`): sonidos de objetos, sintetizados la primera vez que suenan y guardados. **Palanca** (golpe metálico seco, `ASAEVUSPalanca::Accionar`) y **Puerta** (retumbo largo y grave de piedra, `ASAEVUSPuertaArena::Abrir`, también las compuertas). Se llama con `USAEVUSSubsistemaSonidoMundo::Reproducir(Contexto, Sonido, Posicion)`.
+
+`SAEVUSSintesis::SintetizarBytes` y `CrearOnda` son las piezas compartidas por los componentes y el subsistema.
 
 ## Tests
 
-`SAEVUS.Audio.Sintesis` (longitud, no silencio, pico dentro del volumen, envolvente que se apaga, determinismo) y `SAEVUS.Audio.Eventos` (un tajo que acierta suena dos veces; el dash suena); `SAEVUS.Enemigo.AvisoYEmbestida` comprueba que el aviso y el ataque del enemigo suenan.
+`SAEVUS.Audio.Sintesis` (longitud, no silencio, pico dentro del volumen, envolvente que se apaga, determinismo) y `SAEVUS.Audio.Eventos` (un tajo que acierta suena dos veces; el dash suena); `SAEVUS.Enemigo.AvisoYEmbestida` comprueba que el aviso y el ataque del enemigo suenan. `SAEVUS.Audio.SonidosMundo` (la puerta suena al abrirse, la palanca una sola vez) y `SAEVUS.Audio.AleteoVolador` (lejos no se oye; cerca, unos 3 batidos por segundo).
 
 ## Pendiente
 

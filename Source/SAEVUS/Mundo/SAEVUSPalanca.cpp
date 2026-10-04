@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSPalanca.h"
+#include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
@@ -73,6 +74,7 @@ void ASAEVUSPalanca::Accionar()
 	bAccionada = true;
 	TiempoGiro = 0.f;
 	SetActorTickEnabled(true);
+	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Palanca, GetActorLocation());
 	for (ASAEVUSPuertaArena* Puerta : Puertas)
 	{
 		if (Puerta)

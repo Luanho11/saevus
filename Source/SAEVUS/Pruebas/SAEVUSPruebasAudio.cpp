@@ -5,8 +5,12 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Audio/SAEVUSComponenteSonido.h"
+#include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 #include "Audio/SAEVUSSintesis.h"
+#include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
+#include "Mundo/SAEVUSPalanca.h"
+#include "Tutorial/SAEVUSPuertaArena.h"
 
 namespace SAEVUSPruebasAudio
 {
@@ -81,6 +85,61 @@ bool FSAEVUSPruebaAudioEventos::RunTest(const FString& Parameters)
 	Jugador->PedirDash();
 	MundoPrueba.Paso();
 	TestEqual(TEXT("El dash suena"), Sonido->ObtenerReproducciones(), 3);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAudioMundo, "SAEVUS.Audio.SonidosMundo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAudioMundo::RunTest(const FString& Parameters)
+{
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	const USAEVUSSubsistemaSonidoMundo* Sonidos = MundoPrueba.ObtenerMundo()->GetSubsystem<USAEVUSSubsistemaSonidoMundo>();
+	if (!TestNotNull(TEXT("Subsistema de sonidos del mundo"), Sonidos))
+	{
+		return false;
+	}
+	ASAEVUSPuertaArena* Puerta = MundoPrueba.CrearActor<ASAEVUSPuertaArena>(FVector(300.f, 0.f, 100.f));
+	ASAEVUSPalanca* Palanca = MundoPrueba.CrearActor<ASAEVUSPalanca>(FVector(0.f, 0.f, 80.f));
+	Puerta->Abrir();
+	TestEqual(TEXT("La puerta suena al abrirse"), Sonidos->ObtenerReproducciones(), 1);
+	Palanca->Accionar();
+	Palanca->Accionar();
+	TestEqual(TEXT("La palanca suena una vez al accionarse"), Sonidos->ObtenerReproducciones(), 2);
+	TestFalse(TEXT("Cada sonido del mundo se sintetiza"), SAEVUSSintesis::SintetizarBytes(FSAEVUSAjusteSonidosMundo().Palanca).IsEmpty()
+		|| SAEVUSSintesis::SintetizarBytes(FSAEVUSAjusteSonidosMundo().Puerta).IsEmpty());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAudioAleteo, "SAEVUS.Audio.AleteoVolador", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAudioAleteo::RunTest(const FString& Parameters)
+{
+	constexpr float AlturaVuelo = 300.f;
+	constexpr float DistanciaCerca = 400.f;
+	constexpr float DistanciaLejos = 5000.f;
+	constexpr float TiempoEscucha = 1.f;
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	// Con suelo: el jugador se queda quieto y la distancia al volador es la de la prueba.
+	MundoPrueba.CrearBloque(FVector(0.f, 0.f, -50.f), FVector(12000.f, 2000.f, 100.f));
+	ASAEVUSPersonaje* Jugador = MundoPrueba.CrearPersonaje(FVector(0.f, 0.f, 150.f));
+	USAEVUSDatosEnemigo* Datos = NewObject<USAEVUSDatosEnemigo>(GetTransientPackage());
+	Datos->Enemigo.bVolador = true;
+	Datos->Enemigo.RadioPatrulla = 0.f;
+	Datos->Enemigo.Ataques.Reset();
+	auto Escuchar = [&](float Distancia)
+	{
+		ASAEVUSEnemigo* Enemigo = MundoPrueba.CrearEnemigo(FVector(Distancia, 0.f, AlturaVuelo), Datos, Jugador);
+		const USAEVUSComponenteSonidoEnemigo* Sonido = Enemigo->FindComponentByClass<USAEVUSComponenteSonidoEnemigo>();
+		const int32 Antes = Sonido->ObtenerReproducciones();
+		for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoEscucha); ++Indice)
+		{
+			MundoPrueba.Paso();
+		}
+		return Sonido->ObtenerReproducciones() - Antes;
+	};
+	const int32 Lejos = Escuchar(DistanciaLejos);
+	TestEqual(TEXT("Lejos no se oye aletear"), Lejos, 0);
+	const int32 Cerca = Escuchar(DistanciaCerca);
+	AddInfo(FString::Printf(TEXT("Aleteos en %.1f s cerca del jugador: %d"), TiempoEscucha, Cerca));
+	TestTrue(TEXT("Cerca aletea al ritmo del cuerpo"), Cerca >= FMath::FloorToInt32(Datos->Enemigo.FrecuenciaAleteo * TiempoEscucha) - 1);
 	return true;
 }
 
