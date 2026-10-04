@@ -118,6 +118,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void FijarCuracion(bool bPulsada);
 
+	/** Acción de interactuar: usa lo que hay cerca (o se levanta si está sentado). */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
+	void PedirInteraccion();
+
+	/** Lo que se puede usar ahora (lo anuncian los objetos al acercarse; ver ISAEVUSInteractuable). */
+	void FijarInteractuable(AActor* Actor);
+	/** Lo olvida si es el actual. */
+	void QuitarInteractuable(AActor* Actor);
+	AActor* ObtenerInteractuable() const { return Interactuable.Get(); }
+
+	/** Se sienta en Asiento (banco): quieto hasta que se mueve, salta, ataca o vuelve a interactuar. */
+	void Sentarse(const FTransform& Asiento);
+	void Levantarse();
+	bool EstaSentado() const { return bSentado; }
+
 	//~ Inicio de la interfaz de ACharacter
 	virtual bool CanJumpWhileFalling() const override;
 	//~ Fin de la interfaz de ACharacter
@@ -146,6 +161,9 @@ private:
 	void ManejarCaminar(const FInputActionValue& Valor);
 	void ManejarCurar(const FInputActionValue& Valor);
 	void ManejarGuardia(const FInputActionValue& Valor);
+
+	TWeakObjectPtr<AActor> Interactuable;
+	bool bSentado = false;
 
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);

@@ -10,6 +10,7 @@
 #include "Engine/SkinnedAsset.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
+#include "Personaje/SAEVUSPersonaje.h"
 #include "EngineUtils.h"
 #include "GameFramework/Character.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
@@ -298,6 +299,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	}
 	const float Velocidad = static_cast<float>(Movimiento->Velocity.Size2D());
 	const float VelocidadVertical = static_cast<float>(Movimiento->Velocity.Z);
+	const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(GetOwner());
 
 	AplicarParpadeo();
 	if (Vida && Vida->EstaMuerto())
@@ -334,6 +336,10 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	else if (bEnAire)
 	{
 		PoseAire(Pose, VelocidadVertical);
+	}
+	else if (Personaje && Personaje->EstaSentado())
+	{
+		PoseSentado(Pose);
 	}
 	else if (Alma && Alma->EstaCurando())
 	{
@@ -605,6 +611,24 @@ void USAEVUSComponenteAnimacionProcedural::PoseCuracion(FPose& Pose)
 	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 60.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 12.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 20.f) };
+}
+
+void USAEVUSComponenteAnimacionProcedural::PoseSentado(FPose& Pose)
+{
+	using namespace SAEVUSAnimacion;
+	// Sentado en el banco: muslos hacia delante, piernas colgando, manos en las rodillas, cabeza algo baja.
+	Pose.DesplazamientoRaiz.Z = -Ajuste.BajadaSentado;
+	for (const ESAEVUSHueso Muslo : { ESAEVUSHueso::MusloD, ESAEVUSHueso::MusloI })
+	{
+		Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Adelante, Ajuste.FlexionSentado) };
+	}
+	for (const ESAEVUSHueso Pierna : { ESAEVUSHueso::PiernaD, ESAEVUSHueso::PiernaI })
+	{
+		Pose.Huesos[Indice(Pierna)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.FlexionSentado) };
+	}
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Adelante * 0.6f - Arriba * 0.7f - Derecha * 0.1f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Adelante * 0.6f - Arriba * 0.7f + Derecha * 0.1f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 12.f) };
 }
 
 void USAEVUSComponenteAnimacionProcedural::PoseGuardia(FPose& Pose)

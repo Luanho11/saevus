@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 48)**
-**Último latido: 2026-10-04 04:42** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 49)**
+**Último latido: 2026-10-04 05:08** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -82,11 +82,11 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 45. [x] ~~Sonidos de mundo: palanca, compuerta/puerta que se abre, aleteo del revoloteador y chasquido del picado (síntesis, como el resto).~~ Palanca y puerta en `USAEVUSSubsistemaSonidoMundo`; aleteo de los voladores; el picado usa el sonido de ataque común.
 46. [x] ~~Jefe de la Zona 1 boceto: un segundo mini jefe con un patrón nuevo (p. ej. volador grande con picados y proyectiles en abanico), arena al final de la galería.~~ Madre Alada (volador, picado, abanicos de 5 y 7 proyectiles, dos fases) en su arena tras la antesala; `NumeroProyectiles` y `AperturaAbanico` en los ataques.
 47. [x] ~~Mapa de la zona en la pausa: esquema 2D generado de la geometría (bloques vistos desde arriba) con la posición del jugador y los bancos.~~ `USAEVUSWidgetMapa` en la pausa.
-48. [ ] Bancos de verdad (Hollow Knight): `IA_Interactuar` (E / botón inferior derecho del mando); sentarse en un banco cura del todo, rellena la munición, fija el punto de control y guarda; el caballero se sienta (pose procedural). En la Zona 1 y al final de las arenas del tutorial.
+48. [x] ~~Bancos de verdad (Hollow Knight): `IA_Interactuar` (E / botón inferior derecho del mando); sentarse en un banco cura del todo, rellena la munición, fija el punto de control y guarda; el caballero se sienta (pose procedural). En la Zona 1 y al final de las arenas del tutorial.~~ `ASAEVUSBanco` + `ISAEVUSInteractuable`, aviso "E   Sentarse", pose sentada, campanada; el recorrido se sienta en cada banco.
 49. [ ] Fundido y título al entrar en un mapa ("Ruinas del Paso" grande que aparece y se va), también al reaparecer en un banco.
 50. [ ] Poner al día `RESUMEN_PARA_EL_DUENO.md` con todo lo nuevo (Zona 1, jefes, menús, guardado, mapa) y capturas frescas.
 
 ## Estado del turno
-- Completado: tarea 47 (mapa en la pausa).
+- Completado: tarea 48 (bancos).
 - A medias: —
-- Siguiente paso exacto: tarea 48 — bancos de verdad.
+- Siguiente paso exacto: tarea 49 — fundido y título al entrar en un mapa.

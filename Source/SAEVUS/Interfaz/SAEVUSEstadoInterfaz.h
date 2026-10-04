@@ -24,6 +24,9 @@ struct SAEVUS_API FSAEVUSEstadoInterfaz
 	FText TextoArma;
 	FText TextoMunicion;
 
+	/** "E  Sentarse" con algo que usar cerca (y sin estar ya sentado); vacío si no. */
+	FText TextoInteraccion;
+
 	bool bHayAviso = false;
 	FText TituloAviso;
 	FText TextoAviso;

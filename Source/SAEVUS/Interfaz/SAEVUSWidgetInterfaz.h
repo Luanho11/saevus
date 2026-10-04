@@ -134,6 +134,9 @@ private:
 	TObjectPtr<UTextBlock> TextoMunicion;
 
 	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoInteraccion;
+
+	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> BloqueAviso;
 
 	UPROPERTY(Transient)

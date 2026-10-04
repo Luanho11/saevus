@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/PlatformMisc.h"
 #include "Misc/CommandLine.h"
+#include "Mundo/SAEVUSBanco.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Mundo/SAEVUSPalanca.h"
 #include "Personaje/SAEVUSPersonaje.h"
@@ -47,6 +48,9 @@ namespace SAEVUSRecorrido
 	constexpr float DistanciaPalanca = 110.f;
 	constexpr float TiempoAntesTajoPalanca = 0.3f;
 	constexpr float TiempoComprobarPalanca = 0.6f;
+	// Bancos: tiempo para que el solape avise al jugador y para ver la pose sentada.
+	constexpr float TiempoAnteBanco = 0.3f;
+	constexpr float TiempoSentado = 0.6f;
 }
 
 bool USAEVUSSubsistemaRecorrido::ShouldCreateSubsystem(UObject* Outer) const
@@ -110,11 +114,19 @@ void USAEVUSSubsistemaRecorrido::Preparar(ASAEVUSPersonaje* Jugador)
 	{
 		return A->GetActorLocation().X < B->GetActorLocation().X;
 	});
+	for (TActorIterator<ASAEVUSBanco> Banco(GetWorld()); Banco; ++Banco)
+	{
+		Bancos.Add(*Banco);
+	}
+	Bancos.Sort([](const TWeakObjectPtr<ASAEVUSBanco>& A, const TWeakObjectPtr<ASAEVUSBanco>& B)
+	{
+		return A->GetActorLocation().X < B->GetActorLocation().X;
+	});
 	Puertas.Sort([](const TWeakObjectPtr<ASAEVUSPuertaArena>& A, const TWeakObjectPtr<ASAEVUSPuertaArena>& B)
 	{
 		return A->GetActorLocation().X < B->GetActorLocation().X;
 	});
-	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena y %d palancas en el mapa"), Avisos.Num(), Puertas.Num(), Palancas.Num());
+	UE_LOG(LogSAEVUS, Display, TEXT("[SAEVUS recorrido] %d avisos, %d puertas de arena, %d palancas y %d bancos en el mapa"), Avisos.Num(), Puertas.Num(), Palancas.Num(), Bancos.Num());
 	Comprobar(TEXT("el mapa tiene avisos de tutorial"), !Avisos.IsEmpty());
 }
 
@@ -167,6 +179,12 @@ void USAEVUSSubsistemaRecorrido::Tick(float DeltaTime)
 		if (Jugador)
 		{
 			ActualizarPalancas(Jugador);
+		}
+		break;
+	case EPaso::Bancos:
+		if (Jugador)
+		{
+			ActualizarBancos(Jugador);
 		}
 		break;
 	default:
@@ -285,6 +303,52 @@ void USAEVUSSubsistemaRecorrido::ActualizarDiana(ASAEVUSPersonaje* Jugador)
 	}
 }
 
+void USAEVUSSubsistemaRecorrido::ActualizarBancos(ASAEVUSPersonaje* Jugador)
+{
+	using namespace SAEVUSRecorrido;
+	if (!Bancos.IsValidIndex(Indice))
+	{
+		Terminar();
+		return;
+	}
+	ASAEVUSBanco* Banco = Bancos[Indice].Get();
+	if (!bLlevado)
+	{
+		// En el banco (su origen está a la altura del centro de un jugador de pie).
+		Llevar(Jugador, Banco->GetActorLocation());
+		bLlevado = true;
+		bVaciada = false;
+		TiempoPaso = 0.f;
+		return;
+	}
+	if (!bVaciada && TiempoPaso >= TiempoAnteBanco)
+	{
+		Comprobar(FString::Printf(TEXT("el banco %d se anuncia al acercarse"), Indice), Jugador->ObtenerInteractuable() == Banco);
+		Jugador->PedirInteraccion();
+		Comprobar(FString::Printf(TEXT("sentarse en el banco %d (vida completa)"), Indice),
+			Jugador->EstaSentado() && Banco->ObtenerUsos() > 0 && Jugador->ObtenerVida()->ObtenerVida() >= Jugador->ObtenerVida()->ObtenerVidaMaxima());
+		bVaciada = true;
+		TiempoPaso = 0.f;
+		return;
+	}
+	// Captura con el jugador aún sentado (la captura sale al final del fotograma).
+	if (bVaciada && !bCapturaEnemigos && TiempoPaso >= TiempoSentado * 0.5f)
+	{
+		bCapturaEnemigos = true;
+		FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("SAEVUS_Recorrido_Banco%d.png"), Indice), true, false);
+	}
+	if (!bVaciada || TiempoPaso < TiempoSentado)
+	{
+		return;
+	}
+	bCapturaEnemigos = false;
+	Jugador->PedirInteraccion();
+	Comprobar(FString::Printf(TEXT("levantarse del banco %d"), Indice), !Jugador->EstaSentado());
+	++Indice;
+	bLlevado = false;
+	bVaciada = false;
+}
+
 float USAEVUSSubsistemaRecorrido::AlturaJunto(const AActor* Actor)
 {
 	return static_cast<float>(Actor->GetComponentsBoundingBox(true).Min.Z) + SAEVUSRecorrido::AlturaLlevar;
@@ -295,7 +359,11 @@ void USAEVUSSubsistemaRecorrido::ActualizarPalancas(ASAEVUSPersonaje* Jugador)
 	using namespace SAEVUSRecorrido;
 	if (!Palancas.IsValidIndex(Indice))
 	{
-		Terminar();
+		Paso = EPaso::Bancos;
+		Indice = 0;
+		TiempoPaso = 0.f;
+		bLlevado = false;
+		bVaciada = false;
 		return;
 	}
 	ASAEVUSPalanca* Palanca = Palancas[Indice].Get();

@@ -17,7 +17,7 @@ Fase de bocetos: el caballero se anima **por código** sobre su esqueleto propio
 
 ## Cómo se calcula la pose
 
-1. **Pose objetivo por estado** (por prioridad): muerte → escalada → carrera por pared → dash → aire (con recogida de piernas en el doble salto) → curación → locomoción; encima, el ataque en curso (por fase: preparación, activa, recuperación, con trayectoria por índice de combo o tajo aéreo) o el disparo (retroceso por el evento `AlDisparar`); la capa siempre, según la velocidad.
+1. **Pose objetivo por estado** (por prioridad): muerte → escalada → carrera por pared → dash → aire (con recogida de piernas en el doble salto) → sentado en un banco (raíz baja, muslos adelante, manos en las rodillas) → curación → locomoción; encima, el ataque en curso (por fase: preparación, activa, recuperación, con trayectoria por índice de combo o tajo aéreo) o el disparo (retroceso por el evento `AlDisparar`); la capa siempre, según la velocidad.
 2. Cada hueso tiene un **objetivo**: apuntar a una dirección del espacio de la malla, o un giro relativo.
 3. **FK propio** sobre la pose de reposo: `Q_hueso = (Q_padre_final · Q_padre_reposo⁻¹) · Giro · Q_hueso_reposo`; al apuntar, el giro mínimo entre la dirección de reposo heredada y la deseada.
 4. **Suavizado exponencial** de las rotaciones finales (`Suavizado`, más seco en acciones con `SuavizadoAccion`, más lento en la capa para que ondee). Las posiciones se recalculan desde las rotaciones suavizadas, así los huesos conservan su longitud.

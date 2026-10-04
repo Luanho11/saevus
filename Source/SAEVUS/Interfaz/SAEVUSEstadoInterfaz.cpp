@@ -1,6 +1,8 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Interfaz/SAEVUSEstadoInterfaz.h"
+#include "Personaje/SAEVUSPersonaje.h"
+#include "Mundo/SAEVUSInteractuable.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Armas/SAEVUSTiposArma.h"
 #include "Combate/SAEVUSComponenteAlma.h"
@@ -34,6 +36,11 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 			Estado.FraccionAlma = Alma->ObtenerAlma() / Alma->ObtenerAlmaMaxima();
 			Estado.bAlmaParaCurar = Alma->ObtenerAlma() >= Alma->ObtenerAjuste().CosteCuracion;
 			Estado.bCurando = Alma->EstaCurando();
+		}
+		const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(Pawn);
+		if (const ISAEVUSInteractuable* Objeto = Personaje && !Personaje->EstaSentado() ? Cast<ISAEVUSInteractuable>(Personaje->ObtenerInteractuable()) : nullptr)
+		{
+			Estado.TextoInteraccion = FText::Format(LOCTEXT("Interaccion", "E   {0}"), Objeto->ObtenerTextoInteraccion());
 		}
 		if (const USAEVUSComponenteArmas* Armas = Pawn->FindComponentByClass<USAEVUSComponenteArmas>())
 		{

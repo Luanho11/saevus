@@ -109,6 +109,13 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Curación")
 	float FlexionCuracion = 50.f;
 
+	/** Sentado en un banco: bajada de la raíz (cm) y flexión de caderas y rodillas (grados). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Banco", meta = (ForceUnits = "cm"))
+	float BajadaSentado = 42.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Banco")
+	float FlexionSentado = 85.f;
+
 	/** Reacción al recibir un golpe: el torso y la cabeza se echan atrás y vuelven. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ForceUnits = "s"))
 	float DuracionReaccionGolpe = 0.3f;
@@ -211,6 +218,7 @@ private:
 	void PoseDisparo(FPose& Pose);
 	void PoseMuerte(FPose& Pose, float DeltaTime);
 	void PoseCuracion(FPose& Pose);
+	void PoseSentado(FPose& Pose);
 	void PoseGuardia(FPose& Pose);
 	/** Oculta y muestra el cuerpo durante la invulnerabilidad tras un golpe. */
 	void AplicarParpadeo();

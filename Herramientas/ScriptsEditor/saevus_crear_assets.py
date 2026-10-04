@@ -59,6 +59,8 @@ ASIGNACIONES_SAEVUS = {
     # Mantener para gastar alma y curar (Hollow Knight).
     "IA_Curar": ["Q", "Gamepad_LeftShoulder"],
     "IA_SiguienteArma": ["MouseScrollDown", "Gamepad_RightShoulder"],
+    # Usar lo que hay cerca (bancos).
+    "IA_Interactuar": ["E", "Gamepad_DPad_Up"],
     "IA_RanuraArma1": ["One"],
     "IA_RanuraArma2": ["Two"],
     "IA_RanuraArma3": ["Three"],
@@ -388,6 +390,7 @@ def crear_data_assets(acciones):
     config_entrada.set_editor_property("accion_atacar", acciones["IA_Atacar"])
     config_entrada.set_editor_property("accion_recargar", acciones["IA_Recargar"])
     config_entrada.set_editor_property("accion_curar", acciones["IA_Curar"])
+    config_entrada.set_editor_property("accion_interactuar", acciones["IA_Interactuar"])
     config_entrada.set_editor_property("accion_guardia", acciones["IA_Guardia"])
     config_entrada.set_editor_property("accion_siguiente_arma", acciones["IA_SiguienteArma"])
     config_entrada.set_editor_property(
@@ -792,7 +795,7 @@ AVISOS_TUTORIAL = [
     (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
     (10650, "Técnicas", "Mantén el clic izquierdo y suelta: ataque cargado (giro).\nAtaca durante el dash: tajo en carrera. En el aire: hasta tres tajos seguidos."),
     (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
-    (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
+    (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe.\nLos bancos (E) te curan del todo y guardan tu avance."),
     (14600, "Armas de fuego", "1-4 o la rueda: cambiar de arma. Dispara a los muñecos de arriba.\nLas balas de reserva se gastan: cada golpe de espada las devuelve. R: recargar."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan. Esquiva con dash y castiga\ncuando se recuperan. Los proyectiles se paran con la guardia o se devuelven con un tajo.\nA los voladores: salta y tajo hacia arriba, o rebota encima."),
     (21250, "Reto (opcional)", "Pinchos, carrera por pared y cornisa sin descanso.\nTodo lo aprendido, encadenado."),
@@ -1037,6 +1040,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     crear_punto_control(actores, "Control_Alma", 13600)
     for indice, y in enumerate((-200, 200)):
         crear_muneco(actores, f"S6_Muneco{indice}", unreal.Vector(14300, y, 96), unreal.Rotator(0, 0, 180))
+    crear_banco(actores, "S6_Banco", 13900, -280, 0, materiales)
     # Armas de fuego: dos muñecos altos a los lados, mejor a tiros; los de abajo rellenan la reserva con la espada.
     for indice, y in enumerate((-(ANCHO_PASILLO / 2 - 80), ANCHO_PASILLO / 2 - 80)):
         crear_muneco(actores, f"S6_MunecoDiana{indice}", unreal.Vector(14850, y, 96 + 330), unreal.Rotator(0, 0, 180))
@@ -1064,6 +1068,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     # S9 Fin.
     crear_suelo(actores, "S9_Suelo", 20500, 21500, materiales)
     crear_texto(actores, "Cartel_Fin", "Fin del tutorial", unreal.Vector(21200, 0, 300), tamano=100.0)
+    crear_banco(actores, "S9_Banco", 20800, -280, 0, materiales)
     portal = crear_volumen(actores, unreal.SAEVUSVolumenCambioMapa, "S9_PasoZona1", unreal.Vector(20900, ANCHO_PASILLO / 2 - 60, 150),
                            (80, 60, 200), "Tutorial")
     portal.set_editor_property("mapa", unreal.load_asset(RUTA_MAPA_ZONA1))
@@ -1114,6 +1119,16 @@ def crear_palanca(actores, etiqueta, posicion, puertas, materiales, titulo, text
     return palanca
 
 
+def crear_banco(actores, etiqueta, x, y, altura, materiales, guinada=0.0):
+    """Banco (Hollow Knight) de pie en el suelo a 'altura': sentarse cura, rellena la munición y guarda."""
+    banco = actores.spawn_actor_from_class(unreal.SAEVUSBanco, unreal.Vector(x, y, altura + 100), unreal.Rotator(0, 0, guinada))
+    banco.set_actor_label(etiqueta)
+    for componente in banco.get_components_by_class(unreal.StaticMeshComponent):
+        componente.set_material(0, materiales["Acento"])
+    banco.set_folder_path("Mundo")
+    return banco
+
+
 def crear_caida_global(actores, etiqueta, x_inicio, x_fin, retorno):
     """Red bajo la zona: quien cae al vacío entre x_inicio y x_fin vuelve a retorno."""
     caida = crear_volumen(actores, unreal.SAEVUSVolumenCaida, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, -1500),
@@ -1153,9 +1168,8 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
     crear_bloque(actores, "Z3_Suelo", unreal.Vector(6000, (Y_GALERIA + ANCHO_GALERIA / 2 - ANCHO_PASILLO / 2) / 2, -300 - GROSOR_SUELO / 2),
                  (1000, ancho_banco, GROSOR_SUELO), materiales["Piedra"])
     crear_punto_control(actores, "Control_Banco", 5700, z=-300)
-    crear_bloque(actores, "Z3_Banco", unreal.Vector(5950, -280, -280), (220, 70, 40), materiales["Acento"])
-    crear_texto(actores, "Cartel_Banco", "Banco", unreal.Vector(5950, -280, -120), tamano=50.0)
-    crear_aviso(actores, 5550, "Banco", "Los bancos guardan tu avance: si caes o mueres, vuelves aquí.\n"
+    crear_banco(actores, "Z3_Banco", 5950, -250, -300, materiales)
+    crear_aviso(actores, 5550, "Banco", "Siéntate en el banco (E): te cura, rellena la munición y guarda tu avance.\n"
                 "A la derecha, una compuerta cerrada: se abre desde el otro lado.", altura=-300)
 
     # Z4 Torre: muro de 4,5 m que se escala y planta alta con el segundo encuentro.
@@ -1185,6 +1199,7 @@ def construir_mapa_zona1(bp_modo_juego, datos_enemigos, material_base):
 
     # Z7 Arena de la Madre Alada (jefe volador); su puerta lleva al final.
     crear_punto_control(actores, "Control_Jefe", 13100, z=150)
+    crear_banco(actores, "Z6_Banco", 12500, -250, 150, materiales)
     crear_arena(actores, "Z7_Arena", 13000, 16000, 2400, 700, materiales, 600, altura=150)
     jefe = enemigo("Z7_MadreAlada", "DA_Jefe_MadreAlada", 15000, 0, 150)
     crear_puerta(actores, "Z7_Puerta", 16000, 600, 700, [jefe], materiales["Puerta"],

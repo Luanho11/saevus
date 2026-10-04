@@ -29,11 +29,31 @@ FSAEVUSAjusteSonidosMundo::FSAEVUSAjusteSonidosMundo()
 	Puerta.Caida = 0.5f;
 	Puerta.Volumen = 0.7f;
 	Puerta.Semilla = 223;
+
+	// Banco: campanada suave que sube un poco y se queda sonando.
+	Banco.Duracion = 0.9f;
+	Banco.FrecuenciaInicio = 520.f;
+	Banco.FrecuenciaFin = 660.f;
+	Banco.Aspereza = 0.05f;
+	Banco.MezclaRuido = 0.05f;
+	Banco.FiltroRuido = 0.5f;
+	Banco.Ataque = 0.03f;
+	Banco.Caida = 0.4f;
+	Banco.Volumen = 0.45f;
+	Banco.Semilla = 227;
 }
 
 const FSAEVUSSonidoSintetizado& FSAEVUSAjusteSonidosMundo::Obtener(ESAEVUSSonidoMundo Sonido) const
 {
-	return Sonido == ESAEVUSSonidoMundo::Palanca ? Palanca : Puerta;
+	switch (Sonido)
+	{
+	case ESAEVUSSonidoMundo::Palanca:
+		return Palanca;
+	case ESAEVUSSonidoMundo::Banco:
+		return Banco;
+	default:
+		return Puerta;
+	}
 }
 
 void USAEVUSSubsistemaSonidoMundo::Reproducir(const UObject* Contexto, ESAEVUSSonidoMundo Sonido, const FVector& Posicion)

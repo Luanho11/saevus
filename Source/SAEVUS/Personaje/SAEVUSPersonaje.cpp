@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Personaje/SAEVUSPersonaje.h"
+#include "Mundo/SAEVUSInteractuable.h"
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Audio/SAEVUSComponenteSonido.h"
@@ -167,8 +168,57 @@ void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AAct
 	}
 }
 
+void ASAEVUSPersonaje::PedirInteraccion()
+{
+	if (bSentado)
+	{
+		Levantarse();
+		return;
+	}
+	if (ISAEVUSInteractuable* Objeto = Cast<ISAEVUSInteractuable>(Interactuable.Get()))
+	{
+		Objeto->Interactuar(this);
+	}
+}
+
+void ASAEVUSPersonaje::FijarInteractuable(AActor* Actor)
+{
+	if (Cast<ISAEVUSInteractuable>(Actor))
+	{
+		Interactuable = Actor;
+	}
+}
+
+void ASAEVUSPersonaje::QuitarInteractuable(AActor* Actor)
+{
+	if (Interactuable.Get() == Actor)
+	{
+		Interactuable.Reset();
+	}
+}
+
+void ASAEVUSPersonaje::Sentarse(const FTransform& Asiento)
+{
+	bSentado = true;
+	Alma->CancelarCuracion();
+	FijarGuardia(false);
+	ObtenerMovimiento()->StopMovementImmediately();
+	SetActorLocationAndRotation(FVector(Asiento.GetLocation().X, Asiento.GetLocation().Y, GetActorLocation().Z), Asiento.GetRotation().Rotator());
+}
+
+void ASAEVUSPersonaje::Levantarse()
+{
+	bSentado = false;
+}
+
 void ASAEVUSPersonaje::PedirSalto()
 {
+	if (bSentado)
+	{
+		// Saltar desde el banco solo levanta.
+		Levantarse();
+		return;
+	}
 	if (!Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Salto))
 	{
 		return;
@@ -253,6 +303,10 @@ void ASAEVUSPersonaje::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Entrada->BindAction(ConfigEntrada->AccionGuardia, ETriggerEvent::Started, this, &ThisClass::ManejarGuardia);
 		Entrada->BindAction(ConfigEntrada->AccionGuardia, ETriggerEvent::Completed, this, &ThisClass::ManejarGuardia);
 	}
+	if (ConfigEntrada->AccionInteractuar)
+	{
+		Entrada->BindAction(ConfigEntrada->AccionInteractuar, ETriggerEvent::Started, this, &ThisClass::PedirInteraccion);
+	}
 	if (ConfigEntrada->AccionCurar)
 	{
 		Entrada->BindAction(ConfigEntrada->AccionCurar, ETriggerEvent::Started, this, &ThisClass::ManejarCurar);
@@ -287,6 +341,15 @@ void ASAEVUSPersonaje::ManejarMoverSoltar(const FInputActionValue& Valor)
 
 void ASAEVUSPersonaje::AplicarEntradaMovimiento(const FVector2D& Eje)
 {
+	if (bSentado)
+	{
+		// Sentado no se mueve; empujar en cualquier dirección levanta.
+		if (Eje.IsNearlyZero())
+		{
+			return;
+		}
+		Levantarse();
+	}
 	const FRotationMatrix MatrizGuinada(FRotator(0.f, ObtenerRotacionEntrada().Yaw, 0.f));
 	const FVector Adelante = MatrizGuinada.GetUnitAxis(EAxis::X);
 	const FVector Derecha = MatrizGuinada.GetUnitAxis(EAxis::Y);
@@ -331,6 +394,7 @@ void ASAEVUSPersonaje::ManejarCaminar(const FInputActionValue& Valor)
 
 void ASAEVUSPersonaje::PedirDash()
 {
+	Levantarse();
 	if (Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Dash))
 	{
 		Alma->CancelarCuracion();
@@ -376,6 +440,7 @@ void ASAEVUSPersonaje::ManejarCurar(const FInputActionValue& Valor)
 
 void ASAEVUSPersonaje::PedirAtaque()
 {
+	Levantarse();
 	if (Armas->TieneArmaFuegoEquipada())
 	{
 		Armas->FijarGatillo(true);

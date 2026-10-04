@@ -80,4 +80,8 @@ public:
 	/** Booleana, mantenida: gasta alma para curar (en el suelo). */
 	UPROPERTY(EditDefaultsOnly, Category = "Combate")
 	TObjectPtr<UInputAction> AccionCurar;
+
+	/** Usar lo que hay cerca (bancos). */
+	UPROPERTY(EditDefaultsOnly, Category = "Mundo")
+	TObjectPtr<UInputAction> AccionInteractuar;
 };

@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "SAEVUSSubsistemaRecorrido.generated.h"
 
+class ASAEVUSBanco;
 class ASAEVUSMunecoEntrenamiento;
 class ASAEVUSPalanca;
 class ASAEVUSPersonaje;
@@ -17,7 +18,8 @@ class ASAEVUSVolumenTutorial;
  * lleva al jugador (invulnerable) a cada aviso y comprueba que aparece, con una captura por
  * sección; dispara con la pistola a una diana alta (un muñeco elevado, si el mapa la tiene);
  * después vacía cada arena y comprueba que su puerta se abre y que el jefe se activa; por último
- * golpea cada palanca y comprueba que abre sus compuertas. Sirve para cualquier mapa con avisos.
+ * golpea cada palanca y comprueba que abre sus compuertas, y se sienta en cada banco. Sirve para
+ * cualquier mapa con avisos.
  * Escribe "[SAEVUS recorrido]" en el log y cierra el juego. No existe en Shipping.
  */
 UCLASS()
@@ -41,6 +43,7 @@ private:
 		Diana,
 		Arenas,
 		Palancas,
+		Bancos,
 		Hecho
 	};
 
@@ -49,6 +52,7 @@ private:
 	void ActualizarDiana(ASAEVUSPersonaje* Jugador);
 	void ActualizarArenas(ASAEVUSPersonaje* Jugador);
 	void ActualizarPalancas(ASAEVUSPersonaje* Jugador);
+	void ActualizarBancos(ASAEVUSPersonaje* Jugador);
 	/** Suelo bajo Actor (la parte de abajo de sus límites) más AlturaLlevar: donde dejar al jugador. */
 	static float AlturaJunto(const AActor* Actor);
 	void Comprobar(const FString& Descripcion, bool bBien);
@@ -69,5 +73,6 @@ private:
 	/** Puertas de arena (con enemigos); las compuertas sin enemigos son de las palancas. */
 	TArray<TWeakObjectPtr<ASAEVUSPuertaArena>> Puertas;
 	TArray<TWeakObjectPtr<ASAEVUSPalanca>> Palancas;
+	TArray<TWeakObjectPtr<ASAEVUSBanco>> Bancos;
 	int32 Fallos = 0;
 };

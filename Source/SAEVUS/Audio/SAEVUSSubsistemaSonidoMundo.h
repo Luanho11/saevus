@@ -15,6 +15,8 @@ enum class ESAEVUSSonidoMundo : uint8
 	Palanca,
 	/** Puerta o compuerta que se abre: retumbo grave de piedra. */
 	Puerta,
+	/** Sentarse en un banco: campanada suave y cálida. */
+	Banco,
 	Total UMETA(Hidden)
 };
 
@@ -34,6 +36,9 @@ struct SAEVUS_API FSAEVUSAjusteSonidosMundo
 
 	UPROPERTY(EditAnywhere, Category = "Sonidos")
 	FSAEVUSSonidoSintetizado Puerta;
+
+	UPROPERTY(EditAnywhere, Category = "Sonidos")
+	FSAEVUSSonidoSintetizado Banco;
 
 	const FSAEVUSSonidoSintetizado& Obtener(ESAEVUSSonidoMundo Sonido) const;
 };

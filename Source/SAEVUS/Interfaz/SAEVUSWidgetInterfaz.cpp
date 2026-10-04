@@ -22,6 +22,8 @@ namespace SAEVUSInterfaz
 	constexpr float SeparacionOrbeMascaras = 18.f;
 	constexpr float SeparacionLineas = 4.f;
 	constexpr float AlturaBarraJefeDesdeAbajo = 70.f;
+	// El aviso de interacción, por encima de la barra del jefe.
+	constexpr float AlturaInteraccionDesdeAbajo = 150.f;
 	// Latido del orbe mientras cura: amplitud de escala y rapidez (rad/s).
 	constexpr float AmplitudLatido = 0.08f;
 	constexpr float RapidezLatido = 12.f;
@@ -161,6 +163,15 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraBarra->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
 	BloqueJefe->SetVisibility(ESlateVisibility::Collapsed);
 
+	// Abajo al centro, encima del jefe: lo que se puede usar ("E   Sentarse").
+	TextoInteraccion = CrearTexto(TEXT("TextoInteraccion"), Ajuste.TamanoTextoArma, true);
+	UCanvasPanelSlot* RanuraInteraccion = Lienzo->AddChildToCanvas(TextoInteraccion);
+	RanuraInteraccion->SetAnchors(FAnchors(0.5f, 1.f));
+	RanuraInteraccion->SetAlignment(FVector2D(0.5f, 1.f));
+	RanuraInteraccion->SetPosition(FVector2D(0.f, -AlturaInteraccionDesdeAbajo));
+	RanuraInteraccion->SetAutoSize(true);
+	TextoInteraccion->SetVisibility(ESlateVisibility::Collapsed);
+
 	// Pantalla de muerte: velo negro a pantalla completa con un texto, por encima de todo.
 	VeloMuerte = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("VeloMuerte"));
 	VeloMuerte->SetBrushColor(FLinearColor::Black);
@@ -234,6 +245,11 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 		BloqueAviso->SetRenderOpacity(Estado.OpacidadAviso);
 	}
 
+	FijarVisible(TextoInteraccion, !Estado.TextoInteraccion.IsEmpty());
+	if (!Estado.TextoInteraccion.IsEmpty())
+	{
+		FijarTexto(TextoInteraccion, Estado.TextoInteraccion);
+	}
 	FijarVisible(BloqueJefe, Estado.bJefeVisible);
 	if (Estado.bJefeVisible)
 	{
