@@ -8,6 +8,9 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Engine/SkinnedAsset.h"
+#include "Enemigos/SAEVUSComponenteIAEnemigo.h"
+#include "Enemigos/SAEVUSEnemigo.h"
+#include "EngineUtils.h"
 #include "GameFramework/Character.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
 #include "SAEVUS.h"
@@ -360,6 +363,7 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	Pose.EscalaArmaFuego = bArmaFuego ? 1.f : 0.f;
 
 	PoseCapa(Pose, Velocidad, VelocidadVertical);
+	PoseMirada(Pose);
 	PoseReaccionGolpe(Pose);
 }
 
@@ -649,6 +653,43 @@ void USAEVUSComponenteAnimacionProcedural::PoseReaccionGolpe(FPose& Pose)
 	const float Grados = Ajuste.InclinacionReaccionGolpe * P * P;
 	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Grados) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Grados * 1.2f) };
+}
+
+void USAEVUSComponenteAnimacionProcedural::PoseMirada(FPose& Pose)
+{
+	using namespace SAEVUSAnimacion;
+	FObjetivo& Cabeza = Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)];
+	if (Ajuste.RadioMirada <= 0.f || !Malla || Cabeza.bApuntar || !Cabeza.Giro.Equals(FQuat::Identity))
+	{
+		return;
+	}
+	const FVector Ojos = Malla->GetComponentLocation() + Malla->GetComponentQuat().RotateVector(ReposoComponente[Indice(ESAEVUSHueso::Cabeza)].GetLocation());
+	const AActor* Mas = nullptr;
+	double MejorDistancia = FMath::Square(static_cast<double>(Ajuste.RadioMirada));
+	for (TActorIterator<ASAEVUSEnemigo> Enemigo(GetWorld()); Enemigo; ++Enemigo)
+	{
+		const double Distancia = FVector::DistSquared(Enemigo->GetActorLocation(), Ojos);
+		if (Distancia < MejorDistancia && Enemigo->ObtenerIA()->ObtenerEstado() != ESAEVUSEstadoEnemigo::Muerto)
+		{
+			MejorDistancia = Distancia;
+			Mas = *Enemigo;
+		}
+	}
+	if (!Mas)
+	{
+		return;
+	}
+	// Dirección al enemigo en el espacio de la malla, en giro (lados) e inclinación (arriba/abajo).
+	const FVector Hacia = Malla->GetComponentQuat().UnrotateVector(Mas->GetActorLocation() - Ojos).GetSafeNormal();
+	const float Giro = FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(Hacia, Derecha), FVector::DotProduct(Hacia, Adelante)));
+	const float Inclinacion = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(static_cast<float>(FVector::DotProduct(Hacia, Arriba)), -1.f, 1.f)));
+	// Detrás del todo no se gira: quedaría forzado.
+	if (FMath::Abs(Giro) > 120.f)
+	{
+		return;
+	}
+	Cabeza.Giro = Girar(Adelante, Derecha, FMath::Clamp(Giro, -Ajuste.GiroMaximoCabeza, Ajuste.GiroMaximoCabeza))
+		* Girar(Adelante, Arriba, FMath::Clamp(Inclinacion, -Ajuste.InclinacionMaximaCabeza, Ajuste.InclinacionMaximaCabeza));
 }
 
 bool USAEVUSComponenteAnimacionProcedural::ObtenerHoja(FVector& OutBase, FVector& OutPunta) const

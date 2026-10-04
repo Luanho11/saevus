@@ -116,6 +116,17 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido")
 	float InclinacionReaccionGolpe = 22.f;
 
+	/** Mirada: la cabeza se gira hacia el enemigo vivo más cercano dentro de este radio. 0 = nunca. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mirada", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float RadioMirada = 1500.f;
+
+	/** Giros máximos de la cabeza al mirar: a los lados y arriba/abajo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mirada", meta = (ClampMin = "0", ClampMax = "90", ForceUnits = "deg"))
+	float GiroMaximoCabeza = 60.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mirada", meta = (ClampMin = "0", ClampMax = "90", ForceUnits = "deg"))
+	float InclinacionMaximaCabeza = 30.f;
+
 	/** Largo de la hoja del aguijón (cm), desde el hueso del arma: lo usa la estela. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float LongitudHoja = 62.f;
@@ -219,6 +230,8 @@ private:
 	void AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
 
 	void PoseReaccionGolpe(FPose& Pose);
+	/** La cabeza mira al enemigo cercano si ninguna otra pose la ocupa. */
+	void PoseMirada(FPose& Pose);
 
 	/** Dirección de reposo de un hueso en espacio de malla (hacia su hijo, o la fija de las hojas). */
 	FVector DireccionReposo(int32 Hueso) const;

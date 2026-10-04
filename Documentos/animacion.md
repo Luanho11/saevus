@@ -27,6 +27,8 @@ Ejes del espacio de la malla: Adelante = +Y, Derecha = −X, Arriba = +Z.
 
 Además, durante la invulnerabilidad tras un golpe el cuerpo parpadea (se oculta y se muestra a `FrecuenciaParpadeo`), y al recibir el golpe el torso y la cabeza se echan atrás (`DuracionReaccionGolpe`, `InclinacionReaccionGolpe`).
 
+**Mirada:** si ninguna pose ocupa la cabeza, se gira hacia el enemigo vivo más cercano dentro de `RadioMirada` (15 m), con `GiroMaximoCabeza` (60°) e `InclinacionMaximaCabeza` (30°); detrás del todo no se gira. Lee mejor de dónde viene el peligro.
+
 **Estela del arma:** `ObtenerHoja()` da la base y la punta del aguijón en el mundo (hueso `arma` + `LongitudHoja` en su dirección actual). `USAEVUSComponenteEfectosCombate` reparte partículas finas a lo largo de la hoja en cada fotograma de la fase activa del tajo, más densas hacia la punta: dibujan el arco del golpe.
 
 ## Ajustes
@@ -39,7 +41,7 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 
 ## Tests
 
-`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, TajoArriba, EstelaArma, Dash, ArmaVisible}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
+`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
 
 ## Pendiente
 

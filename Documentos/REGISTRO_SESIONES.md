@@ -58,3 +58,4 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 15:** sonidos de enemigos (aviso, ataque, muerte) por el nuevo evento `AlCambiarEstado` de la IA; síntesis compartida (`SintetizarBytes`, `CrearOnda`). 98/98 tests, humo SUPERADA en el tutorial.
 - **Tarea 16:** dash según el arma: con arma de fuego, voltereta más lenta sin estela ni cámara fija (`DashArmaFuego`, `bEstela`). 99/99 tests, humo SUPERADA.
 - **Tarea 18:** contraataque: golpe bloqueado en los primeros 0,15 s de la guardia → atacante aturdido, alma e invulnerabilidad breve, sonido propio. 100/100 tests, humo SUPERADA.
+- **Tarea 17:** la cabeza del caballero mira al enemigo vivo más cercano (límites de giro e inclinación). 101/101 tests, humo SUPERADA en el tutorial.

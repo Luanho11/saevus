@@ -232,6 +232,31 @@ bool FSAEVUSPruebaAnimacionEstelaArma::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionMirada, "SAEVUS.Animacion.MiradaEnemigo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionMirada::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	const FName Cabeza = USAEVUSComponenteAnimacionProcedural::NombreHueso(ESAEVUSHueso::Cabeza);
+	const float GuinadaSola = static_cast<float>(Mundo.Cuerpo->GetBoneRotationByName(Cabeza, EBoneSpaces::WorldSpace).Yaw);
+
+	// Un enemigo a la derecha del personaje (que mira a +X): +Y en el mundo. Sin objetivo, no se mueve.
+	Mundo.MundoPrueba.CrearEnemigo(Mundo.Personaje->GetActorLocation() + FVector(200.f, 400.f, 0.f), nullptr, nullptr);
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	const float GuinadaMirando = static_cast<float>(Mundo.Cuerpo->GetBoneRotationByName(Cabeza, EBoneSpaces::WorldSpace).Yaw);
+	// Guiñada positiva = de +X hacia +Y: hacia el enemigo.
+	const float Diferencia = FRotator::NormalizeAxis(GuinadaMirando - GuinadaSola);
+	AddInfo(FString::Printf(TEXT("La cabeza gira %.1f grados hacia el enemigo"), Diferencia));
+	TestTrue(TEXT("La cabeza se gira hacia el enemigo cercano (a su derecha)"), Diferencia > 20.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionDash, "SAEVUS.Animacion.Dash", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaAnimacionDash::RunTest(const FString& Parameters)
 {
