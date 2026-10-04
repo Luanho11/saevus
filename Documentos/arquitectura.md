@@ -8,7 +8,7 @@ Un módulo de juego, `SAEVUS` (`Source/SAEVUS/`), dividido en carpetas por funci
 
 | Carpeta | Contenido |
 |---|---|
-| `Nucleo/` | `ASAEVUSModoJuego` (reaparición, puntos de control, reinicio), `ASAEVUSControladorJugador` (contextos de entrada, pausa, sensibilidad), `SAEVUSCanalesColision.h` |
+| `Nucleo/` | `ASAEVUSModoJuego` (reaparición, puntos de control, reinicio), `ASAEVUSControladorJugador` (contextos de entrada, pausa, sensibilidad), `SAEVUSGuardado` (partida guardada y su subsistema), `SAEVUSCanalesColision.h` |
 | `Personaje/` | `ASAEVUSPersonaje`, `USAEVUSConfigEntrada`, `FSAEVUSDetectorDobleToque`, `FSAEVUSAjusteGolpeRecibido` |
 | `Movimiento/` | `USAEVUSComponenteMovimiento` (+ `...Paredes.cpp`): paso, salto con coyote/buffer, doble salto, dash (y voltereta con arma de fuego), paredes, rebote; `USAEVUSAjustesMovimiento` |
 | `Camara/` | `USAEVUSComponenteCamara` (encuadre, FOV, estilo: contorno, viñeta, saturación), `USAEVUSAjustesCamara` |

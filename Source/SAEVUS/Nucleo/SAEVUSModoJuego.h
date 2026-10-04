@@ -25,7 +25,7 @@ public:
 	/** Reaparición inmediata en el último punto de control (menú de pausa): el cuerpo actual desaparece. */
 	void ReiniciarJugador(AController* Controlador);
 
-	/** Desde ahora los jugadores reaparecen en Punto (puntos de control del tutorial). */
+	/** Desde ahora los jugadores reaparecen en Punto (puntos de control del tutorial); se guarda para "Continuar". */
 	void FijarPuntoControl(const FTransform& Punto);
 
 	bool TienePuntoControl() const { return bTienePuntoControl; }

@@ -26,6 +26,8 @@ Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de 
 
 `USAEVUSWidgetPausa` (también construido en C++): velo oscuro y una columna con **Continuar**, **Volver al último punto de control** (`ASAEVUSModoJuego::ReiniciarJugador`), **Calidad** (rota Baja → Media → Alta con `UGameUserSettings`), **Sensibilidad del ratón** (0,5 → 0,75 → 1 → 1,5 → 2, multiplica la entrada de mirar) y **Salir**. Lo abre `ASAEVUSControladorJugador::AlternarPausa` con `IA_Pausa` (P o Start; Esc detiene el Play en el editor), que dispara también en pausa.
 
+**Guardado** (`Nucleo/SAEVUSGuardado`): la calidad la guarda el motor (`GameUserSettings.ini`). La sensibilidad y el último punto de control (por mapa) van en `USAEVUSPartidaGuardada` (`Saved/SaveGames/SAEVUS.sav`), que mantiene `USAEVUSSubsistemaGuardado`: se carga al arrancar, el controlador aplica la sensibilidad en `BeginPlay`, y se escribe al cambiar la sensibilidad o al pasar por un punto de control. El punto de control guardado no se usa al arrancar: es para "Continuar" del menú principal. Con `-SAEVUSSinGuardar` (lo pasan la prueba de humo y el recorrido) no se escribe nada. Test `SAEVUS.Guardado.IdaYVuelta`.
+
 ## Tests
 
 `SAEVUS.Interfaz.VidaAlmaArma` (máscaras con 100 y 70 de vida, alma, arma por defecto y pistola con munición) y `SAEVUS.Interfaz.AvisoYJefe` (aviso con fundido; la barra del jefe solo con el jefe activo y vivo, con su fracción de vida) y `SAEVUS.Interfaz.OpcionesPausa` (rotación de calidad y sensibilidad). La prueba de humo abre el menú (juego en pausa) y guarda `SAEVUS_PruebaHumo_Pausa.png`. La prueba de humo guarda capturas con la interfaz.

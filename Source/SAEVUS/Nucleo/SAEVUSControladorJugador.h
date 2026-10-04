@@ -27,11 +27,12 @@ public:
 	/** Vuelve al último punto de control (o al inicio) y quita la pausa. */
 	void ReiniciarEnPuntoControl();
 
-	/** Multiplicador de la entrada de mirar (ratón y stick). */
+	/** Multiplicador de la entrada de mirar (ratón y stick). Se guarda entre sesiones. */
 	float ObtenerSensibilidad() const { return Sensibilidad; }
-	void FijarSensibilidad(float Nueva) { Sensibilidad = Nueva; }
+	void FijarSensibilidad(float Nueva);
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
 	/** Abre y cierra el menú de pausa. Debe disparar también en pausa (bTriggerWhenPaused). */

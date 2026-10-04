@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "Interfaz/SAEVUSWidgetPausa.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Nucleo/SAEVUSModoJuego.h"
 
 ASAEVUSControladorJugador::ASAEVUSControladorJugador()
@@ -92,4 +93,23 @@ void ASAEVUSControladorJugador::SetupInputComponent()
 void ASAEVUSControladorJugador::AlternarHUDDepuracion()
 {
 	SAEVUSDepuracion::ActivarHUD(!SAEVUSDepuracion::HUDActivo());
+}
+
+void ASAEVUSControladorJugador::BeginPlay()
+{
+	Super::BeginPlay();
+	// Opciones de la sesión anterior.
+	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Sensibilidad = Guardado->ObtenerSensibilidad();
+	}
+}
+
+void ASAEVUSControladorJugador::FijarSensibilidad(float Nueva)
+{
+	Sensibilidad = Nueva;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarSensibilidad(Nueva);
+	}
 }

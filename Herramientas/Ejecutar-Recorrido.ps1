@@ -28,7 +28,7 @@ $argComandos = if ($comandos) { "-ExecCmds=`"$($comandos -join ',')`"" } else { 
 
 # Una sola cadena literal de argumentos: Windows PowerShell 5.1 estropea los argumentos nativos entre comillas con espacios.
 $argPerfil = if ($PerfilGPU) { "-SAEVUSPruebaHumoPerfilGPU" } else { "" }
-$argumentos = "`"$Proyecto`" $Mapa -game -windowed -ResX=$ResX -ResY=$ResY -SAEVUSRecorrido $argPerfil -nosplash -NoSound $argComandos `"-abslog=$log`""
+$argumentos = "`"$Proyecto`" $Mapa -game -windowed -ResX=$ResX -ResY=$ResY -SAEVUSRecorrido -SAEVUSSinGuardar $argPerfil -nosplash -NoSound $argComandos `"-abslog=$log`""
 Start-Process -FilePath (Join-Path $RaizMotor "Engine\Binaries\Win64\UnrealEditor.exe") -ArgumentList $argumentos -Wait | Out-Null
 
 Select-String -Path $log -Pattern "\[SAEVUS recorrido\]|Critical error" -Encoding UTF8 | ForEach-Object { $_.Line -replace '^.*?\[SAEVUS recorrido\]', '[SAEVUS recorrido]' }

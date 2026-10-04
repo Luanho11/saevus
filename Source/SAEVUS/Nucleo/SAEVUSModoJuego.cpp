@@ -4,6 +4,7 @@
 #include "Depuracion/SAEVUSHUDDepuracion.h"
 #include "GameFramework/Controller.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "TimerManager.h"
 
@@ -71,4 +72,8 @@ void ASAEVUSModoJuego::FijarPuntoControl(const FTransform& Punto)
 {
 	PuntoControl = Punto;
 	bTienePuntoControl = true;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarPuntoControl(GetWorld(), Punto);
+	}
 }
