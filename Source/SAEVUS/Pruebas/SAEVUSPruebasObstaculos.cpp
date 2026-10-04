@@ -6,6 +6,11 @@
 
 #include "Movimiento/SAEVUSAjustesMovimiento.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
+#include "Combate/SAEVUSComponenteVida.h"
+#include "Components/BoxComponent.h"
+#include "Tutorial/SAEVUSPeligro.h"
+#include "GameFramework/DamageType.h"
+#include "Kismet/GameplayStatics.h"
 
 /**
  * Los obstáculos de L_Tutorial, con sus medidas (saevus_crear_assets.py, construir_mapa_tutorial),
@@ -29,6 +34,10 @@ namespace SAEVUSPruebasObstaculos
 	const float XMunecosRebote[] = { 400.f, 850.f };
 	constexpr float ZMunecosRebote = -60.f;
 	constexpr float AnchoFosoCarreraPared = 900.f;
+	// Pinchos del foso de rebote: caja de 60 cm de alto con la cara de arriba en Z = -90.
+	constexpr float ZCentroPinchos = -120.f;
+	constexpr float MediaAlturaPinchos = 30.f;
+	constexpr float AlturaAtaquePinchos = 140.f;
 	constexpr float AlturaCornisa = 450.f;
 
 	// Pilotaje.
@@ -331,6 +340,85 @@ bool FSAEVUSPruebaObstaculoCornisa::RunTest(const FString& Parameters)
 	}
 	AddError(FString::Printf(TEXT("No subió a la cornisa de %.0f cm (Z final %.0f)"), AlturaCornisa, Jugador->GetActorLocation().Z));
 	return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaObstaculoPinchos, "SAEVUS.Tutorial.Obstaculos.FosoPinchos", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaObstaculoPinchos::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasObstaculos;
+
+	SAEVUSPruebas::FMundoPrueba Mundo;
+	CrearSuelo(Mundo, -2000.f, 0.f);
+	CrearSuelo(Mundo, AnchoFosoRebote, AnchoFosoRebote + 1000.f);
+	ASAEVUSPeligro* Pinchos = Mundo.CrearActor<ASAEVUSPeligro>(FVector(AnchoFosoRebote * 0.5f, 0.f, ZCentroPinchos));
+	Pinchos->FindComponentByClass<UBoxComponent>()->SetBoxExtent(FVector(AnchoFosoRebote * 0.5f, AnchoPasillo * 0.5f, MediaAlturaPinchos));
+	Pinchos->FijarPuntoRetorno(FVector(-100.f, 0.f, AlturaInicio));
+	ASAEVUSPersonaje* Jugador = CrearJugador(Mundo, -1500.f);
+	if (!TestNotNull(TEXT("Jugador de pie"), Jugador))
+	{
+		return false;
+	}
+	USAEVUSComponenteMovimiento* Movimiento = Jugador->ObtenerMovimiento();
+	USAEVUSComponenteCombate* Combate = Jugador->ObtenerCombate();
+	const float VidaInicial = Jugador->ObtenerVida()->ObtenerVida();
+	bool bSalto = false;
+	int32 Rebotes = 0;
+	float VelocidadAnterior = 0.f;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax); ++Indice)
+	{
+		Jugador->AddMovementInput(FVector::ForwardVector, 1.f);
+		const FVector Posicion = Jugador->GetActorLocation();
+		if (!bSalto && Posicion.X >= -MargenBorde)
+		{
+			Saltar(Jugador);
+			bSalto = true;
+		}
+		else if (bSalto && Movimiento->IsFalling() && Movimiento->Velocity.Z < 0.f && Posicion.Z < AlturaAtaquePinchos
+			&& Posicion.X > 0.f && Posicion.X < AnchoFosoRebote && !Combate->EstaAtacando())
+		{
+			Combate->PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque::Abajo);
+		}
+		Mundo.Paso();
+		if (VelocidadAnterior < 0.f && Movimiento->Velocity.Z > 0.f && Movimiento->IsFalling())
+		{
+			++Rebotes;
+		}
+		VelocidadAnterior = static_cast<float>(Movimiento->Velocity.Z);
+		if (DePieSobre(Jugador, AnchoFosoRebote, AnchoFosoRebote + 1000.f, 0.f))
+		{
+			AddInfo(FString::Printf(TEXT("Cruzó los pinchos con %d rebotes"), Rebotes));
+			TestTrue(TEXT("Rebotando en los pinchos"), Rebotes > 0);
+			TestEqual(TEXT("Sin tocarlos: la vida intacta"), Jugador->ObtenerVida()->ObtenerVida(), VidaInicial);
+			TestEqual(TEXT("Los pinchos no dan alma"), Jugador->ObtenerAlma()->ObtenerAlma(), 0.f);
+			return true;
+		}
+	}
+	AddError(FString::Printf(TEXT("No cruzó los pinchos (%d rebotes, X final %.0f, vida %.0f)"), Rebotes, Jugador->GetActorLocation().X, Jugador->ObtenerVida()->ObtenerVida()));
+	return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaPeligroTocar, "SAEVUS.Tutorial.PeligroTocar", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaPeligroTocar::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasObstaculos;
+
+	SAEVUSPruebas::FMundoPrueba Mundo;
+	CrearSuelo(Mundo, -2000.f, 2000.f);
+	ASAEVUSPersonaje* Jugador = CrearJugador(Mundo, 0.f);
+	if (!TestNotNull(TEXT("Jugador de pie"), Jugador))
+	{
+		return false;
+	}
+	const FVector Retorno = Jugador->GetActorLocation();
+	ASAEVUSPeligro* Pinchos = Mundo.CrearActor<ASAEVUSPeligro>(FVector(1000.f, 0.f, 30.f));
+	Pinchos->FijarPuntoRetorno(Retorno);
+	const float VidaInicial = Jugador->ObtenerVida()->ObtenerVida();
+	Jugador->SetActorLocation(FVector(1000.f, 0.f, Retorno.Z));
+	Pinchos->NotificarEntrada(Jugador);
+	TestTrue(TEXT("Tocar los pinchos quita vida"), Jugador->ObtenerVida()->ObtenerVida() < VidaInicial);
+	TestTrue(TEXT("Y devuelve al borde"), Jugador->GetActorLocation().Equals(Retorno, 1.f));
+	TestEqual(TEXT("Los pinchos no reciben daño"), UGameplayStatics::ApplyDamage(Pinchos, 10.f, nullptr, Jugador, UDamageType::StaticClass()), 0.f);
+	return true;
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS

@@ -12,7 +12,7 @@ Mapa por defecto del juego y del editor. Lo genera entero `saevus_crear_assets.p
 | S3 Paredes | 5600 – 7400 | Salto de pared, escalada | Chimenea de 7 m y cornisa de 4,5 m |
 | S3b Carrera por pared | 7300 – 9500 | Carrera por pared | Foso de 9 m junto a una pared de 15 m |
 | S4 Combate | 9500 – 11500 | Combo, tajo hacia arriba | Tres muñecos y uno flotando |
-| S5 Rebote | 11500 – 13500 | Tajo hacia abajo y pogo | Foso de 12 m con dos muñecos flotando: no se cruza sin rebotar |
+| S5 Rebote | 11500 – 13500 | Tajo hacia abajo y pogo | Foso de 12 m con pinchos (se rebota en ellos) y un muñeco flotando: no se cruza sin rebotar |
 | S6 Alma | 13500 – 15000 | Alma y curación (Q) | Dos muñecos |
 | S7 Arena | 15000 – 17500 | Leer avisos, esquivar, castigar | Dos rastreros y un saltador; la puerta se abre al vaciarla |
 | S8 Guardián | 17500 – 20500 | Todo junto | Mini jefe con dos fases; su puerta lleva al final |
@@ -29,6 +29,7 @@ Puntos de control antes del combate, del alma, de la arena y del jefe: al morir 
 | `ASAEVUSVolumenTutorial` | Publica un aviso al entrar. |
 | `ASAEVUSPuntoControl` | Fija el punto de reaparición del modo de juego (`ASAEVUSModoJuego::FijarPuntoControl`). |
 | `ASAEVUSVolumenCaida` | Fondo de foso: quita 10 de vida y devuelve al borde (`PuntoRetorno`), como los peligros de Hollow Knight. |
+| `ASAEVUSPeligro` | Pinchos: tocarlos es como caer (daño y vuelta al borde), pero el tajo hacia abajo los golpea y rebota; no reciben daño ni dan alma. |
 | `ASAEVUSPuertaArena` | Bloque que se hunde cuando mueren todos sus enemigos (escucha `ASAEVUSEnemigo::AlMorirEnemigo`); aviso opcional al abrirse. |
 
 La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido de entrada y salida.
@@ -48,7 +49,8 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 - `SAEVUS.Tutorial.Obstaculos.*`: cada obstáculo con sus medidas del mapa, superado con entradas simuladas de jugador. Si se cambia una medida del mapa o un ajuste de movimiento, hay que actualizar las constantes del test (`SAEVUSPruebasObstaculos.cpp`) y comprobar que sigue pasando:
   - `BloqueDobleSalto`: con doble salto se sube al bloque de 2,2 m; con solo el salto normal (sin doble salto, escalada ni salto de pared), no.
   - `FosoDash`: el foso de 8 m se cruza con salto, doble salto y dash (aterriza a unos 90 cm del borde: justo, a propósito).
-  - `FosoRebote`: el foso de 12 m se cruza rebotando en los dos muñecos y rematando con doble salto y dash.
+  - `FosoRebote`: un foso de 12 m se cruza rebotando en dos muñecos y rematando con doble salto y dash.
+  - `FosoPinchos`: el foso de 12 m del tutorial se cruza rebotando en los pinchos, sin tocarlos ni ganar alma (`PeligroTocar`: tocarlos quita vida y devuelve al borde).
   - `FosoCarreraPared`: el foso de 9 m se cruza corriendo por la pared.
   - `Cornisa`: la cornisa de 4,5 m se sube escalando y rematando con doble salto.
 - La prueba de humo funciona también aquí: `Ejecutar-PruebaHumo.ps1 -Mapa /Game/SAEVUS/Mapas/L_Tutorial` (desde Git Bash, con `MSYS_NO_PATHCONV=1`: si no, Git convierte `/Game/...` en una ruta de Windows y el juego se queda sin mapa). Por defecto la prueba usa `L_Pruebas`.

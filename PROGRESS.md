@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 12)**
-**Último latido: 2026-10-03 21:05** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 10f)**
+**Último latido: 2026-10-03 21:15** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -46,9 +46,10 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
     - 10e. [x] ~~Investigación Hollow Knight/GunZ ampliada (tarea 2) en cuanto haya búsqueda web.~~
     - 10f. [ ] Hilo de juego: la animación procedural solo se actualiza para mallas visibles (y a menos frecuencia lejos de la cámara); la IA de enemigos lejanos en reposo, a menos frecuencia.
 11. [x] ~~Guardia (GunZ): mantener clic derecho con el arma cuerpo a cuerpo → postura de guardia que bloquea daño frontal (golpes de enemigos y disparos dentro de un cono), con retroceso y chispa al bloquear; la guardia cancela la recuperación del tajo (nueva acción de cancelación `Guardia` en la tabla de cada ataque); no se puede atacar ni curar en guardia; movimiento reducido. Datos en un struct; tests; aviso en el tutorial (sección de combate).~~
-12. [ ] Peligros y rebote en el tutorial (Hollow Knight): pinchos (`ASAEVUSPeligro`: daño + retorno como la caída, se puede rebotar en ellos con el tajo hacia abajo) en el foso de rebote, y un reto final de técnica (cadena pared → doble salto → dash → rebote).
+12. [x] ~~Peligros y rebote en el tutorial (Hollow Knight): pinchos (`ASAEVUSPeligro`: daño + retorno como la caída, se puede rebotar en ellos con el tajo hacia abajo) en el foso de rebote, y un reto final de técnica (cadena pared → doble salto → dash → rebote).~~ (el reto final de técnica queda para la 13)
+13. [ ] Reto de técnica al final del tutorial (opcional, tras el Guardián): pasillo con pared → doble salto → dash → rebote en pinchos → carrera por pared, con su test de obstáculo.
 
 ## Estado del turno
-- Completado: tarea 11 (guardia; 96/96 tests; humo SUPERADA con etapa de guardia).
+- Completado: tarea 12 (pinchos con rebote; 98/98 tests).
 - A medias: —
-- Siguiente paso exacto: tarea 10f (hilo de juego) o 12 (peligros con rebote). Orden elegido: 12 primero (jugabilidad), luego 10f.
+- Siguiente paso exacto: tarea 10f — hilo de juego: animación procedural solo para mallas renderizadas recientemente (`WasRecentlyRendered`) y a menos frecuencia lejos de la cámara; IA de enemigos en reposo y lejos del jugador a menos frecuencia (intervalo de tick por datos). Medir antes y después con la prueba de humo en `L_Tutorial`.

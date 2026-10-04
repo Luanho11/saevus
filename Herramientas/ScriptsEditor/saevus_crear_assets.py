@@ -705,7 +705,7 @@ AVISOS_TUTORIAL = [
     (5650, "Paredes", "Salta contra una pared para rebotar en ella.\nCorre de frente hacia una pared para escalarla."),
     (7700, "Carrera por pared", "Salta hacia la pared en diagonal y sigue avanzando: correrás por ella.\nSalta para soltarte."),
     (9550, "Combate", "Clic izquierdo: atacar. Encadena tres tajos. Mira hacia arriba al atacar: tajo hacia arriba.\nClic derecho: guardia, bloquea lo que llega de frente. Tajo y guardia se encadenan."),
-    (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo.\nSi golpeas algo rebotas y recuperas el dash y el doble salto."),
+    (11550, "Rebote", "En el aire, mira hacia abajo y ataca: tajo hacia abajo. Si golpeas algo rebotas\ny recuperas el dash y el doble salto. Rebota en los pinchos: tocarlos duele."),
     (13550, "Alma", "Cada golpe llena el alma.\nMantén Q en el suelo para gastarla y curarte. Un golpe te interrumpe."),
     (15100, "Arena", "Los enemigos avisan antes de atacar: brillan y se agachan.\nEsquiva con dash y castiga cuando se recuperan. Derrótalos para abrir la puerta."),
     (17700, "El Guardián", "Un mini jefe. A media vida se enfada: es más rápido y salta.\nUsa todo lo aprendido."),
@@ -755,6 +755,14 @@ def crear_foso(actores, etiqueta, x_inicio, x_fin, retorno, materiales):
                           (largo / 2, ANCHO_PASILLO, 150), "Tutorial")
     caida.set_editor_property("punto_retorno", retorno - caida.get_actor_location())
     return caida
+
+
+def crear_peligro(actores, etiqueta, centro, extension, retorno, material):
+    """Pinchos: tocarlos quita vida y devuelve a retorno; el tajo hacia abajo rebota en ellos."""
+    peligro = crear_volumen(actores, unreal.SAEVUSPeligro, etiqueta, centro, extension, "Tutorial")
+    peligro.set_editor_property("punto_retorno", retorno - peligro.get_actor_location())
+    peligro.get_component_by_class(unreal.InstancedStaticMeshComponent).set_material(0, material)
+    return peligro
 
 
 def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, ancho=ANCHO_PASILLO):
@@ -872,8 +880,10 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     # S5 Rebote: foso de 12 m (no se cruza sin rebotar) con dos muñecos flotando a media altura.
     crear_suelo(actores, "S5_Suelo", 11500, 11800, materiales)
     crear_foso(actores, "S5_Foso", 11800, 13000, unreal.Vector(11650, 0, 100), materiales)
+    # Pinchos a lo largo del foso (se rebota en ellos) y un muñeco flotando para practicar primero.
+    crear_peligro(actores, "S5_Pinchos", unreal.Vector(12400, 0, -120), (600, ANCHO_PASILLO / 2, 30), unreal.Vector(11650, 0, 100),
+                  materiales["Puerta"])
     crear_muneco(actores, "S5_MunecoRebote1", unreal.Vector(12200, 0, -60))
-    crear_muneco(actores, "S5_MunecoRebote2", unreal.Vector(12650, 0, -60))
     crear_suelo(actores, "S5_Llegada", 13000, 13500, materiales)
 
     # S6 Alma: muñecos para llenar el alma antes de la arena.

@@ -64,6 +64,7 @@ Mecánicas de Hollow Knight adaptadas a 3D, con números propios:
 
 - **Dirección por la cámara.** En 2D se apunta con arriba/abajo; en tercera persona, W y S ya mueven. `ASAEVUSPersonaje::PedirAtaque` lee la inclinación vertical de la cámara: desde `UmbralInclinacionArriba` (30°) sale `TajoArriba`; hasta `UmbralInclinacionAbajo` (−40°), `TajoAbajo`. Abajo solo existe en el aire (en el suelo es el combo frontal). Umbrales en el repertorio; cambiables.
 - **Tajos direccionales** (`FSAEVUSRepertorioMelee::TajoArriba` / `TajoAbajo`): 0,08 / 0,10 / 0,25 s, 12 de daño, esfera de 70 cm a ±130 cm de altura, sin estocada. No encadenan: salen desde la ventana de encadenar de cualquier ataque, y tras ellos vuelve a empezar el combo.
+- **Golpear sin daño:** lo que no recibe daño (pinchos, `ASAEVUSPeligro`) cuenta para el impacto y el rebote, pero no es un golpe: no emite `AlGolpear`, así no da alma ni chispas (como en Hollow Knight).
 - **Rebote (pogo)**: `VelocidadRebote` (750 cm/s en el tajo hacia abajo). Al acertar en el aire, `USAEVUSComponenteMovimiento::Rebotar` fija la velocidad vertical, corta dash y estocada y **recarga dash aéreo y doble salto**: se puede encadenar rebote → doble salto → dash → rebote.
 - **Impacto** (una vez por ataque, en el primer acierto):
   - `RetrocesoAtacante` (250 cm/s; 0 en los tajos direccionales): corta la estocada y echa al atacante hacia atrás, así el golpe se siente y no se atraviesa al enemigo.

@@ -72,7 +72,7 @@ public:
 	/** Se emite al empezar cada ataque (sonido, efectos). */
 	FSAEVUSEventoAtaque AlIniciarAtaque;
 
-	/** Se dispara una vez por cada actor golpeado por un ataque. */
+	/** Se dispara una vez por cada actor golpeado (que recibe daño) por un ataque. */
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Combate")
 	FSAEVUSFirmaGolpeAtaque AlGolpear;
 

@@ -283,8 +283,12 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 	for (AActor* Objetivo : Nuevos)
 	{
 		ActoresGolpeados.Add(Objetivo);
-		UGameplayStatics::ApplyDamage(Objetivo, Ataque.Danio, Duenio->GetInstigatorController(), Duenio, UDamageType::StaticClass());
-		AlGolpear.Broadcast(Objetivo, Ataque.Danio);
+		// Lo que no recibe daño (pinchos, escenario) cuenta para el impacto y el rebote, pero no es un
+		// golpe: no da alma ni chispas.
+		if (UGameplayStatics::ApplyDamage(Objetivo, Ataque.Danio, Duenio->GetInstigatorController(), Duenio, UDamageType::StaticClass()) > 0.f)
+		{
+			AlGolpear.Broadcast(Objetivo, Ataque.Danio);
+		}
 	}
 	if (!Nuevos.IsEmpty())
 	{
