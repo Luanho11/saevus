@@ -18,7 +18,7 @@ Piezas del script: `crear_sala` (suelo, muros laterales y muros de entrada y sal
 | S5 Sala de armas | 9800 – 12600 | 18 m | Combo, tajo hacia arriba, guardia; ataque cargado, tajo en carrera, combo aéreo | Muñecos (uno alto, una pareja para el giro) entre cuatro columnas |
 | S6 Capilla | 12600 – 14400 | 12 m | Alma, curación, banco | Dos muñecos y un banco |
 | S7 Gran salón | 14400 – 19000 | 30 m | Práctica libre | Balcones a 4 m a ambos lados con escaleras, dos filas de columnas de 11 m, estrado central |
-| S8 Fin | 19000 – 20400 | 12 m | — | Banco, cartel "Fin del tutorial", paso a la Zona 1 y llegada desde ella (`Llegada_DesdeZona1`) |
+| S8 Fin | 19000 – 20400 | 12 m | — | Banco, cartel "Fin del tutorial", paso a la Mazmorra (`mazmorra.md`) y llegada desde ella (`Llegada_DesdeMazmorra`) |
 | S9 Reto (opcional) | 20400 – 24400 | 8 m | Todo encadenado | Foso de 8 m con pinchos, foso de 9 m con carrera por pared, cornisa de 4,5 m con un fragmento de máscara |
 
 Puntos de control al entrar en la sala de armas, la capilla, el gran salón y el reto: al morir se reaparece en el último.
@@ -43,7 +43,7 @@ La interfaz (`interfaz.md`) muestra el aviso activo centrado arriba, con fundido
 - Luz: "Luna" direccional azulada de 2,5 lux con sombras y prioridad de sombreado forward, más "Relleno" de 0,8 lux sin sombras desde el lado contrario. Sin atmósfera ni luz de cielo: el cielo queda oscuro. Niebla de altura densa y azul oscuro.
 - Exposición manual (sin adaptación) en un volumen de post-proceso: la oscuridad no se aclara sola.
 - Carteles: `TextRenderActor` mirando hacia el jugador que avanza.
-- **Decorado** (sin colisión): piezas modulares generadas en Blender (`Herramientas/Arte/blender_escenario.py`, `Generar-Escenario.ps1` → `ArteFuente/Escenario/`, importadas a `/Game/SAEVUS/Arte/Escenario/`): `SM_ColumnaRota` (esquinas del gran salón) y `SM_Escombros` (la celda); `SM_ArcoSeccion` queda para la Zona 1. Menos de 100 triángulos cada una, con `MI_Escenario_Acento`.
+- **Decorado** (sin colisión): piezas modulares generadas en Blender (`Herramientas/Arte/blender_escenario.py`, `Generar-Escenario.ps1` → `ArteFuente/Escenario/`, importadas a `/Game/SAEVUS/Arte/Escenario/`): `SM_ColumnaRota` (esquinas del gran salón) y `SM_Escombros` (la celda); `SM_ArcoSeccion` queda sin usar por ahora. Menos de 100 triángulos cada una, con `MI_Escenario_Acento`.
 
 ## Pruebas
 

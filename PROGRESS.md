@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: trabajando (tarea 71, fase "Rehacer como GunZ")**
-**Último latido: 2026-10-04 11:24** (la sesión activa lo actualiza en cada commit)
+**Estado: trabajando (tarea 72, fase "Rehacer como GunZ")**
+**Último latido: 2026-10-04 11:41** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -118,7 +118,7 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 68. [x] Animación direccional: correr adelante/atrás/lados, volteretas de dash por dirección, carrera y salto de pared con giro, aterrizajes; más fluida y limpia.
 69. [x] Sombreado dibujado de verdad (Hollow Knight en 3D): luz en bandas planas, tinta gruesa en contornos, sombras frías, niebla en capas, grano de papel procedural; medir en la Vega 8.
 70. [x] Tutorial nuevo estilo mazmorra (estructura de referencia: Dungeon de GunZ): salas cerradas con muros para correr, escaleras, balcones, pilares y arcos; enseña paso a paso con mensajes claros.
-71. [ ] Mapa de práctica "Mazmorra" (arena estilo Dungeon de GunZ) en lugar de la Zona 1; el paso del tutorial lleva a ella.
+71. [x] Mapa de práctica "Mazmorra" (arena estilo Dungeon de GunZ) en lugar de la Zona 1; el paso del tutorial lleva a ella.
 72. [ ] Interfaz y menús: tipografía (Roboto con contorno, espaciado y pesos), menús limpios (Tutorial, Mazmorra, Opciones, Salir), avisos con las teclas resaltadas; quitar lo genérico.
 73. [ ] Personaje: caballero mejorado en Blender (proporciones, capa, máscara, espada clara) y alcance de la espada visible e intuitivo (estela = zona de golpe).
 74. [ ] Partículas: estela y polvo direccional del dash, aterrizaje, carrera por pared, salto de pared, arcos de los tajos.
@@ -129,4 +129,4 @@ Si el latido tiene **45 minutos o más**, la sesión interactiva terminó: cambi
 ## Estado del turno
 - Completado: tarea 60 (mapa explorado). Cambio de rumbo del dueño (2026-10-04, ver arriba).
 - A medias: —
-- Siguiente paso exacto: tarea 71 — mapa Mazmorra de práctica.
+- Siguiente paso exacto: tarea 72 — interfaz y menús (tipografía, teclas en los avisos, menús limpios).

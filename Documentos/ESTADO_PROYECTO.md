@@ -21,9 +21,9 @@ _Actualizado: 2026-10-04 (sesión 3d, fase "Rehacer como GunZ")_
 - **Mecánicas** (`movimiento.md`, `combate.md`): doble salto (con buffer cerca del suelo), tajo hacia arriba por la inclinación de la cámara (el tajo hacia abajo y el rebote se retiraron), retroceso y parada de golpe, alma al golpear y curación mantenida, invulnerabilidad con parpadeo tras recibir un golpe.
 - **Enemigos** (`enemigos.md`, **retirados de los mapas por ahora**: `ENEMIGOS_EN_MAPAS = False` en el script de assets; volverán como goblins de GunZ): IA de estados (patrulla, persecución, aviso, ataque, recuperación, aturdido, muerte), contacto que hace daño, siete tipos por datos (rastrero, saltador, escupidor, revoloteador volador, acorazado con escudo, mini jefe Guardián y jefe volador Madre Alada, con dos fases), el jugador sale despedido al recibir golpes.
 - **Mapa tutorial** `L_Tutorial` (`tutorial.md`), mapa por defecto: Mazmorra del Umbral: diez salas cerradas tipo Dungeon de GunZ (moverse, saltar, dash, paredes, carrera por pared, sala de armas, capilla con banco, gran salón con balcones y columnas, fin y reto), avisos en pantalla, carteles, puntos de control, fosos con retorno, puertas de arena; iluminación oscura con exposición manual.
-- **Secretos** (`zona1.md`): pared falsa que cae a tajos, fragmentos de máscara (dos = una máscara de vida más, guardados).
-- **Bancos** (`zona1.md`): sentarse con E cura, rellena la munición, fija el punto de control y guarda (Zona 1 y tutorial).
-- **Zona 1** (`zona1.md`): `L_Zona1`, ruinas con desniveles, tres encuentros, banco, arena, un atajo con palanca y compuerta y el jefe Madre Alada; se llega desde el final del tutorial.
+- **Secretos** (`mazmorra.md`): pared falsa que cae a tajos, fragmentos de máscara (dos = una máscara de vida más, guardados).
+- **Bancos** (`mazmorra.md`): sentarse con E cura, fija el punto de control y guarda (Mazmorra y tutorial).
+- **Mazmorra** (`mazmorra.md`): `L_Mazmorra`, práctica libre tipo Dungeon de GunZ (salón central con balcones y columnas; galería de fosos con pared falsa y sala secreta; pozo con chimenea y ascensor; terraza con palanca y compuerta); se llega desde el final del tutorial. Sustituye a la Zona 1 (retirada).
 - **Menús** (`interfaz.md`): menú principal al arrancar el tutorial (Jugar, Continuar desde el punto de control guardado, opciones) y menú de pausa con mapa de la zona (solo lo explorado); sensibilidad y punto de control guardados entre sesiones.
 - **Interfaz** (`interfaz.md`): UMG construida en C++ sin assets (máscaras de vida, orbe de alma, arma y munición, avisos del tutorial, barra del jefe), con estado calculado aparte y probado.
 - **Sonido boceto** (`audio.md`): efectos sintetizados por código (tajo, golpe, disparo, daño, curación, dash, doble salto) disparados por eventos.
@@ -36,7 +36,7 @@ _Actualizado: 2026-10-04 (sesión 3d, fase "Rehacer como GunZ")_
 
 ## Verificación
 
-- **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y un recorrido Zona 1 → paso → tutorial). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
+- **Todo de una vez:** `Herramientas\Verificar-Arranque.ps1 -ConJuego` (compilación, assets, tests, verificación, prueba de humo y un recorrido Mazmorra → paso → tutorial). Los logs van a `Saved\Logs\Verificacion\`; cada script conserva las 5 copias anteriores de cada uno (`Limpiar-Logs.ps1`).
 
 - `Herramientas\Verificar-Arranque.ps1`: compilación, creación de assets, 128/128 tests `SAEVUS.*`, verificación de assets — todo superado.
 - `Herramientas\Ejecutar-PruebaHumo.ps1 -Escalabilidad 1`: SUPERADA (cuerpo animado visible, correr 550, esprint 850, cima 142,8 cm, dash por doble toque real a 1600 con estela, ataque 0,5 s, 1 disparo, golpe → 90/100, muerte, reaparición a 100/100). Capturas en `Saved/Screenshots/WindowsEditor/SAEVUS_PruebaHumo_*.png`.

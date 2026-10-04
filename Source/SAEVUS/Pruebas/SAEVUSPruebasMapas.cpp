@@ -10,7 +10,7 @@
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaInicioJugador, "SAEVUS.Mundo.InicioJugador", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaInicioJugador::RunTest(const FString& Parameters)
 {
-	const FName EtiquetaLlegada(TEXT("DesdeZona1"));
+	const FName EtiquetaLlegada(TEXT("DesdeMazmorra"));
 	SAEVUSPruebas::FMundoPrueba MundoPrueba;
 	// La llegada primero: el inicio normal no puede depender del orden.
 	APlayerStart* Llegada = MundoPrueba.CrearActor<APlayerStart>(FVector(2000.f, 0.f, 100.f));
