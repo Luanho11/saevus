@@ -135,6 +135,16 @@ def main():
         clase_pawn = modo_juego.get_editor_property("default_pawn_class")
         comprobar("el pawn del modo de juego es BP_SAEVUSPersonaje", clase_pawn is not None and "BP_SAEVUSPersonaje" in clase_pawn.get_name())
 
+    # Producción artística: goblins con esqueleto (REF-05/06) y mapas vestidos con el kit de REF-07.
+    for nombre in ("DA_Goblin", "DA_Goblin_Maza", "DA_Goblin_Hondero", "DA_Jefe_ReyGoblin"):
+        datos = unreal.load_asset(f"/Game/SAEVUS/Datos/Enemigos/{nombre}")
+        comprobar(f"{nombre} con cuerpo esquelético", datos is not None and datos.get_editor_property("malla_esqueletica") is not None)
+    for ruta in ("/Game/SAEVUS/Mapas/L_Tutorial", "/Game/SAEVUS/Mapas/L_Mazmorra"):
+        unreal.EditorLoadingAndSavingUtils.load_map(ruta)
+        kits = [a for a in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors() if isinstance(a, unreal.SAEVUSKitInstancias)]
+        piezas = kits[0].numero_piezas() if kits else 0
+        comprobar(f"{ruta.split('/')[-1]} vestido con el kit ({piezas} piezas)", len(kits) == 1 and piezas > 100)
+
     if fallos:
         unreal.log_error(f"[SAEVUS verificar] FALLIDA ({len(fallos)} comprobaciones)")
     else:

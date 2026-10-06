@@ -651,8 +651,8 @@ ENEMIGOS["DA_Goblin"] = {
     ],
 }
 ENEMIGOS["DA_Goblin_Maza"] = {
-    "nombre_visible": "Goblin de maza", "vida_maxima": 60.0, "radio_capsula": 50.0, "media_altura_capsula": 75.0,
-    "color_cuerpo": (0.07, 0.08, 0.05), "color_mascara": (1.0, 0.5, 0.2),
+    "nombre_visible": "Goblin guerrero", "vida_maxima": 60.0, "radio_capsula": 50.0, "media_altura_capsula": 75.0,
+    "color_cuerpo": (0.11, 0.087, 0.076), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 220.0, "radio_deteccion": 1000.0, "radio_perdida": 1800.0, "radio_patrulla": 150.0,
     "danio_contacto": 0.0, "escala_empuje_recibido": 0.5,
     "ataques": [
@@ -666,8 +666,8 @@ ENEMIGOS["DA_Goblin_Maza"] = {
     ],
 }
 ENEMIGOS["DA_Goblin_Hondero"] = {
-    "nombre_visible": "Goblin hondero", "vida_maxima": 20.0, "radio_capsula": 35.0, "media_altura_capsula": 55.0,
-    "color_cuerpo": (0.05, 0.08, 0.06), "color_mascara": (0.9, 0.85, 0.4),
+    "nombre_visible": "Goblin lanzador", "vida_maxima": 20.0, "radio_capsula": 35.0, "media_altura_capsula": 60.0,
+    "color_cuerpo": (0.11, 0.087, 0.076), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 260.0, "radio_deteccion": 1400.0, "radio_perdida": 2200.0, "radio_patrulla": 120.0,
     "danio_contacto": 0.0, "distancia_retirada": 450.0,
     "ataques": [
@@ -731,6 +731,8 @@ COLORES_GOBLIN = {
 }
 CUERPOS_ESQUELETICOS = {
     "DA_Goblin": "SK_Goblin",
+    "DA_Goblin_Maza": "SK_Goblin_Guerrero",
+    "DA_Goblin_Hondero": "SK_Goblin_Lanzador",
     "DA_Jefe_ReyGoblin": "SK_ReyGoblin",
 }
 
@@ -843,6 +845,98 @@ def crear_enemigo(actores, etiqueta, datos, posicion):
 
 # --- Mapa de pruebas -----------------------------------------------------------
 
+# --- Kit modular de la mazmorra (REF-07; Herramientas/Arte/Generar-KitMazmorra.ps1 → ArteFuente/KitMazmorra) ------
+# Los bloques probados del mapa siguen dando la colisión (y el mapa de la pausa), pero se ocultan en el juego: lo
+# que se ve son las piezas del kit, dibujadas como instancias en un ASAEVUSKitInstancias por mapa (pocas llamadas
+# de dibujo en la Vega 8). Medidas de las piezas en blender_kit_mazmorra.py (rejilla de 2 m, muros de 4 m).
+DIR_KIT = f"{RAIZ}/Arte/Escenario/Kit"
+PIEZAS_KIT = ["SM_Kit_Suelo", "SM_Kit_Pared", "SM_Kit_Columna", "SM_Kit_Estandarte", "SM_Kit_Brasero", "SM_Kit_Escombros",
+              "SM_Kit_EscombrosGrandes", "SM_Kit_Arco", "SM_Kit_Marco", "SM_Kit_Balcon", "SM_Kit_Escalera", "SM_Kit_Plataforma"]
+ANCHO_PARED_KIT = 400.0
+ALTO_PARED_KIT = 400.0
+GROSOR_PARED_KIT = 60.0
+LADO_SUELO_KIT = 200.0
+LADO_COLUMNA_KIT = 80.0
+ALTO_COLUMNA_KIT = 600.0
+# Colores (lineales) del kit medidos en REF-07: pizarra azulada, aristas más claras, madera, hierro, estandartes rojos, brasas.
+COLORES_KIT = {
+    "Piedra": {"Color": (0.022, 0.034, 0.050, 1.0), "ColorBorde": (0.3, 0.4, 0.6, 1.0), "IntensidadBorde": 0.06, "AutoIluminacion": 0.0},
+    "Borde": {"Color": (0.060, 0.072, 0.090, 1.0), "ColorBorde": (0.4, 0.5, 0.7, 1.0), "IntensidadBorde": 0.1, "AutoIluminacion": 0.0},
+    "Madera": {"Color": (0.030, 0.022, 0.018, 1.0), "ColorBorde": (0.4, 0.3, 0.2, 1.0), "IntensidadBorde": 0.05, "AutoIluminacion": 0.0},
+    "Metal": {"Color": (0.040, 0.045, 0.052, 1.0), "ColorBorde": (0.5, 0.55, 0.65, 1.0), "IntensidadBorde": 0.15, "AutoIluminacion": 0.0},
+    "Tela": {"Color": (0.24, 0.07, 0.05, 1.0), "ColorBorde": (0.6, 0.2, 0.15, 1.0), "IntensidadBorde": 0.1, "AutoIluminacion": 0.05},
+    "Fuego": {"Color": (0.75, 0.40, 0.20, 1.0), "ColorBorde": (1.0, 0.6, 0.3, 1.0), "IntensidadBorde": 0.3, "AutoIluminacion": 2.5},
+}
+KIT = {"actor": None, "mallas": {}, "materiales": {}}
+
+
+def iniciar_kit(actores, material_base):
+    """Crea el actor de instancias del mapa abierto e importa (una vez) las piezas y sus materiales."""
+    if not KIT["mallas"]:
+        KIT["materiales"] = {nombre: crear_instancia_material(f"MI_Kit_{nombre}", DIR_KIT, material_base, valores)
+                             for nombre, valores in COLORES_KIT.items()}
+        for nombre in PIEZAS_KIT:
+            KIT["mallas"][nombre] = importar_estatica(nombre, "KitMazmorra", DIR_KIT)
+    actor = actores.spawn_actor_from_class(unreal.SAEVUSKitInstancias, unreal.Vector(0, 0, 0), unreal.Rotator(0, 0, 0))
+    actor.set_actor_label("KitMazmorra")
+    actor.set_folder_path("Geometria")
+    KIT["actor"] = actor
+
+
+def poner_pieza(nombre, posicion, guinada=0.0, escala=(1.0, 1.0, 1.0)):
+    """Una pieza del kit en el actor de instancias del mapa (si hay kit en este mapa)."""
+    if KIT["actor"] is None:
+        return
+    malla = KIT["mallas"][nombre]
+    materiales = []
+    for ranura in malla.get_editor_property("static_materials"):
+        nombre_ranura = str(ranura.get_editor_property("material_slot_name"))
+        clave = next((c for c in COLORES_KIT if nombre_ranura.lower().startswith(c.lower())), "Piedra")
+        materiales.append(KIT["materiales"][clave])
+    transformacion = unreal.Transform(posicion, unreal.Rotator(0, 0, guinada), unreal.Vector(*escala))
+    KIT["actor"].anadir_pieza(malla, transformacion, materiales)
+
+
+def vestir_bloque(bloque, tipo):
+    """Oculta en el juego un bloque de colisión y pone en su lugar piezas del kit: "muro", "suelo" o "columna"."""
+    if KIT["actor"] is None:
+        return bloque
+    bloque.set_actor_hidden_in_game(True)
+    centro = bloque.get_actor_location()
+    escala = bloque.get_actor_scale3d()
+    tamano = (escala.x * 100.0, escala.y * 100.0, escala.z * 100.0)
+    if tipo == "muro":
+        # Paños de 4 m x 4 m a lo largo del muro, estirados lo justo para cubrirlo entero; grosor del bloque.
+        a_lo_largo_x = tamano[0] >= tamano[1]
+        largo, grosor = (tamano[0], tamano[1]) if a_lo_largo_x else (tamano[1], tamano[0])
+        columnas = max(1, round(largo / ANCHO_PARED_KIT))
+        filas = max(1, round(tamano[2] / ALTO_PARED_KIT))
+        ancho_pano, alto_pano = largo / columnas, tamano[2] / filas
+        z0 = centro.z - tamano[2] / 2.0
+        for i in range(columnas):
+            desplazamiento = -largo / 2.0 + ancho_pano * (i + 0.5)
+            for j in range(filas):
+                posicion = unreal.Vector(centro.x + (desplazamiento if a_lo_largo_x else 0.0), centro.y + (0.0 if a_lo_largo_x else desplazamiento),
+                                         z0 + alto_pano * j)
+                poner_pieza("SM_Kit_Pared", posicion, 0.0 if a_lo_largo_x else 90.0,
+                            (ancho_pano / ANCHO_PARED_KIT, grosor / GROSOR_PARED_KIT, alto_pano / ALTO_PARED_KIT))
+    elif tipo == "suelo":
+        # Losas de 4 m (la pieza de 2 m a escala 2) sobre la cara de arriba del bloque.
+        lado = LADO_SUELO_KIT * 2.0
+        nx, ny = max(1, round(tamano[0] / lado)), max(1, round(tamano[1] / lado))
+        arriba = centro.z + tamano[2] / 2.0
+        for i in range(nx):
+            for j in range(ny):
+                x = centro.x - tamano[0] / 2.0 + tamano[0] / nx * (i + 0.5)
+                y = centro.y - tamano[1] / 2.0 + tamano[1] / ny * (j + 0.5)
+                poner_pieza("SM_Kit_Suelo", unreal.Vector(x, y, arriba), 0.0,
+                            (tamano[0] / nx / LADO_SUELO_KIT, tamano[1] / ny / LADO_SUELO_KIT, 1.0))
+    elif tipo == "columna":
+        poner_pieza("SM_Kit_Columna", unreal.Vector(centro.x, centro.y, centro.z - tamano[2] / 2.0), 0.0,
+                    (tamano[0] / LADO_COLUMNA_KIT, tamano[1] / LADO_COLUMNA_KIT, tamano[2] / ALTO_COLUMNA_KIT))
+    return bloque
+
+
 def crear_bloque(actores, etiqueta, posicion, tamano_cm, material, rotacion=unreal.Rotator(0, 0, 0)):
     """Caja de tamano_cm (x, y, z) centrada en posicion, hecha con el cubo de 100 cm del motor."""
     actor = actores.spawn_actor_from_object(cargar(MALLA_CUBO), posicion, rotacion)
@@ -883,6 +977,7 @@ def crear_iluminacion(actores):
 
 
 def abrir_mapa_limpio(ruta):
+    KIT["actor"] = None
     editor_niveles = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
     actores = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     if eal.does_asset_exist(ruta):
@@ -1119,14 +1214,17 @@ def crear_muro_con_puerta(actores, etiqueta, x, ancho, alto, materiales, hueco=A
     """Muro transversal en x (de pared a pared) con una puerta centrada; hueco 0 = muro ciego."""
     alto_total = alto - FONDO_MUROS
     if hueco <= 0:
-        crear_bloque(actores, f"{etiqueta}", unreal.Vector(x, 0, FONDO_MUROS + alto_total / 2), (100, ancho + 200, alto_total), materiales["Acento"])
+        vestir_bloque(crear_bloque(actores, f"{etiqueta}", unreal.Vector(x, 0, FONDO_MUROS + alto_total / 2), (100, ancho + 200, alto_total),
+                                   materiales["Acento"]), "muro")
         return
     tramo = (ancho + 200 - hueco) / 2.0
     for lado, signo in (("I", -1), ("D", 1)):
         y = signo * (hueco / 2.0 + tramo / 2.0)
-        crear_bloque(actores, f"{etiqueta}_{lado}", unreal.Vector(x, y, FONDO_MUROS + alto_total / 2), (100, tramo, alto_total), materiales["Acento"])
+        vestir_bloque(crear_bloque(actores, f"{etiqueta}_{lado}", unreal.Vector(x, y, FONDO_MUROS + alto_total / 2), (100, tramo, alto_total),
+                                   materiales["Acento"]), "muro")
     dintel = alto - alto_hueco
-    crear_bloque(actores, f"{etiqueta}_Dintel", unreal.Vector(x, 0, alto_hueco + dintel / 2), (100, hueco, dintel), materiales["Acento"])
+    vestir_bloque(crear_bloque(actores, f"{etiqueta}_Dintel", unreal.Vector(x, 0, alto_hueco + dintel / 2), (100, hueco, dintel), materiales["Acento"]),
+                  "muro")
 
 
 def crear_sala(actores, etiqueta, x_inicio, x_fin, ancho, alto, materiales, suelo=True, hueco_entrada=ANCHO_PUERTA, hueco_salida=ANCHO_PUERTA):
@@ -1139,8 +1237,8 @@ def crear_sala(actores, etiqueta, x_inicio, x_fin, ancho, alto, materiales, suel
         crear_suelo(actores, f"{etiqueta}_Suelo", x_inicio, x_fin, materiales, ancho=ancho)
     alto_total = alto - FONDO_MUROS
     for lado, signo in (("I", -1), ("D", 1)):
-        crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, signo * (ancho / 2 + 50), FONDO_MUROS + alto_total / 2),
-                     (largo, 100, alto_total), materiales["Acento"])
+        vestir_bloque(crear_bloque(actores, f"{etiqueta}_Muro{lado}", unreal.Vector(centro_x, signo * (ancho / 2 + 50), FONDO_MUROS + alto_total / 2),
+                                   (largo, 100, alto_total), materiales["Acento"]), "muro")
     crear_muro_con_puerta(actores, f"{etiqueta}_Entrada", x_inicio, ancho, alto, materiales, hueco=hueco_entrada)
     crear_muro_con_puerta(actores, f"{etiqueta}_Salida", x_fin, ancho, alto, materiales, hueco=hueco_salida)
 
@@ -1164,7 +1262,7 @@ def crear_escalera(actores, etiqueta, x_inicio, x_fin, z_inicio, z_fin, ancho, m
 
 def crear_columna(actores, etiqueta, x, y, alto, materiales, grosor=160.0):
     """Columna maciza (se puede correr por ella y rebotar entre dos)."""
-    crear_bloque(actores, etiqueta, unreal.Vector(x, y, alto / 2), (grosor, grosor, alto), materiales["Acento"])
+    vestir_bloque(crear_bloque(actores, etiqueta, unreal.Vector(x, y, alto / 2), (grosor, grosor, alto), materiales["Acento"]), "columna")
 
 
 def crear_antorcha(actores, etiqueta, posicion, materiales):
@@ -1189,8 +1287,8 @@ def antorchas_puerta(actores, etiqueta, x, ancho, materiales, lado=1):
 
 def crear_suelo(actores, etiqueta, x_inicio, x_fin, materiales, altura=0.0, ancho=ANCHO_PASILLO):
     largo = x_fin - x_inicio
-    return crear_bloque(actores, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, altura - GROSOR_SUELO / 2), (largo, ancho, GROSOR_SUELO),
-                        materiales["Piedra"])
+    return vestir_bloque(crear_bloque(actores, etiqueta, unreal.Vector((x_inicio + x_fin) / 2.0, 0, altura - GROSOR_SUELO / 2), (largo, ancho, GROSOR_SUELO),
+                                      materiales["Piedra"]), "suelo")
 
 
 def crear_puerta(actores, etiqueta, x, ancho, alto, enemigos, material, titulo, texto, altura=0.0, y=0.0):
@@ -1263,6 +1361,7 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
     mallas = importar_decorado(materiales["Acento"])
+    iniciar_kit(actores, material_base)
 
     # Sala 0, la celda: moverse y mirar.
     crear_sala(actores, "S0", -600, 1400, 1400, 800, materiales, hueco_entrada=0)
@@ -1392,9 +1491,9 @@ def crear_muro(actores, etiqueta, eje, fijo, desde, hasta, alto, materiales, hue
     def tramo(nombre, a, b, z0, z1):
         centro = (a + b) / 2.0
         if eje == "x":
-            crear_bloque(actores, nombre, unreal.Vector(centro, fijo, (z0 + z1) / 2.0), (b - a, 100, z1 - z0), materiales["Acento"])
+            vestir_bloque(crear_bloque(actores, nombre, unreal.Vector(centro, fijo, (z0 + z1) / 2.0), (b - a, 100, z1 - z0), materiales["Acento"]), "muro")
         else:
-            crear_bloque(actores, nombre, unreal.Vector(fijo, centro, (z0 + z1) / 2.0), (100, b - a, z1 - z0), materiales["Acento"])
+            vestir_bloque(crear_bloque(actores, nombre, unreal.Vector(fijo, centro, (z0 + z1) / 2.0), (100, b - a, z1 - z0), materiales["Acento"]), "muro")
     inicio = desde
     for indice, (centro, ancho, alto_hueco) in enumerate(sorted(huecos)):
         a, b = centro - ancho / 2.0, centro + ancho / 2.0
@@ -1410,8 +1509,8 @@ def crear_recinto(actores, etiqueta, x0, x1, y0, y1, alto, materiales, muros, su
     """Sala rectangular (interior x0..x1, y0..y1). muros: {lado: huecos} con lado en xmin, xmax, ymin, ymax;
     un lado que no está no se construye (lo pone la sala vecina)."""
     if suelo:
-        crear_bloque(actores, f"{etiqueta}_Suelo", unreal.Vector((x0 + x1) / 2.0, (y0 + y1) / 2.0, -GROSOR_SUELO / 2),
-                     (x1 - x0, y1 - y0, GROSOR_SUELO), materiales["Piedra"])
+        vestir_bloque(crear_bloque(actores, f"{etiqueta}_Suelo", unreal.Vector((x0 + x1) / 2.0, (y0 + y1) / 2.0, -GROSOR_SUELO / 2),
+                                   (x1 - x0, y1 - y0, GROSOR_SUELO), materiales["Piedra"]), "suelo")
     if "ymin" in muros:
         crear_muro(actores, f"{etiqueta}_MuroYmin", "x", y0 - 50, x0 - 100, x1 + 100, alto, materiales, muros["ymin"])
     if "ymax" in muros:
@@ -1440,6 +1539,7 @@ def construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, material_base):
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
     mallas = importar_decorado(materiales["Acento"])
+    iniciar_kit(actores, material_base)
     puerta = lambda centro=0.0: [(centro, 600.0, 700.0)]
 
     # Salón central: 40 x 40 m, puertas en los cuatro lados.

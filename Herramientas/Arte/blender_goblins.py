@@ -89,7 +89,10 @@ class Goblin:
     def cabeza(self, orejas=0.30, hocico=0.17):
         e, v = self.e, self.v
         piezas = [
-            elipsoide("cabeza", "Piel", v(0, -0.05, 1.19), (0.095 * e, 0.115 * e, 0.105 * e)),
+            # Cráneo anguloso: núcleo oscuro pequeño cubierto por placas de hueso (REF-05), no una bola.
+            elipsoide("cabeza", "Oscuro", v(0, -0.04, 1.19), (0.075 * e, 0.095 * e, 0.085 * e), 10, 7),
+            lamina("cabeza", "Piel", v(0, -0.11, 1.255), (0, 1, 0.35), (1, 0, 0), 0.24 * e, 0.17 * e, 0.05 * e, perfil_hoja,
+                   curva=-35, eje_curva=(1, 0, 0), segmentos=5),
             # Frente y hocico en punta hacia abajo y delante (máscara de hueso).
             lamina("cabeza", "Piel", v(0, -0.115, 1.29), (0, -0.38, -1), (1, 0, 0), hocico * e + 0.08 * e, 0.15 * e, 0.07 * e,
                    lambda t: max(0.05, 1.0 - 0.95 * t ** 1.2), curva=12, eje_curva=(1, 0, 0), segmentos=5),
@@ -100,6 +103,9 @@ class Goblin:
             ojo.matrix_world = Matrix.Translation(v(s * 0.047, -0.162, 1.185)) @ Matrix.Rotation(math.radians(-22 * s), 4, "Y") \
                 @ Matrix.Rotation(math.radians(20 * s), 4, "Z")
             piezas.append(ojo)
+            # Placa de la mejilla, del hocico hacia la oreja.
+            piezas.append(lamina("cabeza", "Piel", v(s * 0.02, -0.14, 1.15), (s * 0.55, 0.75, 0.35), (0, 0, 1), 0.17 * e, 0.07 * e,
+                                 0.03 * e, perfil_hoja, curva=-15, eje_curva=(0, 0, s), segmentos=4))
             # Ceja de hueso sobre el ojo.
             piezas.append(lamina("cabeza", "Piel", v(s * 0.01, -0.15, 1.225), (s * 0.9, 0.35, 0.35), (0, 0, 1), 0.09 * e, 0.028 * e,
                                  0.016 * e, perfil_hoja, segmentos=3))
@@ -213,6 +219,75 @@ class Goblin:
 
     def base(self):
         return self.cabeza() + self.capucha() + self.torso() + self.brazos() + self.piernas()
+
+    def dientes(self):
+        """Sonrisa de dientes afilados bajo el hocico (REF-05 arriba 2 y 3, abajo 2)."""
+        e, v = self.e, self.v
+        piezas = [lamina("cabeza", "Oscuro", v(0, -0.15, 1.125), (0, -0.2, -1), (1, 0, 0), 0.03 * e, 0.10 * e, 0.03 * e,
+                         lambda t: 1.0, segmentos=1)]
+        for k in range(7):
+            x = (-0.045 + 0.015 * k) * e
+            piezas.append(lamina("cabeza", "Piel", v(0, -0.165, 1.135) + Vector((x, 0, 0)), (0, -0.2, -1), (1, 0, 0), 0.025 * e,
+                                 0.012 * e, 0.008 * e, perfil_pua, segmentos=2))
+        return piezas
+
+    def fardo(self):
+        """Fardo a la espalda con estacas y un aro de metal (REF-05 arriba 2)."""
+        e, v = self.e, self.v
+        piezas = [elipsoide("pecho", "Cuero", v(0, 0.13, 0.93), (0.11 * e, 0.07 * e, 0.12 * e), 10, 7),
+                  anillo_metalico("pecho", "Metal", v(-0.06, 0.20, 1.02), (0, 1, 0.2), 0.06 * e, 0.012 * e)]
+        for k, x in enumerate((-0.05, 0.0, 0.05)):
+            piezas.append(tubo("pecho", "Cuero", [v(x, 0.14, 0.80), v(x + 0.06 * (k - 1), 0.17, 1.25)], [0.012 * e, 0.009 * e], 6))
+            piezas.append(lamina("pecho", "Metal", v(x + 0.06 * (k - 1), 0.17, 1.25), (0.06 * (k - 1), 0.07, 1), (1, 0, 0), 0.07 * e,
+                                 0.02 * e, 0.02 * e, perfil_pua, segmentos=2))
+        return piezas
+
+    def cuchilla(self):
+        """Cuchilla grande y tosca de hoja ancha, con el filo mellado (REF-05 arriba 2)."""
+        e, v = self.e, self.v
+        agarre = v(D * 0.262, -0.065, 0.47)
+        return [
+            tubo("arma", "Cuero", [agarre + v(0, 0, 0.10), agarre + v(0, 0, -0.03)], [0.017 * e, 0.018 * e], 6),
+            lamina("arma", "Arma", agarre + v(0, -0.02, -0.03), (0, -0.25, -1), (0, 1, 0), 0.52 * e, 0.15 * e, 0.018 * e,
+                   lambda t: 0.75 + 0.25 * t if t < 0.85 else max(0.1, (1.0 - t) / 0.15), segmentos=6),
+        ]
+
+    def casco_redondo(self):
+        """Casco redondo de cuero con correa bajo el hocico (REF-05 abajo 1)."""
+        e, v = self.e, self.v
+        return [
+            elipsoide("cabeza", "Cuero", v(0, -0.03, 1.24), (0.105 * e, 0.12 * e, 0.075 * e), 14, 8),
+            tubo("cabeza", "Metal", [v(0, -0.03, 1.21), v(0, -0.03, 1.225)], [0.108 * e, 0.108 * e], 14, 1.12),
+            tubo("cabeza", "Cuero", [v(-0.09, -0.10, 1.20), v(0, -0.17, 1.10), v(0.09, -0.10, 1.20)], [0.008 * e] * 3, 6),
+        ]
+
+    def armazon_espalda(self):
+        """Armazón de palos a la espalda (ballesta tosca, REF-05 abajo 1)."""
+        e, v = self.e, self.v
+        piezas = [tubo("pecho", "Cuero", [v(-0.16, 0.12, 0.85), v(0.16, 0.14, 1.25)], [0.012 * e] * 2, 6),
+                  tubo("pecho", "Cuero", [v(0.16, 0.12, 0.85), v(-0.16, 0.14, 1.25)], [0.012 * e] * 2, 6),
+                  tubo("pecho", "Cuero", [v(-0.2, 0.15, 1.18), v(0.2, 0.15, 1.18)], [0.014 * e] * 2, 6)]
+        for s in (D, I):
+            piezas.append(lamina("pecho", "Metal", v(s * 0.16, 0.14, 1.25), (s * 0.3, 0.1, 1), (1, 0, 0), 0.08 * e, 0.02 * e, 0.02 * e,
+                                 perfil_pua, segmentos=2))
+        return piezas
+
+
+def goblin_guerrero():
+    """Guerrero (REF-05 arriba 2): más grande, sonrisa de dientes, fardo con aro, cuchilla grande (el de maza del juego)."""
+    g = Goblin(e=1.15, semilla=SEMILLA + 2)
+    piezas = g.cabeza(orejas=0.26) + g.dientes() + g.torso(ancho=1.2) + g.brazos(grosor=1.25) + g.piernas(grosor=1.2) + g.fardo() + g.cuchilla()
+    # Sin capucha: solo la bufanda.
+    piezas += g.capucha()[1:]
+    return piezas, huesos_goblin(1.15)
+
+
+def goblin_lanzador():
+    """Lanzador (REF-05 abajo 1): casco redondo con correa, armazón a la espalda y hoz corta (el hondero del juego)."""
+    g = Goblin(e=0.95, semilla=SEMILLA + 3)
+    piezas = g.cabeza(orejas=0.24) + g.casco_redondo() + g.capucha()[1:] + g.torso(ancho=0.9) + g.brazos() + g.piernas() \
+        + g.armazon_espalda() + g.hoz(largo=0.40, curva=-80, ancho=0.05)
+    return piezas, huesos_goblin(0.95)
 
 
 def goblin_base():
@@ -391,6 +466,8 @@ def rey_goblin():
 
 TIPOS = {
     "SK_Goblin": goblin_base,
+    "SK_Goblin_Guerrero": goblin_guerrero,
+    "SK_Goblin_Lanzador": goblin_lanzador,
     "SK_ReyGoblin": rey_goblin,
 }
 

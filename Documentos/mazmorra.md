@@ -39,3 +39,10 @@ Piezas del script, además de las del tutorial: `crear_muro` (muro recto con hue
 
 - Goblins y su jefe (tareas 75 y 76).
 - Piezas de mazmorra con más forma (arcos, rejas, escaleras de caracol) generadas en Blender.
+
+## Kit modular (producción artística, tarea 95)
+
+`Herramientas/Arte/blender_kit_mazmorra.py` (`Generar-KitMazmorra.ps1` → `ArteFuente/KitMazmorra`) genera 19 piezas según el kit de REF-07: suelos de losas, plataforma sobre pilares, muros con zócalo, cornisa y paneles enmarcados, muro para correr con banda guía, muro curvo, pilastra de esquina, columna con basa y capitel, muro con arco apuntado, escalera con zancas, balcón con canecillos, puerta y marco, techo con vigas, escombros, estandarte rojo roto y brasero. Rejilla de 2 m, muros de 4 m, sillería pizarra con aristas achaflanadas (el chaflán atrapa la luz y dibuja el borde).
+
+En `L_Tutorial` y `L_Mazmorra`, los bloques probados siguen dando la colisión y el mapa de la pausa, pero se ocultan en el juego: muros, suelos y columnas se visten con piezas del kit (`vestir_bloque` en `saevus_crear_assets.py`), dibujadas como instancias en un `ASAEVUSKitInstancias` por mapa (un componente de mallas instanciadas por pieza: pocas llamadas de dibujo). La verificación de assets comprueba que cada mapa tiene su kit.
+
