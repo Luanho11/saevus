@@ -23,16 +23,21 @@ DIR_CABALLERO = f"{RAIZ}/Arte/Personajes/Caballero"
 # FBX que genera Herramientas/Arte/Generar-Caballero.ps1 (malla + esqueleto propio).
 FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballero", "SK_Caballero.fbx")
 
-# Piezas del caballero boceto por ranura de material (nombres de material de Blender) y sus
-# parámetros de M_SAEVUS_PersonajeDibujado. Tono Hollow Knight: cuerpo casi negro con borde frío,
-# máscara clara que brilla un poco para leerse en la oscuridad, capa azul oscuro, metal pálido.
+# Piezas del protagonista por ranura de material (nombres de material de Blender) y sus parámetros de
+# M_SAEVUS_PersonajeDibujado. Colores medidos en las referencias (Documentos/ARTE_SAEVUS.md, Paleta;
+# los mismos que blender_caballero.py): cuerpo casi negro, placas del casco carbón, hueso cálido en la
+# máscara y los brazales, capa verde pizarra, cuero marrón, acero azulado; ojos cian y filo azul brillan.
 COLOR_BORDE_FRIO = (0.45, 0.6, 0.85, 1.0)
 PIEZAS_CABALLERO = {
-    "Cuerpo": {"Color": (0.02, 0.02, 0.025, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.5, "AutoIluminacion": 0.0},
-    "Mascara": {"Color": (0.85, 0.85, 0.82, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.15, "AutoIluminacion": 0.3},
-    "Capa": {"Color": (0.04, 0.05, 0.08, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.35, "AutoIluminacion": 0.0},
-    "Metal": {"Color": (0.55, 0.58, 0.62, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.2, "AutoIluminacion": 0.05},
-    "Ojos": {"Color": (0.0, 0.0, 0.0, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 0.0},
+    "Cuerpo": {"Color": (0.014, 0.013, 0.015, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.45, "AutoIluminacion": 0.0},
+    "Casco": {"Color": (0.027, 0.024, 0.028, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.4, "AutoIluminacion": 0.0},
+    "Hueso": {"Color": (0.24, 0.18, 0.16, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.15, "AutoIluminacion": 0.12},
+    "Capa": {"Color": (0.033, 0.040, 0.042, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.35, "AutoIluminacion": 0.0},
+    "Cuero": {"Color": (0.048, 0.029, 0.025, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.25, "AutoIluminacion": 0.0},
+    "Tela": {"Color": (0.024, 0.021, 0.023, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.3, "AutoIluminacion": 0.0},
+    "Metal": {"Color": (0.075, 0.097, 0.12, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.3, "AutoIluminacion": 0.05},
+    "Filo": {"Color": (0.21, 0.43, 0.63, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 1.2},
+    "Ojos": {"Color": (0.16, 0.65, 0.79, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 2.0},
 }
 DIR_ESTILO = f"{RAIZ}/Arte/Estilo"
 RUTA_MAPA_PRUEBAS = f"{RAIZ}/Mapas/L_Pruebas"
