@@ -71,6 +71,12 @@ namespace SAEVUSEstilo
 		return FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), Tamano);
 	}
 
+	FSlateBrush PincelRecto(const FLinearColor& Color, const FLinearColor& Borde, float Grosor)
+	{
+		constexpr float RadioEsquina = 1.5f;
+		return FSlateRoundedBoxBrush(Color, RadioEsquina, Borde, Borde.A > 0.f ? Grosor : 0.f);
+	}
+
 	FSlateBrush PincelTecla()
 	{
 		return PincelEsquinas(ColorTecla, ColorBordeTecla, RadioTecla);

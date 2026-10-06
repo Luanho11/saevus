@@ -24,10 +24,12 @@ El marcador de golpes de los muñecos ("Golpes | Último | Total") es de depurac
 
 ## Disposición
 
-- **Arriba a la izquierda:** orbe de alma (se llena de abajo arriba; más brillante si alcanza para curar; late mientras cura) y a su derecha las máscaras de vida (20 de vida cada una; una máscara a medias se ve gris).
+**HUD según REF-08 A** (producción artística, 2026-10-06; `ARTE_SAEVUS.md`, UI): sustituye al orbe y las máscaras de Hollow Knight.
+
+- **Arriba a la izquierda:** emblema en rombo (marco gris fino, fondo casi negro y el ojo cian del protagonista) y a su derecha la **barra de vida** roja larga y fina (`#964843`) y, debajo, la **barra de alma** azul más corta (brilla más si alcanza para curar; late mientras cura). Barras rectas con marco de 1 px (`SAEVUSEstilo::PincelRecto`). La vida sigue calculándose por máscaras en el estado (`VidaPorMascara`), la barra muestra su suma.
 - **Arriba al centro:** aviso del tutorial (título y texto, con fundido de entrada y salida).
 - **Abajo a la derecha:** arma equipada y munición como `cargador / reserva` (`∞` si la reserva es infinita), o "Recargando...".
-- **Abajo al centro:** nombre y barra de vida del jefe, solo mientras hay un jefe vivo y activo (fuera del reposo).
+- **Abajo al centro:** nombre del jefe en la tipografía de títulos color hueso (`#DFC6AD`), "Fase N" a su derecha desde la segunda fase (`FSAEVUSEstadoInterfaz::FaseJefe`) y la barra roja fina con marco; solo mientras hay un jefe vivo y activo (fuera del reposo).
 
 Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de la pantalla; a 720p todo es dos tercios del tamaño a 1080p). Las medidas del struct están en unidades de 1080p.
 

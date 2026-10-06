@@ -39,6 +39,8 @@ struct SAEVUS_API FSAEVUSEstadoInterfaz
 	bool bJefeVisible = false;
 	FText NombreJefe;
 	float FraccionVidaJefe = 0.f;
+	/** Fase del jefe contando desde 1 (REF-08 A: "Fase 2"); 1 = primera fase, no se rotula. */
+	int32 FaseJefe = 1;
 
 	/**
 	 * Calcula el estado para el pawn del jugador. El jefe visible es el más cercano que esté vivo

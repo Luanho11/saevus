@@ -9,6 +9,8 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
+#include "Components/SizeBox.h"
+#include "Components/SizeBoxSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
@@ -20,13 +22,18 @@
 namespace SAEVUSInterfaz
 {
 	// Separaciones del boceto (unidades de interfaz a 1080p).
-	constexpr float SeparacionMascaras = 6.f;
-	constexpr float SeparacionOrbeMascaras = 18.f;
+	// HUD (REF-08 A): separación entre el emblema y las barras, y entre las barras.
+	constexpr float SeparacionEmblemaBarras = 18.f;
+	constexpr float SeparacionBarras = 6.f;
+	// El rombo girado ocupa su diagonal: el hueco que se le reserva.
+	constexpr float Raiz2 = 1.41421356f;
+	// Ojo del emblema: fracción del lado.
+	constexpr float FraccionOjoEmblema = 0.28f;
 	constexpr float SeparacionLineas = 4.f;
 	constexpr float AlturaBarraJefeDesdeAbajo = 70.f;
 	// El aviso de interacción, por encima de la barra del jefe.
 	constexpr float AlturaInteraccionDesdeAbajo = 150.f;
-	// Latido del orbe mientras cura: amplitud de escala y rapidez (rad/s).
+	// Latido de la barra de alma mientras cura: amplitud de escala y rapidez (rad/s).
 	constexpr float AmplitudLatido = 0.08f;
 	constexpr float RapidezLatido = 12.f;
 	// La sombra del texto lo despega de fondos claros.
@@ -160,32 +167,44 @@ void USAEVUSWidgetInterfaz::Construir()
 	UCanvasPanel* Lienzo = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Lienzo"));
 	WidgetTree->RootWidget = Lienzo;
 
-	// Arriba a la izquierda: orbe de alma y, a su derecha, la fila de máscaras.
+	// Arriba a la izquierda (REF-08 A): emblema en rombo y, a su derecha, la barra de vida y debajo la de alma.
 	UHorizontalBox* Vitales = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Vitales"));
 	UCanvasPanelSlot* RanuraVitales = Lienzo->AddChildToCanvas(Vitales);
 	RanuraVitales->SetAnchors(FAnchors(0.f, 0.f));
 	RanuraVitales->SetPosition(Ajuste.Margen);
 	RanuraVitales->SetAutoSize(true);
 
-	OrbeAlma = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), TEXT("OrbeAlma"));
-	// Orbe: barra redonda que se llena de abajo arriba; su tamaño lo da el del pincel de fondo.
-	FProgressBarStyle EstiloOrbe;
-	EstiloOrbe.BackgroundImage = PincelRedondo(Ajuste.ColorFondo, Ajuste.ColorMascaraVacia);
-	EstiloOrbe.BackgroundImage.ImageSize = FVector2D(Ajuste.DiametroOrbe);
-	EstiloOrbe.FillImage = PincelRedondo(Ajuste.ColorAlma);
-	EstiloOrbe.FillImage.ImageSize = FVector2D(Ajuste.DiametroOrbe);
-	EstiloOrbe.MarqueeImage = EstiloOrbe.FillImage;
-	OrbeAlma->SetWidgetStyle(EstiloOrbe);
-	OrbeAlma->SetBarFillType(EProgressBarFillType::BottomToTop);
-	OrbeAlma->SetPercent(0.f);
-	OrbeAlma->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
-	UHorizontalBoxSlot* RanuraOrbe = Vitales->AddChildToHorizontalBox(OrbeAlma);
-	RanuraOrbe->SetVerticalAlignment(VAlign_Center);
-	RanuraOrbe->SetPadding(FMargin(0.f, 0.f, SeparacionOrbeMascaras, 0.f));
+	// Emblema: rombo oscuro con marco fino y el ojo cian del protagonista en el centro.
+	USizeBox* HuecoEmblema = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("HuecoEmblema"));
+	HuecoEmblema->SetWidthOverride(Ajuste.LadoEmblema * Raiz2);
+	HuecoEmblema->SetHeightOverride(Ajuste.LadoEmblema * Raiz2);
+	UBorder* Emblema = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Emblema"));
+	Emblema->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorFondoBarra, Ajuste.ColorMarco, 2.f));
+	Emblema->SetPadding(FMargin(Ajuste.LadoEmblema * (0.5f - FraccionOjoEmblema * 0.5f)));
+	UImage* Ojo = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("OjoEmblema"));
+	Ojo->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorOjoEmblema));
+	Emblema->SetContent(Ojo);
+	Emblema->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
+	Emblema->SetRenderTransformAngle(45.f);
+	USizeBox* LadoEmblema = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("LadoEmblema"));
+	LadoEmblema->SetWidthOverride(Ajuste.LadoEmblema);
+	LadoEmblema->SetHeightOverride(Ajuste.LadoEmblema);
+	LadoEmblema->SetContent(Emblema);
+	HuecoEmblema->SetContent(LadoEmblema);
+	if (USizeBoxSlot* RanuraLado = Cast<USizeBoxSlot>(LadoEmblema->Slot))
+	{
+		RanuraLado->SetHorizontalAlignment(HAlign_Center);
+		RanuraLado->SetVerticalAlignment(VAlign_Center);
+	}
+	UHorizontalBoxSlot* RanuraEmblema = Vitales->AddChildToHorizontalBox(HuecoEmblema);
+	RanuraEmblema->SetVerticalAlignment(VAlign_Center);
+	RanuraEmblema->SetPadding(FMargin(0.f, 0.f, SeparacionEmblemaBarras, 0.f));
 
-	FilaMascaras = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Mascaras"));
-	UHorizontalBoxSlot* RanuraFila = Vitales->AddChildToHorizontalBox(FilaMascaras);
-	RanuraFila->SetVerticalAlignment(VAlign_Center);
+	UVerticalBox* Barras = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Barras"));
+	Vitales->AddChildToHorizontalBox(Barras)->SetVerticalAlignment(VAlign_Center);
+	BarraVida = CrearBarra(TEXT("BarraVida"), Barras, Ajuste.TamanoBarraVida, Ajuste.ColorVida);
+	BarraAlma = CrearBarra(TEXT("BarraAlma"), Barras, Ajuste.TamanoBarraAlma, Ajuste.ColorAlma);
+	BarraAlma->SetRenderTransformPivot(FVector2D(0.f, 0.5f));
 
 	// Abajo a la derecha: arma y munición.
 	UVerticalBox* BloqueArma = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Arma"));
@@ -224,17 +243,20 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraJefe->SetAlignment(FVector2D(0.5f, 1.f));
 	RanuraJefe->SetPosition(FVector2D(0.f, -AlturaBarraJefeDesdeAbajo));
 	RanuraJefe->SetAutoSize(true);
-	NombreJefe = CrearTexto(TEXT("NombreJefe"), Ajuste.TamanoTextoArma, true);
-	BloqueJefe->AddChildToVerticalBox(NombreJefe)->SetHorizontalAlignment(HAlign_Center);
-	BarraJefe = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), TEXT("BarraJefe"));
-	FProgressBarStyle EstiloJefe;
-	EstiloJefe.BackgroundImage = PincelRedondo(Ajuste.ColorFondo);
-	EstiloJefe.BackgroundImage.ImageSize = Ajuste.TamanoBarraJefe;
-	EstiloJefe.FillImage = PincelRedondo(Ajuste.ColorVidaJefe);
-	EstiloJefe.FillImage.ImageSize = Ajuste.TamanoBarraJefe;
-	EstiloJefe.MarqueeImage = EstiloJefe.FillImage;
-	BarraJefe->SetWidgetStyle(EstiloJefe);
-	UVerticalBoxSlot* RanuraBarra = BloqueJefe->AddChildToVerticalBox(BarraJefe);
+	// Nombre en la tipografía de títulos, color hueso, con la fase a la derecha (REF-08 A: "Rey Goblin ... Fase 2").
+	UHorizontalBox* CabeceraJefe = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("CabeceraJefe"));
+	NombreJefe = CrearTitulo(TEXT("NombreJefe"), Ajuste.TamanoTextoArma + 4);
+	NombreJefe->SetColorAndOpacity(FSlateColor(Ajuste.ColorTextoHueso));
+	CabeceraJefe->AddChildToHorizontalBox(NombreJefe)->SetVerticalAlignment(VAlign_Bottom);
+	FaseJefe = CrearTitulo(TEXT("FaseJefe"), Ajuste.TamanoTextoArma - 4);
+	FaseJefe->SetColorAndOpacity(FSlateColor(Ajuste.ColorVidaJefe * 2.f));
+	UHorizontalBoxSlot* RanuraFase = CabeceraJefe->AddChildToHorizontalBox(FaseJefe);
+	RanuraFase->SetVerticalAlignment(VAlign_Bottom);
+	RanuraFase->SetPadding(FMargin(SeparacionEmblemaBarras, 0.f, 0.f, 2.f));
+	BloqueJefe->AddChildToVerticalBox(CabeceraJefe)->SetHorizontalAlignment(HAlign_Center);
+	BarraJefe = CrearBarra(TEXT("BarraJefe"), BloqueJefe, Ajuste.TamanoBarraJefe, Ajuste.ColorVidaJefe);
+	UVerticalBoxSlot* RanuraBarra = Cast<UVerticalBoxSlot>(BarraJefe->GetParent()->Slot);
+	RanuraBarra->SetHorizontalAlignment(HAlign_Center);
 	RanuraBarra->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
 	BloqueJefe->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -281,51 +303,53 @@ void USAEVUSWidgetInterfaz::Construir()
 	VeloMuerte->SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void USAEVUSWidgetInterfaz::AjustarMascaras(int32 Numero)
+UProgressBar* USAEVUSWidgetInterfaz::CrearBarra(FName Nombre, UPanelWidget* Caja, const FVector2D& Tamano, const FLinearColor& Color)
 {
 	using namespace SAEVUSInterfaz;
-	if (!FilaMascaras || Mascaras.Num() == Numero)
+	// Marco fino gris alrededor de la barra; la barra, recta, sobre fondo casi negro.
+	UBorder* Marco = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
+	Marco->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorFondoBarra, Ajuste.ColorMarco));
+	Marco->SetPadding(FMargin(1.f));
+	UProgressBar* Barra = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), Nombre);
+	FProgressBarStyle Estilo;
+	Estilo.BackgroundImage = SAEVUSEstilo::PincelRecto(FLinearColor::Transparent);
+	Estilo.BackgroundImage.ImageSize = Tamano;
+	Estilo.FillImage = SAEVUSEstilo::PincelRecto(FLinearColor::White);
+	Estilo.FillImage.ImageSize = Tamano;
+	Estilo.MarqueeImage = Estilo.FillImage;
+	Barra->SetWidgetStyle(Estilo);
+	Barra->SetFillColorAndOpacity(Color);
+	Barra->SetPercent(1.f);
+	Marco->SetContent(Barra);
+	UPanelSlot* Ranura = Caja->AddChild(Marco);
+	if (UVerticalBoxSlot* RanuraVertical = Cast<UVerticalBoxSlot>(Ranura))
 	{
-		return;
+		RanuraVertical->SetPadding(FMargin(0.f, 0.f, 0.f, SeparacionBarras));
+		RanuraVertical->SetHorizontalAlignment(HAlign_Left);
 	}
-	FilaMascaras->ClearChildren();
-	Mascaras.Reset();
-	for (int32 Indice = 0; Indice < Numero; ++Indice)
-	{
-		UImage* Mascara = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
-		FSlateBrush Pincel = PincelRedondo(FLinearColor::White);
-		Pincel.ImageSize = Ajuste.TamanoMascara;
-		Mascara->SetBrush(Pincel);
-		UHorizontalBoxSlot* Ranura = FilaMascaras->AddChildToHorizontalBox(Mascara);
-		Ranura->SetPadding(FMargin(0.f, 0.f, SeparacionMascaras, 0.f));
-		Ranura->SetVerticalAlignment(VAlign_Center);
-		Mascaras.Add(Mascara);
-	}
+	return Barra;
 }
 
 void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 {
 	using namespace SAEVUSInterfaz;
-	if (!OrbeAlma)
+	if (!BarraVida)
 	{
 		return;
 	}
-	AjustarMascaras(Estado.Mascaras.Num());
-	for (int32 Indice = 0; Indice < Mascaras.Num(); ++Indice)
+	// La vida es la suma de las máscaras del estado (cada una vale VidaPorMascara).
+	float Llenas = 0.f;
+	for (const float Mascara : Estado.Mascaras)
 	{
-		// Máscara partida: se mezcla entre vacía y llena.
-		const FLinearColor Color = FMath::Lerp(Ajuste.ColorMascaraVacia, Ajuste.ColorMascaraLlena, Estado.Mascaras[Indice]);
-		if (!Mascaras[Indice]->GetColorAndOpacity().Equals(Color))
-		{
-			Mascaras[Indice]->SetColorAndOpacity(Color);
-		}
+		Llenas += Mascara;
 	}
+	FijarPorcentaje(BarraVida, Estado.Mascaras.Num() > 0 ? Llenas / Estado.Mascaras.Num() : 0.f);
 
-	FijarPorcentaje(OrbeAlma, Estado.FraccionAlma);
-	OrbeAlma->SetFillColorAndOpacity(Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma);
-	// Al curar el orbe late.
+	FijarPorcentaje(BarraAlma, Estado.FraccionAlma);
+	BarraAlma->SetFillColorAndOpacity(Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma);
+	// Al curar la barra de alma late.
 	const float Latido = Estado.bCurando ? 1.f + AmplitudLatido * FMath::Sin(GetWorld()->GetTimeSeconds() * RapidezLatido) : 1.f;
-	OrbeAlma->SetRenderScale(FVector2D(Latido));
+	BarraAlma->SetRenderScale(FVector2D(1.f, Latido));
 
 	FijarTexto(TextoArma, Estado.TextoArma);
 	FijarVisible(TextoArma, !Estado.TextoArma.IsEmpty());
@@ -356,6 +380,7 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	{
 		FijarTexto(NombreJefe, Estado.NombreJefe);
 		FijarPorcentaje(BarraJefe, Estado.FraccionVidaJefe);
+		FijarTexto(FaseJefe, Estado.FaseJefe > 1 ? FText::Format(NSLOCTEXT("SAEVUS", "FaseJefe", "Fase {0}"), Estado.FaseJefe) : FText::GetEmpty());
 	}
 }
 

@@ -25,6 +25,9 @@ namespace SAEVUSEstilo
 	SAEVUS_API FSlateFontInfo FuenteTexto(int32 Tamano);
 	SAEVUS_API FSlateFontInfo FuenteTecla(int32 Tamano);
 
+	/** Rectángulo de esquinas apenas redondeadas con filo fino: barras y marcos del HUD (REF-08 A). */
+	SAEVUS_API FSlateBrush PincelRecto(const FLinearColor& Color, const FLinearColor& Borde = FLinearColor::Transparent, float Grosor = 1.f);
+
 	/** Tecla dibujada en los avisos: caja clara de esquinas poco redondeadas, con el texto oscuro. */
 	SAEVUS_API FSlateBrush PincelTecla();
 	SAEVUS_API FLinearColor ColorTextoTecla();

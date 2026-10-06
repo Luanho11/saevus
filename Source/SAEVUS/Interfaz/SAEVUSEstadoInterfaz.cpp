@@ -93,6 +93,7 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 				Estado.bJefeVisible = true;
 				Estado.NombreJefe = Enemigo->ObtenerAjuste().NombreVisible;
 				Estado.FraccionVidaJefe = VidaJefe->ObtenerVida() / VidaJefe->ObtenerVidaMaxima();
+				Estado.FaseJefe = Enemigo->ObtenerIA()->ObtenerFase() + 1;
 			}
 		}
 	}
