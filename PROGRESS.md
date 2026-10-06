@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN INTERACTIVA ACTIVA (fase "Producción artística")**
-**Último latido: 2026-10-06 13:59** (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-06 14:41** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -142,20 +142,20 @@ Las imágenes de `assets/` son la **referencia visual canónica** (`Documentos/R
 86. [x] **Protagonista según REF-01/02/03** (el caballero actual los contradice: máscara blanca redonda con cuernos, capa en tubo, aguijón corto, cabezón). `blender_caballero.py` v3: proporciones de REF-02 (H 1,92 m, cabeza ≈ 1/8), casco de placas en hoja con aletas barridas, máscara de hueso en V con ojos cian, capa con capucha y tiras dentadas, broche de anillo, correas en X, cinturón, faldón, brazales de hueso, pantalón holgado, espinillas vendadas, pies de tres garras, espada larga (hoja ≈ 0,88 m) con guarda de anillo. Mismos 25 huesos (compatibles con `ESAEVUSHueso`). Materiales `MI_Caballero_*` con la paleta medida (ojos y filo emisivos). `LongitudHoja` a la hoja nueva. Vistas previas de Blender junto a REF-01 y captura en la cámara del juego.
 87. [x] Pose de reposo y de carrera según REF-04 (espada baja en diagonal hacia delante en reposo; cuerpo inclinado y espada atrás al correr), para que la hoja larga no atraviese el suelo.
 88. [ ] Look 3D: ajustar `M_PP_Dibujado` y los materiales a `ARTE_SAEVUS.md` (contorno más fino, bandas suaves, sombra fría, filo de luz, niebla azulada, grano discreto), comparado en la cámara del juego con REF-01/REF-07.
-89. [ ] Animación con las poses objetivo de REF-04 (los 15 números) y la capa de REF-02: Idle, Run, Sprint, Jump, DoubleJump, Fall, Dash (4 direcciones + diagonal), WallRun, WallJump, Land, Slash 1–3, AirSlash, DashSlash, ChargedSlash, Guard, Parry, Hit, Stagger, Death; anticipación, pose clara, seguimiento de capa. Más huesos de capa si hace falta (tiras).
+89. [~] (primera tanda hecha: n.º 4–11, commit 94a2c7f; faltan ataques 12–15, guardia, parry, golpe, aturdido, muerte y capa en tiras) Animación con las poses objetivo de REF-04 (los 15 números) y la capa de REF-02: Idle, Run, Sprint, Jump, DoubleJump, Fall, Dash (4 direcciones + diagonal), WallRun, WallJump, Land, Slash 1–3, AirSlash, DashSlash, ChargedSlash, Guard, Parry, Hit, Stagger, Death; anticipación, pose clara, seguimiento de capa. Más huesos de capa si hace falta (tiras).
 90. [ ] Laboratorio de combate (`L_LaboratorioCombate`, fuera del recorrido principal): cápsula del jugador, hurtbox, hitbox, trayectoria de la hoja, fases (preparación/activa/recuperación) visibles, muñecos.
 91. [ ] Golpe por trazas continuas de la hoja (barridos entre fotogramas) además del abanico; parámetros por ataque: daño, alcance, arco, preparación, activa, recuperación, parada de golpe, retroceso, aturdimiento, sacudida, partículas, sonido. Corregir alcance corto, impactos sin peso y tajos demasiado rápidos.
 92. [~] Goblin base según REF-05 (arriba 1) — modelo con esqueleto y animación desde la IA hechos (aviso, ataque, recuperación, aturdido, muerte); falta la muerte en fragmentos y pulir en juego —: especie (orejas, dientes, piel de hueso, trapos, garras, hoz); un goblin excelente antes que variantes. Animación: reposo, andar, correr, preparación, ataque, reacción, aturdido, muerte (se deshace en fragmentos, REF-08 I).
-93. [ ] Variantes de goblin (tabla provisional de `ARTE_SAEVUS.md`): guerrero, asesino, lanzador, élite; escudero y pesado derivados con decisión mínima.
+93. [~] (guerrero y lanzador hechos e importados, commit e4f9d13) Variantes de goblin (tabla provisional de `ARTE_SAEVUS.md`): guerrero, asesino, lanzador, élite; escudero y pesado derivados con decisión mínima.
 94. [ ] Rey Goblin según REF-06 (2,9 m, corona de púas, capa larga, broche de anillo, guadaña de asta): modelo, materiales, esqueleto, ataques que usan la arena (barrido, golpe al suelo, salto, embestida), aturdido, fase 2 roja (REF-06 abajo, REF-08 J/K), muerte.
-95. [ ] Mazmorra con kit modular según REF-07 (suelo, pared, pared de carrera, esquina, columna, arco, escalera, balcón, plataforma, puerta, marco, techo, escombros, estandartes); primero layout funcional, después arte; arena octogonal con sello rojo.
+95. [~] (muros, suelos y columnas vestidos con el kit en tutorial y mazmorra, commit e4f9d13; faltan arcos, estandartes, braseros, escombros y la arena octogonal con sello rojo) Mazmorra con kit modular según REF-07 (suelo, pared, pared de carrera, esquina, columna, arco, escalera, balcón, plataforma, puerta, marco, techo, escombros, estandartes); primero layout funcional, después arte; arena octogonal con sello rojo.
 96. [ ] VFX con el lenguaje de REF-08 D–L (dash, pared, aterrizaje, tajos, impactos, bloqueo/parry, sangre estilizada, muertes, telegrafiado rojo, ambiente), versiones baratas por escalabilidad.
-97. [ ] UI según REF-08 A/C (HUD con rombo y barras finas, barra del jefe con nombre y fase, minimapa circular, menús, muerte, victoria, notificaciones, iconos en rombo).
+97. [~] (HUD hecho, commit 453ca1f; faltan menús, muerte, victoria, notificaciones e iconos) UI según REF-08 A/C (HUD con rombo y barras finas, barra del jefe con nombre y fase, minimapa circular, menús, muerte, victoria, notificaciones, iconos en rombo).
 98. [ ] Tipografía según REF-08 B: Cinzel (OFL) para títulos cuando el dueño ponga los `.ttf` (tarea 78), Roboto para información; licencias en `interfaz.md`.
 99. [ ] Audio fundamental por capas: tajo, impacto, parry, bloqueo, dash, pared, aterrizaje, daño, muerte, UI, jefe.
 100. [ ] Vertical slice: tutorial corto + sala de goblins + Rey Goblin en la mazmorra nueva, todo con el arte nuevo; empaquetado y prueba del .exe.
 
 ## Estado del turno
-- Completado: tareas 85 y 86 (protagonista v3, commit 268adb3); generadores de Blender de goblin base, guerrero, lanzador, Rey Goblin, kit de mazmorra y formas de VFX (commit f8732b5, sin importar todavía salvo los goblins).
-- A medias: tarea 87 (poses de reposo/carrera, en `SAEVUSComponenteAnimacionProcedural`) y tarea 92 (goblins con esqueleto animados desde la IA: datos `MallaEsqueletica`/`ColoresPiezas`, `CuerpoAnimado` en `ASAEVUSEnemigo`, `ConstruirPoseEnemigo`, test `SAEVUS.Enemigo.Esqueleto`), en verificación.
-- Siguiente paso exacto: si la verificación pasa, prueba de humo y commit; después importar guerrero y lanzador (`CUERPOS_ESQUELETICOS`), el kit de mazmorra (tarea 95) y las formas de VFX (tarea 96).
+- Completado: tareas 85–87; bloques de 89, 92, 93, 95 y 97 (commits 453ca1f…e992632). Verificación completa 132/132 y humo SUPERADA en el tutorial con el kit (38 fps a 720p con la máquina cargada; medir aislado en la tarea 84).
+- A medias: —
+- Siguiente paso exacto: tareas 90–91 (combate): golpe por barrido continuo de la hoja entre fotogramas además del abanico, parámetros por ataque (daño, alcance, arco, fases, parada de golpe, retroceso, aturdimiento, sacudida) y un laboratorio de combate `L_LaboratorioCombate` con la cápsula, hurtbox, hitbox, trayectoria de la hoja y fases visibles.
