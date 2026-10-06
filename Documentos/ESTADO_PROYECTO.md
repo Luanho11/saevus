@@ -1,10 +1,12 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-04 (sesión 3d, fase "Rehacer como GunZ")_
+_Actualizado: 2026-10-06 (sesión 4, fase "Producción artística")_
 
 ## Objetivo actual
 
-**Rehacer como GunZ** (decisión del dueño, 2026-10-04): la jugabilidad es la de GunZ (movimiento, dash sin espera ni límite, cámara siempre detrás, cuerpo que mira a la cámara); Hollow Knight queda para temática, arte y sombreado. Objetivo: un prototipo escalable que se pueda probar en un ejecutable, con animaciones mejores, tutorial de salas tipo mazmorra (referencia: mapa Dungeon de GunZ), menús limpios y, más adelante, goblins y jefes al estilo GunZ. Orden en `PROGRESS.md` (tareas 63–77).
+**Producción artística** (dueño, 2026-10-06): las imágenes de `assets/` son la referencia visual canónica (`REFERENCIAS_ARTE.md`); la dirección artística derivada está en `ARTE_SAEVUS.md`. Pasar de "prototipo con arte de boceto" a una vertical slice coherente: protagonista → animación → espada → combate → goblin → jefe → mazmorra → VFX → UI → audio (tareas 85–100 de `PROGRESS.md`). La jugabilidad GunZ de abajo se mantiene.
+
+Antes: **Rehacer como GunZ** (decisión del dueño, 2026-10-04): la jugabilidad es la de GunZ (movimiento, dash sin espera ni límite, cámara siempre detrás, cuerpo que mira a la cámara); Hollow Knight queda para temática, arte y sombreado. Objetivo: un prototipo escalable que se pueda probar en un ejecutable, con animaciones mejores, tutorial de salas tipo mazmorra (referencia: mapa Dungeon de GunZ), menús limpios y, más adelante, goblins y jefes al estilo GunZ. Orden en `PROGRESS.md` (tareas 63–77).
 
 **Al volver, empieza por `RESUMEN_PARA_EL_DUENO.md`.** Para jugar: abrir el proyecto y pulsar Play (arranca en `L_Tutorial`); teclas y técnicas en `controles.md`.
 

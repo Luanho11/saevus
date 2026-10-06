@@ -124,3 +124,10 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - **Tarea 77 (preparada):** `Empaquetar.ps1` compila de una acción en una y limita los compiladores de shaders; `Probar-Ejecutable.ps1` arranca el .exe con la prueba de humo. No se lanzó (lo ejecuta el dueño con todo cerrado).
 - `RESUMEN_PARA_EL_DUENO.md` rehecho para esta fase, con capturas nuevas.
 - **Tarea 77:** con permiso del dueño se lanzó `Empaquetar.ps1` (una acción de compilación a la vez, compiladores de shaders limitados): BUILD SUCCESSFUL, 959 MB en `Saved/Empaquetado/Windows`. `Probar-Ejecutable.ps1`: el .exe pasa la prueba de humo entera a 78 fps de media (Media, 720p; dentro del editor, 65). La descarga de la fuente Cinzel la bloqueó el permiso automático: se le pide al dueño. Nueva fase "Calidad" (tareas 78–84).
+
+## 2026-10-06 — Sesión 4 (fase "Producción artística")
+
+- El dueño puso en `assets/` ocho hojas de referencia generadas y las declaró **referencia visual canónica**. Se clasificaron (`REFERENCIAS_ARTE.md`, REF-01…08: protagonista, construcción, primeros planos, movimiento, goblins, Rey Goblin, mazmorra, hoja maestra de UI/VFX) y se escribió `ARTE_SAEVUS.md` con la paleta **medida** (cuantización y muestreo de píxeles) y las proporciones **medidas** en las vistas ortogonales (la pose heroica de REF-01 está en contrapicado y agranda la cabeza; manda REF-02).
+- Comparación con lo implementado: el caballero (máscara blanca redonda con cuernos, capa en tubo, aguijón de 62 cm, cabeza de 0,40 m) y los goblins (bolas verdes) contradicen las referencias; se corrigen antes de crear contenido nuevo.
+- Nueva fase en `PROGRESS.md` (tareas 85–100); la fase "Calidad" (78–84) queda absorbida.
+
