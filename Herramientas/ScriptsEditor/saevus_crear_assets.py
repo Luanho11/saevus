@@ -27,14 +27,15 @@ FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballer
 # M_SAEVUS_PersonajeDibujado. Colores medidos en las referencias (Documentos/ARTE_SAEVUS.md, Paleta;
 # los mismos que blender_caballero.py): cuerpo casi negro, placas del casco carbón, hueso cálido en la
 # máscara y los brazales, capa verde pizarra, cuero marrón, acero azulado; ojos cian y filo azul brillan.
+# Borde de luz frío bajo en la ropa: con más, la capa oscura se veía gris plateada en juego (tarea 86).
 COLOR_BORDE_FRIO = (0.45, 0.6, 0.85, 1.0)
 PIEZAS_CABALLERO = {
-    "Cuerpo": {"Color": (0.014, 0.013, 0.015, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.45, "AutoIluminacion": 0.0},
-    "Casco": {"Color": (0.027, 0.024, 0.028, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.4, "AutoIluminacion": 0.0},
+    "Cuerpo": {"Color": (0.014, 0.013, 0.015, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.2, "AutoIluminacion": 0.0},
+    "Casco": {"Color": (0.027, 0.024, 0.028, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.25, "AutoIluminacion": 0.0},
     "Hueso": {"Color": (0.24, 0.18, 0.16, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.15, "AutoIluminacion": 0.12},
-    "Capa": {"Color": (0.033, 0.040, 0.042, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.35, "AutoIluminacion": 0.0},
-    "Cuero": {"Color": (0.048, 0.029, 0.025, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.25, "AutoIluminacion": 0.0},
-    "Tela": {"Color": (0.024, 0.021, 0.023, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.3, "AutoIluminacion": 0.0},
+    "Capa": {"Color": (0.035, 0.047, 0.045, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.1, "AutoIluminacion": 0.0},
+    "Cuero": {"Color": (0.048, 0.029, 0.025, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.1, "AutoIluminacion": 0.0},
+    "Tela": {"Color": (0.024, 0.021, 0.023, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.12, "AutoIluminacion": 0.0},
     "Metal": {"Color": (0.075, 0.097, 0.12, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.3, "AutoIluminacion": 0.05},
     "Filo": {"Color": (0.21, 0.43, 0.63, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 1.2},
     "Ojos": {"Color": (0.16, 0.65, 0.79, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.0, "AutoIluminacion": 2.0},
@@ -633,9 +634,11 @@ ENEMIGOS["DA_Jefe_MadreAlada"] = {
 # Goblins (fase "Rehacer como GunZ"): enemigos del modo misión de GunZ, a nuestra manera. Sin daño por
 # contacto (acercarse no castiga), avisos claros (el arma brilla y se agachan), ataques variados y
 # recuperaciones en las que cabe castigar. Más fáciles de golpear que de esquivar: cápsulas anchas.
+# Acero tosco del arma (REF-05): es la ranura "Arma", la que brilla al avisar.
+COLOR_ARMA_GOBLIN = (0.16, 0.14, 0.13)
 ENEMIGOS["DA_Goblin"] = {
-    "nombre_visible": "Goblin", "vida_maxima": 30.0, "radio_capsula": 38.0, "media_altura_capsula": 60.0,
-    "color_cuerpo": (0.06, 0.09, 0.05), "color_mascara": (1.0, 0.75, 0.3),
+    "nombre_visible": "Goblin", "vida_maxima": 30.0, "radio_capsula": 38.0, "media_altura_capsula": 62.0,
+    "color_cuerpo": (0.11, 0.087, 0.076), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 330.0, "radio_deteccion": 1100.0, "radio_perdida": 2000.0, "radio_patrulla": 200.0,
     "danio_contacto": 0.0,
     "ataques": [
@@ -679,8 +682,8 @@ ENEMIGOS["DA_Goblin_Hondero"] = {
 ENEMIGOS["DA_Jefe_ReyGoblin"] = {
     # Jefe de la Mazmorra: enorme y lento. Cuchillazo amplio, embestida, salto aplastante y una lluvia de piedras;
     # a media vida, más rápido y añade la lluvia.
-    "nombre_visible": "Rey Goblin", "vida_maxima": 320.0, "es_jefe": True, "radio_capsula": 90.0, "media_altura_capsula": 130.0,
-    "color_cuerpo": (0.07, 0.09, 0.05), "color_mascara": (1.0, 0.7, 0.25),
+    "nombre_visible": "Rey Goblin", "vida_maxima": 320.0, "es_jefe": True, "radio_capsula": 95.0, "media_altura_capsula": 160.0,
+    "color_cuerpo": (0.068, 0.044, 0.038), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 240.0, "radio_deteccion": 1500.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
     "danio_contacto": 0.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5,
     "ataques": [
@@ -718,6 +721,19 @@ CUERPOS_ENEMIGOS = {
     "DA_Jefe_ReyGoblin": "SM_Jefe_ReyGoblin",
 }
 
+# Producción artística (2026-10-06): goblins con esqueleto según REF-05/REF-06 (Herramientas/Arte/Generar-Goblins.ps1
+# → ArteFuente/Goblins). Mandan sobre el cuerpo estático y los anima la IA (USAEVUSComponenteAnimacionProcedural).
+# Colores por ranura medidos en las referencias (ARTE_SAEVUS.md, Paleta; los mismos que blender_goblins.py).
+COLORES_GOBLIN = {
+    "Piel": (0.11, 0.087, 0.076), "Oscuro": (0.010, 0.011, 0.012), "Trapo": (0.027, 0.031, 0.033),
+    "Cuero": (0.048, 0.029, 0.025), "Metal": (0.075, 0.097, 0.12), "Ojos": (0.004, 0.004, 0.005),
+    "Placas": (0.068, 0.044, 0.038),
+}
+CUERPOS_ESQUELETICOS = {
+    "DA_Goblin": "SK_Goblin",
+    "DA_Jefe_ReyGoblin": "SK_ReyGoblin",
+}
+
 
 def importar_estatica(nombre, carpeta_fuente, destino):
     fbx = os.path.join(unreal.Paths.project_dir(), "ArteFuente", carpeta_fuente, f"{nombre}.fbx")
@@ -733,6 +749,25 @@ def importar_estatica(nombre, carpeta_fuente, destino):
     malla = next((m for m in (unreal.load_asset(r) for r in tarea.imported_object_paths) if isinstance(m, unreal.StaticMesh)), None)
     if malla is None:
         raise RuntimeError(f"La importación de {fbx} no produjo una malla estática")
+    return malla
+
+
+def importar_esqueletica(nombre, carpeta_fuente, destino):
+    """Importa (o reimporta) una malla esquelética de ArteFuente/<carpeta_fuente>/<nombre>.fbx."""
+    fbx = os.path.join(unreal.Paths.project_dir(), "ArteFuente", carpeta_fuente, f"{nombre}.fbx")
+    if not os.path.exists(fbx):
+        raise RuntimeError(f"Falta {fbx}; genera el arte con Herramientas/Arte/")
+    tarea = unreal.AssetImportTask()
+    tarea.filename = fbx
+    tarea.destination_path = destino
+    tarea.automated = True
+    tarea.replace_existing = True
+    tarea.save = False
+    herramientas_assets.import_asset_tasks([tarea])
+    malla = next((m for m in (unreal.load_asset(r) for r in tarea.imported_object_paths) if isinstance(m, unreal.SkeletalMesh)), None)
+    if malla is None:
+        raise RuntimeError(f"La importación de {fbx} no produjo una malla esquelética")
+    registrar(f"malla esquelética importada: {malla.get_path_name()}")
     return malla
 
 
@@ -775,6 +810,12 @@ def crear_datos_enemigos(material_base, material_particulas):
         datos.set_editor_property("material_particulas", material_particulas)
         if nombre in CUERPOS_ENEMIGOS:
             datos.set_editor_property("malla_cuerpo", importar_estatica(CUERPOS_ENEMIGOS[nombre], "Enemigos", DIR_ARTE_ENEMIGOS))
+        if nombre in CUERPOS_ESQUELETICOS:
+            malla = CUERPOS_ESQUELETICOS[nombre]
+            datos.set_editor_property("malla_esqueletica", importar_esqueletica(malla, "Goblins", f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}"))
+            datos.set_editor_property("colores_piezas", {unreal.Name(k): unreal.LinearColor(*v, 1.0) for k, v in COLORES_GOBLIN.items()})
+        else:
+            datos.set_editor_property("malla_esqueletica", None)
         resultado[nombre] = datos
     return resultado
 

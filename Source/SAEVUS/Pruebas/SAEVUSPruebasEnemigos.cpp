@@ -4,7 +4,9 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Combate/SAEVUSComponenteVida.h"
+#include "Components/PoseableMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Enemigos/SAEVUSComponenteEscudo.h"
 #include "GameFramework/DamageType.h"
@@ -430,6 +432,57 @@ bool FSAEVUSPruebaEnemigoSalto::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Hacia el jugador"), Enemigo->GetVelocity().X < 0.f);
 	TestTrue(TEXT("Al aterrizar se recupera"), Mundo.AvanzarHastaEstado(Enemigo, ESAEVUSEstadoEnemigo::Recuperarse));
 	TestTrue(TEXT("Ya en el suelo"), Enemigo->GetCharacterMovement()->IsMovingOnGround());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoEsqueleto, "SAEVUS.Enemigo.Esqueleto", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoEsqueleto::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	// Goblin con esqueleto (REF-05): la IA lo anima; al avisar alza el arma, así se lee el golpe que viene.
+	constexpr float SubidaMinimaManoAviso = 20.f;
+	const TCHAR* const RutaGoblin = TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Goblin.DA_Goblin");
+	const USAEVUSDatosEnemigo* Datos = LoadObject<USAEVUSDatosEnemigo>(nullptr, RutaGoblin);
+	if (!TestNotNull(TEXT("DA_Goblin (créalo con Verificar-Arranque.ps1)"), Datos) || !TestNotNull(TEXT("Goblin con malla esquelética"), Datos->MallaEsqueletica.Get()))
+	{
+		return false;
+	}
+	FMundoEnemigos Mundo;
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(DistanciaAtaque, Datos);
+	if (!TestTrue(TEXT("Jugador y goblin de pie"), Mundo.bListo))
+	{
+		return false;
+	}
+	UPoseableMeshComponent* Cuerpo = Enemigo->FindComponentByClass<UPoseableMeshComponent>();
+	USAEVUSComponenteAnimacionProcedural* Animacion = Enemigo->FindComponentByClass<USAEVUSComponenteAnimacionProcedural>();
+	TestTrue(TEXT("Usa el cuerpo con esqueleto"), Enemigo->TieneEsqueleto() && Cuerpo && Cuerpo->IsVisible());
+	if (!TestTrue(TEXT("Esqueleto válido para la animación"), Animacion && Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	auto Avanzar = [&](int32 Pasos)
+	{
+		for (int32 Indice = 0; Indice < Pasos; ++Indice)
+		{
+			Mundo.MundoPrueba.Paso();
+			Animacion->Actualizar(SAEVUSPruebas::PasoSimulacion);
+		}
+	};
+	Enemigo->ObtenerIA()->FijarObjetivo(nullptr);
+	Avanzar(SAEVUSPruebas::PasosPara(TiempoObservar));
+	const float ManoReposo = static_cast<float>(Cuerpo->GetBoneLocationByName(TEXT("mano_d"), EBoneSpaces::ComponentSpace).Z);
+
+	Enemigo->ObtenerIA()->FijarObjetivo(Mundo.Jugador);
+	float ManoMaxima = ManoReposo;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoMax) && Enemigo->ObtenerIA()->ObtenerEstado() != ESAEVUSEstadoEnemigo::Atacar; ++Indice)
+	{
+		Avanzar(1);
+		ManoMaxima = FMath::Max(ManoMaxima, static_cast<float>(Cuerpo->GetBoneLocationByName(TEXT("mano_d"), EBoneSpaces::ComponentSpace).Z));
+	}
+	AddInfo(FString::Printf(TEXT("Mano en reposo %.0f cm, al avisar hasta %.0f cm"), ManoReposo, ManoMaxima));
+	TestEqual(TEXT("Llega a atacar"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Atacar);
+	TestTrue(TEXT("Al avisar alza el arma"), ManoMaxima - ManoReposo > SubidaMinimaManoAviso);
 	return true;
 }
 

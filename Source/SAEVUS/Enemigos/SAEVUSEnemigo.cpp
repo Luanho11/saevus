@@ -4,7 +4,9 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
+#include "Components/PoseableMeshComponent.h"
 #include "Efectos/SAEVUSComponenteParticulas.h"
 #include "Enemigos/SAEVUSComponenteEscudo.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
@@ -48,6 +50,11 @@ namespace SAEVUSEnemigo
 	constexpr float MezclaDestello = 0.85f;
 	constexpr float BrilloDestello = 1.5f;
 
+	// Ranura del cuerpo con esqueleto que brilla al avisar (nombre de material de Blender).
+	const TCHAR* const PrefijoRanuraArma = TEXT("Arma");
+	// El cuerpo con esqueleto mira a +Y: se gira para mirar al frente del actor (+X), como el protagonista.
+	constexpr float GiroCuerpoAnimado = -90.f;
+
 	const FName ParametroColor(TEXT("Color"));
 	const FName ParametroAutoIluminacion(TEXT("AutoIluminacion"));
 }
@@ -85,6 +92,12 @@ ASAEVUSEnemigo::ASAEVUSEnemigo()
 	CuernoD = CrearPieza(TEXT("CuernoD"), Cono.Object);
 	CuernoI = CrearPieza(TEXT("CuernoI"), Cono.Object);
 
+	CuerpoAnimado = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("CuerpoAnimado"));
+	CuerpoAnimado->SetupAttachment(Piezas);
+	CuerpoAnimado->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CuerpoAnimado->SetVisibility(false);
+	Animacion = CreateDefaultSubobject<USAEVUSComponenteAnimacionProcedural>(TEXT("Animacion"));
+
 	Efectos = CreateDefaultSubobject<USAEVUSComponenteParticulas>(TEXT("Efectos"));
 	Efectos->SetupAttachment(RootComponent);
 	Sonido = CreateDefaultSubobject<USAEVUSComponenteSonidoEnemigo>(TEXT("Sonido"));
@@ -105,6 +118,11 @@ void ASAEVUSEnemigo::FijarDatos(const USAEVUSDatosEnemigo* NuevosDatos)
 	{
 		Sonido->ActualizarTipo();
 	}
+}
+
+bool ASAEVUSEnemigo::TieneEsqueleto() const
+{
+	return Datos && Datos->MallaEsqueletica;
 }
 
 UMaterialInterface* ASAEVUSEnemigo::ObtenerMaterialProyectil() const
@@ -157,6 +175,14 @@ void ASAEVUSEnemigo::AplicarDestello(float DeltaSeconds)
 	{
 		MaterialMascara->SetVectorParameterValue(ParametroColor, FMath::Lerp(Ajuste.ColorMascara, FLinearColor::White, Fraccion * MezclaDestello));
 	}
+	for (int32 Ranura = 0; Ranura < MaterialesPiezas.Num(); ++Ranura)
+	{
+		if (MaterialesPiezas[Ranura] != MaterialMascara)
+		{
+			MaterialesPiezas[Ranura]->SetVectorParameterValue(ParametroColor, FMath::Lerp(ColoresPiezasBase[Ranura], FLinearColor::White, Fraccion * MezclaDestello));
+			MaterialesPiezas[Ranura]->SetScalarParameterValue(ParametroAutoIluminacion, Fraccion * BrilloDestello);
+		}
+	}
 	bDestelloPintado = Fraccion > 0.f;
 }
 
@@ -177,6 +203,24 @@ void ASAEVUSEnemigo::AplicarAjuste()
 		Movimiento->SetMovementMode(MOVE_Flying);
 	}
 	Vida->FijarVidaMaxima(Ajuste.VidaMaxima);
+
+	// Cuerpo con esqueleto: de pie en la base de la cápsula, animado desde la IA; oculta todo lo demás.
+	const bool bEsqueleto = TieneEsqueleto();
+	CuerpoAnimado->SetVisibility(bEsqueleto);
+	Cuerpo->SetVisibility(!bEsqueleto);
+	if (bEsqueleto)
+	{
+		Mascara->SetVisibility(false);
+		CuernoD->SetVisibility(false);
+		CuernoI->SetVisibility(false);
+		if (CuerpoAnimado->GetSkinnedAsset() != Datos->MallaEsqueletica)
+		{
+			CuerpoAnimado->SetSkinnedAssetAndUpdate(Datos->MallaEsqueletica);
+			Animacion->FijarMalla(CuerpoAnimado);
+		}
+		CuerpoAnimado->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -MediaAltura), FRotator(0.f, GiroCuerpoAnimado, 0.f));
+		return;
+	}
 
 	// Con cuerpo generado en Blender, ese cuerpo (ya a la medida de la cápsula) sustituye a las formas.
 	const bool bMallaPropia = Datos && Datos->MallaCuerpo;
@@ -232,6 +276,25 @@ void ASAEVUSEnemigo::CrearMateriales()
 	CuernoD->SetMaterial(0, MaterialCuerpo);
 	CuernoI->SetMaterial(0, MaterialCuerpo);
 	Mascara->SetMaterial(0, MaterialMascara);
+
+	// Cuerpo con esqueleto: una instancia por ranura con el color de sus datos; la del arma es la "máscara" que brilla.
+	MaterialesPiezas.Reset();
+	ColoresPiezasBase.Reset();
+	if (TieneEsqueleto())
+	{
+		const TArray<FName> Ranuras = CuerpoAnimado->GetMaterialSlotNames();
+		for (int32 Ranura = 0; Ranura < Ranuras.Num(); ++Ranura)
+		{
+			const bool bArma = Ranuras[Ranura].ToString().StartsWith(PrefijoRanuraArma);
+			const FLinearColor* Color = Datos->ColoresPiezas.Find(Ranuras[Ranura]);
+			const FLinearColor ColorBase = bArma ? Ajuste.ColorMascara : (Color ? *Color : Ajuste.ColorCuerpo);
+			UMaterialInstanceDynamic* Material = bArma ? MaterialMascara.Get() : UMaterialInstanceDynamic::Create(Datos->MaterialBase, this);
+			Material->SetVectorParameterValue(ParametroColor, ColorBase);
+			CuerpoAnimado->SetMaterial(Ranura, Material);
+			MaterialesPiezas.Add(Material);
+			ColoresPiezasBase.Add(ColorBase);
+		}
+	}
 	if (Datos->MaterialParticulas)
 	{
 		Efectos->SetMaterial(0, Datos->MaterialParticulas);
@@ -298,6 +361,11 @@ void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)
 	}
 	default:
 		break;
+	}
+	if (TieneEsqueleto() && IA->ObtenerEstado() != ESAEVUSEstadoEnemigo::Muerto)
+	{
+		// El cuerpo con esqueleto avisa y ataca con su pose; sin aplastarse.
+		Objetivo = FVector::OneVector;
 	}
 	EscalaPiezas = FMath::VInterpTo(EscalaPiezas, Objetivo, DeltaSeconds, RapidezEscala);
 	Piezas->SetRelativeScale3D(EscalaPiezas);

@@ -275,6 +275,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
 	TObjectPtr<UStaticMesh> MallaCuerpo;
 
+	/**
+	 * Cuerpo con esqueleto (los 25 huesos del protagonista; Herramientas/Arte/blender_goblins.py): lo anima
+	 * USAEVUSComponenteAnimacionProcedural desde el estado de la IA. Manda sobre MallaCuerpo. Origen en los pies,
+	 * mirando a +Y, a tamaño real (la cápsula debe medir lo mismo).
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
+	TObjectPtr<USkeletalMesh> MallaEsqueletica;
+
+	/**
+	 * Color de cada ranura de la malla esquelética, por nombre de material de Blender (las que falten usan
+	 * ColorCuerpo). La ranura que empieza por "Arma" es la que brilla al avisar (sin color aquí, ColorMascara).
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
+	TMap<FName, FLinearColor> ColoresPiezas;
+
 	/** Material de las partículas de muerte. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
 	TObjectPtr<UMaterialInterface> MaterialParticulas;

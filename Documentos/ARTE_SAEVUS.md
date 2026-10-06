@@ -209,3 +209,21 @@ Presupuestos de `pipeline-assets.md` (protagonista 20–30 k triángulos, ≤ 3 
 ## Cómo se valida
 
 Cada asset se compara con su referencia **en la cámara real del juego** (capturas de la prueba de humo), no solo en Blender. La comparación y lo que falta se apuntan en `REGISTRO_SESIONES.md`.
+
+## Estado de producción
+
+Qué está ya hecho según la referencia y qué falta. Se actualiza en cada bloque.
+
+| Elemento | Referencia | Estado | Asset / código |
+|---|---|---|---|
+| Protagonista (modelo) | REF-01/02/03 | **v3 hecho** (silueta, cabeza, capa, espada, paleta); falta pulir dedos y placas | `blender_caballero.py`, `SK_Caballero`, `MI_Caballero_*` |
+| Protagonista (poses) | REF-04 | reposo y carrera en curso (tarea 87); el resto, tarea 89 | `SAEVUSComponenteAnimacionProcedural` |
+| Goblin base | REF-05 arriba 1 | modelo hecho; animación desde la IA en curso (tarea 92) | `blender_goblins.py`, `SK_Goblin` |
+| Guerrero, lanzador | REF-05 arriba 2, abajo 1 | modelos hechos, sin importar | `SK_Goblin_Guerrero`, `SK_Goblin_Lanzador` |
+| Asesino, élite, chamán | REF-05 arriba 3, abajo 3, abajo 2 | pendiente (no tienen papel en el juego todavía) | — |
+| Rey Goblin | REF-06 | modelo fase 1 hecho; fase 2 (rojo) por datos pendiente | `SK_ReyGoblin` |
+| Mazmorra (kit) | REF-07 | 19 piezas generadas, sin importar ni colocar | `blender_kit_mazmorra.py` |
+| VFX (formas) | REF-08 D–L | 8 formas generadas, sin integrar | `blender_vfx.py` |
+| HUD | REF-08 A | en preparación (emblema en rombo, barras finas, jefe con fase) | `SAEVUSWidgetInterfaz` |
+| Tipografía | REF-08 B | pendiente de los `.ttf` de Cinzel | `SAEVUSEstiloInterfaz` |
+| Iluminación y sombreado | REF-07, REF-08 L | borde frío rebajado en la ropa del protagonista; ajuste de `M_PP_Dibujado` pendiente (tarea 88) | `M_PP_Dibujado`, `M_SAEVUS_PersonajeDibujado` |

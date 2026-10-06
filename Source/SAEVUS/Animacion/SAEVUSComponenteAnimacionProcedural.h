@@ -6,11 +6,13 @@
 #include "CoreMinimal.h"
 #include "SAEVUSComponenteAnimacionProcedural.generated.h"
 
+class UCharacterMovementComponent;
 class UPoseableMeshComponent;
 class USAEVUSComponenteAlma;
 class USAEVUSComponenteGuardia;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCombate;
+class USAEVUSComponenteIAEnemigo;
 class USAEVUSComponenteMovimiento;
 class USAEVUSComponenteVida;
 struct FSAEVUSDefinicionAtaque;
@@ -50,8 +52,30 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion")
 	float GiroBrazo = 32.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion")
-	float InclinacionCarrera = 9.f;
+	/** Inclinación del tronco hacia delante a la velocidad de referencia (crece con el esprint). REF-04 n.º 2–3: cuerpo muy inclinado. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float InclinacionCarrera = 18.f;
+
+	/** La cadera baja estos centímetros a la velocidad de referencia: zancada larga y baja (REF-04). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "cm"))
+	float BajadaCarrera = 7.f;
+
+	/**
+	 * Brazo de la espada al correr (REF-04 n.º 2–3): el brazo se echa atrás estos grados y la hoja
+	 * apunta atrás, casi horizontal, tantos grados desde la vertical.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float GradosBrazoArmaCarrera = 40.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float GradosHojaCarrera = 70.f;
+
+	/** Brazo libre adelantado y doblado al correr (REF-04 n.º 2–3). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float GradosBrazoLibreCarrera = 30.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float FlexionCodoLibreCarrera = 70.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "cm"))
 	float BotePaso = 4.f;
@@ -66,6 +90,19 @@ struct FSAEVUSAjusteAnimacion
 	/** Corriendo hacia atrás, fracción de la inclinación de carrera (el cuerpo se echa atrás). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ClampMin = "0", ClampMax = "1"))
 	float FraccionInclinacionAtras = 0.5f;
+
+	/**
+	 * Reposo con la espada lista (REF-04 n.º 1, REF-01): la hoja baja en diagonal, adelantada y
+	 * abierta estos grados desde la vertical, con la punta lejos del suelo; rodillas algo dobladas.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo", meta = (ForceUnits = "deg"))
+	float GradosHojaReposoAdelante = 35.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo", meta = (ForceUnits = "deg"))
+	float GradosHojaReposoAfuera = 28.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo", meta = (ForceUnits = "deg"))
+	float FlexionRodillaReposo = 10.f;
 
 	/** Respiración en reposo: grados y ciclos por segundo. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo")
@@ -164,9 +201,25 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mirada", meta = (ClampMin = "0", ClampMax = "90", ForceUnits = "deg"))
 	float InclinacionMaximaCabeza = 30.f;
 
-	/** Largo de la hoja del aguijón (cm), desde el hueso del arma: lo usa la estela. */
+	/** Largo de la hoja de la espada (cm), desde el hueso del arma (la guarda) a la punta: lo usa la estela. Igual que LARGO_HOJA en blender_caballero.py (REF-02). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas", meta = (ClampMin = "0", ForceUnits = "cm"))
-	float LongitudHoja = 62.f;
+	float LongitudHoja = 90.f;
+
+	/**
+	 * Enemigos con esqueleto (goblins, REF-05/REF-06): encorvado de la especie, agachada y arma alzada
+	 * al avisar (se lee el golpe que viene), giro del pecho y retroceso al quedar aturdido.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ForceUnits = "deg"))
+	float EncorvadoEnemigo = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ForceUnits = "cm"))
+	float BajadaAvisoEnemigo = 14.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ForceUnits = "deg"))
+	float GiroPechoAvisoEnemigo = 30.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ForceUnits = "deg"))
+	float InclinacionAturdidoEnemigo = 28.f;
 
 	/** Parpadeos por segundo del cuerpo durante la invulnerabilidad tras un golpe. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
@@ -239,6 +292,10 @@ private:
 	void PrepararEsqueleto();
 
 	void ConstruirPoseObjetivo(FPose& Pose, float DeltaTime);
+	/** Enemigos con esqueleto: la pose sale del estado de su IA (aviso, ataque, recuperación, aturdido). */
+	void ConstruirPoseEnemigo(FPose& Pose, float DeltaTime);
+	/** Velocidad del dueño (jugador o enemigo). */
+	FVector VelocidadDueno() const;
 	void PoseLocomocion(FPose& Pose, float Velocidad, float DeltaTime);
 	void PoseAire(FPose& Pose, float VelocidadVertical);
 	void PoseDash(FPose& Pose);
@@ -282,6 +339,9 @@ private:
 	TObjectPtr<UPoseableMeshComponent> Malla;
 
 	USAEVUSComponenteMovimiento* Movimiento = nullptr;
+	/** Movimiento de cualquier dueño (los enemigos usan el del motor). */
+	UCharacterMovementComponent* MovimientoBase = nullptr;
+	USAEVUSComponenteIAEnemigo* IA = nullptr;
 	USAEVUSComponenteCombate* Combate = nullptr;
 	USAEVUSComponenteArmas* Armas = nullptr;
 	USAEVUSComponenteVida* Vida = nullptr;

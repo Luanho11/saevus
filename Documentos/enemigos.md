@@ -19,6 +19,22 @@ Como los del modo misión de GunZ, con diseño propio. El dueño pidió que no c
 
 Dónde están: tres en el gran salón del tutorial (uno de cada clase, con el aviso "Goblins"); en la Mazmorra, cuatro en el salón central (uno en el balcón), dos en la galería y el Rey en la sala del trono, al sur del final de la galería; en `L_Pruebas`, uno de cada para la prueba de humo (comprueba que reaccionan al jugador).
 
+## Goblins con esqueleto (producción artística, tareas 92–94)
+
+Los goblins se rehacen según las referencias canónicas (`ARTE_SAEVUS.md`, Goblins y Rey Goblin): `Herramientas/Arte/blender_goblins.py` (ayudantes comunes en `blender_piezas.py`) genera mallas **esqueléticas con los mismos 25 huesos del protagonista**, a tamaño real, en `ArteFuente/Goblins` (`Generar-Goblins.ps1`):
+
+| Malla | Referencia | Tipo del juego | Notas |
+|---|---|---|---|
+| `SK_Goblin` | REF-05 arriba 1 | `DA_Goblin` | goblin base de la especie: 1,35 m, capucha, hoz larga |
+| `SK_Goblin_Guerrero` | REF-05 arriba 2 | `DA_Goblin_Maza` | 1,55 m, sonrisa de dientes, fardo con aro, cuchilla ancha |
+| `SK_Goblin_Lanzador` | REF-05 abajo 1 | `DA_Goblin_Hondero` | casco redondo con correa, armazón a la espalda, hoz corta |
+| `SK_ReyGoblin` | REF-06 | `DA_Jefe_ReyGoblin` | 3,3 m hasta la corona, guja de media luna; la fase 2 recolorea la tela en rojo |
+
+- `USAEVUSDatosEnemigo::MallaEsqueletica` manda sobre `MallaCuerpo`; `ColoresPiezas` da el color de cada ranura por nombre de material (paleta medida), y la ranura que empieza por `Arma` es la que brilla al avisar.
+- `ASAEVUSEnemigo` lleva un `UPoseableMeshComponent` (`CuerpoAnimado`) y el mismo `USAEVUSComponenteAnimacionProcedural` que el protagonista: sin `USAEVUSComponenteMovimiento`, el animador construye la pose desde la IA (`ConstruirPoseEnemigo`): locomoción con el encorvado de la especie, **agachada y arma alzada atrás al avisar**, tajo cruzado (o lanzamiento al frente) al atacar, golpe que se queda abajo en la recuperación (ventana de castigo), retroceso al quedar aturdido, desplome al morir. Ajustes en `FSAEVUSAjusteAnimacion`, categoría Enemigo.
+- El destello al recibir un golpe pinta todas las ranuras.
+- Test `SAEVUS.Enemigo.Esqueleto`.
+
 ## Piezas
 
 | Pieza | Dónde | Qué hace |

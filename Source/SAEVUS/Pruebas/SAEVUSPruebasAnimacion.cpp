@@ -215,11 +215,11 @@ bool FSAEVUSPruebaAnimacionEstelaArma::RunTest(const FString& Parameters)
 	Mundo.AvanzarDurante(TiempoAsentarPose);
 	FVector Base;
 	FVector Punta;
-	if (!TestTrue(TEXT("Con el aguijón visible hay hoja"), Mundo.Animacion->ObtenerHoja(Base, Punta)))
+	if (!TestTrue(TEXT("Con la espada visible hay hoja"), Mundo.Animacion->ObtenerHoja(Base, Punta)))
 	{
 		return false;
 	}
-	TestEqual(TEXT("La hoja mide lo ajustado"), static_cast<float>(FVector::Dist(Base, Punta)), 62.f, 1.f);
+	TestEqual(TEXT("La hoja mide lo ajustado"), static_cast<float>(FVector::Dist(Base, Punta)), FSAEVUSAjusteAnimacion().LongitudHoja, 1.f);
 	TestTrue(TEXT("La base de la hoja está cerca de la mano"), FVector::Dist(Base, Mundo.Cuerpo->GetBoneLocationByName(TEXT("mano_d"), EBoneSpaces::WorldSpace)) < 30.f);
 
 	const USAEVUSComponenteEfectosCombate* Efectos = Mundo.Personaje->ObtenerEfectosCombate();

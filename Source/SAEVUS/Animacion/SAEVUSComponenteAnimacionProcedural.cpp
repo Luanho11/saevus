@@ -13,6 +13,7 @@
 #include "Personaje/SAEVUSPersonaje.h"
 #include "EngineUtils.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
 #include "SAEVUS.h"
 
@@ -190,8 +191,10 @@ void USAEVUSComponenteAnimacionProcedural::BeginPlay()
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 	if (Personaje)
 	{
-		Movimiento = Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement());
+		MovimientoBase = Personaje->GetCharacterMovement();
+		Movimiento = Cast<USAEVUSComponenteMovimiento>(MovimientoBase);
 	}
+	IA = GetOwner()->FindComponentByClass<USAEVUSComponenteIAEnemigo>();
 	Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
 	Armas = GetOwner()->FindComponentByClass<USAEVUSComponenteArmas>();
 	Vida = GetOwner()->FindComponentByClass<USAEVUSComponenteVida>();
@@ -289,7 +292,10 @@ void USAEVUSComponenteAnimacionProcedural::Actualizar(float DeltaTime)
 	ConstruirPoseObjetivo(Pose, DeltaTime);
 	FQuat Objetivo[NumHuesos];
 	ResolverObjetivo(Pose, Objetivo);
-	const bool bAccion = (Combate && Combate->EstaAtacando()) || (Movimiento && Movimiento->EstaEnDash()) || TiempoGiroSaltoPared > 0.f;
+	const ESAEVUSEstadoEnemigo EstadoEnemigo = IA ? IA->ObtenerEstado() : ESAEVUSEstadoEnemigo::Reposo;
+	const bool bAccionEnemigo = EstadoEnemigo == ESAEVUSEstadoEnemigo::Telegrafiar || EstadoEnemigo == ESAEVUSEstadoEnemigo::Atacar
+		|| EstadoEnemigo == ESAEVUSEstadoEnemigo::Aturdido;
+	const bool bAccion = (Combate && Combate->EstaAtacando()) || (Movimiento && Movimiento->EstaEnDash()) || TiempoGiroSaltoPared > 0.f || bAccionEnemigo;
 	SuavizarYAplicar(Pose, Objetivo, DeltaTime, bAccion);
 }
 
@@ -298,6 +304,10 @@ void USAEVUSComponenteAnimacionProcedural::ConstruirPoseObjetivo(FPose& Pose, fl
 	using namespace SAEVUSAnimacion;
 	if (!Movimiento)
 	{
+		if (IA)
+		{
+			ConstruirPoseEnemigo(Pose, DeltaTime);
+		}
 		return;
 	}
 	const float Velocidad = static_cast<float>(Movimiento->Velocity.Size2D());
@@ -406,19 +416,20 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 	// GunZ: el cuerpo mira a la cámara y se mueve en ocho direcciones. Las piernas oscilan en la
 	// dirección del paso; de lado, la cadera gira hacia él (al revés si va hacia atrás) y la columna
 	// lo compensa, así el pecho sigue de frente. Hacia atrás, el cuerpo se echa algo atrás.
-	const FVector Paso = DireccionMalla(Movimiento->Velocity);
+	const FVector Paso = DireccionMalla(VelocidadDueno());
 	const float Frente = static_cast<float>(FVector::DotProduct(Paso, Adelante));
 	const float Lado = static_cast<float>(FVector::DotProduct(Paso, Derecha));
 	const float GiroCadera = Ajuste.GiroCaderaLateral * Lado * (Frente < FrenteAtras ? -1.f : 1.f) * FMath::Min(1.f, Amplitud);
 	const float FactorInclinacion = Frente < 0.f ? FMath::Lerp(1.f, Ajuste.FraccionInclinacionAtras, -Frente) : 1.f;
-	const float Inclinacion = Ajuste.InclinacionCarrera * Amplitud * 0.5f * FactorInclinacion;
+	const float Inclinacion = Ajuste.InclinacionCarrera * Amplitud * FactorInclinacion;
 	Pose.Huesos[Indice(ESAEVUSHueso::Pelvis)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, GiroCadera) };
 
 	auto Pierna = [&](ESAEVUSHueso Muslo, ESAEVUSHueso PiernaHueso, float Signo)
 	{
 		Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Paso, Ajuste.GiroMuslo * Amplitud * Signo * Seno) };
-		// La rodilla se dobla sobre todo cuando la pierna va hacia delante en el aire.
-		const float Flexion = Ajuste.FlexionRodilla * Amplitud * FMath::Max(0.f, Signo * Coseno) + 8.f * Amplitud;
+		// La rodilla se dobla sobre todo cuando la pierna va hacia delante en el aire; en reposo, algo doblada (guardia baja).
+		const float Flexion = Ajuste.FlexionRodilla * Amplitud * FMath::Max(0.f, Signo * Coseno) + 8.f * Amplitud
+			+ Ajuste.FlexionRodillaReposo * (1.f - FMath::Min(1.f, Amplitud));
 		Pose.Huesos[Indice(PiernaHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Flexion) };
 	};
 	Pierna(ESAEVUSHueso::MusloD, ESAEVUSHueso::PiernaD, 1.f);
@@ -434,12 +445,29 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 	Brazo(ESAEVUSHueso::BrazoD, ESAEVUSHueso::AntebrazoD, Derecha, 1.f);
 	Brazo(ESAEVUSHueso::BrazoI, ESAEVUSHueso::AntebrazoI, -Derecha, -1.f);
 
+	// Espada (REF-04): en reposo baja en diagonal, adelantada y abierta, con la punta lejos del suelo;
+	// al correr, el brazo se echa atrás y la hoja apunta atrás casi horizontal, y el brazo libre se adelanta.
+	const float Carrera = FMath::Min(1.f, Amplitud);
+	const FVector HojaReposo = Dir(Dir(-Arriba, Adelante, Ajuste.GradosHojaReposoAdelante), Derecha, Ajuste.GradosHojaReposoAfuera);
+	const FVector HojaCarrera = (Dir(-Arriba, -Paso, Ajuste.GradosHojaCarrera) + Derecha * 0.25f).GetSafeNormal();
+	Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, FMath::Lerp(HojaReposo, HojaCarrera, Carrera).GetSafeNormal() };
+	if (Carrera > 0.f)
+	{
+		const FVector BrazoArma = (Dir(-Arriba, -Paso, Ajuste.GradosBrazoArmaCarrera) + Derecha * 0.2f).GetSafeNormal();
+		const FObjetivo& Oscilante = Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)];
+		Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, FMath::Lerp(Oscilante.Direccion, BrazoArma, Carrera).GetSafeNormal() };
+		const FVector BrazoLibre = (Dir(-Arriba, Paso, Ajuste.GradosBrazoLibreCarrera) - Derecha * 0.25f).GetSafeNormal();
+		const FObjetivo& Libre = Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)];
+		Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, FMath::Lerp(Libre.Direccion, BrazoLibre, Carrera).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, FMath::Lerp(20.f, Ajuste.FlexionCodoLibreCarrera, Carrera)) };
+	}
+
 	// Tronco: inclinación con la velocidad, giro de hombros y respiración en reposo.
 	const float Respiracion = Ajuste.AmplitudRespiracion * FMath::Sin(TiempoTotal * Ajuste.FrecuenciaRespiracion * UE_TWO_PI) * (1.f - FMath::Min(1.f, Amplitud));
 	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, -GiroCadera) * Girar(Arriba, Paso, Inclinacion) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector,
 		Girar(Adelante, Derecha, 6.f * Amplitud * Seno) * Girar(Arriba, Paso, Inclinacion) * Girar(Arriba, Adelante, Respiracion) };
-	Pose.DesplazamientoRaiz.Z = Ajuste.BotePaso * Amplitud * FMath::Abs(Seno);
+	Pose.DesplazamientoRaiz.Z = Ajuste.BotePaso * Amplitud * FMath::Abs(Seno) - Ajuste.BajadaCarrera * Amplitud;
 
 	// Flexión de aterrizaje.
 	if (TiempoAterrizaje > 0.f)
@@ -898,4 +926,99 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 		Malla->SetBoneTransformByName(NombreHueso(static_cast<ESAEVUSHueso>(Hueso)), FTransform(RotacionActual[Hueso], Posicion[Hueso], EscalaFinal), EBoneSpaces::ComponentSpace);
 		PosicionActual[Hueso] = Posicion[Hueso];
 	}
+}
+
+FVector USAEVUSComponenteAnimacionProcedural::VelocidadDueno() const
+{
+	return MovimientoBase ? MovimientoBase->Velocity : FVector::ZeroVector;
+}
+
+void USAEVUSComponenteAnimacionProcedural::ConstruirPoseEnemigo(FPose& Pose, float DeltaTime)
+{
+	using namespace SAEVUSAnimacion;
+	TiempoReaccionGolpe = FMath::Max(0.f, TiempoReaccionGolpe - DeltaTime);
+	const FVector Velocidad = VelocidadDueno();
+	const ESAEVUSEstadoEnemigo Estado = IA->ObtenerEstado();
+	if (Estado == ESAEVUSEstadoEnemigo::Muerto || (Vida && Vida->EstaMuerto()))
+	{
+		PoseMuerte(Pose, DeltaTime);
+		return;
+	}
+	TiempoMuerto = 0.f;
+
+	// Base: la locomoción de siempre (piernas, brazos, arma) con el encorvado de la especie; la cabeza
+	// lo compensa para seguir mirando al frente (REF-05).
+	PoseLocomocion(Pose, static_cast<float>(Velocidad.Size2D()), DeltaTime);
+	FQuat& GiroColumna = Pose.Huesos[Indice(ESAEVUSHueso::Columna)].Giro;
+	GiroColumna = GiroColumna * Girar(Arriba, Adelante, Ajuste.EncorvadoEnemigo);
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Ajuste.EncorvadoEnemigo * 0.8f) };
+
+	// Arma alzada atrás al avisar y tajo cruzado hacia delante y abajo al atacar; el lanzador lanza al frente.
+	const FSAEVUSAtaqueEnemigo* Ataque = IA->ObtenerAtaqueActual();
+	const bool bLanza = Ataque && Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Proyectil;
+	const FVector BrazoBase = (-Arriba + Derecha * 0.3f).GetSafeNormal();
+	const FVector BrazoAlzado = (-Adelante * 0.35f + Arriba * 0.75f + Derecha * 0.45f).GetSafeNormal();
+	const FVector BrazoGolpe = bLanza ? (Adelante * 0.9f + Arriba * 0.25f).GetSafeNormal() : (Adelante * 0.75f - Arriba * 0.45f - Derecha * 0.35f).GetSafeNormal();
+	const FVector ArmaAlzada = (Arriba * 0.6f - Adelante * 0.6f + Derecha * 0.3f).GetSafeNormal();
+	const float Tiempo = IA->ObtenerTiempoEstado();
+	auto Brazo = [&](const FVector& DireccionBrazo, const FVector& DireccionArma, float Flexion)
+	{
+		Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, DireccionBrazo };
+		Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoD)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, Flexion) };
+		Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, DireccionArma };
+	};
+	auto Piernas = [&](float Fraccion)
+	{
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, Adelante, 30.f * Fraccion) };
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, -Adelante, 18.f * Fraccion) };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 40.f * Fraccion) };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 25.f * Fraccion) };
+	};
+	switch (Estado)
+	{
+	case ESAEVUSEstadoEnemigo::Telegrafiar:
+	{
+		const float P = SuavizarCurva(IA->ObtenerProgresoAviso());
+		Brazo(Interpolar(BrazoBase, BrazoAlzado, P), Interpolar(-Arriba, ArmaAlzada, P), 45.f * P);
+		GiroColumna = GiroColumna * Girar(Adelante, Derecha, -Ajuste.GiroPechoAvisoEnemigo * P);
+		Piernas(P);
+		Pose.DesplazamientoRaiz.Z -= Ajuste.BajadaAvisoEnemigo * P;
+		break;
+	}
+	case ESAEVUSEstadoEnemigo::Atacar:
+	{
+		const float U = SalidaRapida(Tiempo / FMath::Max(Ataque ? Ataque->Duracion : 0.f, UE_KINDA_SMALL_NUMBER));
+		Brazo(Interpolar(BrazoAlzado, BrazoGolpe, U), Interpolar(ArmaAlzada, BrazoGolpe, U), 45.f * (1.f - U));
+		GiroColumna = GiroColumna * Girar(Adelante, Derecha, FMath::Lerp(-Ajuste.GiroPechoAvisoEnemigo, Ajuste.GiroPechoAvisoEnemigo * 0.8f, U))
+			* Girar(Arriba, Adelante, 15.f * U);
+		Piernas(1.f);
+		Pose.DesplazamientoRaiz.Z -= Ajuste.BajadaAvisoEnemigo * 0.7f;
+		break;
+	}
+	case ESAEVUSEstadoEnemigo::Recuperarse:
+	{
+		// Ventana de castigo: el golpe se queda abajo y vuelve despacio.
+		const float U = SuavizarCurva(Tiempo / FMath::Max(Ataque ? Ataque->TiempoRecuperacion : 0.f, UE_KINDA_SMALL_NUMBER));
+		Brazo(Interpolar(BrazoGolpe, BrazoBase, U), Interpolar(BrazoGolpe, -Arriba, U), 0.f);
+		GiroColumna = GiroColumna * Girar(Arriba, Adelante, 15.f * (1.f - U));
+		Piernas(1.f - U);
+		break;
+	}
+	case ESAEVUSEstadoEnemigo::Aturdido:
+	{
+		// Retroceso: tronco y cabeza atrás, brazos abiertos, rodillas que ceden.
+		GiroColumna = GiroColumna * Girar(Arriba, -Adelante, Ajuste.InclinacionAturdidoEnemigo);
+		Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Ajuste.InclinacionAturdidoEnemigo) };
+		Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Derecha * 0.7f - Arriba * 0.5f - Adelante * 0.2f).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Derecha * 0.7f - Arriba * 0.5f - Adelante * 0.2f).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 30.f) };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 30.f) };
+		Pose.DesplazamientoRaiz.Z -= Ajuste.BajadaAvisoEnemigo * 0.5f;
+		break;
+	}
+	default:
+		break;
+	}
+	PoseReaccionGolpe(Pose);
+	PoseCapa(Pose, static_cast<float>(Velocidad.Size2D()), static_cast<float>(Velocidad.Z));
 }

@@ -8,6 +8,8 @@
 #include "SAEVUSEnemigo.generated.h"
 
 class UMaterialInstanceDynamic;
+class UPoseableMeshComponent;
+class USAEVUSComponenteAnimacionProcedural;
 class UStaticMeshComponent;
 class USAEVUSComponenteIAEnemigo;
 class USAEVUSComponenteParticulas;
@@ -44,6 +46,9 @@ public:
 
 	/** Destello al recibir un golpe: 1 justo al recibirlo, baja a 0. */
 	float ObtenerDestello() const;
+
+	/** Cierto si su tipo usa un cuerpo con esqueleto animado (goblins nuevos). */
+	bool TieneEsqueleto() const;
 
 	/** Material de sus proyectiles (el de la máscara: brilla igual). */
 	UMaterialInterface* ObtenerMaterialProyectil() const;
@@ -108,6 +113,13 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<UStaticMeshComponent> CuernoI;
 
+	/** Cuerpo con esqueleto (MallaEsqueletica de los datos), animado por Animacion desde la IA. */
+	UPROPERTY(VisibleAnywhere, Category = "Componentes")
+	TObjectPtr<UPoseableMeshComponent> CuerpoAnimado;
+
+	UPROPERTY(VisibleAnywhere, Category = "Componentes")
+	TObjectPtr<USAEVUSComponenteAnimacionProcedural> Animacion;
+
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<USAEVUSComponenteParticulas> Efectos;
 
@@ -123,6 +135,11 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> MaterialMascara;
+
+	/** Cuerpo con esqueleto: una instancia por ranura (el destello las pinta todas) y su color de base. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> MaterialesPiezas;
+	TArray<FLinearColor> ColoresPiezasBase;
 
 	FVector EscalaPiezas = FVector::OneVector;
 	float TiempoMuerto = 0.f;
