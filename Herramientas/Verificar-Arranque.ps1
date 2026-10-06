@@ -1,12 +1,15 @@
 ﻿# Compila SAEVUS, crea los assets, ejecuta los tests de automatización y verifica los assets.
-# Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets] [-ConJuego]
+# Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 [-SinAssets] [-ConJuego] [-AccionesParalelas N]
 # -ConJuego añade la prueba de humo (L_Pruebas) y los recorridos del tutorial y de la Zona 1 en el juego real (con render; varios minutos).
+# -AccionesParalelas N limita las acciones de compilación a la vez (0 = las que decida UnrealBuildTool): con 7 GB de RAM y otros
+# programas abiertos, el sistema llegó a cortar la compilación por falta de memoria (2026-10-06); 1 o 2 la hacen caber.
 # Los logs van a Saved\Logs\Verificacion\. Código de salida 0 solo si pasan todos los pasos.
 
 param(
     [string]$RaizMotor = "C:\Program Files\Epic Games\UE_5.8",
     [switch]$SinAssets,
-    [switch]$ConJuego
+    [switch]$ConJuego,
+    [int]$AccionesParalelas = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,7 +32,9 @@ function Invocar-Editor([string]$Nombre, [string]$ArgsEditor) {
 }
 
 Write-Host "== 1/4 Compilar SAEVUSEditor"
-& (Join-Path $RaizMotor "Engine\Build\BatchFiles\Build.bat") SAEVUSEditor Win64 Development "-Project=$Proyecto" -WaitMutex -NoHotReload |
+$argsCompilacion = @("SAEVUSEditor", "Win64", "Development", "-Project=$Proyecto", "-WaitMutex", "-NoHotReload")
+if ($AccionesParalelas -gt 0) { $argsCompilacion += "-MaxParallelActions=$AccionesParalelas" }
+& (Join-Path $RaizMotor "Engine\Build\BatchFiles\Build.bat") @argsCompilacion |
     Tee-Object -FilePath (Join-Path $DirLogs "compilacion.log") | Select-String -Pattern "error|warning C|Result:"
 if ($LASTEXITCODE -ne 0) { throw "La compilación falló (ver compilacion.log)" }
 
