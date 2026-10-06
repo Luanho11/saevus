@@ -38,6 +38,17 @@ struct FSAEVUSAjusteParticulas
 	/** Giro aleatorio máximo por segundo, para que no se vean todas iguales. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Particulas", meta = (ClampMin = "0", ForceUnits = "deg/s"))
 	float GiroMaximo = 360.f;
+
+	/**
+	 * Chispas y estelas (REF-08 D, F): la partícula apunta su eje +X a donde va (sin giro aleatorio) y se
+	 * estira a lo largo de él con la velocidad (Estiramiento por cada 1000 cm/s). Para mallas alargadas
+	 * (SM_VFX_Chispa, SM_VFX_Estela).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Particulas")
+	bool bOrientarVelocidad = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Particulas", meta = (ClampMin = "0", EditCondition = "bOrientarVelocidad"))
+	float Estiramiento = 1.5f;
 };
 
 /**

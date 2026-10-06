@@ -8,6 +8,8 @@ namespace SAEVUSParticulas
 {
 	// Malla por defecto: el cubo del motor (12 triángulos). Se puede cambiar en el Blueprint.
 	const TCHAR* const RutaMallaPorDefecto = TEXT("/Engine/BasicShapes/Cube.Cube");
+	// Velocidad a la que una partícula orientada mide 1 + Estiramiento veces su tamaño.
+	constexpr float VelocidadEstiramiento = 1000.f;
 }
 
 USAEVUSComponenteParticulas::USAEVUSComponenteParticulas()
@@ -126,6 +128,13 @@ void USAEVUSComponenteParticulas::ActualizarInstancias()
 		const FParticula& Particula = Particulas[Indice];
 		const float Alfa = Particula.bViva ? FMath::Clamp(Particula.Edad / Ajuste.Vida, 0.f, 1.f) : 1.f;
 		const float Escala = Particula.bViva ? FMath::Lerp(Ajuste.TamanoInicial, Ajuste.TamanoFinal, Alfa) : 0.f;
+		if (Ajuste.bOrientarVelocidad && !Particula.Velocidad.IsNearlyZero())
+		{
+			// Alargada en la dirección de la velocidad: una raya que se acorta al frenar.
+			const float Largo = 1.f + Ajuste.Estiramiento * static_cast<float>(Particula.Velocidad.Size()) / SAEVUSParticulas::VelocidadEstiramiento;
+			Transformaciones[Indice] = FTransform(Particula.Velocidad.ToOrientationQuat(), Particula.Posicion, FVector(Escala * Largo, Escala, Escala));
+			continue;
+		}
 		Transformaciones[Indice] = FTransform(Particula.Rotacion, Particula.Posicion, FVector(Escala));
 	}
 	BatchUpdateInstancesTransforms(0, Transformaciones, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
