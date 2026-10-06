@@ -482,6 +482,17 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 			Pose.Huesos[Indice(PiernaHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.FlexionAterrizaje * Fraccion) };
 		}
 		Pose.DesplazamientoRaiz.Z -= 10.f * Fraccion;
+		if (FuerzaAterrizaje >= Ajuste.FuerzaAterrizajeFuerte)
+		{
+			// REF-04 n.º 11: rodillas abiertas, la mano libre al suelo y la espada afuera, atrás.
+			Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, (Dir(-Arriba, Adelante, Ajuste.FlexionAterrizaje * 0.5f * Fraccion) + Derecha * 0.5f * Fraccion).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, (Dir(-Arriba, Adelante, Ajuste.FlexionAterrizaje * 0.5f * Fraccion) - Derecha * 0.5f * Fraccion).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Arriba * 0.9f + Adelante * 0.35f - Derecha * 0.15f).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Derecha * 0.8f - Arriba * 0.35f - Adelante * 0.3f).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (Derecha * 0.6f - Arriba * 0.3f - Adelante * 0.7f).GetSafeNormal() };
+			Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, 25.f * Fraccion) };
+			Pose.DesplazamientoRaiz.Z -= 18.f * Fraccion;
+		}
 	}
 }
 
@@ -501,16 +512,33 @@ void USAEVUSComponenteAnimacionProcedural::PoseAire(FPose& Pose, float Velocidad
 	Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Flexion) };
 	Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Flexion * 0.8f) };
 
-	const float AlturaBrazos = FMath::Lerp(0.6f, 0.2f, Subida);
-	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (Derecha * 0.8f + Arriba * AlturaBrazos + Adelante * 0.2f).GetSafeNormal() };
-	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Derecha * 0.8f + Arriba * AlturaBrazos + Adelante * 0.2f).GetSafeNormal() };
-	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, FMath::Lerp(-6.f, 8.f, Subida)) };
+	// REF-04 n.º 4–5: la espada abajo y atrás, el brazo libre adelante y doblado; al caer los brazos se abren algo.
+	const float Apertura = FMath::Lerp(0.45f, 0.15f, Subida);
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (-Adelante * 0.55f - Arriba * 0.55f + Derecha * (0.35f + Apertura)).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (-Adelante * 0.7f - Arriba * 0.6f + Derecha * 0.2f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Adelante * 0.6f - Arriba * 0.45f - Derecha * (0.3f + Apertura)).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 60.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, FMath::Lerp(4.f, 14.f, Subida)) };
 
 	// Salto de pared: una vuelta sobre sí mismo que acaba otra vez de frente a la cámara.
 	if (TiempoGiroSaltoPared > 0.f && Ajuste.GradosGiroSaltoPared > 0.f)
 	{
 		const float U = 1.f - TiempoGiroSaltoPared / FMath::Max(Ajuste.DuracionGiroSaltoPared, UE_KINDA_SMALL_NUMBER);
 		Pose.Huesos[Indice(ESAEVUSHueso::Raiz)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, Ajuste.GradosGiroSaltoPared * SuavizarCurva(U)) };
+	}
+	else if (TiempoGiroSaltoPared > 0.f && !NormalSaltoPared.IsNearlyZero())
+	{
+		const FVector HaciaPared = -Malla->GetComponentTransform().InverseTransformVectorNoScale(NormalSaltoPared).GetSafeNormal2D();
+		const float P = TiempoGiroSaltoPared / FMath::Max(Ajuste.DuracionGiroSaltoPared, UE_KINDA_SMALL_NUMBER);
+		// La mano más cercana a la pared empuja; el cuerpo se abre hacia fuera.
+		const bool bDerecha = FVector::DotProduct(HaciaPared, Derecha) > 0.f;
+		const ESAEVUSHueso BrazoEmpuje = bDerecha ? ESAEVUSHueso::BrazoD : ESAEVUSHueso::BrazoI;
+		const ESAEVUSHueso BrazoLibre = bDerecha ? ESAEVUSHueso::BrazoI : ESAEVUSHueso::BrazoD;
+		Pose.Huesos[Indice(BrazoEmpuje)] = { true, (HaciaPared + Arriba * 0.2f).GetSafeNormal() };
+		Pose.Huesos[Indice(BrazoLibre)] = { true, (-HaciaPared * 0.7f - Arriba * 0.4f - Adelante * 0.3f).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, -HaciaPared, 22.f * P) };
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, -HaciaPared, 25.f * P) };
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, HaciaPared, 15.f * P) };
 	}
 }
 
@@ -545,17 +573,21 @@ void USAEVUSComponenteAnimacionProcedural::PoseDash(FPose& Pose)
 		Pose.DesplazamientoRaiz.Z = -BajadaVoltereta;
 		return;
 	}
-	// Hacia delante: cuerpo lanzado, piernas en zancada, brazos atrás; la cabeza mira al frente.
-	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
-	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Adelante, Ajuste.InclinacionDash * 0.5f) };
-	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Adelante, Ajuste.InclinacionDash * 0.6f) };
-	Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, -Adelante, 30.f) };
-	Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, Adelante, 35.f) };
+	// REF-04 n.º 6–8 (y REF-08 D): estocada baja inclinada hacia donde va, zancada en esa dirección, la espada
+	// atrás casi horizontal y el brazo libre adelantado; la cabeza sigue mirando al frente.
+	const FVector Va = Direccion.IsNearlyZero() ? Adelante : Direccion;
+	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Arriba, Va, Ajuste.InclinacionDash * 0.5f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Arriba, Va, Ajuste.InclinacionDash * 0.5f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Cabeza)] = { false, FVector::ZeroVector, Girar(Arriba, -Va, Ajuste.InclinacionDash * 0.6f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, -Va, 30.f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, Va, 35.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 45.f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 30.f) };
-	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (-Adelante * 0.7f - Arriba * 0.6f + Derecha * 0.25f).GetSafeNormal() };
-	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Adelante * 0.7f - Arriba * 0.6f - Derecha * 0.25f).GetSafeNormal() };
-	Pose.DesplazamientoRaiz.Z = -10.f;
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, (-Va * 0.7f - Arriba * 0.45f + Derecha * 0.3f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (-Va * 0.9f - Arriba * 0.15f + Derecha * 0.2f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (Va * 0.7f - Arriba * 0.35f - Derecha * 0.25f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 35.f) };
+	Pose.DesplazamientoRaiz.Z = -14.f;
 }
 
 void USAEVUSComponenteAnimacionProcedural::PoseCarreraPared(FPose& Pose, float DeltaTime)
@@ -567,6 +599,12 @@ void USAEVUSComponenteAnimacionProcedural::PoseCarreraPared(FPose& Pose, float D
 	if (!NormalMalla.IsNearlyZero())
 	{
 		Pose.Huesos[Indice(ESAEVUSHueso::Raiz)] = { false, FVector::ZeroVector, Girar(Arriba, NormalMalla, Ajuste.InclinacionCarreraPared) };
+		// REF-04 n.º 9: la mano del lado de la pared la toca; si es la de la espada, la hoja va atrás, a lo largo de la carrera.
+		const bool bParedDerecha = FVector::DotProduct(-NormalMalla, Derecha) > 0.f;
+		const FVector Toque = (-NormalMalla + Arriba * 0.35f).GetSafeNormal();
+		Pose.Huesos[Indice(bParedDerecha ? ESAEVUSHueso::BrazoD : ESAEVUSHueso::BrazoI)] = { true, Toque };
+		Pose.Huesos[Indice(bParedDerecha ? ESAEVUSHueso::AntebrazoD : ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, FQuat::Identity };
+		Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, (-DireccionMalla(VelocidadDueno()) * 0.8f - Arriba * 0.5f + NormalMalla * 0.2f).GetSafeNormal() };
 	}
 }
 
@@ -834,6 +872,7 @@ void USAEVUSComponenteAnimacionProcedural::AlSaltoAereo()
 
 void USAEVUSComponenteAnimacionProcedural::AlSaltoPared(const FVector& NormalPared)
 {
+	NormalSaltoPared = NormalPared;
 	TiempoGiroSaltoPared = Ajuste.DuracionGiroSaltoPared;
 }
 

@@ -35,10 +35,22 @@ Además, durante la invulnerabilidad tras un golpe el cuerpo parpadea (se oculta
 
 Como el cuerpo mira siempre a la cámara (`movimiento.md`, Orientación), la animación lee la dirección del paso en el espacio de la malla (`DireccionMalla`):
 - **Locomoción en ocho direcciones:** los muslos oscilan en la dirección del paso (hacia atrás, de espaldas); de lado, la pelvis gira `GiroCaderaLateral` (35°) hacia el paso (al revés si va hacia atrás) y la columna lo compensa, así el pecho sigue de frente; hacia atrás la inclinación se reduce a `FraccionInclinacionAtras` y se echa atrás. La carrera por pared usa lo mismo: las piernas corren a lo largo de la pared.
-- **Dash direccional:** de frente, la estocada de siempre; a los lados o hacia atrás (producto con el frente por debajo de `UmbralDashFrontal`, 0,6), **voltereta** recogida de `GradosVolteretaDash` (360°) sobre la pelvis en la dirección del dash, siguiendo `ObtenerFraccionDash()` del movimiento. Los miembros van en giros locales para rodar con el cuerpo.
-- **Salto de pared con giro:** el movimiento emite `AlSaltoPared`; el cuerpo da una vuelta de `GradosGiroSaltoPared` (360°) en `DuracionGiroSaltoPared` (0,4 s) y acaba otra vez de frente.
+- **Dash direccional:** estocada inclinada hacia la dirección del dash (REF-04). La voltereta de antes (`GradosVolteretaDash` > 0, a los lados o hacia atrás por debajo de `UmbralDashFrontal`) sigue disponible por datos, apagada.
+- **Salto de pared:** el movimiento emite `AlSaltoPared` con la normal de la pared; el cuerpo empuja con la mano más cercana durante `DuracionGiroSaltoPared` (0,4 s). El giro de antes (`GradosGiroSaltoPared` > 0) sigue disponible por datos, apagado.
 - **Aterrizaje según la caída:** la flexión se escala con la velocidad de caída (`VelocidadCaidaAterrizaje`, 900 cm/s = flexión completa; entre 0,35 y 1,3).
-- Test `SAEVUS.Animacion.Direccional`: correr de lado mueve los pies de lado (64 cm) y el dash lateral baja la cabeza (voltereta).
+- Test `SAEVUS.Animacion.Direccional`: correr de lado mueve los pies de lado y el dash lateral inclina el cuerpo hacia su lado.
+
+## Poses de REF-04 (producción artística, tareas 87 y 89)
+
+Las 15 poses numeradas de REF-04 (`REFERENCIAS_ARTE.md`) son el objetivo; donde contradecían a la animación anterior, manda la referencia:
+- **1 Reposo:** la espada baja en diagonal, adelantada y abierta (`GradosHojaReposoAdelante`, `GradosHojaReposoAfuera`), rodillas algo dobladas (`FlexionRodillaReposo`).
+- **2–3 Carrera y sprint:** tronco inclinado (`InclinacionCarrera`, 18° a la velocidad de referencia, más al esprintar), cadera baja (`BajadaCarrera`), el brazo de la espada atrás con la hoja casi horizontal (`GradosBrazoArmaCarrera`, `GradosHojaCarrera`) y el brazo libre adelante y doblado.
+- **4–5 Salto y doble salto:** rodillas recogidas, la espada abajo y atrás, el brazo libre adelante.
+- **6–8 Dash adelante, atrás y lateral:** la misma estocada baja inclinada hacia donde va, con zancada en esa dirección y la espada atrás. **Sin voltereta** (`GradosVolteretaDash` = 0): la referencia no la muestra (antes la ponía la tarea 68).
+- **9 Carrera por pared:** la mano del lado de la pared la toca; la espada atrás, a lo largo de la carrera.
+- **10 Salto desde pared:** empuje con la mano contra la pared y el cuerpo abierto hacia fuera durante `DuracionGiroSaltoPared`; **sin giro de 360°** (`GradosGiroSaltoPared` = 0).
+- **11 Aterrizaje fuerte:** desde `FuerzaAterrizajeFuerte`, cuclillas abiertas, la mano libre al suelo y la espada afuera.
+- **12–15 Ataques:** los tajos por línea de tiempo de siempre; su pulido va con el combate (tarea 91).
 
 ## Polvo del movimiento (tarea 74)
 

@@ -114,9 +114,12 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
 	float InclinacionDash = 38.f;
 
-	/** Dash a los lados o hacia atrás (GunZ): voltereta recogida de estos grados en la dirección del dash (0 = sin voltereta). */
+	/**
+	 * Dash a los lados o hacia atrás: voltereta recogida de estos grados en la dirección del dash (0 = sin voltereta).
+	 * REF-04 n.º 7–8 y REF-08 D muestran la misma estocada baja que el dash frontal, inclinada hacia donde va: 0.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "deg"))
-	float GradosVolteretaDash = 360.f;
+	float GradosVolteretaDash = 0.f;
 
 	/** Desde este producto escalar con el frente (1 = recto delante) el dash es frontal: estocada en vez de voltereta. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "-1", ClampMax = "1"))
@@ -125,12 +128,19 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes")
 	float InclinacionCarreraPared = 22.f;
 
-	/** Giro del cuerpo sobre sí mismo al saltar desde una pared (0 = sin giro), y su duración. */
+	/**
+	 * Giro del cuerpo sobre sí mismo al saltar desde una pared (0 = sin giro), y su duración. REF-04 n.º 10: sin
+	 * giro, empuje con la mano contra la pared y el cuerpo abierto (0); la duración es la del empuje.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes", meta = (ClampMin = "0", ForceUnits = "deg"))
-	float GradosGiroSaltoPared = 360.f;
+	float GradosGiroSaltoPared = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Paredes", meta = (ClampMin = "0.05", ForceUnits = "s"))
 	float DuracionGiroSaltoPared = 0.4f;
+
+	/** Aterrizaje fuerte (REF-04 n.º 11): desde esta fuerza (fracción de la caída de referencia) cuclillas abiertas con una mano al suelo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aterrizaje", meta = (ClampMin = "0"))
+	float FuerzaAterrizajeFuerte = 0.85f;
 
 	/** Recogida de piernas del doble salto: duración y grados extra de muslo y rodilla en el pico. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Doble salto", meta = (ForceUnits = "s"))
@@ -369,6 +379,8 @@ private:
 	float TiempoReaccionGolpe = 0.f;
 	bool bEstabaEnAire = false;
 	float TiempoGiroSaltoPared = 0.f;
+	/** Normal de la pared del último salto de pared (espacio de mundo): hacia ella empuja la mano. */
+	FVector NormalSaltoPared = FVector::ZeroVector;
 	float VelocidadVerticalAire = 0.f;
 	/** Intensidad del último aterrizaje (según la velocidad de caída). */
 	float FuerzaAterrizaje = 1.f;

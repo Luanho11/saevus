@@ -26,7 +26,8 @@ namespace SAEVUSPruebasAnimacion
 	constexpr float TiempoAsentarPose = 0.5f;
 	constexpr float ToleranciaEscala = 0.1f;
 	constexpr float SubidaMinimaManoTajoArriba = 40.f;
-	constexpr float BajadaMinimaCabezaVoltereta = 30.f;
+	// Dash lateral (REF-04 n.º 8): estocada inclinada hacia su lado; la cabeza se aparta de la pelvis hacia allí.
+	constexpr float InclinacionMinimaCabezaDashLateral = 15.f;
 	constexpr float FraccionDashMedida = 0.6f;
 
 	/** Mundo con suelo y un personaje con el caballero en su malla poseable. */
@@ -328,9 +329,12 @@ bool FSAEVUSPruebaAnimacionDireccional::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Recorrido lateral del pie al correr de lado %.1f cm"), Maximo - Minimo));
 	TestTrue(TEXT("Las piernas oscilan de lado al correr de lado"), Maximo - Minimo > RecorridoMinimoPie);
 
-	// Dash a un lado: voltereta (a media voltereta la cabeza queda muy por debajo de su altura de pie).
+	// Dash a un lado: estocada baja inclinada hacia el lado del dash (REF-04 n.º 8, sin voltereta).
 	Mundo.AvanzarDurante(TiempoAsentarPose);
-	const float CabezaDePie = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Cabeza).Z);
+	// Posiciones en el espacio de la malla, donde la derecha del personaje es -X.
+	const FVector DerechaMalla(-1.f, 0.f, 0.f);
+	auto Ladeo = [&]() { return static_cast<float>(FVector::DotProduct(Mundo.Hueso(ESAEVUSHueso::Cabeza) - Mundo.Hueso(ESAEVUSHueso::Pelvis), DerechaMalla)); };
+	const float LadeoDePie = Ladeo();
 	// Sin controlador el cuerpo se giraría hacia el dash (lo haría frontal); en el juego sigue a la cámara.
 	USAEVUSComponenteMovimiento* Movimiento = Mundo.Personaje->ObtenerMovimiento();
 	USAEVUSAjustesMovimiento* Ajustes = NewObject<USAEVUSAjustesMovimiento>(GetTransientPackage());
@@ -339,9 +343,9 @@ bool FSAEVUSPruebaAnimacionDireccional::RunTest(const FString& Parameters)
 	Movimiento->PedirDashEnDireccion(Derecha);
 	Mundo.AvanzarDurante(Movimiento->ObtenerAjusteDash().Duracion * FraccionDashMedida);
 	TestTrue(TEXT("En dash"), Movimiento->EstaEnDash());
-	const float Bajada = CabezaDePie - static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Cabeza).Z);
-	AddInfo(FString::Printf(TEXT("Bajada de la cabeza en la voltereta %.1f cm"), Bajada));
-	TestTrue(TEXT("El dash lateral es una voltereta"), Bajada > BajadaMinimaCabezaVoltereta);
+	const float Inclinacion = Ladeo() - LadeoDePie;
+	AddInfo(FString::Printf(TEXT("La cabeza se inclina %.1f cm hacia el lado del dash"), Inclinacion));
+	TestTrue(TEXT("El dash lateral inclina el cuerpo hacia su lado"), Inclinacion > InclinacionMinimaCabezaDashLateral);
 	return true;
 }
 
