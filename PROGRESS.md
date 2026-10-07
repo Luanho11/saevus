@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN INTERACTIVA ACTIVA (fase "Producción artística")**
-**Último latido: 2026-10-07 10:14** (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-07 10:54** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -143,7 +143,7 @@ Las imágenes de `assets/` son la **referencia visual canónica** (`Documentos/R
 86b. [x] **Protagonista desde las vistas de REF-01** (dueño: "el modelo tal cual las imágenes"): forma y color salen del dibujo (`reconstruir_desde_vistas.py` → malla densa → horneado en `T_Caballero.png` → atado a los 25 huesos con articulaciones medidas; `Generar-Caballero.ps1`, `pipeline-assets.md`). Espada y armas siguen de piezas. 132/132 tests, humo (48,8 fps) y recorrido SUPERADOS.
 87. [x] Pose de reposo y de carrera según REF-04 (espada baja en diagonal hacia delante en reposo; cuerpo inclinado y espada atrás al correr), para que la hoja larga no atraviese el suelo.
 88. [ ] Look 3D: ajustar `M_PP_Dibujado` y los materiales a `ARTE_SAEVUS.md` (contorno más fino, bandas suaves, sombra fría, filo de luz, niebla azulada, grano discreto), comparado en la cámara del juego con REF-01/REF-07.
-89. [~] (primera tanda hecha: n.º 4–11, commit 94a2c7f; faltan ataques 12–15, guardia, parry, golpe, aturdido, muerte y capa en tiras) Animación con las poses objetivo de REF-04 (los 15 números) y la capa de REF-02: Idle, Run, Sprint, Jump, DoubleJump, Fall, Dash (4 direcciones + diagonal), WallRun, WallJump, Land, Slash 1–3, AirSlash, DashSlash, ChargedSlash, Guard, Parry, Hit, Stagger, Death; anticipación, pose clara, seguimiento de capa. Más huesos de capa si hace falta (tiras).
+89. [~] (n.º 4–11, commit 94a2c7f; n.º 12–15 y capa en cadena con `capa_3`, 2026-10-07; faltan guardia, parry, golpe, aturdido y muerte según REF-08 F/H/I) Animación con las poses objetivo de REF-04 (los 15 números) y la capa de REF-02: Idle, Run, Sprint, Jump, DoubleJump, Fall, Dash (4 direcciones + diagonal), WallRun, WallJump, Land, Slash 1–3, AirSlash, DashSlash, ChargedSlash, Guard, Parry, Hit, Stagger, Death; anticipación, pose clara, seguimiento de capa. Más huesos de capa si hace falta (tiras).
 90. [ ] Laboratorio de combate (`L_LaboratorioCombate`, fuera del recorrido principal): cápsula del jugador, hurtbox, hitbox, trayectoria de la hoja, fases (preparación/activa/recuperación) visibles, muñecos.
 91. [ ] Golpe por trazas continuas de la hoja (barridos entre fotogramas) además del abanico; parámetros por ataque: daño, alcance, arco, preparación, activa, recuperación, parada de golpe, retroceso, aturdimiento, sacudida, partículas, sonido. Corregir alcance corto, impactos sin peso y tajos demasiado rápidos.
 92. [~] Goblin base según REF-05 (arriba 1) — v2 (2026-10-07): extremidades con volumen, cabeza ×1,25, facetas pintadas con la paleta del dibujo (`paleta_desde_referencia.py`, `T_Goblin_Paleta`); modelo con esqueleto y animación desde la IA hechos (aviso, ataque, recuperación, aturdido, muerte); falta la muerte en fragmentos y pulir en juego —: especie (orejas, dientes, piel de hueso, trapos, garras, hoz); un goblin excelente antes que variantes. Animación: reposo, andar, correr, preparación, ataque, reacción, aturdido, muerte (se deshace en fragmentos, REF-08 I).

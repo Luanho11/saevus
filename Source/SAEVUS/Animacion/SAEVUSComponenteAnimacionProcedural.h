@@ -26,6 +26,8 @@ enum class ESAEVUSHueso : uint8
 	HombroD, BrazoD, AntebrazoD, ManoD, MusloD, PiernaD, PieD,
 	HombroI, BrazoI, AntebrazoI, ManoI, MusloI, PiernaI, PieI,
 	Arma, ArmaFuego,
+	// Punta de la capa (tiras de REF-02): al final para no mover los índices de los demás huesos.
+	Capa3,
 	Total UMETA(Hidden)
 };
 
@@ -161,6 +163,10 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0"))
 	float SuavizadoCapa = 6.f;
 
+	/** Cada tramo de la capa sigue al anterior con este factor de su suavizado (< 1: la punta llega más tarde y ondea). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "1"))
+	float RetrasoCadenaCapa = 0.75f;
+
 	/** Duración y profundidad de la flexión al aterrizar. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aterrizaje", meta = (ForceUnits = "s"))
 	float DuracionAterrizaje = 0.18f;
@@ -214,6 +220,36 @@ struct FSAEVUSAjusteAnimacion
 	/** Largo de la hoja de la espada (cm), desde el hueso del arma (la guarda) a la punta: lo usa la estela. Igual que LARGO_HOJA en blender_caballero.py (REF-02). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armas", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float LongitudHoja = 90.f;
+
+	/**
+	 * Tajos en el suelo (REF-04 n.º 12–13): zancada ancha y baja, el pie derecho adelante y el izquierdo atrás,
+	 * los muslos abiertos hacia fuera; la estocada crece con la preparación y se asienta en la recuperación.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float ZancadaAtaqueDelante = 38.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float ZancadaAtaqueAtras = 32.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float AperturaAtaque = 16.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float FlexionRodillaAtaqueDelante = 50.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float FlexionRodillaAtaqueAtras = 22.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "cm"))
+	float BajadaAtaque = 16.f;
+
+	/** Tajo en carrera (REF-04 n.º 14): el cuerpo echado hacia delante con la zancada del dash. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float InclinacionTajoCarrera = 30.f;
+
+	/** Tajos en el aire (REF-04 n.º 15): rodillas recogidas bajo el cuerpo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float RecogidaPiernasAtaqueAereo = 55.f;
 
 	/**
 	 * Enemigos con esqueleto (goblins, REF-05/REF-06): encorvado de la especie, agachada y arma alzada

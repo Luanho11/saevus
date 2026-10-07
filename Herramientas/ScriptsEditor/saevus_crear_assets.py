@@ -1648,7 +1648,9 @@ def construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, material_base):
     crear_paso(actores, "Entrada_PasoTutorial", unreal.Vector(-4500, 740, 150), RUTA_MAPA_TUTORIAL, "DesdeMazmorra", "<-  Tutorial")
     crear_banco(actores, "Entrada_Banco", -3000, -700, 0, materiales)
     crear_punto_control(actores, "Control_Entrada", -3300, ancho=1800)
-    crear_aviso(actores, -3800, "La Mazmorra", "Práctica libre. Al este, la galería: carrera por pared y dash.\n"
+    # Al este de la llegada desde el tutorial (x = -3600): quien llega por el paso entra en el aviso caminando
+    # (antes aparecía dentro de él y no saltaba; lo vio el recorrido tutorial -> Mazmorra).
+    crear_aviso(actores, -3450, "La Mazmorra", "Práctica libre. Al este, la galería: carrera por pared y dash.\n"
                 "Al norte, el pozo: rebota entre paredes o sube en el ascensor.\n"
                 "Al sur, la terraza: una palanca abre una compuerta. Hay secretos.", ancho=1800)
     crear_antorcha(actores, "Entrada_Antorcha", unreal.Vector(-2300, 780, 320), materiales)

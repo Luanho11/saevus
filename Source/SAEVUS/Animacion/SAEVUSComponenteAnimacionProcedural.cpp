@@ -65,7 +65,7 @@ namespace SAEVUSAnimacion
 			{ TEXT("cuello"), E::Pecho, E::Cabeza, Arriba },
 			{ TEXT("cabeza"), E::Cuello, E::Total, Arriba },
 			{ TEXT("capa_1"), E::Pecho, E::Capa2, -Arriba },
-			{ TEXT("capa_2"), E::Capa1, E::Total, -Arriba },
+			{ TEXT("capa_2"), E::Capa1, E::Capa3, -Arriba },
 			{ TEXT("hombro_d"), E::Pecho, E::BrazoD, Derecha },
 			{ TEXT("brazo_d"), E::HombroD, E::AntebrazoD, -Arriba },
 			{ TEXT("antebrazo_d"), E::BrazoD, E::ManoD, -Arriba },
@@ -82,6 +82,7 @@ namespace SAEVUSAnimacion
 			{ TEXT("pie_i"), E::PiernaI, E::Total, Adelante },
 			{ TEXT("arma"), E::ManoD, E::Total, -Arriba },
 			{ TEXT("arma_fuego"), E::ManoD, E::Total, Adelante },
+			{ TEXT("capa_3"), E::Capa2, E::Total, -Arriba },
 		};
 		return Tabla[static_cast<int32>(Hueso)];
 	}
@@ -155,8 +156,8 @@ namespace SAEVUSAnimacion
 			// Horizontal de derecha a izquierda.
 			return { (Derecha * 0.9f - Adelante * 0.25f + Arriba * 0.15f).GetSafeNormal(), (-Derecha * 0.8f + Adelante * 0.6f + Arriba * 0.1f).GetSafeNormal(), 30.f, -35.f, 0.f, 8.f };
 		case 1:
-			// Revés: de izquierda a derecha.
-			return { (-Derecha * 0.7f + Adelante * 0.5f + Arriba * 0.3f).GetSafeNormal(), (Derecha * 0.9f + Adelante * 0.3f).GetSafeNormal(), -30.f, 30.f, 0.f, 8.f };
+			// Diagonal (REF-04 n.º 13): desde encima del hombro derecho, la hoja atrás, hasta abajo a la izquierda delante.
+			return { (Arriba * 0.75f + Derecha * 0.45f - Adelante * 0.35f).GetSafeNormal(), (-Arriba * 0.55f - Derecha * 0.45f + Adelante * 0.7f).GetSafeNormal(), 25.f, -30.f, -8.f, 18.f };
 		default:
 			// Remate vertical: por encima de la cabeza hasta el suelo delante.
 			return { (Arriba * 0.9f - Adelante * 0.4f).GetSafeNormal(), (Adelante * 0.6f - Arriba * 0.8f).GetSafeNormal(), 0.f, 0.f, -12.f, 28.f };
@@ -631,11 +632,13 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 	const FTrayectoria Trayectoria = TrayectoriaAtaque(IndiceCombo, bAereo, Direccion);
 	const FVector PosturaReposo = (Adelante * 0.5f - Arriba * 0.7f + Derecha * 0.25f).GetSafeNormal();
 
-	// Dirección del brazo y del aguijón a lo largo de la línea de tiempo del ataque.
+	// Dirección del brazo y del aguijón a lo largo de la línea de tiempo del ataque; Peso es cuánto de la postura
+	// de ataque (zancada, inclinación) hay: crece en la preparación, entera en la fase activa, se asienta después.
 	FVector DireccionBrazo;
 	float GiroPecho;
 	float Inclinacion;
 	float FlexionAntebrazo = 0.f;
+	float Peso;
 	const float FinActivo = Ataque.TiempoPreparacion + Ataque.TiempoActivo;
 	if (Tiempo < Ataque.TiempoPreparacion)
 	{
@@ -644,6 +647,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 		GiroPecho = FMath::Lerp(0.f, Trayectoria.GiroInicio, U);
 		Inclinacion = FMath::Lerp(0.f, Trayectoria.InclinacionInicio, U);
 		FlexionAntebrazo = 35.f * U;
+		Peso = U;
 	}
 	else if (Tiempo < FinActivo)
 	{
@@ -651,6 +655,7 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 		DireccionBrazo = Interpolar(Trayectoria.Inicio, Trayectoria.Fin, U);
 		GiroPecho = FMath::Lerp(Trayectoria.GiroInicio, Trayectoria.GiroFin, U);
 		Inclinacion = FMath::Lerp(Trayectoria.InclinacionInicio, Trayectoria.InclinacionFin, U);
+		Peso = 1.f;
 	}
 	else
 	{
@@ -658,24 +663,46 @@ void USAEVUSComponenteAnimacionProcedural::PoseAtaque(FPose& Pose, const FSAEVUS
 		DireccionBrazo = Interpolar(Trayectoria.Fin, PosturaReposo, U);
 		GiroPecho = FMath::Lerp(Trayectoria.GiroFin, 0.f, U);
 		Inclinacion = FMath::Lerp(Trayectoria.InclinacionFin, 0.f, U);
+		Peso = 1.f - U;
+	}
+	const bool bEnCarrera = Combate && Combate->EsTajoEnCarrera();
+	if (bEnCarrera)
+	{
+		Inclinacion += Ajuste.InclinacionTajoCarrera * Peso;
 	}
 
 	Pose.Huesos[Indice(ESAEVUSHueso::BrazoD)] = { true, DireccionBrazo };
 	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoD)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, FlexionAntebrazo) };
 	// El aguijón prolonga el brazo: así la hoja barre el arco del golpe.
 	Pose.Huesos[Indice(ESAEVUSHueso::Arma)] = { true, DireccionBrazo };
-	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Derecha * 0.6f - Adelante * 0.3f - Arriba * 0.6f).GetSafeNormal() };
+	// Brazo libre adelantado y abierto, de contrapeso (REF-04 n.º 12–14).
+	Pose.Huesos[Indice(ESAEVUSHueso::BrazoI)] = { true, (-Derecha * 0.5f + Adelante * 0.5f - Arriba * 0.55f).GetSafeNormal() };
+	Pose.Huesos[Indice(ESAEVUSHueso::AntebrazoI)] = { false, FVector::ZeroVector, Girar(-Arriba, Adelante, 30.f * Peso) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Columna)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, GiroPecho * 0.4f) * Girar(Arriba, Adelante, Inclinacion * 0.5f) };
 	Pose.Huesos[Indice(ESAEVUSHueso::Pecho)] = { false, FVector::ZeroVector, Girar(Adelante, Derecha, GiroPecho * 0.6f) * Girar(Arriba, Adelante, Inclinacion * 0.5f) };
 
-	if (!bAereo)
+	if (Movimiento && Movimiento->IsFalling())
 	{
-		// Postura de estocada en el suelo.
-		Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, Dir(-Arriba, Adelante, 25.f) };
-		Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, Dir(-Arriba, -Adelante, 20.f) };
-		Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 30.f) };
-		Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, 15.f) };
-		Pose.DesplazamientoRaiz.Z = -6.f;
+		// En el aire (REF-04 n.º 15): rodillas recogidas bajo el cuerpo.
+		for (const ESAEVUSHueso Muslo : { ESAEVUSHueso::MusloD, ESAEVUSHueso::MusloI })
+		{
+			Pose.Huesos[Indice(Muslo)] = { true, Dir(-Arriba, Adelante, Ajuste.RecogidaPiernasAtaqueAereo * Peso) };
+		}
+		for (const ESAEVUSHueso PiernaHueso : { ESAEVUSHueso::PiernaD, ESAEVUSHueso::PiernaI })
+		{
+			Pose.Huesos[Indice(PiernaHueso)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.RecogidaPiernasAtaqueAereo * 1.6f * Peso) };
+		}
+	}
+	else if (!bAereo)
+	{
+		// Zancada de estocada (REF-04 n.º 12–14): pie derecho delante, izquierdo atrás, muslos abiertos, cadera baja.
+		const FVector FueraD = Derecha * FMath::Sin(FMath::DegreesToRadians(Ajuste.AperturaAtaque));
+		const FVector FueraI = -FueraD;
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloD)] = { true, (Dir(-Arriba, Adelante, Ajuste.ZancadaAtaqueDelante * Peso) + FueraD * Peso).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::MusloI)] = { true, (Dir(-Arriba, -Adelante, Ajuste.ZancadaAtaqueAtras * Peso) + FueraI * Peso).GetSafeNormal() };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaD)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.FlexionRodillaAtaqueDelante * Peso) };
+		Pose.Huesos[Indice(ESAEVUSHueso::PiernaI)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Ajuste.FlexionRodillaAtaqueAtras * Peso) };
+		Pose.DesplazamientoRaiz.Z = -Ajuste.BajadaAtaque * Peso;
 	}
 }
 
@@ -786,9 +813,13 @@ void USAEVUSComponenteAnimacionProcedural::PoseCapa(FPose& Pose, float Velocidad
 	// La capa se va hacia atrás con la velocidad y se levanta al caer; su suavizado bajo la hace ondear.
 	const float Atras = FMath::Clamp(Velocidad / VelocidadCapaReferencia, 0.f, 1.5f) * 40.f
 		+ FMath::Clamp(-VelocidadVertical / VelocidadCaidaCapaReferencia, 0.f, 1.f) * 35.f + 4.f;
+	// Cada tramo ondea con algo de desfase respecto al de arriba: la onda baja por la capa hasta las tiras.
 	const float Ondeo = 4.f * FMath::Sin(TiempoTotal * 3.1f);
+	const float OndeoMedio = 4.f * FMath::Sin(TiempoTotal * 3.1f - 0.7f);
+	const float OndeoPunta = 4.f * FMath::Sin(TiempoTotal * 3.1f - 1.4f);
 	Pose.Huesos[Indice(ESAEVUSHueso::Capa1)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.7f + Ondeo) };
-	Pose.Huesos[Indice(ESAEVUSHueso::Capa2)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.5f + Ondeo * 1.5f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Capa2)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.5f + OndeoMedio * 1.5f) };
+	Pose.Huesos[Indice(ESAEVUSHueso::Capa3)] = { false, FVector::ZeroVector, Girar(-Arriba, -Adelante, Atras * 0.35f + OndeoPunta * 2.f) };
 }
 
 void USAEVUSComponenteAnimacionProcedural::AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
@@ -926,12 +957,27 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 	using namespace SAEVUSAnimacion;
 	const float AlfaCuerpo = bPoseIniciada ? AlfaSuavizado(bAccion ? Ajuste.SuavizadoAccion : Ajuste.Suavizado, DeltaTime) : 1.f;
 	const float AlfaCapa = bPoseIniciada ? AlfaSuavizado(Ajuste.SuavizadoCapa, DeltaTime) : 1.f;
+	// La capa va en cadena: cada tramo sigue al de arriba más despacio (RetrasoCadenaCapa).
+	const float AlfaCapaMedio = bPoseIniciada ? AlfaSuavizado(Ajuste.SuavizadoCapa * Ajuste.RetrasoCadenaCapa, DeltaTime) : 1.f;
+	const float AlfaCapaPunta = bPoseIniciada ? AlfaSuavizado(Ajuste.SuavizadoCapa * Ajuste.RetrasoCadenaCapa * Ajuste.RetrasoCadenaCapa, DeltaTime) : 1.f;
 	bPoseIniciada = true;
 
 	for (int32 Hueso = 0; Hueso < NumHuesos; ++Hueso)
 	{
-		const bool bCapa = Hueso == Indice(ESAEVUSHueso::Capa1) || Hueso == Indice(ESAEVUSHueso::Capa2);
-		RotacionActual[Hueso] = FQuat::Slerp(RotacionActual[Hueso], Objetivo[Hueso], bCapa ? AlfaCapa : AlfaCuerpo).GetNormalized();
+		float Alfa = AlfaCuerpo;
+		if (Hueso == Indice(ESAEVUSHueso::Capa1))
+		{
+			Alfa = AlfaCapa;
+		}
+		else if (Hueso == Indice(ESAEVUSHueso::Capa2))
+		{
+			Alfa = AlfaCapaMedio;
+		}
+		else if (Hueso == Indice(ESAEVUSHueso::Capa3))
+		{
+			Alfa = AlfaCapaPunta;
+		}
+		RotacionActual[Hueso] = FQuat::Slerp(RotacionActual[Hueso], Objetivo[Hueso], Alfa).GetNormalized();
 	}
 	DesplazamientoRaizActual = FMath::Lerp(DesplazamientoRaizActual, Pose.DesplazamientoRaiz, AlfaCuerpo);
 	EscalaArmaActual = FMath::Lerp(EscalaArmaActual, Pose.EscalaArma, AlfaCuerpo);

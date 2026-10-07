@@ -50,7 +50,10 @@ Las 15 poses numeradas de REF-04 (`REFERENCIAS_ARTE.md`) son el objetivo; donde 
 - **9 Carrera por pared:** la mano del lado de la pared la toca; la espada atrás, a lo largo de la carrera.
 - **10 Salto desde pared:** empuje con la mano contra la pared y el cuerpo abierto hacia fuera durante `DuracionGiroSaltoPared`; **sin giro de 360°** (`GradosGiroSaltoPared` = 0).
 - **11 Aterrizaje fuerte:** desde `FuerzaAterrizajeFuerte`, cuclillas abiertas, la mano libre al suelo y la espada afuera.
-- **12–15 Ataques:** los tajos por línea de tiempo de siempre; su pulido va con el combate (tarea 91).
+- **12–13 Ataque horizontal y diagonal:** zancada ancha y baja que crece con la preparación y se asienta en la recuperación (`ZancadaAtaqueDelante`/`Atras`, `AperturaAtaque`, `FlexionRodillaAtaque*`, `BajadaAtaque`), brazo libre adelantado de contrapeso. El primer tajo es el horizontal; el segundo, el **diagonal** desde encima del hombro derecho hasta abajo a la izquierda (antes un revés horizontal); el tercero, el remate vertical.
+- **14 Ataque durante el dash:** el tajo en carrera suma `InclinacionTajoCarrera` al cuerpo.
+- **15 Ataque aéreo:** en el aire, las rodillas recogidas bajo el cuerpo (`RecogidaPiernasAtaqueAereo`).
+- Test `SAEVUS.Animacion.ZancadaTajo`; el alcance y el peso de los golpes van con el combate (tarea 91).
 
 ## Polvo del movimiento (tarea 74)
 
@@ -66,7 +69,7 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 
 ## Tests
 
-`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible, Direccional}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
+`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, ZancadaTajo, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible, Direccional}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
 
 ## Pendiente
 

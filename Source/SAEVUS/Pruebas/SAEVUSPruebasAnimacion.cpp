@@ -29,6 +29,11 @@ namespace SAEVUSPruebasAnimacion
 	// Dash lateral (REF-04 n.º 8): estocada inclinada hacia su lado; la cabeza se aparta de la pelvis hacia allí.
 	constexpr float InclinacionMinimaCabezaDashLateral = 15.f;
 	constexpr float FraccionDashMedida = 0.6f;
+	// Zancada del tajo (REF-04 n.º 12–13): pie derecho por delante del izquierdo y cadera más baja que en reposo.
+	constexpr float SeparacionMinimaPiesTajo = 35.f;
+	constexpr float BajadaMinimaPelvisTajo = 8.f;
+	// La punta de la capa (capa_3, REF-02) se va hacia atrás al correr.
+	constexpr float GiroMinimoPuntaCapa = 10.f;
 
 	/** Mundo con suelo y un personaje con el caballero en su malla poseable. */
 	struct FMundoAnimacion
@@ -175,6 +180,59 @@ bool FSAEVUSPruebaAnimacionAtaque::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("Recorrido lateral de la mano en el tajo %.1f cm"), Maximo - Minimo));
 	TestTrue(TEXT("El tajo mueve la mano de un lado a otro"), Maximo - Minimo > RecorridoMinimoMano);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionZancadaTajo, "SAEVUS.Animacion.ZancadaTajo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionZancadaTajo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	const float PelvisReposo = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Pelvis).Z);
+	USAEVUSComponenteCombate* Combate = Mundo.Personaje->ObtenerCombate();
+	Mundo.Personaje->PedirAtaque();
+	const FSAEVUSDefinicionAtaque* Ataque = Combate->ObtenerAtaqueActual();
+	if (!TestNotNull(TEXT("Ataque en curso"), Ataque))
+	{
+		return false;
+	}
+	// Al final de la fase activa la zancada está entera (adelante es +Y en la malla).
+	while (Combate->EstaAtacando() && Combate->ObtenerTiempoAtaque() < Ataque->TiempoPreparacion + Ataque->TiempoActivo)
+	{
+		Mundo.MundoPrueba.Paso();
+	}
+	const float Separacion = static_cast<float>(Mundo.Hueso(ESAEVUSHueso::PieD).Y - Mundo.Hueso(ESAEVUSHueso::PieI).Y);
+	const float Bajada = PelvisReposo - static_cast<float>(Mundo.Hueso(ESAEVUSHueso::Pelvis).Z);
+	AddInfo(FString::Printf(TEXT("Pie derecho %.0f cm por delante del izquierdo; pelvis %.0f cm más baja"), Separacion, Bajada));
+	TestTrue(TEXT("Zancada: el pie derecho va delante"), Separacion > SeparacionMinimaPiesTajo);
+	TestTrue(TEXT("La cadera baja en el tajo"), Bajada > BajadaMinimaPelvisTajo);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionCapa, "SAEVUS.Animacion.PuntaCapa", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionCapa::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido (con capa_3)"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	const FName PuntaCapa = USAEVUSComponenteAnimacionProcedural::NombreHueso(ESAEVUSHueso::Capa3);
+	const FReferenceSkeleton& Referencia = Mundo.Cuerpo->GetSkinnedAsset()->GetRefSkeleton();
+	const FQuat Reposo = FAnimationRuntime::GetComponentSpaceTransformRefPose(Referencia, Referencia.FindBoneIndex(PuntaCapa)).GetRotation();
+	Mundo.AvanzarDurante(TiempoCarrera * 2.f, FVector::ForwardVector);
+	const FQuat Corriendo = Mundo.Cuerpo->GetBoneTransformByName(PuntaCapa, EBoneSpaces::ComponentSpace).GetRotation();
+	const float Grados = FMath::RadiansToDegrees(static_cast<float>(Reposo.AngularDistance(Corriendo)));
+	AddInfo(FString::Printf(TEXT("Punta de la capa girada %.0f grados al correr"), Grados));
+	TestTrue(TEXT("La punta de la capa sigue el movimiento"), Grados > GiroMinimoPuntaCapa);
 	return true;
 }
 
