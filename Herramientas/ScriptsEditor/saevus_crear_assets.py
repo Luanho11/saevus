@@ -22,6 +22,9 @@ DIR_MATERIALES = f"{RAIZ}/Arte/Materiales"
 DIR_CABALLERO = f"{RAIZ}/Arte/Personajes/Caballero"
 # FBX que genera Herramientas/Arte/Generar-Caballero.ps1 (malla + esqueleto propio).
 FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballero", "SK_Caballero.fbx")
+# Pintura de REF-01 horneada sobre el cuerpo reconstruido (Generar-Caballero.ps1); sin ella, cuerpo de piezas.
+TEXTURA_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballero", "T_Caballero.png")
+TEXTURA_BLANCA = "/Engine/EngineResources/WhiteSquareTexture"
 
 # Piezas del protagonista por ranura de material (nombres de material de Blender) y sus parámetros de
 # M_SAEVUS_PersonajeDibujado. Colores medidos en las referencias (Documentos/ARTE_SAEVUS.md, Paleta;
@@ -30,6 +33,9 @@ FBX_CABALLERO = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Caballer
 # Borde de luz frío bajo en la ropa: con más, la capa oscura se veía gris plateada en juego (tarea 86).
 COLOR_BORDE_FRIO = (0.45, 0.6, 0.85, 1.0)
 PIEZAS_CABALLERO = {
+    # Cuerpo reconstruido desde las vistas de REF-01: el color es la textura (la luz ya viene pintada en ella),
+    # con algo de autoiluminación para que la pintura se lea en salas oscuras.
+    "Referencia": {"Color": (1.0, 1.0, 1.0, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.12, "AutoIluminacion": 0.25},
     "Cuerpo": {"Color": (0.014, 0.013, 0.015, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.2, "AutoIluminacion": 0.0},
     "Casco": {"Color": (0.027, 0.024, 0.028, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.25, "AutoIluminacion": 0.0},
     "Hueso": {"Color": (0.24, 0.18, 0.16, 1.0), "ColorBorde": COLOR_BORDE_FRIO, "IntensidadBorde": 0.15, "AutoIluminacion": 0.12},
@@ -204,6 +210,28 @@ def importar_caballero():
     return malla
 
 
+def importar_textura(ruta_png, destino, nombre, generador):
+    """Pintura de una referencia horneada en un .png (sRGB, con mipmaps): T_<personaje> en destino."""
+    if not os.path.exists(ruta_png):
+        raise RuntimeError(f"Falta {ruta_png}; ejecuta Herramientas/Arte/{generador}")
+    tarea = unreal.AssetImportTask()
+    tarea.filename = ruta_png
+    tarea.destination_path = destino
+    tarea.destination_name = nombre
+    tarea.automated = True
+    tarea.replace_existing = True
+    tarea.save = False
+    herramientas_assets.import_asset_tasks([tarea])
+    textura = cargar(f"{destino}/{nombre}")
+    textura.set_editor_property("srgb", True)
+    registrar(f"textura importada: {textura.get_path_name()}")
+    return textura
+
+
+def importar_textura_caballero():
+    return importar_textura(TEXTURA_CABALLERO, DIR_CABALLERO, "T_Caballero", "Generar-Caballero.ps1")
+
+
 def materiales_caballero(malla, maestro):
     """
     Una instancia de M_SAEVUS_PersonajeDibujado por ranura de la malla, en orden de ranura.
@@ -215,7 +243,10 @@ def materiales_caballero(malla, maestro):
         clave = next((c for c in PIEZAS_CABALLERO if nombre_ranura.lower().startswith(c.lower())), None)
         if clave is None:
             raise RuntimeError(f"Ranura de material sin pieza conocida en el caballero: {nombre_ranura}")
-        resultado.append(crear_instancia_material(f"MI_Caballero_{clave}", DIR_CABALLERO, maestro, PIEZAS_CABALLERO[clave]))
+        parametros = dict(PIEZAS_CABALLERO[clave])
+        if clave == "Referencia":
+            parametros["Textura"] = importar_textura_caballero()
+        resultado.append(crear_instancia_material(f"MI_Caballero_{clave}", DIR_CABALLERO, maestro, parametros))
     registrar(f"materiales del caballero: {[m.get_name() for m in resultado]}")
     return resultado
 
@@ -254,14 +285,21 @@ def material_vacio(nombre, directorio):
 def crear_material_personaje():
     """
     M_SAEVUS_PersonajeDibujado: color plano sin brillo (rugosidad 1, poco especular), borde de luz
-    fría por Fresnel y un poco de autoiluminación opcional. Barato: sin texturas, un Fresnel.
+    fría por Fresnel y un poco de autoiluminación opcional. Barato: una textura (blanca por defecto) y un Fresnel.
     """
     edicion = unreal.MaterialEditingLibrary
     material = material_vacio("M_SAEVUS_PersonajeDibujado", DIR_ESTILO)
     material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
     material.set_editor_property("used_with_skeletal_mesh", True)
 
-    color = parametro_vector(material, "Color", (0.5, 0.5, 0.5, 1.0), -900, 0)
+    # Color plano por pieza multiplicado por una textura (blanca salvo en el cuerpo pintado de la referencia).
+    tinte = parametro_vector(material, "Color", (0.5, 0.5, 0.5, 1.0), -1100, 0)
+    textura = nodo(material, unreal.MaterialExpressionTextureSampleParameter2D, -1100, -250)
+    textura.set_editor_property("parameter_name", "Textura")
+    textura.set_editor_property("texture", cargar(TEXTURA_BLANCA))
+    color = nodo(material, unreal.MaterialExpressionMultiply, -900, 0)
+    edicion.connect_material_expressions(tinte, "", color, "A")
+    edicion.connect_material_expressions(textura, "RGB", color, "B")
     edicion.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
     edicion.connect_material_property(parametro_escalar(material, "Rugosidad", 1.0, -900, 150), "", unreal.MaterialProperty.MP_ROUGHNESS)
     # Casi sin especular: en un dibujo no hay brillos de luz.
@@ -292,7 +330,9 @@ def crear_instancia_material(nombre, directorio, padre, parametros):
     instancia = obtener_o_crear(nombre, directorio, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     edicion.set_material_instance_parent(instancia, padre)
     for nombre_parametro, valor in parametros.items():
-        if isinstance(valor, tuple):
+        if isinstance(valor, unreal.Texture):
+            edicion.set_material_instance_texture_parameter_value(instancia, nombre_parametro, valor)
+        elif isinstance(valor, tuple):
             edicion.set_material_instance_vector_parameter_value(instancia, nombre_parametro, unreal.LinearColor(*valor))
         else:
             edicion.set_material_instance_scalar_parameter_value(instancia, nombre_parametro, valor)

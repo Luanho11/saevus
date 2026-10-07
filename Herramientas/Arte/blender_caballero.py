@@ -318,13 +318,52 @@ def pistola():
     ]
 
 
+# --- Cuerpo reconstruido desde las referencias ------------------------------------------------
+# El cuerpo sale de las vistas de REF-01 (reconstruir_desde_vistas.py → blender_malla_desde_puntos.py →
+# blender_hornear_color.py: malla con la pintura de la referencia en una textura), no de piezas a mano.
+# Esa malla conserva la postura de la vista de frente (piernas abiertas, brazos separados): se ata a un
+# esqueleto con las articulaciones medidas en ella y se lleva a las direcciones de reposo de HUESOS,
+# que son las que espera la animación procedural (blender_piezas.atar_reconstruccion).
+# Articulaciones (cabeza, cola) medidas en los tramos de la reconstrucción por altura; las que faltan, de HUESOS.
+ARTICULACIONES_REFERENCIA = {
+    "pelvis": ((-0.02, 0.02, 0.94), (-0.02, 0.02, 1.06)),
+    "columna": ((-0.02, 0.02, 1.06), (-0.02, 0.01, 1.28)),
+    "pecho": ((-0.02, 0.01, 1.28), (-0.03, 0.0, 1.50)),
+    "cuello": ((-0.03, 0.0, 1.50), (-0.03, 0.0, 1.63)),
+    "cabeza": ((-0.03, 0.0, 1.63), (-0.03, 0.02, 1.92)),
+    "capa_1": ((-0.02, 0.10, 1.47), (-0.02, 0.17, 1.12)),
+    "capa_2": ((-0.02, 0.17, 1.12), (-0.02, 0.24, 0.80)),
+    "capa_3": ((-0.02, 0.24, 0.80), (-0.02, 0.26, 0.55)),
+    "hombro_d": ((-0.07, 0.0, 1.46), (-0.21, 0.0, 1.43)),
+    "brazo_d": ((-0.21, 0.0, 1.43), (-0.30, 0.0, 1.22)),
+    "antebrazo_d": ((-0.30, 0.0, 1.22), (-0.39, 0.03, 1.02)),
+    "mano_d": ((-0.39, 0.03, 1.02), (-0.40, 0.04, 0.88)),
+    "hombro_i": ((0.03, 0.0, 1.46), (0.16, 0.0, 1.43)),
+    "brazo_i": ((0.16, 0.0, 1.43), (0.22, 0.0, 1.22)),
+    "antebrazo_i": ((0.22, 0.0, 1.22), (0.29, 0.03, 1.00)),
+    "mano_i": ((0.29, 0.03, 1.00), (0.31, 0.04, 0.88)),
+    "muslo_d": ((-0.13, 0.04, 0.92), (-0.245, 0.05, 0.50)),
+    "pierna_d": ((-0.245, 0.05, 0.50), (-0.28, 0.0, 0.13)),
+    "pie_d": ((-0.28, 0.0, 0.13), (-0.36, -0.15, 0.03)),
+    "muslo_i": ((0.09, 0.04, 0.92), (0.19, 0.05, 0.50)),
+    "pierna_i": ((0.19, 0.05, 0.50), (0.235, 0.0, 0.13)),
+    "pie_i": ((0.235, 0.0, 0.13), (0.30, -0.14, 0.03)),
+}
 def main():
     argumentos = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     if not argumentos:
-        raise SystemExit("uso: blender --background --python blender_caballero.py -- <directorio de salida>")
+        raise SystemExit("uso: blender --background --python blender_caballero.py -- <directorio de salida> [<modelo.blend>]")
     limpiar_escena()
-    armadura = crear_armadura(HUESOS)
-    piezas = cabeza() + torso() + brazos() + piernas() + capa() + espada() + pistola()
+    if len(argumentos) > 1:
+        # Cuerpo desde las referencias (Generar-Caballero.ps1) y armas de piezas.
+        modelo, armadura = atar_reconstruccion(argumentos[1], HUESOS, ARTICULACIONES_REFERENCIA)
+        armas = espada() + pistola()
+        colocar_armas(armadura, HUESOS, armas)
+        piezas = [modelo] + armas
+    else:
+        # Cuerpo de piezas (v3), sin reconstrucción.
+        armadura = crear_armadura(HUESOS)
+        piezas = cabeza() + torso() + brazos() + piernas() + capa() + espada() + pistola()
     malla = unir(piezas, armadura, NOMBRE_MALLA)
     exportar(malla, armadura, argumentos[0], len(HUESOS))
 

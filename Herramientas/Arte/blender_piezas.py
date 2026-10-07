@@ -219,6 +219,99 @@ def interpolar_por_altura(z, tramos):
     return {tramos[-1][1]: 1.0}
 
 
+# --- Cuerpos reconstruidos desde las referencias ------------------------------------------------
+# reconstruir_desde_vistas.py → blender_malla_desde_puntos.py → blender_hornear_color.py dejan un objeto
+# "Modelo" con la pintura de la referencia en una textura, en la postura de la vista de frente.
+
+HUESOS_ARMAS = ("arma", "arma_fuego")
+
+
+def atar_reconstruccion(ruta_modelo, huesos, articulaciones):
+    """
+    Carga el objeto "Modelo" de ruta_modelo, lo ata con pesos automáticos a un esqueleto con las articulaciones
+    medidas en él (articulaciones: {hueso: (cabeza, cola)}; los que faltan, de huesos) y lleva cada hueso a la
+    dirección de reposo de huesos, que es la que espera la animación procedural (USAEVUSComponenteAnimacionProcedural
+    gira en espacio de componente desde ese reposo). Esa pose pasa a ser el reposo. Devuelve la malla (sin padre,
+    con sus grupos de vértices; ranura de material "Referencia") y el esqueleto.
+    """
+    with bpy.data.libraries.load(ruta_modelo, link=False) as (_, destino):
+        destino.objects = ["Modelo"]
+    modelo = destino.objects[0]
+    bpy.context.scene.collection.objects.link(modelo)
+    modelo.data.materials[0].name = "Referencia"  # ranura → MI_<personaje>_Referencia en UE
+    modelo.data.materials[0].diffuse_color = (1, 1, 1, 1)
+
+    armadura = crear_armadura([(n, p, *articulaciones.get(n, (c, t))) for n, p, c, t in huesos])
+    for nombre in HUESOS_ARMAS:
+        armadura.data.bones[nombre].use_deform = False  # las armas no arrastran el cuerpo
+    bpy.ops.object.select_all(action="DESELECT")
+    modelo.select_set(True)
+    armadura.select_set(True)
+    bpy.context.view_layer.objects.active = armadura
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    sin_peso = [v.index for v in modelo.data.vertices if not any(g.weight > 0.0 for g in v.groups)]
+    if sin_peso:
+        asignar_hueso_cercano(modelo, armadura, sin_peso)
+
+    # Cada hueso, de padres a hijos (huesos va en ese orden), a su dirección de reposo.
+    direcciones = {n: (Vector(t) - Vector(c)).normalized() for n, _, c, t in huesos}
+    bpy.ops.object.mode_set(mode="POSE")
+    for nombre, *_ in huesos:
+        bpy.context.view_layer.update()
+        hueso = armadura.pose.bones[nombre]
+        giro = (hueso.tail - hueso.head).normalized().rotation_difference(direcciones[nombre])
+        cabeza_hueso = hueso.head.copy()
+        hueso.matrix = Matrix.Translation(cabeza_hueso) @ giro.to_matrix().to_4x4() @ Matrix.Translation(-cabeza_hueso) @ hueso.matrix
+    bpy.context.view_layer.update()
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+    # La malla se queda en esa pose y la pose pasa a ser el reposo.
+    bpy.context.view_layer.objects.active = modelo
+    bpy.ops.object.modifier_apply(modifier=next(m.name for m in modelo.modifiers if m.type == "ARMATURE"))
+    modelo.parent = None
+    bpy.context.view_layer.objects.active = armadura
+    bpy.ops.object.mode_set(mode="POSE")
+    bpy.ops.pose.select_all(action="SELECT")
+    bpy.ops.pose.armature_apply(selected=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for nombre in HUESOS_ARMAS:
+        armadura.data.bones[nombre].use_deform = True
+    return modelo, armadura
+
+
+def asignar_hueso_cercano(modelo, armadura, indices):
+    """Vértices que los pesos automáticos dejaron sin hueso: todo al hueso de cuerpo más cercano."""
+    segmentos = [(b.name, b.head_local, b.tail_local) for b in armadura.data.bones if b.name not in HUESOS_ARMAS]
+    for indice in indices:
+        punto = modelo.data.vertices[indice].co
+
+        def distancia(segmento):
+            _, a, b = segmento
+            ab = b - a
+            t = max(0.0, min(1.0, (punto - a).dot(ab) / max(ab.length_squared, 1e-9)))
+            return (a + ab * t - punto).length
+        nombre = min(segmentos, key=distancia)[0]
+        grupo = modelo.vertex_groups.get(nombre) or modelo.vertex_groups.new(name=nombre)
+        grupo.add([indice], 1.0, "REPLACE")
+    print(f"[SAEVUS arte] {len(indices)} vértices sin peso automático: asignados al hueso más cercano")
+
+
+def colocar_armas(armadura, huesos, piezas_armas, mano="mano_d"):
+    """Lleva los huesos y las piezas de las armas (hechas sobre la mano de huesos) a la mano del esqueleto atado."""
+    mano_huesos = next(Vector(t) for n, _, c, t in huesos if n == mano)
+    desplazamiento = armadura.data.bones[mano].tail_local - mano_huesos
+    bpy.context.view_layer.objects.active = armadura
+    bpy.ops.object.mode_set(mode="EDIT")
+    for nombre, _, cabeza_hueso, cola in huesos:
+        if nombre in HUESOS_ARMAS:
+            hueso = armadura.data.edit_bones[nombre]
+            hueso.head = Vector(cabeza_hueso) + desplazamiento
+            hueso.tail = Vector(cola) + desplazamiento
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for pieza_arma in piezas_armas:
+        pieza_arma.location = desplazamiento
+
+
 def unir(piezas, armadura, nombre_malla):
     bpy.ops.object.select_all(action="DESELECT")
     for p in piezas:

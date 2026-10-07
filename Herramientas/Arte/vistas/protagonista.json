@@ -1,0 +1,140 @@
+{
+  "referencia": "REF-01, vistas de frente, perfil y espalda (abajo a la izquierda). El perfil mira a la izquierda: se ve el costado izquierdo (+X) y colorea los dos. La cabeza se talla aparte con los primeros planos de REF-01 (arriba a la derecha): más resolución en la cresta, las aletas y la máscara.",
+  "imagen": "assets/52f674a4-06a6-4c96-936d-6a4060734f48.png",
+  "alto_m": 1.92,
+  "umbral": 10,
+  "vistas": {
+    "frente": {
+      "caja": [
+        20,
+        1125,
+        250,
+        1500
+      ],
+      "eje": "x",
+      "signo": 1,
+      "mira": "-y",
+      "prioridad": 1.0
+    },
+    "perfil": {
+      "caja": [
+        255,
+        1125,
+        450,
+        1500
+      ],
+      "eje": "y",
+      "signo": 1,
+      "mira": "+x",
+      "ambos_lados": true,
+      "prioridad": 0.6
+    },
+    "espalda": {
+      "caja": [
+        450,
+        1125,
+        660,
+        1500
+      ],
+      "eje": "x",
+      "signo": -1,
+      "mira": "+y",
+      "prioridad": 1.0
+    },
+    "cabeza_frente": {
+      "caja": [
+        600,
+        22,
+        925,
+        248
+      ],
+      "eje": "x",
+      "signo": 1,
+      "mira": "-y",
+      "prioridad": 1.0,
+      "detalle": {
+        "alto_m": 0.27,
+        "z_base": 1.65,
+        "sobre": "frente"
+      }
+    },
+    "cabeza_perfil": {
+      "caja": [
+        608,
+        352,
+        815,
+        500
+      ],
+      "eje": "y",
+      "signo": -1,
+      "mira": "-x",
+      "ambos_lados": true,
+      "prioridad": 0.7,
+      "detalle": {
+        "alto_m": 0.27,
+        "z_base": 1.65,
+        "sobre": "perfil"
+      }
+    }
+  },
+  "piezas": [
+    {
+      "nombre": "cuerpo",
+      "vistas_casco": [
+        "frente",
+        "perfil"
+      ],
+      "vistas_color": [
+        "frente",
+        "perfil",
+        "espalda"
+      ],
+      "caja_m": [
+        [
+          -0.55,
+          -0.45,
+          0.0
+        ],
+        [
+          0.55,
+          0.45,
+          1.98
+        ]
+      ],
+      "voxel_m": 0.006,
+      "suavizado_voxeles": 1.6,
+      "elipses": {
+        "frente": "frente",
+        "factor_fondo": 0.7,
+        "ancho_tronco_m": 0.1
+      },
+      "z_max": 1.69
+    },
+    {
+      "nombre": "cabeza",
+      "vistas_casco": [
+        "cabeza_frente",
+        "cabeza_perfil"
+      ],
+      "vistas_color": [
+        "cabeza_frente",
+        "cabeza_perfil",
+        "espalda"
+      ],
+      "caja_m": [
+        [
+          -0.25,
+          -0.25,
+          1.6
+        ],
+        [
+          0.25,
+          0.3,
+          1.98
+        ]
+      ],
+      "voxel_m": 0.003,
+      "suavizado_voxeles": 1.6
+    }
+  ]
+}

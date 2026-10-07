@@ -70,6 +70,15 @@ Verificado con `Herramientas/Pipeline/Ejecutar-SondaPipeline.ps1` (Blender 4.2 �
 - Origen en el centro de los pies (personajes, objetos) o en el punto de rejilla (piezas modulares). Aplicar transformaciones antes de exportar.
 - Archivos fuente (`.blend`, `.psd`, `.png`) en `ArteFuente/`, fuera de `Content/`, con LFS.
 
+## Personajes desde las vistas de las referencias (2026-10-06)
+
+Cuando una referencia tiene vistas de frente, perfil y espalda (REF-01 protagonista, REF-06 Rey Goblin), la forma y el color salen del dibujo, no de primitivas a mano:
+1. `reconstruir_desde_vistas.py` (Python del sistema: numpy, scipy, PIL) con `Herramientas/Arte/vistas/<personaje>.json`: recorte de cada vista, registro en metros (pies en Z = 0, mira a −Y), casco visual por pieza (frente y perfil; la espalda solo colorea, porque intersecar dos dibujos que no coinciden del todo come volumen), elipses por tramo para que brazos y piernas sean redondos y color de las vistas que ven cada vóxel. Cabeza tallada aparte con los primeros planos, a más resolución.
+2. `blender_malla_desde_puntos.py`: puntos → malla densa con color por vértice (intermedio en `Saved/ArteIntermedio/`, fuera del repo).
+3. `blender_hornear_color.py`: copia reducida (≈ 30 000 triángulos) con UV automáticas y la pintura horneada en `T_<personaje>.png` (Cycles).
+4. `blender_piezas.atar_reconstruccion`: esqueleto de 25 huesos con las articulaciones **medidas** en la reconstrucción (tramos de la silueta por altura), pesos automáticos (los vértices sin peso, al hueso más cercano) y cada hueso llevado a la dirección de reposo que espera la animación procedural; esa pose pasa a ser el reposo. Las armas siguen siendo piezas (`colocar_armas`), con su ranura propia.
+En UE la ranura `Referencia` usa `M_SAEVUS_PersonajeDibujado` con el parámetro `Textura` (blanca por defecto en las demás ranuras). Los goblins de REF-05 solo tienen vistas de tres cuartos posadas: siguen con el modelo por piezas.
+
 ## Escenario (boceto)
 
 `Herramientas/Arte/blender_escenario.py` genera piezas modulares estáticas (FBX por pieza, origen en la base, metros, semilla fija) que `saevus_crear_assets.py` importa a `/Game/SAEVUS/Arte/Escenario/` con el material de escenario. Presupuesto del boceto: menos de 100 triángulos por pieza.

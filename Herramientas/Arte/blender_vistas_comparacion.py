@@ -21,8 +21,16 @@ os.makedirs(directorio, exist_ok=True)
 
 escena = bpy.context.scene
 escena.render.engine = "BLENDER_WORKBENCH"
+# Con colores de las referencias, luz plana: se ve la pintura tal cual (la luz ya viene pintada en ella).
 escena.display.shading.light = "STUDIO"
-escena.display.shading.color_type = "MATERIAL"
+# Con colores por vértice (reconstrucción desde las referencias) se ven esos; si no, los de material.
+con_textura = any(o.type == "MESH" and any(m and m.use_nodes and any(n.type == "TEX_IMAGE" for n in m.node_tree.nodes)
+                                         for m in o.data.materials) for o in escena.objects)
+con_color = con_textura or any(o.type == "MESH" and o.data.color_attributes for o in escena.objects)
+escena.display.shading.color_type = "TEXTURE" if con_textura else ("VERTEX" if con_color else "MATERIAL")
+if con_color:
+    escena.display.shading.light = "FLAT"
+    escena.display.shading.show_cavity = False
 escena.display.shading.show_shadows = False
 escena.display.shading.show_cavity = True
 escena.display.shading.cavity_type = "WORLD"
