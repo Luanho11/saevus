@@ -224,6 +224,7 @@ def interpolar_por_altura(z, tramos):
 # "Modelo" con la pintura de la referencia en una textura, en la postura de la vista de frente.
 
 HUESOS_ARMAS = ("arma", "arma_fuego")
+ALTURA_PESOS_CALOR = 1.9  # m: altura a la que se calculan los pesos automáticos (atar_reconstruccion)
 
 
 def atar_reconstruccion(ruta_modelo, huesos, articulaciones):
@@ -248,7 +249,17 @@ def atar_reconstruccion(ruta_modelo, huesos, articulaciones):
     modelo.select_set(True)
     armadura.select_set(True)
     bpy.context.view_layer.objects.active = armadura
+    # Los pesos de calor fallaban en todo el Rey Goblin (3 m) y no en el protagonista (1,92 m): se calculan con los dos
+    # objetos a la altura de un humano y se devuelven a su tamaño (los grupos de vértices no dependen de la escala).
+    escala = ALTURA_PESOS_CALOR / max(modelo.dimensions.z, 1e-3)
+    for objeto in (modelo, armadura):
+        objeto.scale = (escala, escala, escala)
+    bpy.context.view_layer.update()
     bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    for objeto in (modelo, armadura):
+        objeto.scale = (1.0, 1.0, 1.0)
+    modelo.matrix_parent_inverse.identity()
+    bpy.context.view_layer.update()
     sin_peso = [v.index for v in modelo.data.vertices if not any(g.weight > 0.0 for g in v.groups)]
     if sin_peso:
         asignar_hueso_cercano(modelo, armadura, sin_peso)
@@ -310,6 +321,42 @@ def colocar_armas(armadura, huesos, piezas_armas, mano="mano_d"):
     bpy.ops.object.mode_set(mode="OBJECT")
     for pieza_arma in piezas_armas:
         pieza_arma.location = desplazamiento
+
+
+# --- Facetas pintadas con la paleta de la referencia --------------------------------------------
+# paleta_desde_referencia.py saca de la referencia, por material, colores reales del dibujo ordenados de oscuro a
+# claro en una textura paleta pequeña. Cada cara apunta con su UV al centro de una celda de su material: facetas de
+# color plano con la variación del dibujo, sin horneado (la textura se importa sin filtrar ni comprimir).
+
+UV_PALETA = "UVMap"
+VARIACION_FACETA = 6  # celdas de la paleta (ordenada por luminosidad) que una cara se aparta del tono de su pieza
+
+
+def pintar_paleta(piezas, ruta_json, semilla):
+    """UV de cada cara de los materiales de la paleta (ruta_json) al centro de una celda; el resto, a (0, 0)."""
+    import json
+    import random
+    datos = json.load(open(ruta_json, encoding="utf-8"))
+    ancho, alto, materiales = datos["ancho"], datos["alto"], datos["materiales"]
+    azar = random.Random(semilla)
+    pintadas = 0
+    for objeto in piezas:
+        malla = objeto.data
+        capa = malla.uv_layers.get(UV_PALETA) or malla.uv_layers.new(name=UV_PALETA)
+        tono = {}  # tono base de cada material en esta pieza: una pieza de placas se lee como una placa
+        for cara in malla.polygons:
+            nombre = malla.materials[cara.material_index].name.split(".")[0] if malla.materials else ""
+            if nombre not in materiales:
+                continue
+            fila, celdas = materiales[nombre]
+            base = tono.setdefault(nombre, azar.randrange(celdas))
+            celda = min(celdas - 1, max(0, base + azar.randint(-VARIACION_FACETA, VARIACION_FACETA)))
+            columna, fila_celda = celda % ancho, fila + celda // ancho
+            uv = ((columna + 0.5) / ancho, 1.0 - (fila_celda + 0.5) / alto)  # UV con el origen abajo; la imagen, arriba
+            for indice_lazo in cara.loop_indices:
+                capa.data[indice_lazo].uv = uv
+            pintadas += 1
+    print(f"[SAEVUS arte] {pintadas} caras pintadas con la paleta {os.path.basename(ruta_json)}")
 
 
 def unir(piezas, armadura, nombre_malla):

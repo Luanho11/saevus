@@ -775,6 +775,11 @@ CUERPOS_ESQUELETICOS = {
     "DA_Goblin_Hondero": "SK_Goblin_Lanzador",
     "DA_Jefe_ReyGoblin": "SK_ReyGoblin",
 }
+# Pintura por ranura de los cuerpos reconstruidos desde las vistas (Generar-Goblins.ps1 → ArteFuente/Goblins/T_*.png):
+# el Rey Goblin de REF-06. La ranura "Referencia" va en blanco con la textura (USAEVUSDatosEnemigo::TexturasPiezas).
+TEXTURAS_ESQUELETICAS = {
+    "DA_Jefe_ReyGoblin": {"Referencia": "T_ReyGoblin"},
+}
 
 
 def importar_estatica(nombre, carpeta_fuente, destino):
@@ -856,6 +861,11 @@ def crear_datos_enemigos(material_base, material_particulas):
             malla = CUERPOS_ESQUELETICOS[nombre]
             datos.set_editor_property("malla_esqueletica", importar_esqueletica(malla, "Goblins", f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}"))
             datos.set_editor_property("colores_piezas", {unreal.Name(k): unreal.LinearColor(*v, 1.0) for k, v in COLORES_GOBLIN.items()})
+            texturas = {}
+            for ranura, textura in TEXTURAS_ESQUELETICAS.get(nombre, {}).items():
+                png = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Goblins", f"{textura}.png")
+                texturas[unreal.Name(ranura)] = importar_textura(png, f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}", textura, "Generar-Goblins.ps1")
+            datos.set_editor_property("texturas_piezas", texturas)
         else:
             datos.set_editor_property("malla_esqueletica", None)
         resultado[nombre] = datos

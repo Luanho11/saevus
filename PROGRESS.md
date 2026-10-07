@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN INTERACTIVA ACTIVA (fase "Producción artística")**
-**Último latido: 2026-10-07 09:39** (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-07 09:59** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -148,7 +148,7 @@ Las imágenes de `assets/` son la **referencia visual canónica** (`Documentos/R
 91. [ ] Golpe por trazas continuas de la hoja (barridos entre fotogramas) además del abanico; parámetros por ataque: daño, alcance, arco, preparación, activa, recuperación, parada de golpe, retroceso, aturdimiento, sacudida, partículas, sonido. Corregir alcance corto, impactos sin peso y tajos demasiado rápidos.
 92. [~] Goblin base según REF-05 (arriba 1) — modelo con esqueleto y animación desde la IA hechos (aviso, ataque, recuperación, aturdido, muerte); falta la muerte en fragmentos y pulir en juego —: especie (orejas, dientes, piel de hueso, trapos, garras, hoz); un goblin excelente antes que variantes. Animación: reposo, andar, correr, preparación, ataque, reacción, aturdido, muerte (se deshace en fragmentos, REF-08 I).
 93. [~] (guerrero y lanzador hechos e importados, commit e4f9d13) Variantes de goblin (tabla provisional de `ARTE_SAEVUS.md`): guerrero, asesino, lanzador, élite; escudero y pesado derivados con decisión mínima.
-94. [~] (cuerpo desde las vistas de REF-06 en curso: `vistas/rey_goblin.json`, `Generar-Goblins.ps1`, `TexturasPiezas`) Rey Goblin según REF-06 (2,9 m, corona de púas, capa larga, broche de anillo, guadaña de asta): modelo, materiales, esqueleto, ataques que usan la arena (barrido, golpe al suelo, salto, embestida), aturdido, fase 2 roja (REF-06 abajo, REF-08 J/K), muerte.
+94. [~] (cuerpo desde las vistas de REF-06 hecho: `vistas/rey_goblin.json`, `T_ReyGoblin`, `USAEVUSDatosEnemigo::TexturasPiezas`, guja de piezas; faltan ataques de arena, fase 2 roja y muerte) Rey Goblin según REF-06 (2,9 m, corona de púas, capa larga, broche de anillo, guadaña de asta): modelo, materiales, esqueleto, ataques que usan la arena (barrido, golpe al suelo, salto, embestida), aturdido, fase 2 roja (REF-06 abajo, REF-08 J/K), muerte.
 95. [~] (muros, suelos y columnas vestidos con el kit en tutorial y mazmorra, commit e4f9d13; faltan arcos, estandartes, braseros, escombros y la arena octogonal con sello rojo) Mazmorra con kit modular según REF-07 (suelo, pared, pared de carrera, esquina, columna, arco, escalera, balcón, plataforma, puerta, marco, techo, escombros, estandartes); primero layout funcional, después arte; arena octogonal con sello rojo.
 96. [ ] VFX con el lenguaje de REF-08 D–L (dash, pared, aterrizaje, tajos, impactos, bloqueo/parry, sangre estilizada, muertes, telegrafiado rojo, ambiente), versiones baratas por escalabilidad.
 97. [~] (HUD hecho, commit 453ca1f; faltan menús, muerte, victoria, notificaciones e iconos) UI según REF-08 A/C (HUD con rombo y barras finas, barra del jefe con nombre y fase, minimapa circular, menús, muerte, victoria, notificaciones, iconos en rombo).

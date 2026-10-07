@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/Texture.h"
 #include "Materials/MaterialInterface.h"
 #include "SAEVUSTiposEnemigo.generated.h"
 
@@ -289,6 +290,14 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
 	TMap<FName, FLinearColor> ColoresPiezas;
+
+	/**
+	 * Pintura de cada ranura de la malla esquelética (parámetro "Textura" de MaterialBase), por nombre de material de
+	 * Blender: la del cuerpo reconstruido desde las vistas de la referencia (ranura "Referencia"; Documentos/pipeline-assets.md).
+	 * Una ranura con textura y sin color en ColoresPiezas va en blanco, para que se vea la pintura tal cual.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")
+	TMap<FName, TObjectPtr<UTexture>> TexturasPiezas;
 
 	/** Material de las partículas de muerte. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aspecto")

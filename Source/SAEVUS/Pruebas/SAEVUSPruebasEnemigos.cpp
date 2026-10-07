@@ -11,6 +11,7 @@
 #include "Enemigos/SAEVUSComponenteEscudo.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 
 namespace SAEVUSPruebasEnemigos
@@ -483,6 +484,49 @@ bool FSAEVUSPruebaEnemigoEsqueleto::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Mano en reposo %.0f cm, al avisar hasta %.0f cm"), ManoReposo, ManoMaxima));
 	TestEqual(TEXT("Llega a atacar"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Atacar);
 	TestTrue(TEXT("Al avisar alza el arma"), ManoMaxima - ManoReposo > SubidaMinimaManoAviso);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoTexturaReferencia, "SAEVUS.Enemigo.TexturaReferencia", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoTexturaReferencia::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	// Rey Goblin reconstruido desde las vistas de REF-06: su ranura "Referencia" lleva la pintura horneada, en blanco.
+	const TCHAR* const RutaRey = TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Jefe_ReyGoblin.DA_Jefe_ReyGoblin");
+	const FName RanuraReferencia(TEXT("Referencia"));
+	const FName ParametroTextura(TEXT("Textura"));
+	const FName ParametroColor(TEXT("Color"));
+	const USAEVUSDatosEnemigo* Datos = LoadObject<USAEVUSDatosEnemigo>(nullptr, RutaRey);
+	if (!TestNotNull(TEXT("DA_Jefe_ReyGoblin (créalo con Verificar-Arranque.ps1)"), Datos))
+	{
+		return false;
+	}
+	const TObjectPtr<UTexture>* Textura = Datos->TexturasPiezas.Find(RanuraReferencia);
+	if (!TestTrue(TEXT("El Rey tiene la pintura de la referencia"), Textura && *Textura))
+	{
+		return false;
+	}
+	FMundoEnemigos Mundo;
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(DistanciaAtaque * 3.f, Datos);
+	UPoseableMeshComponent* Cuerpo = Enemigo ? Enemigo->FindComponentByClass<UPoseableMeshComponent>() : nullptr;
+	if (!TestTrue(TEXT("Rey con cuerpo de esqueleto"), Enemigo && Enemigo->TieneEsqueleto() && Cuerpo))
+	{
+		return false;
+	}
+	const int32 Ranura = Cuerpo->GetMaterialIndex(RanuraReferencia);
+	UMaterialInstanceDynamic* Material = Ranura != INDEX_NONE ? Cast<UMaterialInstanceDynamic>(Cuerpo->GetMaterial(Ranura)) : nullptr;
+	if (!TestNotNull(TEXT("Ranura Referencia con material propio"), Material))
+	{
+		return false;
+	}
+	UTexture* Aplicada = nullptr;
+	Material->GetTextureParameterValue(FHashedMaterialParameterInfo(ParametroTextura), Aplicada);
+	TestEqual(TEXT("Usa la textura de los datos"), Aplicada, Textura->Get());
+	FLinearColor Color;
+	Material->GetVectorParameterValue(FHashedMaterialParameterInfo(ParametroColor), Color);
+	TestTrue(TEXT("Sin tinte: la pintura tal cual"), Color.Equals(FLinearColor::White));
 	return true;
 }
 

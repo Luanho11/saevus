@@ -449,10 +449,16 @@ def rey_goblin():
             hueso = f"muslo_{lado}" if z > 0.5 else f"pierna_{lado}"
             piezas.append(lamina(hueso, "Placas", v(s * 0.17, 0.0, z), (s * 1, 0.4, 0.5), (0, 0, 1), 0.10 * k, 0.035 * k, 0.015 * k,
                                  perfil_pua, segmentos=3))
-    # Guja: asta vertical por la mano derecha; hoja de hacha en media luna arriba, aro y tela; pincho abajo.
-    agarre = v(D * 0.29, -0.06, 0.85)
+    piezas += guja_rey()
+    return piezas, huesos
+
+
+def guja_rey():
+    """Guja del Rey (REF-06): asta vertical por la mano derecha; hoja de hacha en media luna arriba, aro y tela; pincho abajo."""
+    k = ALTO_REY / 1.92
+    agarre = Vector((D * 0.29 * k * 1.15, -0.06 * k, 0.85 * k))
     arriba, abajo = agarre + Vector((0, 0, 1.55)), agarre + Vector((0, 0, -0.80))
-    piezas += [
+    return [
         tubo("arma", "Cuero", [abajo, arriba], [0.028, 0.032], 8),
         tubo("arma", "Trapo", [arriba - Vector((0, 0, 0.30)), arriba - Vector((0, 0, 0.18))], [0.04, 0.04], 8),
         anillo_metalico("arma", "Metal", arriba + Vector((0, -0.05, 0.05)), (1, 0, 0), 0.07, 0.016),
@@ -461,7 +467,47 @@ def rey_goblin():
         lamina("arma", "Metal", arriba, (0, 0, 1), (0, 1, 0), 0.30, 0.06, 0.04, perfil_pua, segmentos=3),
         lamina("arma", "Metal", abajo, (0, 0, -1), (0, 1, 0), 0.22, 0.05, 0.04, perfil_pua, segmentos=3),
     ]
-    return piezas, huesos
+
+
+# --- Rey reconstruido desde REF-06 ------------------------------------------------------------
+# Con Generar-Goblins.ps1 (sin -SinReconstruccion) el cuerpo del Rey sale de las vistas de REF-06
+# (vistas/rey_goblin.json → reconstruir_desde_vistas.py → blender_malla_desde_puntos.py → blender_hornear_color.py)
+# y la guja sigue siendo de piezas. Articulaciones (cabeza, cola) medidas en los tramos de la reconstrucción
+# por altura: el cinturón queda a 1,82 m y el faldón tapa la entrepierna hasta 0,89 m, así que la cadera se
+# toma a la altura de huesos_rey; los antebrazos se separan del cuerpo entre 1,37 y 1,85 m (x ≈ ±0,55).
+ARTICULACIONES_REY = {
+    "pelvis": ((-0.02, 0.02, 1.50), (-0.02, 0.02, 1.72)),
+    "columna": ((-0.02, 0.02, 1.72), (-0.02, 0.02, 2.05)),
+    "pecho": ((-0.02, 0.02, 2.05), (-0.02, 0.0, 2.42)),
+    "cuello": ((-0.02, 0.0, 2.42), (-0.03, -0.05, 2.62)),
+    "cabeza": ((-0.03, -0.05, 2.62), (-0.04, -0.12, 2.98)),
+    "capa_1": ((-0.02, 0.25, 2.35), (-0.02, 0.33, 1.75)),
+    "capa_2": ((-0.02, 0.33, 1.75), (-0.02, 0.38, 1.00)),
+    "capa_3": ((-0.02, 0.38, 1.00), (-0.02, 0.40, 0.25)),
+    "hombro_d": ((-0.08, 0.0, 2.38), (-0.40, 0.02, 2.30)),
+    "brazo_d": ((-0.40, 0.02, 2.30), (-0.52, 0.04, 1.88)),
+    "antebrazo_d": ((-0.52, 0.04, 1.88), (-0.56, 0.02, 1.45)),
+    "mano_d": ((-0.56, 0.02, 1.45), (-0.58, 0.0, 1.30)),
+    "hombro_i": ((0.04, 0.0, 2.38), (0.38, 0.02, 2.30)),
+    "brazo_i": ((0.38, 0.02, 2.30), (0.50, 0.04, 1.88)),
+    "antebrazo_i": ((0.50, 0.04, 1.88), (0.54, 0.02, 1.45)),
+    "mano_i": ((0.54, 0.02, 1.45), (0.56, 0.0, 1.30)),
+    "muslo_d": ((-0.15, 0.0, 1.52), (-0.31, -0.02, 0.60)),
+    "pierna_d": ((-0.31, -0.02, 0.60), (-0.40, 0.03, 0.15)),
+    "pie_d": ((-0.40, 0.03, 0.15), (-0.47, -0.22, 0.02)),
+    "muslo_i": ((0.19, 0.0, 1.52), (0.36, -0.02, 0.60)),
+    "pierna_i": ((0.36, -0.02, 0.60), (0.44, 0.03, 0.15)),
+    "pie_i": ((0.44, 0.03, 0.15), (0.50, -0.22, 0.02)),
+}
+
+
+def rey_goblin_reconstruido(ruta_modelo):
+    """Cuerpo del Rey desde REF-06 (ranura "Referencia", con su textura) atado al esqueleto de huesos_rey; guja de piezas."""
+    huesos, _ = huesos_rey()
+    modelo, armadura = atar_reconstruccion(ruta_modelo, huesos, ARTICULACIONES_REY)
+    armas = guja_rey()
+    colocar_armas(armadura, huesos, armas)
+    return [modelo] + armas, huesos, armadura
 
 
 TIPOS = {
@@ -475,12 +521,20 @@ TIPOS = {
 def main():
     argumentos = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     if not argumentos:
-        raise SystemExit("uso: blender --background --python blender_goblins.py -- <directorio de salida>")
+        raise SystemExit("uso: blender --background --python blender_goblins.py -- <directorio de salida> [<modelo del Rey .blend>]")
     directorio = argumentos[0]
+    modelo_rey = argumentos[1] if len(argumentos) > 1 else None
+    # Paleta de REF-05 (Generar-Goblins.ps1 → paleta_desde_referencia.py): sin ella, colores planos por material.
+    paleta = os.path.join(directorio, "T_Goblin_Paleta.json")
     for nombre, crear in TIPOS.items():
         limpiar_escena()
-        piezas, huesos = crear()
-        armadura = crear_armadura(huesos)
+        if nombre == "SK_ReyGoblin" and modelo_rey:
+            piezas, huesos, armadura = rey_goblin_reconstruido(modelo_rey)
+        else:
+            piezas, huesos = crear()
+            armadura = crear_armadura(huesos)
+            if os.path.exists(paleta):
+                pintar_paleta(piezas, paleta, SEMILLA + len(nombre))
         malla = unir(piezas, armadura, nombre)
         exportar(malla, armadura, directorio, len(huesos))
 

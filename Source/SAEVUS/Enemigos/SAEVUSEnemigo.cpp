@@ -57,6 +57,7 @@ namespace SAEVUSEnemigo
 
 	const FName ParametroColor(TEXT("Color"));
 	const FName ParametroAutoIluminacion(TEXT("AutoIluminacion"));
+	const FName ParametroTextura(TEXT("Textura"));
 }
 
 ASAEVUSEnemigo::ASAEVUSEnemigo()
@@ -287,9 +288,15 @@ void ASAEVUSEnemigo::CrearMateriales()
 		{
 			const bool bArma = Ranuras[Ranura].ToString().StartsWith(PrefijoRanuraArma);
 			const FLinearColor* Color = Datos->ColoresPiezas.Find(Ranuras[Ranura]);
-			const FLinearColor ColorBase = bArma ? Ajuste.ColorMascara : (Color ? *Color : Ajuste.ColorCuerpo);
+			const TObjectPtr<UTexture>* Textura = Datos->TexturasPiezas.Find(Ranuras[Ranura]);
+			const FLinearColor ColorSinDatos = (Textura && *Textura) ? FLinearColor::White : Ajuste.ColorCuerpo;
+			const FLinearColor ColorBase = bArma ? Ajuste.ColorMascara : (Color ? *Color : ColorSinDatos);
 			UMaterialInstanceDynamic* Material = bArma ? MaterialMascara.Get() : UMaterialInstanceDynamic::Create(Datos->MaterialBase, this);
 			Material->SetVectorParameterValue(ParametroColor, ColorBase);
+			if (!bArma && Textura && *Textura)
+			{
+				Material->SetTextureParameterValue(ParametroTextura, *Textura);
+			}
 			CuerpoAnimado->SetMaterial(Ranura, Material);
 			MaterialesPiezas.Add(Material);
 			ColoresPiezasBase.Add(ColorBase);

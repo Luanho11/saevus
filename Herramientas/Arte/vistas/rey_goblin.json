@@ -1,0 +1,22 @@
+{
+  "referencia": "REF-06, fila de arriba (fase 1): frente, perfil (mira a la derecha: se ve el costado derecho, -X, y colorea los dos) y espalda. El perfil está a la escala del frente.",
+  "imagen": "assets/417ae206-df5e-404e-ab3b-932faf992720.png",
+  "alto_m": 3.3,
+  "umbral": 12,
+  "vistas": {
+    "frente": {"caja": [0, 25, 195, 450], "eje": "x", "signo": 1, "mira": "-y", "prioridad": 1.0},
+    "perfil": {"caja": [372, 25, 535, 450], "eje": "y", "signo": -1, "mira": "-x", "ambos_lados": true, "prioridad": 0.6, "paso_como": "frente"},
+    "espalda": {"caja": [535, 25, 730, 450], "eje": "x", "signo": -1, "mira": "+y", "prioridad": 1.0, "paso_como": "frente"}
+  },
+  "piezas": [
+    {
+      "nombre": "cuerpo",
+      "vistas_casco": ["frente", "perfil"],
+      "vistas_color": ["frente", "perfil", "espalda"],
+      "caja_m": [[-0.9, -0.8, 0.0], [0.9, 0.8, 3.4]],
+      "voxel_m": 0.008,
+      "suavizado_voxeles": 1.6,
+      "elipses": {"frente": "frente", "factor_fondo": 0.7, "ancho_tronco_m": 0.16}
+    }
+  ]
+}
