@@ -1,7 +1,7 @@
 ﻿# Genera los goblins y el Rey Goblin (mallas esqueléticas, REF-05 y REF-06) con Blender en ArteFuente\Goblins\.
 # El cuerpo del Rey sale de las vistas de REF-06 (vistas\rey_goblin.json), con su pintura en T_ReyGoblin.png, por la
 # misma cadena que el protagonista (Generar-Caballero.ps1; Documentos/pipeline-assets.md). Los goblins de REF-05 solo
-# tienen vistas de tres cuartos posadas: siguen siendo de piezas. Con -SinReconstruccion el Rey también es de piezas.
+# tienen vistas de tres cuartos posadas: siguen siendo de piezas, con las facetas pintadas con la paleta de REF-05. Con -SinReconstruccion el Rey también es de piezas.
 # Uso (desde la raíz del proyecto):  powershell -ExecutionPolicy Bypass -File Herramientas\Arte\Generar-Goblins.ps1
 
 param(
@@ -25,9 +25,14 @@ function Ejecutar([string]$Descripcion, [scriptblock]$Orden) {
     $texto = & $Orden 2>&1 | ForEach-Object { "$_" }
     $codigo = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
-    $texto | Select-String -Pattern "\[SAEVUS arte\]|\[reconstruir\]|Error|Traceback"
+    $texto | Select-String -Pattern "\[SAEVUS arte\]|\[reconstruir\]|\[paleta\]|Error|Traceback"
     if ($codigo -ne 0) { throw "$Descripcion terminó con código $codigo" }
 }
+
+# Paleta de REF-05 para las facetas de los goblins (vistas\goblins.json): colores reales del dibujo por material.
+Push-Location $RaizProyecto
+try { Ejecutar "La paleta de los goblins" { & $Python (Join-Path $PSScriptRoot "paleta_desde_referencia.py") (Join-Path $PSScriptRoot "vistas\goblins.json") (Join-Path $Salida "T_Goblin_Paleta.png") } }
+finally { Pop-Location }
 
 $argumentosGoblins = @($Salida)
 if (-not $SinReconstruccion) {

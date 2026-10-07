@@ -228,6 +228,21 @@ def importar_textura(ruta_png, destino, nombre, generador):
     return textura
 
 
+PALETAS_IMPORTADAS = {}
+
+
+def importar_paleta(ruta_png, destino, nombre):
+    """Textura paleta de facetas: cada píxel es un color exacto del dibujo (sin filtrar, sin mipmaps, sin compresión)."""
+    if nombre not in PALETAS_IMPORTADAS:
+        textura = importar_textura(ruta_png, destino, nombre, "Generar-Goblins.ps1")
+        textura.set_editor_property("filter", unreal.TextureFilter.TF_NEAREST)
+        textura.set_editor_property("mip_gen_settings", unreal.TextureMipGenSettings.TMGS_NO_MIPMAPS)
+        textura.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_EDITOR_ICON)
+        textura.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_PIXELS2D)
+        PALETAS_IMPORTADAS[nombre] = textura
+    return PALETAS_IMPORTADAS[nombre]
+
+
 def importar_textura_caballero():
     return importar_textura(TEXTURA_CABALLERO, DIR_CABALLERO, "T_Caballero", "Generar-Caballero.ps1")
 
@@ -777,9 +792,15 @@ CUERPOS_ESQUELETICOS = {
 }
 # Pintura por ranura de los cuerpos reconstruidos desde las vistas (Generar-Goblins.ps1 → ArteFuente/Goblins/T_*.png):
 # el Rey Goblin de REF-06. La ranura "Referencia" va en blanco con la textura (USAEVUSDatosEnemigo::TexturasPiezas).
+# Los goblins de REF-05 llevan la paleta de su referencia (paleta_desde_referencia.py): cada faceta apunta a una celda;
+# se importa como paleta (sin filtrar, sin mipmaps ni compresión) y esas ranuras van en blanco.
+RANURAS_PALETA_GOBLIN = ("Piel", "Trapo", "Oscuro", "Cuero")
 TEXTURAS_ESQUELETICAS = {
     "DA_Jefe_ReyGoblin": {"Referencia": "T_ReyGoblin"},
+    **{nombre: {ranura: "T_Goblin_Paleta" for ranura in RANURAS_PALETA_GOBLIN}
+       for nombre in ("DA_Goblin", "DA_Goblin_Maza", "DA_Goblin_Hondero")},
 }
+TEXTURAS_PALETA = {"T_Goblin_Paleta"}
 
 
 def importar_estatica(nombre, carpeta_fuente, destino):
@@ -860,12 +881,17 @@ def crear_datos_enemigos(material_base, material_particulas):
         if nombre in CUERPOS_ESQUELETICOS:
             malla = CUERPOS_ESQUELETICOS[nombre]
             datos.set_editor_property("malla_esqueletica", importar_esqueletica(malla, "Goblins", f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}"))
-            datos.set_editor_property("colores_piezas", {unreal.Name(k): unreal.LinearColor(*v, 1.0) for k, v in COLORES_GOBLIN.items()})
             texturas = {}
             for ranura, textura in TEXTURAS_ESQUELETICAS.get(nombre, {}).items():
                 png = os.path.join(unreal.Paths.project_dir(), "ArteFuente", "Goblins", f"{textura}.png")
-                texturas[unreal.Name(ranura)] = importar_textura(png, f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}", textura, "Generar-Goblins.ps1")
+                if textura in TEXTURAS_PALETA:
+                    texturas[unreal.Name(ranura)] = importar_paleta(png, DIR_ARTE_ENEMIGOS, textura)
+                else:
+                    texturas[unreal.Name(ranura)] = importar_textura(png, f"{DIR_ARTE_ENEMIGOS}/{malla[3:]}", textura, "Generar-Goblins.ps1")
             datos.set_editor_property("texturas_piezas", texturas)
+            # Las ranuras con textura van sin tinte (USAEVUSEnemigo las pone en blanco si no tienen color).
+            colores = {unreal.Name(k): unreal.LinearColor(*v, 1.0) for k, v in COLORES_GOBLIN.items() if str(k) not in TEXTURAS_ESQUELETICAS.get(nombre, {})}
+            datos.set_editor_property("colores_piezas", colores)
         else:
             datos.set_editor_property("malla_esqueletica", None)
         resultado[nombre] = datos

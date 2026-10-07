@@ -530,4 +530,49 @@ bool FSAEVUSPruebaEnemigoTexturaReferencia::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEnemigoPaletaGoblin, "SAEVUS.Enemigo.PaletaGoblin", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEnemigoPaletaGoblin::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasEnemigos;
+
+	// Goblin de REF-05: las facetas de placas apuntan a celdas de la paleta del dibujo; la paleta no se filtra
+	// (cada píxel es un color exacto) y la ranura va sin tinte.
+	const TCHAR* const RutaGoblin = TEXT("/Game/SAEVUS/Datos/Enemigos/DA_Goblin.DA_Goblin");
+	const FName RanuraPlacas(TEXT("Piel"));
+	const FName ParametroTextura(TEXT("Textura"));
+	const FName ParametroColor(TEXT("Color"));
+	const USAEVUSDatosEnemigo* Datos = LoadObject<USAEVUSDatosEnemigo>(nullptr, RutaGoblin);
+	if (!TestNotNull(TEXT("DA_Goblin (créalo con Verificar-Arranque.ps1)"), Datos))
+	{
+		return false;
+	}
+	const TObjectPtr<UTexture>* Paleta = Datos->TexturasPiezas.Find(RanuraPlacas);
+	if (!TestTrue(TEXT("Las placas llevan la paleta de la referencia"), Paleta && *Paleta))
+	{
+		return false;
+	}
+	TestEqual(TEXT("Paleta sin filtrar"), (*Paleta)->Filter.GetValue(), TF_Nearest);
+	FMundoEnemigos Mundo;
+	ASAEVUSEnemigo* Enemigo = Mundo.CrearEnemigo(DistanciaAtaque * 3.f, Datos);
+	UPoseableMeshComponent* Cuerpo = Enemigo ? Enemigo->FindComponentByClass<UPoseableMeshComponent>() : nullptr;
+	if (!TestTrue(TEXT("Goblin con cuerpo de esqueleto"), Enemigo && Enemigo->TieneEsqueleto() && Cuerpo))
+	{
+		return false;
+	}
+	const int32 Ranura = Cuerpo->GetMaterialIndex(RanuraPlacas);
+	UMaterialInstanceDynamic* Material = Ranura != INDEX_NONE ? Cast<UMaterialInstanceDynamic>(Cuerpo->GetMaterial(Ranura)) : nullptr;
+	if (!TestNotNull(TEXT("Ranura de placas con material propio"), Material))
+	{
+		return false;
+	}
+	UTexture* Aplicada = nullptr;
+	Material->GetTextureParameterValue(FHashedMaterialParameterInfo(ParametroTextura), Aplicada);
+	TestEqual(TEXT("Usa la paleta de los datos"), Aplicada, Paleta->Get());
+	FLinearColor Color;
+	Material->GetVectorParameterValue(FHashedMaterialParameterInfo(ParametroColor), Color);
+	TestTrue(TEXT("Sin tinte: los colores del dibujo tal cual"), Color.Equals(FLinearColor::White));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

@@ -1,0 +1,10 @@
+{
+  "referencia": "REF-05 arriba a la izquierda (goblin base). Cajas en píxeles de la hoja con muestras de cada material: el color de cada faceta del modelo se toma de los píxeles de su material (blender_goblins.py, pintar_facetas).",
+  "imagen": "assets/d69d0a8c-b84d-409c-9200-2a28f663987c.png",
+  "muestras": {
+    "Piel": [[285, 370, 330, 450], [60, 265, 100, 325], [280, 165, 335, 230]],
+    "Trapo": [[150, 335, 195, 410], [175, 190, 230, 250]],
+    "Oscuro": [[250, 335, 290, 370]],
+    "Cuero": [[155, 285, 195, 300], [70, 280, 105, 300]]
+  }
+}

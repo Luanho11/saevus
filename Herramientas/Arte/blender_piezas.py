@@ -330,6 +330,9 @@ def colocar_armas(armadura, huesos, piezas_armas, mano="mano_d"):
 
 UV_PALETA = "UVMap"
 VARIACION_FACETA = 6  # celdas de la paleta (ordenada por luminosidad) que una cara se aparta del tono de su pieza
+# Tramo de la paleta (fracción, de oscuro a claro) del que sale el tono de cada pieza: los extremos quedan para las
+# facetas (sombras y brillos), como en el dibujo, donde casi ninguna placa entera es negra ni beige.
+TRAMO_TONO_PIEZA = (0.25, 0.75)
 
 
 def pintar_paleta(piezas, ruta_json, semilla):
@@ -349,7 +352,7 @@ def pintar_paleta(piezas, ruta_json, semilla):
             if nombre not in materiales:
                 continue
             fila, celdas = materiales[nombre]
-            base = tono.setdefault(nombre, azar.randrange(celdas))
+            base = tono.setdefault(nombre, azar.randint(int(celdas * TRAMO_TONO_PIEZA[0]), int(celdas * TRAMO_TONO_PIEZA[1])))
             celda = min(celdas - 1, max(0, base + azar.randint(-VARIACION_FACETA, VARIACION_FACETA)))
             columna, fila_celda = celda % ancho, fila + celda // ancho
             uv = ((columna + 0.5) / ancho, 1.0 - (fila_celda + 0.5) / alto)  # UV con el origen abajo; la imagen, arriba

@@ -77,7 +77,7 @@ Cuando una referencia tiene vistas de frente, perfil y espalda (REF-01 protagoni
 2. `blender_malla_desde_puntos.py`: puntos → malla densa con color por vértice (intermedio en `Saved/ArteIntermedio/`, fuera del repo).
 3. `blender_hornear_color.py`: copia reducida (≈ 30 000 triángulos) con UV automáticas y la pintura horneada en `T_<personaje>.png` (Cycles).
 4. `blender_piezas.atar_reconstruccion`: esqueleto de 25 huesos con las articulaciones **medidas** en la reconstrucción (tramos de la silueta por altura), pesos automáticos (los vértices sin peso, al hueso más cercano) y cada hueso llevado a la dirección de reposo que espera la animación procedural; esa pose pasa a ser el reposo. Las armas siguen siendo piezas (`colocar_armas`), con su ranura propia.
-En UE la ranura `Referencia` usa `M_SAEVUS_PersonajeDibujado` con el parámetro `Textura` (blanca por defecto en las demás ranuras). Los goblins de REF-05 solo tienen vistas de tres cuartos posadas: siguen con el modelo por piezas.
+En UE la ranura `Referencia` usa `M_SAEVUS_PersonajeDibujado` con el parámetro `Textura` (blanca por defecto en las demás ranuras). Los goblins de REF-05 solo tienen vistas de tres cuartos posadas: siguen con el modelo por piezas, con las facetas pintadas con una **paleta del dibujo** (`paleta_desde_referencia.py` → `T_Goblin_Paleta`, 16×16; `blender_piezas.pintar_paleta` apunta la UV de cada cara al centro de una celda de su material). La paleta se importa sin filtrar, sin mipmaps y sin compresión, para que cada píxel sea un color exacto.
 
 ## Escenario (boceto)
 

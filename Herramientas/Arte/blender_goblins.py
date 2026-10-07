@@ -39,6 +39,7 @@ colores_materiales({
     "Arma": (0.16, 0.14, 0.13, 1.0),       # hoja tosca; brilla al avisar
 })
 
+ESCALA_CABEZA = 1.25  # REF-05: la cabeza (máscara, hocico, orejas) es grande respecto al cuerpo
 D = -1.0  # derecha del goblin (-X)
 I = 1.0
 
@@ -86,7 +87,7 @@ class Goblin:
     def v(self, x, y, z):
         return Vector((x * self.e, y * self.e, z * self.e))
 
-    def cabeza(self, orejas=0.30, hocico=0.17):
+    def cabeza(self, orejas=0.34, hocico=0.17):
         e, v = self.e, self.v
         piezas = [
             # Cráneo anguloso: núcleo oscuro pequeño cubierto por placas de hueso (REF-05), no una bola.
@@ -110,13 +111,21 @@ class Goblin:
             piezas.append(lamina("cabeza", "Piel", v(s * 0.01, -0.15, 1.225), (s * 0.9, 0.35, 0.35), (0, 0, 1), 0.09 * e, 0.028 * e,
                                  0.016 * e, perfil_hoja, segmentos=3))
             # Orejas largas en punta, hacia atrás, afuera y arriba; interior de cuero.
-            direccion = Vector((s * 0.75, 0.55, 0.45)).normalized()
+            direccion = Vector((s * 0.62, 0.62, 0.50)).normalized()
             lateral = direccion.cross(Vector((0, -1, 0))).normalized()
             base = v(s * 0.075, -0.02, 1.23)
-            piezas.append(lamina("cabeza", "Piel", base, direccion, lateral, orejas * e, 0.10 * e, 0.014 * e, perfil_hoja,
+            piezas.append(lamina("cabeza", "Piel", base, direccion, lateral, orejas * e, 0.11 * e, 0.016 * e, perfil_hoja,
                                  curva=20, eje_curva=(0, -s, 0), segmentos=6))
-            piezas.append(lamina("cabeza", "Cuero", base + v(0, -0.008, 0), direccion, lateral, orejas * 0.82 * e, 0.065 * e, 0.006 * e,
+            piezas.append(lamina("cabeza", "Cuero", base + v(0, -0.008, 0), direccion, lateral, orejas * 0.82 * e, 0.07 * e, 0.007 * e,
                                  perfil_hoja, curva=20, eje_curva=(0, -s, 0), segmentos=6))
+        return self.agrandar_cabeza(piezas)
+
+    def agrandar_cabeza(self, piezas):
+        """Escala las piezas de la cabeza (y lo que va sobre ella) alrededor del cráneo por ESCALA_CABEZA."""
+        centro = self.v(0, -0.04, 1.19)
+        escala = Matrix.Translation(centro) @ Matrix.Scale(ESCALA_CABEZA, 4) @ Matrix.Translation(-centro)
+        for pieza_cabeza in piezas:
+            pieza_cabeza.matrix_world = escala @ pieza_cabeza.matrix_world
         return piezas
 
     def capucha(self):
@@ -125,7 +134,7 @@ class Goblin:
             # Capucha caída detrás de la cabeza y bufanda alrededor del cuello.
             lamina("cabeza", "Trapo", v(0, 0.03, 1.31), (0, 0.42, -1), (1, 0, 0), 0.34 * e, 0.27 * e, 0.09 * e, perfil_hoja,
                    curva=15, eje_curva=(1, 0, 0), segmentos=5),
-            tubo("cuello", "Trapo", [v(0, -0.01, 0.97), v(0, -0.03, 1.07)], [0.11 * e, 0.085 * e], 10),
+            tubo("cuello", "Trapo", [v(0, -0.01, 0.97), v(0, -0.03, 1.07)], [0.13 * e, 0.10 * e], 10),
         ]
         for grados in range(-150, 151, 30):
             a = math.radians(grados)
@@ -140,7 +149,7 @@ class Goblin:
         e, v = self.e, self.v
         a = ancho
         piezas = [
-            tubo("pecho", "Trapo", [v(0, 0, 0.82), v(0, 0.01, 0.92), v(0, 0.02, 1.01)], [0.075 * e * a, 0.095 * e * a, 0.085 * e * a], 10, 0.72),
+            tubo("pecho", "Trapo", [v(0, 0, 0.82), v(0, 0.01, 0.92), v(0, 0.02, 1.01)], [0.09 * e * a, 0.115 * e * a, 0.10 * e * a], 10, 0.72),
             tubo("columna", "Oscuro", [v(0, 0, 0.64), v(0, 0, 0.84)], [0.065 * e * a, 0.07 * e * a], 10, 0.75),
             elipsoide("pelvis", "Oscuro", v(0, 0, 0.64), (0.09 * e * a, 0.07 * e * a, 0.07 * e)),
             # Joroba: la espalda encorvada bajo la capucha.
@@ -167,21 +176,21 @@ class Goblin:
         piezas = []
         for lado, s in (("d", D), ("i", I)):
             piezas += [
-                elipsoide(f"hombro_{lado}", "Piel", v(s * 0.14, 0, 0.985), (0.045 * e * g, 0.045 * e * g, 0.04 * e * g)),
-                tubo(f"brazo_{lado}", "Piel", [v(s * 0.15, 0, 0.99), v(s * 0.21, 0.01, 0.75)], [0.033 * e * g, 0.026 * e * g], 8),
-                tubo(f"antebrazo_{lado}", "Piel", [v(s * 0.21, 0.01, 0.75), v(s * 0.25, -0.03, 0.52)], [0.03 * e * g, 0.022 * e * g], 8),
+                elipsoide(f"hombro_{lado}", "Piel", v(s * 0.14, 0, 0.985), (0.058 * e * g, 0.055 * e * g, 0.05 * e * g)),
+                tubo(f"brazo_{lado}", "Piel", [v(s * 0.15, 0, 0.99), v(s * 0.21, 0.01, 0.75)], [0.046 * e * g, 0.036 * e * g], 8),
+                tubo(f"antebrazo_{lado}", "Piel", [v(s * 0.21, 0.01, 0.75), v(s * 0.25, -0.03, 0.52)], [0.042 * e * g, 0.031 * e * g], 8),
                 # Vendas de cuero en el antebrazo y placa en punta en el codo.
-                tubo(f"antebrazo_{lado}", "Cuero", [v(s * 0.232, -0.012, 0.64), v(s * 0.247, -0.027, 0.55)], [0.034 * e * g, 0.028 * e * g], 8),
+                tubo(f"antebrazo_{lado}", "Cuero", [v(s * 0.232, -0.012, 0.64), v(s * 0.247, -0.027, 0.55)], [0.046 * e * g, 0.038 * e * g], 8),
                 lamina(f"antebrazo_{lado}", "Piel", v(s * 0.215, 0.03, 0.75), (s * 0.3, 1, 0.5), (0, 0, 1), 0.075 * e, 0.035 * e, 0.012 * e,
                        perfil_pua, segmentos=3),
                 # Hombrera de cuero.
                 lamina(f"hombro_{lado}", "Cuero", v(s * 0.10, -0.01, 1.03), (s * 1, 0.1, -0.55), (0, 1, 0), 0.12 * e, 0.10 * e, 0.016 * e,
                        perfil_hoja, curva=25, eje_curva=(0, s, 0), segmentos=4),
-                elipsoide(f"mano_{lado}", "Piel", v(s * 0.258, -0.045, 0.49), (0.026 * e, 0.032 * e, 0.038 * e), 10, 7),
+                elipsoide(f"mano_{lado}", "Piel", v(s * 0.258, -0.045, 0.49), (0.034 * e, 0.04 * e, 0.045 * e), 10, 7),
             ]
             for k in range(4):
                 piezas.append(lamina(f"mano_{lado}", "Piel", v(s * 0.265, -0.07 + 0.016 * k, 0.465), (s * 0.2, -0.3, -1), (0, 1, 0),
-                                     0.085 * e, 0.012 * e, 0.012 * e, perfil_pua, curva=-35, eje_curva=(s, 0, 0), segmentos=3))
+                                     0.10 * e, 0.015 * e, 0.015 * e, perfil_pua, curva=-35, eje_curva=(s, 0, 0), segmentos=3))
         return piezas
 
     def piernas(self, grosor=1.0):
@@ -191,14 +200,17 @@ class Goblin:
         for lado, s in (("d", D), ("i", I)):
             piezas += [
                 tubo(f"muslo_{lado}", "Oscuro", [v(s * 0.08, 0, 0.64), v(s * 0.10, -0.012, 0.48), v(s * 0.12, -0.02, 0.35)],
-                     [0.058 * e * g, 0.06 * e * g, 0.042 * e * g], 8),
+                     [0.072 * e * g, 0.076 * e * g, 0.052 * e * g], 8),
                 # Rodillera de hueso, espinilla fina con vendas y pie de garras.
-                lamina(f"pierna_{lado}", "Piel", v(s * 0.12, -0.06, 0.29), (0, -0.3, 1), (1, 0, 0), 0.12 * e, 0.07 * e, 0.025 * e,
+                lamina(f"pierna_{lado}", "Piel", v(s * 0.12, -0.07, 0.27), (0, -0.3, 1), (1, 0, 0), 0.16 * e, 0.095 * e, 0.03 * e,
                        perfil_hoja, segmentos=4),
                 tubo(f"pierna_{lado}", "Piel", [v(s * 0.12, -0.02, 0.35), v(s * 0.12, 0.0, 0.22), v(s * 0.12, 0.03, 0.09)],
-                     [0.036 * e * g, 0.032 * e * g, 0.025 * e * g], 8),
-                tubo(f"pierna_{lado}", "Cuero", [v(s * 0.12, 0.004, 0.2), v(s * 0.12, 0.022, 0.12)], [0.035 * e * g, 0.03 * e * g], 8),
-                elipsoide(f"pie_{lado}", "Piel", v(s * 0.12, -0.01, 0.05), (0.04 * e, 0.06 * e, 0.04 * e), 10, 7),
+                     [0.048 * e * g, 0.042 * e * g, 0.032 * e * g], 8),
+                tubo(f"pierna_{lado}", "Cuero", [v(s * 0.12, 0.004, 0.2), v(s * 0.12, 0.022, 0.12)], [0.046 * e * g, 0.038 * e * g], 8),
+                elipsoide(f"pie_{lado}", "Piel", v(s * 0.12, -0.01, 0.05), (0.05 * e, 0.07 * e, 0.045 * e), 10, 7),
+                # Espinillera de placa en punta (REF-05: placas angulosas sobre la espinilla).
+                lamina(f"pierna_{lado}", "Piel", v(s * 0.12, -0.05, 0.12), (0, -0.12, 1), (1, 0, 0), 0.17 * e, 0.07 * e, 0.025 * e,
+                       perfil_hoja, segmentos=4),
                 lamina(f"pie_{lado}", "Piel", v(s * 0.12, 0.03, 0.06), (0, 1, -0.6), (1, 0, 0), 0.07 * e, 0.025 * e, 0.02 * e, perfil_pua,
                        segmentos=3),
             ]
@@ -229,7 +241,7 @@ class Goblin:
             x = (-0.045 + 0.015 * k) * e
             piezas.append(lamina("cabeza", "Piel", v(0, -0.165, 1.135) + Vector((x, 0, 0)), (0, -0.2, -1), (1, 0, 0), 0.025 * e,
                                  0.012 * e, 0.008 * e, perfil_pua, segmentos=2))
-        return piezas
+        return self.agrandar_cabeza(piezas)
 
     def fardo(self):
         """Fardo a la espalda con estacas y un aro de metal (REF-05 arriba 2)."""
@@ -255,11 +267,11 @@ class Goblin:
     def casco_redondo(self):
         """Casco redondo de cuero con correa bajo el hocico (REF-05 abajo 1)."""
         e, v = self.e, self.v
-        return [
+        return self.agrandar_cabeza([
             elipsoide("cabeza", "Cuero", v(0, -0.03, 1.24), (0.105 * e, 0.12 * e, 0.075 * e), 14, 8),
             tubo("cabeza", "Metal", [v(0, -0.03, 1.21), v(0, -0.03, 1.225)], [0.108 * e, 0.108 * e], 14, 1.12),
             tubo("cabeza", "Cuero", [v(-0.09, -0.10, 1.20), v(0, -0.17, 1.10), v(0.09, -0.10, 1.20)], [0.008 * e] * 3, 6),
-        ]
+        ])
 
     def armazon_espalda(self):
         """Armazón de palos a la espalda (ballesta tosca, REF-05 abajo 1)."""
