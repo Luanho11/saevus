@@ -157,9 +157,15 @@ float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const
 
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 	const USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje);
-	if (!Movimiento)
+	if (!Movimiento || !Ajuste.bCampoVisionDinamico)
 	{
 		return Ajuste.CampoVisionBase;
+	}
+	// El dash va más rápido que el esprint: con dashes encadenados el campo de visión bombearía. En el dash se queda
+	// donde estaba (a media apertura como mucho).
+	if (Movimiento->EstaEnDash())
+	{
+		return FMath::Lerp(Ajuste.CampoVisionBase, Ajuste.CampoVisionEsprint, 0.5f);
 	}
 
 	// Lo manda la velocidad real, no la petición de esprint, así nunca se abre contra una pared.

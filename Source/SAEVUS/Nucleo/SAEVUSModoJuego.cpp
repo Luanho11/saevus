@@ -2,6 +2,7 @@
 
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Depuracion/SAEVUSHUDDepuracion.h"
+#include "Enemigos/SAEVUSEnemigo.h"
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
@@ -109,7 +110,19 @@ void ASAEVUSModoJuego::ReaparecerJugador(TWeakObjectPtr<AController> Controlador
 		Controlador->UnPossess();
 		PawnMuerto->SetLifeSpan(FMath::Max(DuracionCadaver, UE_KINDA_SMALL_NUMBER));
 	}
+	ReiniciarJefes();
 	ReaparecerEnPuntoControl(Controlador.Get());
+}
+
+void ASAEVUSModoJuego::ReiniciarJefes()
+{
+	for (TActorIterator<ASAEVUSEnemigo> Iterador(GetWorld()); Iterador; ++Iterador)
+	{
+		if (Iterador->ObtenerAjuste().bEsJefe)
+		{
+			Iterador->ReiniciarCombate();
+		}
+	}
 }
 
 void ASAEVUSModoJuego::ReiniciarJugador(AController* Controlador)
@@ -125,6 +138,7 @@ void ASAEVUSModoJuego::ReiniciarJugador(AController* Controlador)
 		Controlador->UnPossess();
 		PawnActual->Destroy();
 	}
+	ReiniciarJefes();
 	ReaparecerEnPuntoControl(Controlador);
 }
 

@@ -194,6 +194,17 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ClampMin = "1"))
 	float VidaMaxima = 30.f;
 
+	/**
+	 * Cuánto gira el cuerpo hacia el objetivo, en grados por segundo (0 = al instante). Con un giro limitado, al
+	 * elegir ataque no se da la vuelta en un fotograma y se puede rodear al que avisa (auditoría EA-17).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ClampMin = "0", ForceUnits = "deg/s"))
+	float VelocidadGiro = 540.f;
+
+	/** El aviso solo sigue al objetivo durante esta fracción de su duración; el resto, el ataque va a donde apuntaba. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ClampMin = "0", ClampMax = "1"))
+	float FraccionSeguimientoAviso = 0.7f;
+
 	/** Los jefes muestran barra de vida y no se aturden. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo")
 	bool bEsJefe = false;
@@ -317,6 +328,18 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	TArray<FSAEVUSFaseEnemigo> Fases;
 };
 
+namespace SAEVUSEnemigo
+{
+	/** Aviso mínimo legible de un ataque (s): por debajo, el jugador no puede reaccionar. */
+	constexpr float AvisoMinimoLegible = 0.25f;
+
+	/**
+	 * Revisa un tipo de enemigo y devuelve lo que está mal (vacío = bien): fases desordenadas, índices de ataque
+	 * fuera de rango, distancias invertidas, avisos ilegibles, picados sin vuelo (auditoría EA-25).
+	 */
+	SAEVUS_API TArray<FString> Validar(const FSAEVUSAjusteEnemigo& Ajuste);
+}
+
 /** Tipo de enemigo editable, asignado a cada ASAEVUSEnemigo. */
 UCLASS(BlueprintType, Const)
 class SAEVUS_API USAEVUSDatosEnemigo : public UPrimaryDataAsset
@@ -324,6 +347,10 @@ class SAEVUS_API USAEVUSDatosEnemigo : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Contexto) const override;
+#endif
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemigo")
 	FSAEVUSAjusteEnemigo Enemigo;
 

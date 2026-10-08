@@ -24,7 +24,7 @@ namespace SAEVUSPausa
 {
 	const float Sensibilidades[] = { 0.5f, 0.75f, 1.f, 1.5f, 2.f };
 	constexpr float PasoVolumen = 0.25f;
-	constexpr int32 NumeroCalidades = 3;
+	constexpr int32 NumeroCalidades = 4;
 	constexpr int32 TamanoTitulo = 40;
 	// Separación entre la columna de opciones y el mapa.
 	constexpr float SeparacionMapa = 48.f;
@@ -73,8 +73,11 @@ namespace SAEVUSPausa
 			return LOCTEXT("Baja", "Baja");
 		case 1:
 			return LOCTEXT("Media", "Media");
-		default:
+		case 2:
 			return LOCTEXT("Alta", "Alta");
+		default:
+			// 3 es el valor por defecto del motor en una instalación nueva: se muestra tal cual es.
+			return LOCTEXT("Epica", "Épica");
 		}
 	}
 

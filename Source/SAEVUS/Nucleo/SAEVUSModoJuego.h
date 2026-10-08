@@ -25,6 +25,9 @@ public:
 	/** Reaparición inmediata en el último punto de control (menú de pausa): el cuerpo actual desaparece. */
 	void ReiniciarJugador(AController* Controlador);
 
+	/** Los jefes vivos vuelven a su vida máxima y a su sitio: morir no sirve para ganarles por desgaste. */
+	void ReiniciarJefes();
+
 	/** Desde ahora los jugadores reaparecen en Punto (puntos de control del tutorial); se guarda para "Continuar". */
 	void FijarPuntoControl(const FTransform& Punto);
 

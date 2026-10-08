@@ -351,6 +351,18 @@ void ASAEVUSEnemigo::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor
 	AlMorirEnemigo.Broadcast(this);
 }
 
+void ASAEVUSEnemigo::ReiniciarCombate()
+{
+	if (Vida->EstaMuerto())
+	{
+		return;
+	}
+	Vida->RestablecerVida();
+	IA->Reiniciar();
+	GetCharacterMovement()->StopMovementImmediately();
+	SetActorLocation(IA->ObtenerOrigen(), false, nullptr, ETeleportType::TeleportPhysics);
+}
+
 void ASAEVUSEnemigo::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// Destruido sin morir (fuera del mundo, quitado por un script): para las puertas también deja la pelea.

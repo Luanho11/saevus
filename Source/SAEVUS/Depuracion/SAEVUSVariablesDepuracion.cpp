@@ -9,19 +9,19 @@ namespace SAEVUSDepuracion
 		TEXT("SAEVUS.Depuracion.HUD"),
 		false,
 		TEXT("Muestra el HUD de depuración de SAEVUS (paso, velocidad, modo de movimiento, combate, armas)."),
-		ECVF_Default);
+		ECVF_Cheat);
 
 	static TAutoConsoleVariable<bool> CVarCombate(
 		TEXT("SAEVUS.Depuracion.Combate"),
 		false,
 		TEXT("Dibuja las esferas de golpe activas y las trazas de disparo (amarillo: sin golpe, rojo: golpe)."),
-		ECVF_Default);
+		ECVF_Cheat);
 
 	static TAutoConsoleVariable<bool> CVarNumerosDanio(
 		TEXT("SAEVUS.Depuracion.NumerosDanio"),
 		false,
 		TEXT("Muestra números de daño flotantes sobre quien recibe el golpe (blancos: enemigos y muñecos; rojos: el jugador)."),
-		ECVF_Default);
+		ECVF_Cheat);
 
 	bool HUDActivo()
 	{

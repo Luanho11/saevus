@@ -218,6 +218,58 @@ bool FSAEVUSPruebaPuertaEnemigoDesaparece::RunTest(const FString& Parameters)
 	return true;
 }
 
+// GAMEPLAY-6 y EA-2: reiniciar el combate devuelve al enemigo a su vida, su fase y su sitio; herir despierta al que descansa.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaReinicioEnemigo, "SAEVUS.Enemigo.ReinicioYAlerta", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaReinicioEnemigo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	const FVector Inicio(6000.f, 0.f, 100.f);
+	ASAEVUSEnemigo* Enemigo = Mundo.MundoPrueba.CrearEnemigo(Inicio, CrearDatos(0.f), Mundo.Personaje);
+	USAEVUSComponenteVida* Vida = Enemigo->ObtenerVida();
+	TestEqual(TEXT("Descansa lejos del jugador"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+
+	// Herido por el jugador desde lejos, va a por él aunque esté fuera de su radio de detección.
+	Vida->AplicarDanio(5.f, Mundo.Personaje);
+	TestNotEqual(TEXT("Herido, ya no descansa"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+	// Pasado el aturdimiento sigue a por el jugador, aunque esté mucho más lejos que su radio de pérdida.
+	Enemigo->ObtenerIA()->Actualizar(Enemigo->ObtenerAjuste().TiempoAturdido + 0.05f);
+	Enemigo->ObtenerIA()->Actualizar(0.1f);
+	TestEqual(TEXT("Herido, persigue sin perder al objetivo"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Perseguir);
+
+	Enemigo->SetActorLocation(Inicio + FVector(0.f, 500.f, 0.f));
+	Enemigo->ReiniciarCombate();
+	TestEqual(TEXT("Vida completa"), Vida->ObtenerVida(), Vida->ObtenerVidaMaxima());
+	TestEqual(TEXT("En reposo"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+	TestEqual(TEXT("Vuelve a su sitio"), static_cast<float>(Enemigo->GetActorLocation().Y), 0.f, 1.f);
+	return true;
+}
+
+// EA-25: los datos de enemigos rotos se detectan antes de jugar.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaValidarEnemigo, "SAEVUS.Enemigo.ValidarDatos", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaValidarEnemigo::RunTest(const FString& Parameters)
+{
+	FSAEVUSAjusteEnemigo Bueno;
+	TestEqual(TEXT("El enemigo por defecto es válido"), SAEVUSEnemigo::Validar(Bueno).Num(), 0);
+
+	FSAEVUSAjusteEnemigo Roto;
+	Roto.Ataques[0].DistanciaMinima = 500.f;
+	Roto.Ataques[0].DistanciaMaxima = 100.f;
+	Roto.Ataques[0].TiempoTelegrafiar = 0.05f;
+	FSAEVUSAtaqueEnemigo Picado;
+	Picado.Tipo = ESAEVUSTipoAtaqueEnemigo::Picado;
+	Roto.Ataques.Add(Picado);
+	FSAEVUSFaseEnemigo Fase0;
+	Fase0.FraccionVida = 0.4f;
+	FSAEVUSFaseEnemigo Fase1;
+	Fase1.FraccionVida = 0.8f;
+	Fase1.Ataques = { 0, 7 };
+	Roto.Fases = { Fase0, Fase1 };
+	// Distancias invertidas, aviso corto, picado sin vuelo, fases desordenadas y un ataque que no existe.
+	TestEqual(TEXT("Cada defecto se avisa"), SAEVUSEnemigo::Validar(Roto).Num(), 5);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMuelle, "SAEVUS.Animacion.Muelle", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaMuelle::RunTest(const FString& Parameters)
 {

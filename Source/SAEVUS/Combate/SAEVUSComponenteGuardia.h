@@ -52,6 +52,13 @@ struct FSAEVUSAjusteGuardia
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0"))
 	float AlmaPorContraataque = 22.f;
 
+	/**
+	 * Tras soltar la guardia hay que esperar esto para volver a tener ventana de contraataque: pulsar y soltar
+	 * a ráfagas ya no deja la ventana abierta casi siempre (auditoría GAMEPLAY-4). 0 = sin espera.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0", ForceUnits = "s"))
+	float EsperaTrasSoltar = 0.35f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Contraataque", meta = (ClampMin = "0", ForceUnits = "s"))
 	float InvulnerabilidadContraataque = 0.3f;
 
@@ -135,4 +142,8 @@ private:
 	int32 Contraataques = 0;
 	/** Tiempo de mundo en que se levantó la guardia (para la ventana de contraataque). */
 	double InicioGuardia = 0.0;
+	/** Tiempo de mundo en que se soltó la guardia por última vez. */
+	double UltimaSalida = -1.0e9;
+	/** Cierto si la guardia actual se levantó con la espera cumplida (tiene ventana de contraataque). */
+	bool bVentanaContraataque = true;
 };

@@ -73,6 +73,8 @@ void USAEVUSComponenteGuardia::Entrar()
 	}
 	bEnGuardia = true;
 	InicioGuardia = GetWorld()->GetTimeSeconds();
+	// Si se levantó otra vez demasiado pronto, esta guardia no tiene ventana de contraataque.
+	bVentanaContraataque = InicioGuardia - UltimaSalida >= Ajuste.EsperaTrasSoltar;
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Guardia, Ajuste.EscalaVelocidad);
@@ -89,6 +91,7 @@ void USAEVUSComponenteGuardia::Salir()
 		return;
 	}
 	bEnGuardia = false;
+	UltimaSalida = GetWorld()->GetTimeSeconds();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Guardia, 1.f);
@@ -143,7 +146,7 @@ float USAEVUSComponenteGuardia::FiltrarDanio(float Cantidad, AActor* Causante)
 	// Solo es contraataque parar un ataque de verdad: el roce de un enemigo que no ataca se bloquea, sin dar alma (EA-24).
 	const USAEVUSComponenteIAEnemigo* IAAtacante = Causante->FindComponentByClass<USAEVUSComponenteIAEnemigo>();
 	const bool bEsAtaque = !IAAtacante || IAAtacante->ObtenerEstado() == ESAEVUSEstadoEnemigo::Atacar;
-	if (bEsAtaque && Ajuste.VentanaContraataque > 0.f && GetWorld()->GetTimeSeconds() - InicioGuardia <= Ajuste.VentanaContraataque)
+	if (bEsAtaque && bVentanaContraataque && Ajuste.VentanaContraataque > 0.f && GetWorld()->GetTimeSeconds() - InicioGuardia <= Ajuste.VentanaContraataque)
 	{
 		Contraatacar(Causante);
 	}

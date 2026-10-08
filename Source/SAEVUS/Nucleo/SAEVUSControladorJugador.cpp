@@ -193,10 +193,12 @@ void ASAEVUSControladorJugador::SetupInputComponent()
 	}
 
 	UEnhancedInputComponent* Entrada = Cast<UEnhancedInputComponent>(InputComponent);
+#if !UE_BUILD_SHIPPING
 	if (Entrada && AccionAlternarHUD)
 	{
 		Entrada->BindAction(AccionAlternarHUD, ETriggerEvent::Started, this, &ThisClass::AlternarHUDDepuracion);
 	}
+#endif
 	if (Entrada && AccionPausa)
 	{
 		Entrada->BindAction(AccionPausa, ETriggerEvent::Started, this, &ThisClass::AlternarPausa);

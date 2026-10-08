@@ -31,6 +31,8 @@ void ASAEVUSHUDDepuracion::BeginPlay()
 void ASAEVUSHUDDepuracion::DrawHUD()
 {
 	Super::DrawHUD();
+	// La depuración no llega a la versión final: ni el texto verde ni los números de daño (auditoría IA-10).
+#if !UE_BUILD_SHIPPING
 	if (SAEVUSDepuracion::HUDActivo())
 	{
 		DibujarDepuracion();
@@ -39,6 +41,7 @@ void ASAEVUSHUDDepuracion::DrawHUD()
 	{
 		DibujarNumerosDanio();
 	}
+#endif
 }
 
 void ASAEVUSHUDDepuracion::DibujarNumerosDanio()

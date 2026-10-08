@@ -417,6 +417,13 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 		Llenas += Mascara;
 	}
 	FijarPorcentaje(BarraVida, Estado.Mascaras.Num() > 0 ? Llenas / Estado.Mascaras.Num() : 0.f);
+	// La barra crece con la vida máxima: una máscara nueva se ve en el acto.
+	if (UWidget* MarcoVida = BarraVida->GetParent() ? BarraVida->GetParent()->GetParent() : nullptr)
+	{
+		const float EscalaBarra = FMath::Clamp(static_cast<float>(Estado.Mascaras.Num()) / static_cast<float>(FMath::Max(Ajuste.MascarasBaseBarraVida, 1)), 1.f, Ajuste.EscalaMaximaBarraVida);
+		MarcoVida->SetRenderTransformPivot(FVector2D(0.f, 0.5f));
+		MarcoVida->SetRenderScale(FVector2D(EscalaBarra, 1.f));
+	}
 
 	FijarPorcentaje(BarraAlma, Estado.FraccionAlma);
 	// Al ganar alma la barra se ilumina un instante; si alcanza para curar, brilla más.

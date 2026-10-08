@@ -193,6 +193,25 @@ bool FSAEVUSPruebaGuardiaContraataque::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("Bloqueado tarde"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
 	TestEqual(TEXT("Sin contraataque fuera de la ventana"), Mundo.Guardia->ObtenerContraataques(), 1);
+
+	// Pulsar y soltar a ráfagas no reabre la ventana (GAMEPLAY-4): hay que esperar tras soltar.
+	Mundo.Jugador->FijarGuardia(false);
+	Mundo.MundoPrueba.Paso();
+	Mundo.Jugador->FijarGuardia(true);
+	Mundo.MundoPrueba.Paso();
+	Enemigo->ObtenerIA()->ForzarEstado(ESAEVUSEstadoEnemigo::Atacar);
+	TestEqual(TEXT("Bloqueado a ráfagas"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
+	TestEqual(TEXT("Sin contraataque al machacar la guardia"), Mundo.Guardia->ObtenerContraataques(), 1);
+	Mundo.Jugador->FijarGuardia(false);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(0.5f); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+	}
+	Mundo.Jugador->FijarGuardia(true);
+	Mundo.MundoPrueba.Paso();
+	Enemigo->ObtenerIA()->ForzarEstado(ESAEVUSEstadoEnemigo::Atacar);
+	TestEqual(TEXT("Tras esperar, otra vez"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
+	TestEqual(TEXT("hay contraataque"), Mundo.Guardia->ObtenerContraataques(), 2);
 	return true;
 }
 

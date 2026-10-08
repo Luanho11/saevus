@@ -140,6 +140,19 @@ void USAEVUSComponenteIAEnemigo::Aturdir()
 	CambiarEstado(ESAEVUSEstadoEnemigo::Aturdido);
 }
 
+void USAEVUSComponenteIAEnemigo::Reiniciar()
+{
+	if (Estado == ESAEVUSEstadoEnemigo::Muerto)
+	{
+		return;
+	}
+	Fase = 0;
+	IndiceAtaque = INDEX_NONE;
+	TiempoAlertaRestante = 0.f;
+	bGolpeAplicado = false;
+	CambiarEstado(ESAEVUSEstadoEnemigo::Reposo);
+}
+
 void USAEVUSComponenteIAEnemigo::Morir()
 {
 	IndiceAtaque = INDEX_NONE;
@@ -202,6 +215,7 @@ void USAEVUSComponenteIAEnemigo::Actualizar(float DeltaTime)
 		return;
 	}
 	TiempoEstado += DeltaTime;
+	DeltaActual = DeltaTime;
 	TiempoAlertaRestante = FMath::Max(0.f, TiempoAlertaRestante - DeltaTime);
 	const FSAEVUSFaseEnemigo& FaseActual = ObtenerFaseActual();
 	const FSAEVUSAtaqueEnemigo* Ataque = ObtenerAtaqueActual();
@@ -328,9 +342,14 @@ void USAEVUSComponenteIAEnemigo::ActualizarPerseguir()
 
 void USAEVUSComponenteIAEnemigo::ActualizarTelegrafiar()
 {
-	// Quieto y mirando al objetivo: el aviso es la ventana del jugador para leer el ataque.
-	Encarar(DireccionObjetivo());
+	// Quieto y mirando al objetivo: el aviso es la ventana del jugador para leer el ataque. Pasada la fracción de
+	// seguimiento deja de apuntar, así el jugador que se mueve a tiempo (o rodea) lo esquiva.
 	const FSAEVUSAtaqueEnemigo* Ataque = ObtenerAtaqueActual();
+	const float DuracionAviso = Ataque ? Ataque->TiempoTelegrafiar * ObtenerFaseActual().EscalaTiempos : 0.f;
+	if (TiempoEstado <= DuracionAviso * ObtenerAjuste().FraccionSeguimientoAviso)
+	{
+		Encarar(DireccionObjetivo());
+	}
 	if (!Ataque || TiempoEstado >= Ataque->TiempoTelegrafiar * ObtenerFaseActual().EscalaTiempos)
 	{
 		EmpezarAtaque();
@@ -532,6 +551,13 @@ void USAEVUSComponenteIAEnemigo::Encarar(const FVector& Direccion)
 {
 	if (!Direccion.IsNearlyZero())
 	{
-		GetOwner()->SetActorRotation(Direccion.ToOrientationRotator());
+		const FRotator Meta = Direccion.ToOrientationRotator();
+		const float Velocidad = ObtenerAjuste().VelocidadGiro;
+		if (Velocidad <= 0.f || DeltaActual <= 0.f)
+		{
+			GetOwner()->SetActorRotation(Meta);
+			return;
+		}
+		GetOwner()->SetActorRotation(FMath::RInterpConstantTo(GetOwner()->GetActorRotation(), Meta, DeltaActual, Velocidad));
 	}
 }

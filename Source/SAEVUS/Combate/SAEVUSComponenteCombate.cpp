@@ -265,6 +265,12 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 		IniciarAtaque(bEnAire, 0);
 		return;
 	}
+	// Si se aterrizó (o se salió de un borde) a mitad de la cadena, esta se reinicia en el medio actual (GAMEPLAY-19).
+	if (bEnAire != bCadenaAerea)
+	{
+		IniciarAtaque(bEnAire, 0);
+		return;
+	}
 	// Cadena: el siguiente ataque de la misma cadena, en cuanto el actual lo permite.
 	const TArray<FSAEVUSDefinicionAtaque>& Cadena = bCadenaAerea ? ObtenerRepertorio().ComboAire : ObtenerRepertorio().ComboSuelo;
 	if (Cadena.IsValidIndex(IndiceCombo + 1))
@@ -352,6 +358,11 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 		{
 			Movimiento->Velocity.Z *= Ataque.FraccionCaidaConservada;
 		}
+	}
+	else
+	{
+		// En el suelo la gravedad es la normal: no se arrastra la flotación de un tajo aéreo anterior.
+		Movimiento->FijarEscalaGravedadAccion(1.f);
 	}
 	AlIniciarAtaque.Broadcast();
 }

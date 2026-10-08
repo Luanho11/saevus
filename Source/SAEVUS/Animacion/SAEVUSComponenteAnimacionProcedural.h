@@ -264,7 +264,7 @@ struct FSAEVUSAjusteAnimacion
 
 	/** Parpadeos por segundo del cuerpo durante la invulnerabilidad tras un golpe. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
-	float FrecuenciaParpadeo = 12.f;
+	float FrecuenciaParpadeo = 4.f;
 
 	/** Empujón al tronco al recibir un golpe (grados/s, alejándose del que golpea) y hundimiento de la cadera (cm/s). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))

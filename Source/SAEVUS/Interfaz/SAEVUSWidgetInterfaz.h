@@ -34,6 +34,16 @@ struct FSAEVUSAjusteInterfaz
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
 	FVector2D TamanoBarraVida = FVector2D(380.f, 11.f);
 
+	/**
+	 * Máscaras con las que la barra mide TamanoBarraVida. Cada máscara de más la alarga en proporción, hasta
+	 * EscalaMaximaBarraVida, para que juntar un fragmento se vea (auditoría IA-6).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interfaz|Vida", meta = (ClampMin = "1"))
+	int32 MascarasBaseBarraVida = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interfaz|Vida", meta = (ClampMin = "1"))
+	float EscalaMaximaBarraVida = 2.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
 	FLinearColor ColorVida = FLinearColor(0.30f, 0.06f, 0.056f);
 

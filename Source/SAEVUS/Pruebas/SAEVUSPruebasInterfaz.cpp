@@ -127,7 +127,9 @@ bool FSAEVUSPruebaInterfazPausaOpciones::RunTest(const FString& Parameters)
 {
 	TestEqual(TEXT("Baja → Media"), SAEVUSPausa::SiguienteCalidad(0), 1);
 	TestEqual(TEXT("Media → Alta"), SAEVUSPausa::SiguienteCalidad(1), 2);
-	TestEqual(TEXT("Alta → Baja"), SAEVUSPausa::SiguienteCalidad(2), 0);
+	TestEqual(TEXT("Alta → Épica"), SAEVUSPausa::SiguienteCalidad(2), 3);
+	TestEqual(TEXT("Épica → Baja"), SAEVUSPausa::SiguienteCalidad(3), 0);
+	TestFalse(TEXT("La Épica tiene nombre"), SAEVUSPausa::NombreCalidad(3).IsEmpty());
 	TestEqual(TEXT("Personalizado (-1) empieza en Media tras Baja"), SAEVUSPausa::SiguienteCalidad(-1), 1);
 	TestEqual(TEXT("1 → 1,5"), SAEVUSPausa::SiguienteSensibilidad(1.f), 1.5f);
 	TestEqual(TEXT("2 → 0,5 (vuelta)"), SAEVUSPausa::SiguienteSensibilidad(2.f), 0.5f);

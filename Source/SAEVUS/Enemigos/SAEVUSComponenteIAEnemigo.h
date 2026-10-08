@@ -49,6 +49,12 @@ public:
 	/** Fuerza un estado sin pasar por las condiciones (pruebas y escenas guionizadas). */
 	void ForzarEstado(ESAEVUSEstadoEnemigo NuevoEstado) { CambiarEstado(NuevoEstado); }
 
+	/** Vuelve al reposo como al empezar: fase 0, sin ataque ni alerta (el jugador murió o reinició). */
+	void Reiniciar();
+
+	/** Dónde apareció: a donde vuelve al reiniciarse. */
+	const FVector& ObtenerOrigen() const { return Origen; }
+
 	/** Pasa a muerto; ya no actúa. */
 	void Morir();
 
@@ -117,5 +123,8 @@ private:
 
 	/** Mientras dura, el enemigo persigue sin perder al objetivo por distancia (le acaban de herir). */
 	float TiempoAlertaRestante = 0.f;
+
+	/** El DeltaTime de la actualización en curso (para el giro limitado). */
+	float DeltaActual = 0.f;
 	bool bDejoSuelo = false;
 };

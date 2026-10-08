@@ -45,6 +45,13 @@ struct FSAEVUSAjusteCamara
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Campo de visión", meta = (ClampMin = "5", ClampMax = "170", ForceUnits = "deg"))
 	float CampoVisionEsprint = 100.f;
 
+	/**
+	 * El campo de visión se abre al esprintar. Apagado, queda fijo (comodidad: el movimiento de la imagen
+	 * con cada dash encadenado marea a algunos jugadores, auditoría ANIMVFX-13).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Campo de visión")
+	bool bCampoVisionDinamico = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Campo de visión", meta = (ClampMin = "0"))
 	float VelocidadInterpCampoVision = 6.f;
 

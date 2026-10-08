@@ -50,6 +50,12 @@ public:
 	/** Cierto si su tipo usa un cuerpo con esqueleto animado (goblins nuevos). */
 	bool TieneEsqueleto() const;
 
+	/**
+	 * Vuelve a empezar la pelea: vida llena, fase 0, en su sitio y en reposo. Lo piden los jefes cuando el jugador
+	 * muere o reinicia, para que no se les gane por desgaste (auditoría GAMEPLAY-6 y EA-2). No revive a los muertos.
+	 */
+	void ReiniciarCombate();
+
 	/** Material de sus proyectiles (el de la máscara: brilla igual). */
 	UMaterialInterface* ObtenerMaterialProyectil() const;
 
