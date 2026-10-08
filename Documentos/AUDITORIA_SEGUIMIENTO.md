@@ -60,7 +60,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] ANIMVFX-17 LOD de animación por distancia
 - [~] ANIMVFX-18 muerte: el cuerpo con esqueleto solo se encoge en el último 30 % y dura 1,5 s
 - [~] ANIMVFX-19 prueba de tirones largos con ataque aéreo (`Animacion.TironNoRompe`) y de muelles; faltan dt variable en el resto, pies y presupuesto de partículas
-- [ ] ANIMVFX-20 motas de ambiente: reciclar las que salen de la caja
+- [x] ANIMVFX-20 motas de ambiente: las que salen de la caja se apagan y se reponen (`ApagarSi`)
 - [x] ANIMVFX-21 eco del dash: el grupo de mallas se crea en `BeginPlay` (respaldo en el primer dash)
 - [~] ANIMVFX-22 arrastre exponencial en partículas; falta el rango sucio
 - [x] ANIMVFX-23 cadera retorcida tras rotaciones forzadas

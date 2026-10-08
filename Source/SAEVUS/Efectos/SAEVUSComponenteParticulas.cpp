@@ -83,6 +83,22 @@ int32 USAEVUSComponenteParticulas::ObtenerParticulasActivas() const
 	return NumVivas;
 }
 
+int32 USAEVUSComponenteParticulas::ApagarSi(TFunctionRef<bool(const FVector&)> EstaFuera)
+{
+	int32 Apagadas = 0;
+	for (FParticula& Particula : Particulas)
+	{
+		if (Particula.bViva && EstaFuera(Particula.Posicion))
+		{
+			Particula.bViva = false;
+			--NumVivas;
+			++Apagadas;
+		}
+	}
+	bInstanciasSucias |= Apagadas > 0;
+	return Apagadas;
+}
+
 void USAEVUSComponenteParticulas::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);

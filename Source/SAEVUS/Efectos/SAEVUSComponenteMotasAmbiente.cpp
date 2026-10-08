@@ -35,6 +35,14 @@ void USAEVUSComponenteMotasAmbiente::TickComponent(float DeltaTime, ELevelTick T
 {
 	// Repone las que se apagan, repartidas por la caja alrededor del dueño: el aire nunca se vacía.
 	const FVector Centro = GetOwner()->GetActorLocation();
+	// Las que quedaron fuera de la caja (el jugador avanzó) se reciclan: renacen cerca en vez de esperar a morir de vieja.
+	const float Margen = 1.1f;
+	ApagarSi([&](const FVector& Posicion)
+	{
+		const FVector Relativa = Posicion - Centro;
+		return FMath::Abs(Relativa.X) > AjusteMotas.Radio * Margen || FMath::Abs(Relativa.Y) > AjusteMotas.Radio * Margen
+			|| Relativa.Z > AjusteMotas.Altura * Margen || Relativa.Z < -AjusteMotas.Altura * 0.3f * Margen;
+	});
 	const int32 Faltan = FMath::Min(AjusteMotas.Cantidad - ObtenerParticulasActivas(), FMath::Max(1, AjusteMotas.Cantidad / 20));
 	for (int32 Indice = 0; Indice < Faltan; ++Indice)
 	{

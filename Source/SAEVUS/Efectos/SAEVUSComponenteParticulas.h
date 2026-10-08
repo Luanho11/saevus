@@ -72,6 +72,9 @@ public:
 
 	int32 ObtenerParticulasActivas() const;
 
+	/** Apaga las partículas vivas para las que EstaFuera devuelve true (p. ej. las que salieron de una caja); devuelve cuántas. */
+	int32 ApagarSi(TFunctionRef<bool(const FVector&)> EstaFuera);
+
 	/**
 	 * Partículas enteras que tocan este fotograma a PorSegundo: suma al acumulado y devuelve la parte entera (el
 	 * resto se queda para el siguiente), así el ritmo no depende de los fps.
