@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN INTERACTIVA ACTIVA**
-**Último latido: 2026-10-08 14:01** (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-08 15:04** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -171,6 +171,12 @@ Revisión externa del código (otro chat de Claude; respuesta punto por punto en
 111. [ ] Ajuste a ojo en el juego de gestos, muelles, música y gradación (los valores son de primera pasada); capturas comparadas con REF-04.
 112. [ ] Dirección artística en los mapas: luz de rayos entre columnas, niebla por salas, braseros con brasas, estandartes; versiones baratas para la Vega 8.
 113. [ ] Sonido por capas para los gestos (cada golpe con su sonido) y pasos; transiciones de música a compás.
+
+### Fase "Auditoría v2" (dueño, 2026-10-08: "hazla, y activa tu loop y tu prompt de autonomía, sesión larga")
+La auditoría detallada (`SAEVUS_Auditoria_Detallada.md`: gameplay, animación/VFX/cámara, enemigos/audio, interfaz/arquitectura) se aplica por bloques pequeños con verificación; el estado de cada hallazgo está en `Documentos/AUDITORIA_SEGUIMIENTO.md`. Cada bloque: cambios → `Verificar-Arranque -SinAssets -AccionesParalelas 2` → commit; al final, verificación completa con `-ConJuego`.
+114. [~] P0/P1 de la auditoría: muelles estables (NaN), dash en racha sin invulnerabilidad, caída fuera del mundo, guardado robusto (un guardado en vuelo, copia, versión, cabecera validada), buffer de cancelación, golpe del enemigo sincronizado, sonido 3D, aggro por daño, reinicio de jefes, estado del mundo persistente, director de combate, percepción con altura y visión (bloques 1–6).
+115. [~] Música (caché, sin escalón, calma, visión), accesibilidad (sacudida, campo de visión, parpadeo), transición de fase de jefes, ataques aleatorios y onda del salto (bloques 7–8).
+116. [ ] Pendientes grandes de la auditoría: navegación (EA-1), arena de jefe (EA-3), IK de pies (ANIMVFX-3), esqueleto por roles (ANIMVFX-6), claves de gestos en datos (ANIMVFX-8), capa de varias tiras (ANIMVFX-16), remapeo y categorías de opciones (IA-3), muerte con elección (IA-7), notificaciones (IA-5), localización (IA-18), nueva partida (IA-20).
 
 ## Estado del turno
 - Completado: tareas 101–110 (iteración integral; ver `REVISION_CODIGO.md` y `REGISTRO_SESIONES.md`). Verificación completa con juego: 150/150 tests, assets SUPERADA, humo SUPERADA (31 fps en frío), recorrido Mazmorra → tutorial SUPERADO.

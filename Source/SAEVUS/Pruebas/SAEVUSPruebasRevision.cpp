@@ -328,6 +328,37 @@ bool FSAEVUSPruebaPercepcionEnemigo::RunTest(const FString& Parameters)
 	return true;
 }
 
+// EA-3 y EA-19: al cambiar de fase el jefe ruge quieto e intocable durante la transición.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTransicionFase, "SAEVUS.Enemigo.TransicionFase", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaTransicionFase::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	USAEVUSDatosEnemigo* Datos = CrearDatos(0.f);
+	Datos->Enemigo.bEsJefe = true;
+	FSAEVUSFaseEnemigo Primera;
+	Primera.FraccionVida = 1.f;
+	FSAEVUSFaseEnemigo Segunda;
+	Segunda.FraccionVida = 0.5f;
+	Segunda.DuracionTransicion = 1.f;
+	Datos->Enemigo.Fases = { Primera, Segunda };
+	ASAEVUSEnemigo* Jefe = Mundo.MundoPrueba.CrearEnemigo(FVector(600.f, 0.f, 100.f), Datos, Mundo.Personaje);
+	USAEVUSComponenteVida* Vida = Jefe->ObtenerVida();
+	TestFalse(TEXT("Al empezar no ruge"), Jefe->ObtenerIA()->EstaEnTransicion());
+
+	Vida->AplicarDanio(110.f, Mundo.Personaje);
+	TestEqual(TEXT("Pasa a la fase 2"), Jefe->ObtenerIA()->ObtenerFase(), 1);
+	TestTrue(TEXT("Ruge"), Jefe->ObtenerIA()->EstaEnTransicion());
+	TestTrue(TEXT("y es intocable"), Vida->EstaInvulnerable());
+	const float VidaAntes = Vida->ObtenerVida();
+	Vida->AplicarDanio(30.f, Mundo.Personaje);
+	TestEqual(TEXT("Durante el rugido no recibe daño"), Vida->ObtenerVida(), VidaAntes);
+
+	Jefe->ObtenerIA()->Actualizar(1.1f);
+	TestFalse(TEXT("Acabado el rugido vuelve a actuar"), Jefe->ObtenerIA()->EstaEnTransicion());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMuelle, "SAEVUS.Animacion.Muelle", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaMuelle::RunTest(const FString& Parameters)
 {

@@ -141,6 +141,13 @@ struct FSAEVUSAtaqueEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float Velocidad = 1000.f;
 
+	/**
+	 * Salto: al aterrizar, onda de este radio (cm) que hace Danio a quien esté dentro. 0 = solo daña el roce de los
+	 * cuerpos. Es el «mazazo al caer» de los jefes (auditoría EA-20).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float RadioOnda = 0.f;
+
 	/** Salto: velocidad vertical al despegar. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadVertical = 0.f;
@@ -179,6 +186,13 @@ struct FSAEVUSFaseEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fase", meta = (ClampMin = "0.1"))
 	float EscalaTiempos = 1.f;
 
+	/**
+	 * Al entrar en esta fase el enemigo ruge: durante este tiempo no ataca ni se puede dañar (corta lo que hacía), y
+	 * la animación y la música marcan el cambio. 0 = sin transición (auditoría EA-3 y EA-19).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fase", meta = (ClampMin = "0", ForceUnits = "s"))
+	float DuracionTransicion = 0.f;
+
 	/** Índices en Ataques disponibles en esta fase. Vacío = todos. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fase")
 	TArray<int32> Ataques;
@@ -211,6 +225,13 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	/** El aviso solo sigue al objetivo durante esta fracción de su duración; el resto, el ataque va a donde apuntaba. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo", meta = (ClampMin = "0", ClampMax = "1"))
 	float FraccionSeguimientoAviso = 0.7f;
+
+	/**
+	 * Elige el ataque al azar entre los que valen a esa distancia, sin repetir el último y con prioridad al más rápido
+	 * si el objetivo se está curando. Apagado, es una rotación fija (auditoría EA-16).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Elección")
+	bool bAtaquesAleatorios = false;
 
 	/** Los jefes muestran barra de vida y no se aturden. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemigo")

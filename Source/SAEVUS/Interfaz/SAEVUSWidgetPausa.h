@@ -108,6 +108,15 @@ private:
 	void AlCambiarVolumen();
 
 	UFUNCTION()
+	void AlCambiarSacudida();
+
+	UFUNCTION()
+	void AlCambiarCampoVision();
+
+	UFUNCTION()
+	void AlCambiarParpadeo();
+
+	UFUNCTION()
 	void AlSalir();
 
 	UPROPERTY(Transient)
@@ -118,6 +127,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTextBlock> TextoVolumen;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoSacudida;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoCampoVision;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoParpadeo;
 
 	/** Mapa de la zona (solo en la pausa). */
 	UPROPERTY(Transient)

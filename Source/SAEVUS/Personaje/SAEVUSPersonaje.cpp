@@ -212,6 +212,18 @@ void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AAct
 	}
 }
 
+void ASAEVUSPersonaje::AplicarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo)
+{
+	if (USAEVUSComponenteCamara* ComponenteCamara = FindComponentByClass<USAEVUSComponenteCamara>())
+	{
+		ComponenteCamara->FijarComodidad(bSacudida, bCampoVision);
+	}
+	if (USAEVUSComponenteAnimacionProcedural* ComponenteAnimacion = FindComponentByClass<USAEVUSComponenteAnimacionProcedural>())
+	{
+		ComponenteAnimacion->FijarParpadeoActivo(bParpadeo);
+	}
+}
+
 void ASAEVUSPersonaje::BeginPlay()
 {
 	Super::BeginPlay();
@@ -219,6 +231,7 @@ void ASAEVUSPersonaje::BeginPlay()
 	VidaMaximaBase = Vida->ObtenerVidaMaxima();
 	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
+		AplicarComodidad(Guardado->ObtenerSacudidaCamara(), Guardado->ObtenerCampoVisionDinamico(), Guardado->ObtenerParpadeoGolpe());
 		FragmentosMascara = Guardado->ObtenerNumeroFragmentos();
 		const int32 Extra = FragmentosMascara / FMath::Max(Progreso.FragmentosPorMascara, 1);
 		if (Extra > 0)

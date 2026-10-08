@@ -47,6 +47,12 @@ public:
 	float ObtenerSensibilidad() const { return Sensibilidad; }
 	void FijarSensibilidad(float Nueva);
 
+	/** Opciones de comodidad: se guardan y se aplican al personaje en el acto. */
+	void FijarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo);
+	bool ObtenerSacudidaCamara() const;
+	bool ObtenerCampoVisionDinamico() const;
+	bool ObtenerParpadeoGolpe() const;
+
 	/** Volumen general (0–1). Se aplica al audio y se guarda entre sesiones. */
 	float ObtenerVolumen() const { return Volumen; }
 	void FijarVolumen(float Nuevo);

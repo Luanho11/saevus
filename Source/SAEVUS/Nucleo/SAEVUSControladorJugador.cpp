@@ -9,6 +9,7 @@
 #include "Interfaz/SAEVUSWidgetPausa.h"
 #include "Nucleo/SAEVUSGuardado.h"
 #include "Nucleo/SAEVUSModoJuego.h"
+#include "Personaje/SAEVUSPersonaje.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
 #include "Mundo/SAEVUSExploracion.h"
@@ -249,6 +250,36 @@ void ASAEVUSControladorJugador::FijarVolumen(float Nuevo)
 	{
 		Guardado->GuardarVolumen(Volumen);
 	}
+}
+
+void ASAEVUSControladorJugador::FijarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo)
+{
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarComodidad(bSacudida, bCampoVision, bParpadeo);
+	}
+	if (ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(GetPawn()))
+	{
+		Personaje->AplicarComodidad(bSacudida, bCampoVision, bParpadeo);
+	}
+}
+
+bool ASAEVUSControladorJugador::ObtenerSacudidaCamara() const
+{
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	return !Guardado || Guardado->ObtenerSacudidaCamara();
+}
+
+bool ASAEVUSControladorJugador::ObtenerCampoVisionDinamico() const
+{
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	return !Guardado || Guardado->ObtenerCampoVisionDinamico();
+}
+
+bool ASAEVUSControladorJugador::ObtenerParpadeoGolpe() const
+{
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	return !Guardado || Guardado->ObtenerParpadeoGolpe();
 }
 
 void ASAEVUSControladorJugador::FijarSensibilidad(float Nueva)

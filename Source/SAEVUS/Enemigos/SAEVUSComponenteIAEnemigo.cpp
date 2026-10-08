@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
+#include "Combate/SAEVUSComponenteAlma.h"
 #include "Enemigos/SAEVUSDirectorCombate.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
@@ -42,6 +43,7 @@ void USAEVUSComponenteIAEnemigo::BeginPlay()
 {
 	Super::BeginPlay();
 	Origen = GetOwner()->GetActorLocation();
+	AleatorioAtaques.Initialize(static_cast<int32>(GetOwner()->GetUniqueID()));
 	EjePatrulla = GetOwner()->GetActorForwardVector().GetSafeNormal2D();
 	if (EjePatrulla.IsNearlyZero())
 	{
@@ -172,6 +174,7 @@ void USAEVUSComponenteIAEnemigo::Reiniciar()
 	Fase = 0;
 	IndiceAtaque = INDEX_NONE;
 	TiempoAlertaRestante = 0.f;
+	TiempoTransicionRestante = 0.f;
 	bGolpeAplicado = false;
 	CambiarEstado(ESAEVUSEstadoEnemigo::Reposo);
 }
@@ -221,6 +224,21 @@ void USAEVUSComponenteIAEnemigo::ActualizarFase()
 	if (NuevaFase > Fase)
 	{
 		Fase = NuevaFase;
+		const float Transicion = ObtenerFaseActual().DuracionTransicion;
+		if (Transicion > 0.f && Estado != ESAEVUSEstadoEnemigo::Muerto && !Vida->EstaMuerto())
+		{
+			// Rugido: corta lo que hacía, queda quieto e intocable hasta que acaba.
+			TiempoTransicionRestante = Transicion;
+			IndiceAtaque = INDEX_NONE;
+			if (Estado == ESAEVUSEstadoEnemigo::Telegrafiar || Estado == ESAEVUSEstadoEnemigo::Atacar || Estado == ESAEVUSEstadoEnemigo::Recuperarse)
+			{
+				CambiarEstado(ESAEVUSEstadoEnemigo::Perseguir);
+			}
+			if (USAEVUSComponenteVida* VidaMutable = GetOwner()->FindComponentByClass<USAEVUSComponenteVida>())
+			{
+				VidaMutable->HacerInvulnerable(Transicion);
+			}
+		}
 		AlCambiarFase.Broadcast(Fase);
 	}
 }
@@ -240,6 +258,18 @@ void USAEVUSComponenteIAEnemigo::Actualizar(float DeltaTime)
 	TiempoEstado += DeltaTime;
 	DeltaActual = DeltaTime;
 	TiempoAlertaRestante = FMath::Max(0.f, TiempoAlertaRestante - DeltaTime);
+	if (TiempoTransicionRestante > 0.f)
+	{
+		// Ruge quieto mirando al objetivo: sin movimiento, sin ataques y sin contacto.
+		TiempoTransicionRestante = FMath::Max(0.f, TiempoTransicionRestante - DeltaTime);
+		if (UCharacterMovementComponent* MovimientoQuieto = ObtenerEnemigo()->GetCharacterMovement())
+		{
+			MovimientoQuieto->Velocity.X = 0.0;
+			MovimientoQuieto->Velocity.Y = 0.0;
+		}
+		Encarar(DireccionObjetivo());
+		return;
+	}
 	const FSAEVUSFaseEnemigo& FaseActual = ObtenerFaseActual();
 	const FSAEVUSAtaqueEnemigo* Ataque = ObtenerAtaqueActual();
 	// La fase acelera también el paso.
@@ -474,6 +504,7 @@ void USAEVUSComponenteIAEnemigo::EmpezarAtaque()
 	DireccionAtaque = DireccionObjetivo();
 	bGolpeAplicado = false;
 	bDejoSuelo = false;
+	bOndaAplicada = false;
 	CambiarEstado(ESAEVUSEstadoEnemigo::Atacar);
 	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Picado)
 	{
@@ -536,6 +567,17 @@ void USAEVUSComponenteIAEnemigo::ActualizarAtacar()
 	case ESAEVUSTipoAtaqueEnemigo::Salto:
 		bDejoSuelo |= Movimiento->IsFalling();
 		bTermino |= bDejoSuelo && Movimiento->IsMovingOnGround();
+		// Mazazo al caer: al aterrizar, una onda hace daño a quien esté cerca (no solo el roce de los cuerpos).
+		if (bTermino && bDejoSuelo && !bOndaAplicada && Ataque->RadioOnda > 0.f)
+		{
+			bOndaAplicada = true;
+			const APawn* Pawn = ObtenerObjetivo();
+			if (Pawn && ObjetivoVivo() && FVector::Dist2D(Pawn->GetActorLocation(), Enemigo->GetActorLocation()) <= Ataque->RadioOnda
+				&& FMath::Abs(Pawn->GetActorLocation().Z - Enemigo->GetActorLocation().Z) <= Ataque->AlcanceVertical)
+			{
+				GolpearObjetivo(Ataque->Danio);
+			}
+		}
 		break;
 	case ESAEVUSTipoAtaqueEnemigo::Proyectil:
 		// Sale cuando el brazo llega al final del barrido; queda quieto la duración del ataque.
@@ -612,6 +654,44 @@ bool USAEVUSComponenteIAEnemigo::AlcanzaEnAltura(const FSAEVUSAtaqueEnemigo& Ata
 bool USAEVUSComponenteIAEnemigo::ElegirAtaque(float Distancia)
 {
 	const TArray<FSAEVUSAtaqueEnemigo>& Ataques = ObtenerAjuste().Ataques;
+	if (ObtenerAjuste().bAtaquesAleatorios)
+	{
+		TArray<int32> Validos;
+		for (int32 Indice = 0; Indice < Ataques.Num(); ++Indice)
+		{
+			const FSAEVUSAtaqueEnemigo& Ataque = Ataques[Indice];
+			if (FaseAdmiteAtaque(Indice) && Distancia >= Ataque.DistanciaMinima && Distancia <= Ataque.DistanciaMaxima && AlcanzaEnAltura(Ataque))
+			{
+				Validos.Add(Indice);
+			}
+		}
+		if (Validos.IsEmpty())
+		{
+			return false;
+		}
+		// No se repite el último si hay otra opción (a menos que sea la única).
+		if (Validos.Num() > 1)
+		{
+			Validos.Remove(UltimoAtaque);
+		}
+		int32 Elegido = Validos[AleatorioAtaques.RandRange(0, Validos.Num() - 1)];
+		// Al que se cura se le castiga con el ataque de aviso más corto.
+		const APawn* Pawn = ObtenerObjetivo();
+		const USAEVUSComponenteAlma* Alma = Pawn ? Pawn->FindComponentByClass<USAEVUSComponenteAlma>() : nullptr;
+		if (Alma && Alma->EstaCurando())
+		{
+			for (const int32 Indice : Validos)
+			{
+				if (Ataques[Indice].TiempoTelegrafiar < Ataques[Elegido].TiempoTelegrafiar)
+				{
+					Elegido = Indice;
+				}
+			}
+		}
+		IndiceAtaque = Elegido;
+		UltimoAtaque = Elegido;
+		return true;
+	}
 	// En rotación desde el siguiente al último usado: variedad predecible (y comprobable).
 	for (int32 Paso = 0; Paso < Ataques.Num(); ++Paso)
 	{

@@ -193,6 +193,14 @@ void USAEVUSSubsistemaGuardado::GuardarVolumen(float Volumen)
 	Guardar();
 }
 
+void USAEVUSSubsistemaGuardado::GuardarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo)
+{
+	Partida->bSacudidaCamara = bSacudida;
+	Partida->bCampoVisionDinamico = bCampoVision;
+	Partida->bParpadeoGolpe = bParpadeo;
+	Guardar();
+}
+
 TArray<FIntPoint> USAEVUSSubsistemaGuardado::ObtenerExploracion(FName Mapa) const
 {
 	const FSAEVUSExploracionMapa* Exploracion = Partida->Exploracion.Find(Mapa);

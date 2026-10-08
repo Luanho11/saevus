@@ -297,6 +297,12 @@ void USAEVUSWidgetPausa::Construir()
 	TextoSensibilidad = Etiqueta;
 	CrearBoton(Columna, TEXT("Volumen"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarVolumen);
 	TextoVolumen = Etiqueta;
+	CrearBoton(Columna, TEXT("Sacudida"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarSacudida);
+	TextoSacudida = Etiqueta;
+	CrearBoton(Columna, TEXT("CampoVision"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarCampoVision);
+	TextoCampoVision = Etiqueta;
+	CrearBoton(Columna, TEXT("Parpadeo"), FText::GetEmpty(), BotonesOpciones, &Etiqueta)->OnClicked.AddDynamic(this, &ThisClass::AlCambiarParpadeo);
+	TextoParpadeo = Etiqueta;
 	CrearBoton(Columna, TEXT("Volver"), LOCTEXT("Volver", "Volver"), BotonesOpciones)->OnClicked.AddDynamic(this, &ThisClass::AlVolver);
 	MostrarOpciones(false);
 }
@@ -315,6 +321,11 @@ void USAEVUSWidgetPausa::ActualizarTextos()
 	TextoSensibilidad->SetText(FText::Format(LOCTEXT("Sensibilidad", "Sensibilidad del ratón: {0}"), FText::AsNumber(Sensibilidad)));
 	const float Volumen = Controlador ? Controlador->ObtenerVolumen() : 1.f;
 	TextoVolumen->SetText(FText::Format(LOCTEXT("Volumen", "Volumen: {0} %"), FText::AsNumber(FMath::RoundToInt32(Volumen * 100.f))));
+	const FText Si = LOCTEXT("Si", "Sí");
+	const FText No = LOCTEXT("No", "No");
+	TextoSacudida->SetText(FText::Format(LOCTEXT("Sacudida", "Sacudida de cámara: {0}"), !Controlador || Controlador->ObtenerSacudidaCamara() ? Si : No));
+	TextoCampoVision->SetText(FText::Format(LOCTEXT("CampoVision", "Campo de visión que se abre: {0}"), !Controlador || Controlador->ObtenerCampoVisionDinamico() ? Si : No));
+	TextoParpadeo->SetText(FText::Format(LOCTEXT("Parpadeo", "Parpadeo tras un golpe: {0}"), !Controlador || Controlador->ObtenerParpadeoGolpe() ? Si : No));
 }
 
 void USAEVUSWidgetPausa::AlContinuar()
@@ -408,6 +419,33 @@ void USAEVUSWidgetPausa::AlCambiarVolumen()
 	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
 	{
 		Controlador->FijarVolumen(SAEVUSPausa::SiguienteVolumen(Controlador->ObtenerVolumen()));
+	}
+	ActualizarTextos();
+}
+
+void USAEVUSWidgetPausa::AlCambiarSacudida()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->FijarComodidad(!Controlador->ObtenerSacudidaCamara(), Controlador->ObtenerCampoVisionDinamico(), Controlador->ObtenerParpadeoGolpe());
+	}
+	ActualizarTextos();
+}
+
+void USAEVUSWidgetPausa::AlCambiarCampoVision()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->FijarComodidad(Controlador->ObtenerSacudidaCamara(), !Controlador->ObtenerCampoVisionDinamico(), Controlador->ObtenerParpadeoGolpe());
+	}
+	ActualizarTextos();
+}
+
+void USAEVUSWidgetPausa::AlCambiarParpadeo()
+{
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->FijarComodidad(Controlador->ObtenerSacudidaCamara(), Controlador->ObtenerCampoVisionDinamico(), !Controlador->ObtenerParpadeoGolpe());
 	}
 	ActualizarTextos();
 }

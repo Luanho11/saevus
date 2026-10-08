@@ -707,7 +707,7 @@ ENEMIGOS = {
         # Fase 2 a media vida: más rápido, avisos más cortos y añade el salto.
         "fases": [
             {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1]},
-            {"fraccion_vida": 0.5, "escala_velocidad": 1.3, "escala_tiempos": 0.7, "ataques": [0, 1, 2]},
+            {"fraccion_vida": 0.5, "escala_velocidad": 1.3, "escala_tiempos": 0.7, "duracion_transicion": 1.2, "ataques": [0, 1, 2]},
         ],
     },
 }
@@ -741,7 +741,7 @@ ENEMIGOS["DA_Jefe_MadreAlada"] = {
     ],
     "fases": [
         {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1]},
-        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "ataques": [0, 1, 2]},
+        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "duracion_transicion": 1.2, "ataques": [0, 1, 2]},
     ],
 }
 
@@ -800,6 +800,7 @@ ENEMIGOS["DA_Jefe_ReyGoblin"] = {
     "color_cuerpo": (0.068, 0.044, 0.038), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 240.0, "radio_deteccion": 1500.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
     "danio_contacto": 0.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5, "peso_animacion": 2.2,
+    "ataques_aleatorios": True,
     "ataques": [
         {"nombre": "Cuchillazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 300.0,
          "tiempo_telegrafiar": 0.7, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 25.0,
@@ -808,14 +809,14 @@ ENEMIGOS["DA_Jefe_ReyGoblin"] = {
          "tiempo_telegrafiar": 0.75, "duracion": 0.7, "tiempo_recuperacion": 1.1, "danio": 25.0, "velocidad": 1250.0},
         {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 250.0, "distancia_maxima": 900.0,
          "tiempo_telegrafiar": 0.7, "duracion": 2.0, "tiempo_recuperacion": 1.0, "danio": 25.0,
-         "velocidad": 600.0, "velocidad_vertical": 900.0},
+         "velocidad": 600.0, "velocidad_vertical": 900.0, "radio_onda": 450.0},
         {"nombre": "Lluvia de piedras", "tipo": "PROYECTIL", "distancia_minima": 300.0, "distancia_maxima": 1600.0,
          "tiempo_telegrafiar": 0.8, "duracion": 0.4, "tiempo_recuperacion": 1.0, "danio": 15.0, "velocidad": 900.0,
          "numero_proyectiles": 5, "apertura_abanico": 70.0},
     ],
     "fases": [
         {"fraccion_vida": 1.0, "escala_velocidad": 1.0, "escala_tiempos": 1.0, "ataques": [0, 1, 2]},
-        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "ataques": [0, 1, 2, 3]},
+        {"fraccion_vida": 0.5, "escala_velocidad": 1.25, "escala_tiempos": 0.75, "duracion_transicion": 1.6, "ataques": [0, 1, 2, 3]},
     ],
 }
 DIR_ENEMIGOS = f"{RAIZ}/Datos/Enemigos"

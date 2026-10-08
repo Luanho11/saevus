@@ -922,7 +922,7 @@ void USAEVUSComponenteAnimacionProcedural::AplicarParpadeo()
 	{
 		return;
 	}
-	const bool bParpadeando = Vida && !Vida->EstaMuerto() && Vida->EstaEnInvulnerabilidadTrasGolpe();
+	const bool bParpadeando = bParpadeoJugador && Vida && !Vida->EstaMuerto() && Vida->EstaEnInvulnerabilidadTrasGolpe();
 	const bool bVisible = !bParpadeando || FMath::Frac(TiempoTotal * Ajuste.FrecuenciaParpadeo) < 0.5f;
 	if (Malla->IsVisible() != bVisible)
 	{

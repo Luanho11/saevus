@@ -38,6 +38,16 @@ public:
 	UPROPERTY()
 	float Volumen = 1.f;
 
+	/** Comodidad (auditoría ANIMVFX-13): sacudida de cámara, apertura del campo de visión y parpadeo tras un golpe. */
+	UPROPERTY()
+	bool bSacudidaCamara = true;
+
+	UPROPERTY()
+	bool bCampoVisionDinamico = true;
+
+	UPROPERTY()
+	bool bParpadeoGolpe = true;
+
 	UPROPERTY()
 	bool bTienePuntoControl = false;
 
@@ -125,6 +135,11 @@ public:
 
 	float ObtenerVolumen() const { return Partida->Volumen; }
 	void GuardarVolumen(float Volumen);
+
+	bool ObtenerSacudidaCamara() const { return Partida->bSacudidaCamara; }
+	bool ObtenerCampoVisionDinamico() const { return Partida->bCampoVisionDinamico; }
+	bool ObtenerParpadeoGolpe() const { return Partida->bParpadeoGolpe; }
+	void GuardarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo);
 
 	int32 ObtenerNumeroFragmentos() const { return Partida->FragmentosMascara.Num(); }
 	bool FragmentoRecogido(FName Identificador) const { return Partida->FragmentosMascara.Contains(Identificador); }

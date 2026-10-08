@@ -59,6 +59,14 @@ void ASAEVUSProyectil::Lanzar(const FVector& Direccion, float NuevaVelocidad, fl
 	Edad = 0.f;
 	bDevuelto = false;
 	Esfera->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::AlSolapar);
+	// Lo que ya solapa al nacer (un abanico a quemarropa) no genera un solape nuevo: se revisa una vez (EA-21).
+	Esfera->UpdateOverlaps();
+	TArray<AActor*> Solapados;
+	Esfera->GetOverlappingActors(Solapados);
+	for (AActor* Otro : Solapados)
+	{
+		Impactar(Otro);
+	}
 	if (Material)
 	{
 		// Una instancia dinámica no puede ser padre de otra: se parte de su material.

@@ -47,6 +47,10 @@ TArray<FString> SAEVUSEnemigo::Validar(const FSAEVUSAjusteEnemigo& Ajuste)
 		{
 			Errores.Add(FString::Printf(TEXT("Fase %d: empieza a más vida que la anterior; las fases deben ir de más a menos vida."), Indice));
 		}
+		if (Fase.DuracionTransicion < 0.f)
+		{
+			Errores.Add(FString::Printf(TEXT("Fase %d: la transición no puede durar un tiempo negativo."), Indice));
+		}
 		for (const int32 IndiceAtaque : Fase.Ataques)
 		{
 			if (!Ajuste.Ataques.IsValidIndex(IndiceAtaque))

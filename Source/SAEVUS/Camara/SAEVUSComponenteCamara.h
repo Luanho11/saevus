@@ -24,6 +24,9 @@ public:
 	/** Cambia el perfil de cámara y lo aplica en el acto. Nulo vuelve a los valores del código. */
 	void FijarAjustesCamara(const USAEVUSAjustesCamara* NuevosAjustes);
 
+	/** Opciones del jugador: sacudida de cámara y campo de visión que se abre al correr. Mandan sobre el perfil. */
+	void FijarComodidad(bool bSacudidaActiva, bool bCampoVisionDinamicoActivo);
+
 	/** Suma trauma (0..1) a la sacudida. Sin efecto si la sacudida está desactivada. */
 	void Sacudir(float Trauma);
 
@@ -60,6 +63,8 @@ private:
 
 	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
 
+	bool bSacudidaJugador = true;
+	bool bCampoVisionJugador = true;
 	float Trauma = 0.f;
 	float TiempoSacudida = 0.f;
 	FVector DesplazamientoSacudida = FVector::ZeroVector;

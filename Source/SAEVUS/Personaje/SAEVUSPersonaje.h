@@ -208,6 +208,11 @@ private:
 	/** Caer por debajo del mundo es morir y reaparecer, no quedarse sin personaje (GAMEPLAY-3). */
 	virtual void FellOutOfWorld(const UDamageType& TipoDanio) override;
 
+public:
+	/** Opciones de comodidad del jugador (sacudida de cámara, campo de visión dinámico, parpadeo tras un golpe). */
+	void AplicarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo);
+
+private:
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);
 

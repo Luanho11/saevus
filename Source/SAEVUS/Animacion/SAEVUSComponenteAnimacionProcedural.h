@@ -414,6 +414,9 @@ public:
 	 */
 	bool ObtenerHoja(FVector& OutBase, FVector& OutPunta) const;
 
+	/** Opción del jugador: sin parpadeo tras un golpe el cuerpo se ve siempre (sigue siendo invulnerable). */
+	void FijarParpadeoActivo(bool bActivo) { bParpadeoJugador = bActivo; }
+
 	/** Avanza la animación DeltaTime segundos (lo llama el tick; los tests lo llaman a mano). */
 	void Actualizar(float DeltaTime);
 
@@ -555,6 +558,7 @@ private:
 	float EscalaArmaActual = 1.f;
 	float EscalaArmaFuegoActual = 0.f;
 	bool bPoseIniciada = false;
+	bool bParpadeoJugador = true;
 	float FaseCiclo = 0.f;
 	float TiempoTotal = 0.f;
 	float TiempoAterrizaje = 0.f;

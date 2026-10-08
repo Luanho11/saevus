@@ -79,9 +79,19 @@ void USAEVUSComponenteCamara::AlBloquear(AActor* Atacante, const FVector& PuntoC
 	Sacudir(ObtenerAjuste().SacudidaBloqueo);
 }
 
+void USAEVUSComponenteCamara::FijarComodidad(bool bSacudidaActiva, bool bCampoVisionDinamicoActivo)
+{
+	bSacudidaJugador = bSacudidaActiva;
+	bCampoVisionJugador = bCampoVisionDinamicoActivo;
+	if (!bSacudidaActiva)
+	{
+		Trauma = 0.f;
+	}
+}
+
 void USAEVUSComponenteCamara::Sacudir(float NuevoTrauma)
 {
-	if (ObtenerAjuste().bSacudida)
+	if (ObtenerAjuste().bSacudida && bSacudidaJugador)
 	{
 		Trauma = FMath::Clamp(Trauma + NuevoTrauma, 0.f, 1.f);
 	}
@@ -157,7 +167,7 @@ float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const
 
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 	const USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje);
-	if (!Movimiento || !Ajuste.bCampoVisionDinamico)
+	if (!Movimiento || !Ajuste.bCampoVisionDinamico || !bCampoVisionJugador)
 	{
 		return Ajuste.CampoVisionBase;
 	}

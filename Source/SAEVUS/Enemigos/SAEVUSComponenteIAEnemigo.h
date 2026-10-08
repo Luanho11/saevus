@@ -138,6 +138,19 @@ private:
 	FVector DireccionAtaque = FVector::ForwardVector;
 	bool bGolpeAplicado = false;
 
+	/** Para elegir ataques al azar (con la semilla del enemigo) y no repetir. */
+	FRandomStream AleatorioAtaques;
+	int32 UltimoAtaque = INDEX_NONE;
+	/** La onda del aterrizaje de un salto se aplica una sola vez. */
+	bool bOndaAplicada = false;
+
+	/** Rugido del cambio de fase: mientras queda tiempo no ataca ni se mueve. */
+	float TiempoTransicionRestante = 0.f;
+
+public:
+	bool EstaEnTransicion() const { return TiempoTransicionRestante > 0.f; }
+
+private:
 	/** Mientras dura, el enemigo persigue sin perder al objetivo por distancia (le acaban de herir). */
 	float TiempoAlertaRestante = 0.f;
 
