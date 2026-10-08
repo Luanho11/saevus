@@ -79,7 +79,6 @@ private:
 	void EmitirContinuo(float PorSegundo, float DeltaTime, const FVector& Posicion, const FVector& Velocidad);
 
 	FDelegateHandle ManejadorSaltoPared;
-	bool bEstabaEnAire = false;
-	float VelocidadVerticalAire = 0.f;
+	FDelegateHandle ManejadorAterrizaje;
 	float AcumuladoEmision = 0.f;
 };

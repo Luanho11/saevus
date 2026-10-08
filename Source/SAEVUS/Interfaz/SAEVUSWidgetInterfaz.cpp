@@ -8,6 +8,12 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
+#include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
+#include "Personaje/SAEVUSConfigEntrada.h"
+#include "Personaje/SAEVUSPersonaje.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
 #include "Components/SizeBoxSlot.h"
@@ -74,6 +80,19 @@ namespace SAEVUSInterfaz
 	}
 
 	using SAEVUSEstilo::PincelRedondo;
+
+	// La tecla de interactuar se vuelve a mirar cada tanto (por si cambian los controles).
+	constexpr float IntervaloBuscarTecla = 1.f;
+	// Grosor de las rayas del título de zona.
+	constexpr float GrosorRayaZona = 1.5f;
+
+	void FijarOpacidad(UWidget* Widget, float Opacidad)
+	{
+		if (!FMath::IsNearlyEqual(Widget->GetRenderOpacity(), Opacidad))
+		{
+			Widget->SetRenderOpacity(Opacidad);
+		}
+	}
 }
 
 float SAEVUSInterfaz::OpacidadTituloZona(float Segundos, const FSAEVUSAjusteInterfaz& Ajuste)
@@ -167,6 +186,15 @@ void USAEVUSWidgetInterfaz::Construir()
 	UCanvasPanel* Lienzo = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("Lienzo"));
 	WidgetTree->RootWidget = Lienzo;
 
+	// Debajo de todo: el destello rojo de los golpes recibidos, a pantalla completa.
+	DestelloDanio = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("DestelloDanio"));
+	DestelloDanio->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorDestelloDanio));
+	UCanvasPanelSlot* RanuraDestello = Lienzo->AddChildToCanvas(DestelloDanio);
+	RanuraDestello->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+	RanuraDestello->SetOffsets(FMargin(0.f));
+	DestelloDanio->SetRenderOpacity(0.f);
+	DestelloDanio->SetVisibility(ESlateVisibility::Collapsed);
+
 	// Arriba a la izquierda (REF-08 A): emblema en rombo y, a su derecha, la barra de vida y debajo la de alma.
 	UHorizontalBox* Vitales = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("Vitales"));
 	UCanvasPanelSlot* RanuraVitales = Lienzo->AddChildToCanvas(Vitales);
@@ -202,7 +230,9 @@ void USAEVUSWidgetInterfaz::Construir()
 
 	UVerticalBox* Barras = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Barras"));
 	Vitales->AddChildToHorizontalBox(Barras)->SetVerticalAlignment(VAlign_Center);
-	BarraVida = CrearBarra(TEXT("BarraVida"), Barras, Ajuste.TamanoBarraVida, Ajuste.ColorVida);
+	UProgressBar* Rastro = nullptr;
+	BarraVida = CrearBarra(TEXT("BarraVida"), Barras, Ajuste.TamanoBarraVida, Ajuste.ColorVida, &Rastro);
+	RastroVida = Rastro;
 	BarraAlma = CrearBarra(TEXT("BarraAlma"), Barras, Ajuste.TamanoBarraAlma, Ajuste.ColorAlma);
 	BarraAlma->SetRenderTransformPivot(FVector2D(0.f, 0.5f));
 
@@ -254,8 +284,10 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraFase->SetVerticalAlignment(VAlign_Bottom);
 	RanuraFase->SetPadding(FMargin(SeparacionEmblemaBarras, 0.f, 0.f, 2.f));
 	BloqueJefe->AddChildToVerticalBox(CabeceraJefe)->SetHorizontalAlignment(HAlign_Center);
-	BarraJefe = CrearBarra(TEXT("BarraJefe"), BloqueJefe, Ajuste.TamanoBarraJefe, Ajuste.ColorVidaJefe);
-	UVerticalBoxSlot* RanuraBarra = Cast<UVerticalBoxSlot>(BarraJefe->GetParent()->Slot);
+	BarraJefe = CrearBarra(TEXT("BarraJefe"), BloqueJefe, Ajuste.TamanoBarraJefe, Ajuste.ColorVidaJefe, &Rastro);
+	RastroJefe = Rastro;
+	// La barra está en un solapamiento dentro del marco: el marco es el hijo de la caja.
+	UVerticalBoxSlot* RanuraBarra = Cast<UVerticalBoxSlot>(BarraJefe->GetParent()->GetParent()->Slot);
 	RanuraBarra->SetHorizontalAlignment(HAlign_Center);
 	RanuraBarra->SetPadding(FMargin(0.f, SeparacionLineas, 0.f, 0.f));
 	BloqueJefe->SetVisibility(ESlateVisibility::Collapsed);
@@ -267,10 +299,28 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraTituloZona->SetAlignment(FVector2D(0.5f, 0.5f));
 	RanuraTituloZona->SetAutoSize(true);
 	UTextBlock* NombreZona = CrearTitulo(TEXT("NombreZona"), Ajuste.TamanoTituloZona);
+	NombreZona->SetColorAndOpacity(FSlateColor(Ajuste.ColorTextoHueso));
 	UTextBlock* SubtituloZona = CrearTexto(TEXT("SubtituloZona"), Ajuste.TamanoTextoAviso, true);
+	// Dos rayas finas color hueso enmarcan el nombre y crecen desde el centro al aparecer.
+	auto CrearRaya = [&]()
+	{
+		USizeBox* Raya = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+		Raya->SetHeightOverride(GrosorRayaZona);
+		Raya->SetWidthOverride(0.f);
+		UImage* Linea = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+		Linea->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorTextoHueso * 0.7f));
+		Raya->SetContent(Linea);
+		UVerticalBoxSlot* Ranura = BloqueTituloZona->AddChildToVerticalBox(Raya);
+		Ranura->SetHorizontalAlignment(HAlign_Center);
+		Ranura->SetPadding(FMargin(0.f, SeparacionTituloPanel * 2.f));
+		RayasZona.Add(Raya);
+	};
 	BloqueTituloZona->AddChildToVerticalBox(SubtituloZona)->SetHorizontalAlignment(HAlign_Center);
+	CrearRaya();
 	BloqueTituloZona->AddChildToVerticalBox(NombreZona)->SetHorizontalAlignment(HAlign_Center);
-	if (const ASAEVUSInfoZona* Zona = ASAEVUSInfoZona::Obtener(GetWorld()))
+	CrearRaya();
+	Zona = ASAEVUSInfoZona::Obtener(GetWorld());
+	if (Zona.IsValid())
 	{
 		NombreZona->SetText(Zona->Nombre);
 		SubtituloZona->SetText(Zona->Subtitulo);
@@ -288,39 +338,62 @@ void USAEVUSWidgetInterfaz::Construir()
 	RanuraInteraccion->SetAutoSize(true);
 	CajaInteraccion->SetVisibility(ESlateVisibility::Collapsed);
 
-	// Pantalla de muerte: velo negro a pantalla completa con un texto, por encima de todo.
+	// Pantalla de muerte: la pantalla se oscurece y, a lo ancho, una banda negra con el texto en rojo
+	// sangre seca, que crece despacio. Por encima de todo.
 	VeloMuerte = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("VeloMuerte"));
-	VeloMuerte->SetBrushColor(FLinearColor::Black);
-	VeloMuerte->SetHorizontalAlignment(HAlign_Center);
+	VeloMuerte->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, 0.6f));
+	VeloMuerte->SetHorizontalAlignment(HAlign_Fill);
 	VeloMuerte->SetVerticalAlignment(VAlign_Center);
 	UCanvasPanelSlot* RanuraVelo = Lienzo->AddChildToCanvas(VeloMuerte);
 	RanuraVelo->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
 	RanuraVelo->SetOffsets(FMargin(0.f));
+	USizeBox* AltoBanda = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("AltoBandaMuerte"));
+	AltoBanda->SetHeightOverride(Ajuste.AlturaBandaMuerte);
+	UBorder* Banda = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("BandaMuerte"));
+	Banda->SetBrushColor(FLinearColor(0.f, 0.f, 0.f, 0.8f));
+	Banda->SetHorizontalAlignment(HAlign_Center);
+	Banda->SetVerticalAlignment(VAlign_Center);
 	TextoMuerte = CrearTitulo(TEXT("TextoMuerte"), Ajuste.TamanoTextoMuerte);
 	TextoMuerte->SetText(NSLOCTEXT("SAEVUSInterfaz", "HasCaido", "Has caído"));
-	VeloMuerte->SetContent(TextoMuerte);
+	TextoMuerte->SetColorAndOpacity(FSlateColor(Ajuste.ColorTextoMuerte));
+	TextoMuerte->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
+	Banda->SetContent(TextoMuerte);
+	AltoBanda->SetContent(Banda);
+	VeloMuerte->SetContent(AltoBanda);
 	VeloMuerte->SetRenderOpacity(0.f);
 	VeloMuerte->SetVisibility(ESlateVisibility::Collapsed);
 }
 
-UProgressBar* USAEVUSWidgetInterfaz::CrearBarra(FName Nombre, UPanelWidget* Caja, const FVector2D& Tamano, const FLinearColor& Color)
+UProgressBar* USAEVUSWidgetInterfaz::CrearBarra(FName Nombre, UPanelWidget* Caja, const FVector2D& Tamano, const FLinearColor& Color, UProgressBar** OutRastro)
 {
 	using namespace SAEVUSInterfaz;
-	// Marco fino gris alrededor de la barra; la barra, recta, sobre fondo casi negro.
+	// Marco fino gris alrededor de la barra; la barra, recta, sobre fondo casi negro; debajo, el rastro del daño.
 	UBorder* Marco = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
 	Marco->SetBrush(SAEVUSEstilo::PincelRecto(Ajuste.ColorFondoBarra, Ajuste.ColorMarco));
 	Marco->SetPadding(FMargin(1.f));
-	UProgressBar* Barra = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), Nombre);
 	FProgressBarStyle Estilo;
 	Estilo.BackgroundImage = SAEVUSEstilo::PincelRecto(FLinearColor::Transparent);
 	Estilo.BackgroundImage.ImageSize = Tamano;
 	Estilo.FillImage = SAEVUSEstilo::PincelRecto(FLinearColor::White);
 	Estilo.FillImage.ImageSize = Tamano;
 	Estilo.MarqueeImage = Estilo.FillImage;
-	Barra->SetWidgetStyle(Estilo);
-	Barra->SetFillColorAndOpacity(Color);
-	Barra->SetPercent(1.f);
-	Marco->SetContent(Barra);
+	auto Nueva = [&](FName NombreBarra, const FLinearColor& ColorBarra)
+	{
+		UProgressBar* Barra = WidgetTree->ConstructWidget<UProgressBar>(UProgressBar::StaticClass(), NombreBarra);
+		Barra->SetWidgetStyle(Estilo);
+		Barra->SetFillColorAndOpacity(ColorBarra);
+		Barra->SetPercent(1.f);
+		return Barra;
+	};
+	UOverlay* Capas = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
+	if (OutRastro)
+	{
+		*OutRastro = Nueva(*(Nombre.ToString() + TEXT("Rastro")), Ajuste.ColorRastroDanio);
+		Capas->AddChildToOverlay(*OutRastro);
+	}
+	UProgressBar* Barra = Nueva(Nombre, Color);
+	Capas->AddChildToOverlay(Barra);
+	Marco->SetContent(Capas);
 	UPanelSlot* Ranura = Caja->AddChild(Marco);
 	if (UVerticalBoxSlot* RanuraVertical = Cast<UVerticalBoxSlot>(Ranura))
 	{
@@ -346,10 +419,15 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	FijarPorcentaje(BarraVida, Estado.Mascaras.Num() > 0 ? Llenas / Estado.Mascaras.Num() : 0.f);
 
 	FijarPorcentaje(BarraAlma, Estado.FraccionAlma);
-	BarraAlma->SetFillColorAndOpacity(Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma);
+	// Al ganar alma la barra se ilumina un instante; si alcanza para curar, brilla más.
+	const FLinearColor ColorBaseAlma = Estado.bAlmaParaCurar ? Ajuste.ColorAlmaLista : Ajuste.ColorAlma;
+	BarraAlma->SetFillColorAndOpacity(FMath::Lerp(ColorBaseAlma, FLinearColor::White, BrilloAlma * 0.7f));
 	// Al curar la barra de alma late.
 	const float Latido = Estado.bCurando ? 1.f + AmplitudLatido * FMath::Sin(GetWorld()->GetTimeSeconds() * RapidezLatido) : 1.f;
-	BarraAlma->SetRenderScale(FVector2D(1.f, Latido));
+	if (!FMath::IsNearlyEqual(BarraAlma->GetRenderTransform().Scale.Y, Latido))
+	{
+		BarraAlma->SetRenderScale(FVector2D(1.f, Latido));
+	}
 
 	FijarTexto(TextoArma, Estado.TextoArma);
 	FijarVisible(TextoArma, !Estado.TextoArma.IsEmpty());
@@ -366,7 +444,7 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 			TextoAvisoMostrado = Estado.TextoAviso.ToString();
 			RellenarLineas(LineasAviso, TextoAvisoMostrado, Ajuste.TamanoTextoAviso);
 		}
-		BloqueAviso->SetRenderOpacity(Estado.OpacidadAviso);
+		FijarOpacidad(BloqueAviso, Estado.OpacidadAviso);
 	}
 
 	FijarVisible(CajaInteraccion, !Estado.TextoInteraccion.IsEmpty());
@@ -384,25 +462,125 @@ void USAEVUSWidgetInterfaz::Aplicar(const FSAEVUSEstadoInterfaz& Estado)
 	}
 }
 
+void USAEVUSWidgetInterfaz::ActualizarTeclaInteraccion()
+{
+	// La tecla que de verdad está asignada a interactuar (la primera), en vez de una [E] fija.
+	const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(GetOwningPlayerPawn());
+	const APlayerController* Controlador = GetOwningPlayer();
+	const ULocalPlayer* Jugador = Controlador ? Controlador->GetLocalPlayer() : nullptr;
+	const UEnhancedInputLocalPlayerSubsystem* Entrada = Jugador ? ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Jugador) : nullptr;
+	const USAEVUSConfigEntrada* Config = Personaje ? Personaje->ObtenerConfigEntrada() : nullptr;
+	if (!Entrada || !Config || !Config->AccionInteractuar)
+	{
+		return;
+	}
+	for (const FKey& Tecla : Entrada->QueryKeysMappedToAction(Config->AccionInteractuar))
+	{
+		if (!Tecla.IsGamepadKey())
+		{
+			TeclaInteraccion = Tecla.GetDisplayName(false).ToString();
+			return;
+		}
+	}
+}
+
+void USAEVUSWidgetInterfaz::AnimarBarras(const FSAEVUSEstadoInterfaz& Estado, float DeltaTime)
+{
+	using namespace SAEVUSInterfaz;
+	// Rastro del daño: lo perdido queda claro un momento y luego se vacía; curar lo pisa en el acto.
+	auto Rastro = [&](UProgressBar* Barra, float Fraccion, float& Mostrado, float& Ultima, float& Desde)
+	{
+		if (!Barra)
+		{
+			return;
+		}
+		if (Ultima >= 0.f && Fraccion < Ultima - UE_KINDA_SMALL_NUMBER)
+		{
+			Desde = 0.f;
+		}
+		Desde += DeltaTime;
+		Ultima = Fraccion;
+		Mostrado = Fraccion >= Mostrado || Desde < Ajuste.EsperaRastroDanio ? FMath::Max(Mostrado, Fraccion)
+			: FMath::FInterpConstantTo(Mostrado, Fraccion, DeltaTime, Ajuste.RapidezRastroDanio);
+		FijarPorcentaje(Barra, Mostrado);
+	};
+	float Llenas = 0.f;
+	for (const float Mascara : Estado.Mascaras)
+	{
+		Llenas += Mascara;
+	}
+	const float FraccionVida = Estado.Mascaras.Num() > 0 ? Llenas / Estado.Mascaras.Num() : 0.f;
+	// Un golpe recibido: destello rojo en toda la pantalla que se apaga.
+	if (UltimaFraccionVida >= 0.f && FraccionVida < UltimaFraccionVida - UE_KINDA_SMALL_NUMBER)
+	{
+		Destello = 1.f;
+	}
+	Rastro(RastroVida, FraccionVida, FraccionRastroVida, UltimaFraccionVida, TiempoDesdeDanioVida);
+	if (Estado.bJefeVisible)
+	{
+		Rastro(RastroJefe, Estado.FraccionVidaJefe, FraccionRastroJefe, UltimaFraccionJefe, TiempoDesdeDanioJefe);
+	}
+	else
+	{
+		UltimaFraccionJefe = -1.f;
+		FraccionRastroJefe = 1.f;
+	}
+	if (UltimaFraccionAlma >= 0.f && Estado.FraccionAlma > UltimaFraccionAlma + UE_KINDA_SMALL_NUMBER)
+	{
+		BrilloAlma = 1.f;
+	}
+	UltimaFraccionAlma = Estado.FraccionAlma;
+	BrilloAlma = FMath::Max(0.f, BrilloAlma - DeltaTime / Ajuste.DuracionBrilloAlma);
+	Destello = FMath::Max(0.f, Destello - DeltaTime / Ajuste.DuracionDestelloDanio);
+	if (DestelloDanio)
+	{
+		FijarOpacidad(DestelloDanio, Destello * Destello * Ajuste.OpacidadDestelloDanio);
+		FijarVisible(DestelloDanio, Destello > 0.f);
+	}
+}
+
 void USAEVUSWidgetInterfaz::NativeTick(const FGeometry& Geometria, float DeltaTime)
 {
+	using namespace SAEVUSInterfaz;
 	Super::NativeTick(Geometria, DeltaTime);
-	const FSAEVUSEstadoInterfaz Estado = FSAEVUSEstadoInterfaz::Calcular(GetOwningPlayerPawn(), GetWorld(), Ajuste.VidaPorMascara, Ajuste.FundidoAviso);
-	if (BloqueTituloZona && ASAEVUSInfoZona::Obtener(GetWorld()))
+	TiempoBuscarTecla -= DeltaTime;
+	if (TiempoBuscarTecla <= 0.f)
 	{
-		// Tiempo de mundo: con el menú principal (pausa) el título espera a que empiece la partida.
-		const float Opacidad = SAEVUSInterfaz::OpacidadTituloZona(static_cast<float>(GetWorld()->GetTimeSeconds() - TiempoEntrada), Ajuste);
-		BloqueTituloZona->SetRenderOpacity(Opacidad);
-		SAEVUSInterfaz::FijarVisible(BloqueTituloZona, Opacidad > 0.f);
+		TiempoBuscarTecla = IntervaloBuscarTecla;
+		ActualizarTeclaInteraccion();
+	}
+	// La vida por máscara es la del personaje (la misma que suman los fragmentos); sin él, la del ajuste.
+	const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(GetOwningPlayerPawn());
+	const float VidaPorMascara = Personaje ? Personaje->ObtenerProgreso().VidaPorMascara : Ajuste.VidaPorMascara;
+	const FSAEVUSEstadoInterfaz Estado = FSAEVUSEstadoInterfaz::Calcular(GetOwningPlayerPawn(), GetWorld(), VidaPorMascara, Ajuste.FundidoAviso, TeclaInteraccion);
+	if (BloqueTituloZona && Zona.IsValid() && !bTituloZonaTerminado)
+	{
+		// Tiempo de mundo: con el menú principal (pausa) el título espera a que empiece la partida. Ya apagado, no se
+		// vuelve a calcular.
+		const float Segundos = static_cast<float>(GetWorld()->GetTimeSeconds() - TiempoEntrada);
+		const float Opacidad = OpacidadTituloZona(Segundos, Ajuste);
+		FijarOpacidad(BloqueTituloZona, Opacidad);
+		FijarVisible(BloqueTituloZona, Opacidad > 0.f);
+		for (USizeBox* Raya : RayasZona)
+		{
+			Raya->SetWidthOverride(Ajuste.AnchoRayasZona * Opacidad);
+		}
+		bTituloZonaTerminado = Opacidad <= 0.f && Segundos > Ajuste.RetardoTituloZona + Ajuste.FundidoTituloZona;
 	}
 	if (VeloMuerte)
 	{
-		// Fundido a negro al caer, y de vuelta (más rápido) al reaparecer.
+		// Fundido a oscuro al caer, y de vuelta (más rápido) al reaparecer; el texto crece despacio mientras se ve.
 		const float Objetivo = Estado.bJugadorMuerto ? Ajuste.OpacidadMuerte : 0.f;
 		const float Rapidez = Ajuste.OpacidadMuerte / (Estado.bJugadorMuerto ? Ajuste.FundidoMuerte : Ajuste.FundidoReaparicion);
 		OpacidadVelo = FMath::FInterpConstantTo(OpacidadVelo, Objetivo, DeltaTime, Rapidez);
-		VeloMuerte->SetRenderOpacity(OpacidadVelo);
-		SAEVUSInterfaz::FijarVisible(VeloMuerte, OpacidadVelo > 0.f);
+		TiempoMuerto = Estado.bJugadorMuerto ? TiempoMuerto + DeltaTime : 0.f;
+		FijarOpacidad(VeloMuerte, OpacidadVelo / FMath::Max(Ajuste.OpacidadMuerte, UE_KINDA_SMALL_NUMBER));
+		FijarVisible(VeloMuerte, OpacidadVelo > 0.f);
+		if (OpacidadVelo > 0.f && TextoMuerte)
+		{
+			TextoMuerte->SetRenderScale(FVector2D(1.f + Ajuste.CrecimientoTextoMuerte * FMath::Min(1.f, TiempoMuerto / (Ajuste.FundidoMuerte * 3.f))));
+		}
 	}
+	AnimarBarras(Estado, DeltaTime);
 	Aplicar(Estado);
 }

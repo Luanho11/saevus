@@ -97,6 +97,11 @@ private:
 	ASAEVUSEnemigo* ObtenerEnemigo() const;
 
 	TWeakObjectPtr<APawn> Objetivo;
+	// Caché del pawn del jugador (una búsqueda por fotograma) y de su vida (mientras sea el mismo pawn).
+	mutable TWeakObjectPtr<APawn> ObjetivoJugador;
+	mutable uint64 FotogramaObjetivo = 0;
+	mutable TWeakObjectPtr<const APawn> PawnVidaObjetivo;
+	mutable TWeakObjectPtr<const USAEVUSComponenteVida> VidaObjetivo;
 	ESAEVUSEstadoEnemigo Estado = ESAEVUSEstadoEnemigo::Reposo;
 	float TiempoEstado = 0.f;
 	int32 IndiceAtaque = INDEX_NONE;

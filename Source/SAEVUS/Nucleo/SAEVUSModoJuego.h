@@ -44,6 +44,9 @@ public:
 
 	/** Cierto si se entró en el mapa por un paso (opción "portal" en la URL). */
 	bool LlegoPorPaso() const;
+
+	/** Opción de la URL con la que "Continuar" abre el mapa del último punto de control y aparece en él. */
+	static const TCHAR* const OpcionContinuar;
 	const FTransform& ObtenerPuntoControl() const { return PuntoControl; }
 
 	/** Mapas a los que llevan los botones del menú principal. */
@@ -72,6 +75,10 @@ protected:
 
 private:
 	void ReaparecerJugador(TWeakObjectPtr<AController> Controlador);
+	void ReaparecerEnPuntoControl(AController* Controlador);
+
+	/** Reaparición tras morir pendiente: volver al punto de control desde la pausa la cancela. */
+	FTimerHandle TemporizadorReaparicion;
 
 	FTransform PuntoControl;
 	bool bTienePuntoControl = false;

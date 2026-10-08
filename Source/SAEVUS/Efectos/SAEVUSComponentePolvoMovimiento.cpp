@@ -32,8 +32,7 @@ USAEVUSComponentePolvoMovimiento::USAEVUSComponentePolvoMovimiento()
 
 USAEVUSComponenteMovimiento* USAEVUSComponentePolvoMovimiento::ObtenerMovimiento() const
 {
-	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
-	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	return SAEVUSMovimiento::DelActor(GetOwner());
 }
 
 FVector USAEVUSComponentePolvoMovimiento::ObtenerPies() const
@@ -49,6 +48,7 @@ void USAEVUSComponentePolvoMovimiento::BeginPlay()
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		ManejadorSaltoPared = Movimiento->AlSaltoPared.AddUObject(this, &ThisClass::AlSaltoPared);
+		ManejadorAterrizaje = Movimiento->AlAterrizar.AddUObject(this, &ThisClass::EmitirAterrizaje);
 	}
 }
 
@@ -57,6 +57,7 @@ void USAEVUSComponentePolvoMovimiento::EndPlay(const EEndPlayReason::Type EndPla
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
 		Movimiento->AlSaltoPared.Remove(ManejadorSaltoPared);
+		Movimiento->AlAterrizar.Remove(ManejadorAterrizaje);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -91,9 +92,7 @@ void USAEVUSComponentePolvoMovimiento::AlSaltoPared(const FVector& NormalPared)
 
 void USAEVUSComponentePolvoMovimiento::EmitirContinuo(float PorSegundo, float DeltaTime, const FVector& Posicion, const FVector& Velocidad)
 {
-	AcumuladoEmision += PorSegundo * DeltaTime;
-	const int32 Cantidad = FMath::FloorToInt32(AcumuladoEmision);
-	AcumuladoEmision -= Cantidad;
+	const int32 Cantidad = ConsumirEmision(AcumuladoEmision, PorSegundo, DeltaTime);
 	if (Cantidad > 0)
 	{
 		EmitirRafaga(Posicion, Velocidad, Cantidad, AjustePolvo.Dispersion);
@@ -104,17 +103,6 @@ void USAEVUSComponentePolvoMovimiento::TickComponent(float DeltaTime, ELevelTick
 {
 	if (const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
-		const bool bEnAire = Movimiento->IsFalling();
-		if (bEstabaEnAire && Movimiento->IsMovingOnGround())
-		{
-			EmitirAterrizaje(-VelocidadVerticalAire);
-		}
-		if (bEnAire)
-		{
-			VelocidadVerticalAire = static_cast<float>(Movimiento->Velocity.Z);
-		}
-		bEstabaEnAire = bEnAire;
-
 		const FVector Normal = Movimiento->ObtenerNormalPared();
 		const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
 		const float Radio = Personaje && Personaje->GetCapsuleComponent() ? Personaje->GetCapsuleComponent()->GetScaledCapsuleRadius() : 0.f;

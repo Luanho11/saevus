@@ -138,6 +138,17 @@ void USAEVUSComponenteCamara::AplicarEstilo(const FSAEVUSAjusteCamara& Ajuste)
 	PostProcessSettings.ColorSaturation = FVector4(Ajuste.Saturacion, Ajuste.Saturacion, Ajuste.Saturacion, 1.f);
 	PostProcessSettings.bOverride_MotionBlurAmount = true;
 	PostProcessSettings.MotionBlurAmount = Ajuste.DesenfoqueMovimiento;
+	// Gradación: sombras frías, luces de oro viejo, negros hondos.
+	PostProcessSettings.bOverride_ColorGainShadows = true;
+	PostProcessSettings.ColorGainShadows = FVector4(Ajuste.TinteSombras.R, Ajuste.TinteSombras.G, Ajuste.TinteSombras.B, 1.f);
+	PostProcessSettings.bOverride_ColorGainHighlights = true;
+	PostProcessSettings.ColorGainHighlights = FVector4(Ajuste.TinteLuces.R, Ajuste.TinteLuces.G, Ajuste.TinteLuces.B, 1.f);
+	PostProcessSettings.bOverride_ColorContrastShadows = true;
+	PostProcessSettings.ColorContrastShadows = FVector4(Ajuste.ContrasteSombras, Ajuste.ContrasteSombras, Ajuste.ContrasteSombras, 1.f);
+	PostProcessSettings.bOverride_BloomIntensity = true;
+	PostProcessSettings.BloomIntensity = Ajuste.Resplandor;
+	PostProcessSettings.bOverride_BloomThreshold = true;
+	PostProcessSettings.BloomThreshold = Ajuste.UmbralResplandor;
 }
 
 float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const
@@ -145,7 +156,7 @@ float USAEVUSComponenteCamara::ObtenerCampoVisionObjetivo() const
 	const FSAEVUSAjusteCamara& Ajuste = ObtenerAjuste();
 
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
-	const USAEVUSComponenteMovimiento* Movimiento = Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	const USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje);
 	if (!Movimiento)
 	{
 		return Ajuste.CampoVisionBase;

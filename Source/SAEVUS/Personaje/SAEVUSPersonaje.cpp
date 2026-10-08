@@ -14,6 +14,9 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Efectos/SAEVUSComponenteEcoDash.h"
+#include "Efectos/SAEVUSComponenteMotasAmbiente.h"
+#include "Efectos/SAEVUSComponenteEstelaEspada.h"
 #include "Efectos/SAEVUSComponentePolvoMovimiento.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
@@ -73,6 +76,8 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	PolvoMovimiento->SetupAttachment(RootComponent);
 	EfectosCombate = CreateDefaultSubobject<USAEVUSComponenteEfectosCombate>(TEXT("EfectosCombate"));
 	EfectosCombate->SetupAttachment(RootComponent);
+	EstelaEspada = CreateDefaultSubobject<USAEVUSComponenteEstelaEspada>(TEXT("EstelaEspada"));
+	EstelaEspada->SetupAttachment(RootComponent);
 	Sonido = CreateDefaultSubobject<USAEVUSComponenteSonido>(TEXT("Sonido"));
 
 	// Cuerpo visible: hereda de la malla del personaje el desplazamiento a los pies y la corrección de -90°.
@@ -80,6 +85,10 @@ ASAEVUSPersonaje::ASAEVUSPersonaje(const FObjectInitializer& ObjectInitializer)
 	Cuerpo->SetupAttachment(GetMesh());
 	Cuerpo->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Animacion = CreateDefaultSubobject<USAEVUSComponenteAnimacionProcedural>(TEXT("Animacion"));
+	EcoDash = CreateDefaultSubobject<USAEVUSComponenteEcoDash>(TEXT("EcoDash"));
+	MotasAmbiente = CreateDefaultSubobject<USAEVUSComponenteMotasAmbiente>(TEXT("MotasAmbiente"));
+	MotasAmbiente->SetupAttachment(RootComponent);
+	EcoDash->FijarCuerpo(Cuerpo);
 
 	BrazoCamara = CreateDefaultSubobject<USpringArmComponent>(TEXT("BrazoCamara"));
 	BrazoCamara->SetupAttachment(RootComponent);
@@ -155,6 +164,12 @@ void ASAEVUSPersonaje::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AAct
 {
 	UE_LOG(LogSAEVUS, Log, TEXT("%s muerto por %s"), *GetName(), *GetNameSafe(Asesino));
 	Armas->FijarGatillo(false);
+	// Un muerto no sigue golpeando, ni cargando, ni en guardia, ni curándose, ni sentado.
+	Combate->TerminarAtaque();
+	Combate->CancelarCarga();
+	Guardia->Interrumpir();
+	Alma->CancelarCuracion();
+	bSentado = false;
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -194,10 +209,19 @@ void ASAEVUSPersonaje::BeginPlay()
 
 void ASAEVUSPersonaje::RecogerFragmentoMascara(FName Identificador)
 {
-	++FragmentosMascara;
 	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
+		// La cuenta es la del guardado: un fragmento repetido no suma dos veces.
+		if (Guardado->FragmentoRecogido(Identificador))
+		{
+			return;
+		}
 		Guardado->GuardarFragmento(Identificador);
+		FragmentosMascara = Guardado->ObtenerNumeroFragmentos();
+	}
+	else
+	{
+		++FragmentosMascara;
 	}
 	const int32 PorMascara = FMath::Max(Progreso.FragmentosPorMascara, 1);
 	const bool bMascaraEntera = FragmentosMascara % PorMascara == 0;
@@ -244,8 +268,17 @@ void ASAEVUSPersonaje::QuitarInteractuable(AActor* Actor)
 	}
 }
 
+bool ASAEVUSPersonaje::PuedeSentarse() const
+{
+	return !bSentado && !Vida->EstaMuerto() && ObtenerMovimiento()->IsMovingOnGround() && !ObtenerMovimiento()->EstaEnDash() && !Combate->EstaAtacando();
+}
+
 void ASAEVUSPersonaje::Sentarse(const FTransform& Asiento)
 {
+	if (!PuedeSentarse())
+	{
+		return;
+	}
 	bSentado = true;
 	Alma->CancelarCuracion();
 	FijarGuardia(false);
@@ -281,7 +314,12 @@ void ASAEVUSPersonaje::PedirSalto()
 
 bool ASAEVUSPersonaje::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const
 {
-	return GetLocalRole() == ROLE_Authority && CanBeDamaged() && Damage != 0.f;
+	return USAEVUSComponenteVida::PuedeRecibirDanio(this, Damage);
+}
+
+float ASAEVUSPersonaje::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	return Vida->MedirDanio([&] { Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser); });
 }
 
 bool ASAEVUSPersonaje::CanJumpWhileFalling() const
@@ -499,7 +537,7 @@ void ASAEVUSPersonaje::PedirAtaque()
 		Guardia->Interrumpir();
 		Combate->FijarAtaqueMantenido(true);
 		// Arma cuerpo a cuerpo, o sin arsenal (repertorio por defecto del combate). La inclinación de la
-		// cámara elige el tajo: arriba, de frente o abajo (en el aire).
+		// cámara elige el tajo: hacia arriba o de frente.
 		const float Inclinacion = Controller ? static_cast<float>(FRotator::NormalizeAxis(GetControlRotation().Pitch)) : 0.f;
 		Combate->PedirAtaqueEnDireccion(Combate->DireccionSegunInclinacion(Inclinacion));
 	}
@@ -508,6 +546,12 @@ void ASAEVUSPersonaje::PedirAtaque()
 void ASAEVUSPersonaje::SoltarAtaque()
 {
 	Armas->FijarGatillo(false);
+	if (Armas->TieneArmaFuegoEquipada() || Armas->EstaCambiando())
+	{
+		// La carga era de la espada: con otra arma en la mano no sale el ataque cargado.
+		Combate->CancelarCarga();
+		return;
+	}
 	Combate->FijarAtaqueMantenido(false);
 }
 
@@ -515,6 +559,7 @@ void ASAEVUSPersonaje::PedirRanuraArma(int32 Ranura)
 {
 	if (Armas->PuedeCambiarA(Ranura) && Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::CambioArma))
 	{
+		Combate->CancelarCarga();
 		Armas->PedirCambio(Ranura);
 	}
 }

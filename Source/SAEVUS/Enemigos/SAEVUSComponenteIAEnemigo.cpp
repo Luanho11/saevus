@@ -13,6 +13,8 @@
 namespace SAEVUSIAEnemigo
 {
 	const FSAEVUSFaseEnemigo FaseUnica;
+	// Ajuste de respaldo si el componente está en un actor que no es un enemigo.
+	const FSAEVUSAjusteEnemigo AjusteVacio;
 	// La patrulla va a media velocidad: se lee como "no te ha visto".
 	constexpr float EscalaVelocidadPatrulla = 0.5f;
 	constexpr float DistanciaSinObjetivo = TNumericLimits<float>::Max();
@@ -43,7 +45,8 @@ ASAEVUSEnemigo* USAEVUSComponenteIAEnemigo::ObtenerEnemigo() const
 
 const FSAEVUSAjusteEnemigo& USAEVUSComponenteIAEnemigo::ObtenerAjuste() const
 {
-	return ObtenerEnemigo()->ObtenerAjuste();
+	const ASAEVUSEnemigo* Enemigo = ObtenerEnemigo();
+	return Enemigo ? Enemigo->ObtenerAjuste() : SAEVUSIAEnemigo::AjusteVacio;
 }
 
 const FSAEVUSFaseEnemigo& USAEVUSComponenteIAEnemigo::ObtenerFaseActual() const
@@ -54,7 +57,17 @@ const FSAEVUSFaseEnemigo& USAEVUSComponenteIAEnemigo::ObtenerFaseActual() const
 
 APawn* USAEVUSComponenteIAEnemigo::ObtenerObjetivo() const
 {
-	return Objetivo.IsValid() ? Objetivo.Get() : UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Objetivo.IsValid())
+	{
+		return Objetivo.Get();
+	}
+	// El pawn del jugador se busca una vez por fotograma, no en cada consulta de la IA.
+	if (FotogramaObjetivo != GFrameCounter)
+	{
+		FotogramaObjetivo = GFrameCounter;
+		ObjetivoJugador = UGameplayStatics::GetPlayerPawn(this, 0);
+	}
+	return ObjetivoJugador.Get();
 }
 
 bool USAEVUSComponenteIAEnemigo::ObjetivoVivo() const
@@ -64,8 +77,13 @@ bool USAEVUSComponenteIAEnemigo::ObjetivoVivo() const
 	{
 		return false;
 	}
-	const USAEVUSComponenteVida* Vida = Pawn->FindComponentByClass<USAEVUSComponenteVida>();
-	return !Vida || !Vida->EstaMuerto();
+	// La vida del objetivo se recuerda mientras sea el mismo pawn (el jugador reaparece como otro).
+	if (PawnVidaObjetivo.Get() != Pawn)
+	{
+		PawnVidaObjetivo = Pawn;
+		VidaObjetivo = Pawn->FindComponentByClass<USAEVUSComponenteVida>();
+	}
+	return !VidaObjetivo.IsValid() || !VidaObjetivo->EstaMuerto();
 }
 
 float USAEVUSComponenteIAEnemigo::DistanciaObjetivo() const
@@ -337,7 +355,7 @@ void USAEVUSComponenteIAEnemigo::EmpezarAtaque()
 	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Salto)
 	{
 		const float Escala = ObtenerFaseActual().EscalaVelocidad;
-		Enemigo->LaunchCharacter(DireccionAtaque * Ataque->Velocidad * Escala + FVector::UpVector * Ataque->VelocidadVertical, true, true);
+		Enemigo->LanzarPropio(DireccionAtaque * Ataque->Velocidad * Escala + FVector::UpVector * Ataque->VelocidadVertical);
 	}
 }
 

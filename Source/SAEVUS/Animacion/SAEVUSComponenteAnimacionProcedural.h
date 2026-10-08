@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Animacion/SAEVUSCapaSecundaria.h"
+#include "Animacion/SAEVUSMuelle.h"
 #include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
 #include "SAEVUSComponenteAnimacionProcedural.generated.h"
@@ -106,13 +108,6 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo", meta = (ForceUnits = "deg"))
 	float FlexionRodillaReposo = 10.f;
 
-	/** Respiración en reposo: grados y ciclos por segundo. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo")
-	float AmplitudRespiracion = 2.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo")
-	float FrecuenciaRespiracion = 0.35f;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash")
 	float InclinacionDash = 38.f;
 
@@ -159,11 +154,11 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0"))
 	float SuavizadoAccion = 32.f;
 
-	/** Suavizado de la capa: bajo, para que se quede atrás y ondee. */
+	/** La capa la mueven sus muelles (Capa); la pose la sigue de cerca con este suavizado. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0"))
-	float SuavizadoCapa = 6.f;
+	float SuavizadoCapa = 30.f;
 
-	/** Cada tramo de la capa sigue al anterior con este factor de su suavizado (< 1: la punta llega más tarde y ondea). */
+	/** Cada tramo de la capa responde con este factor de la frecuencia del de arriba (< 1: la punta llega más tarde y ondea). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "1"))
 	float RetrasoCadenaCapa = 0.75f;
 
@@ -270,15 +265,124 @@ struct FSAEVUSAjusteAnimacion
 	/** Parpadeos por segundo del cuerpo durante la invulnerabilidad tras un golpe. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
 	float FrecuenciaParpadeo = 12.f;
+
+	/** Empujón al tronco al recibir un golpe (grados/s, alejándose del que golpea) y hundimiento de la cadera (cm/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
+	float ImpulsoGolpeRecibido = 320.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
+	float HundimientoGolpeRecibido = 90.f;
+
+	/** Movimiento secundario: giro por capas, inercia, rebote, respiración, reposo vivo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Secundario")
+	FSAEVUSAjusteSecundario Secundario;
+
+	// --- Locomoción viva: la cadera cae y gira con cada paso, la cabeza se estabiliza, los pies ruedan. ---
+
+	/** La cadera cae hacia el lado de la pierna que se levanta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float CaidaCaderaPaso = 4.f;
+
+	/** La cadera gira con la zancada (y el pecho al revés). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float GiroCaderaPaso = 7.f;
+
+	/** El pie rueda: talón al apoyar delante, punta al despegar detrás. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float RodaduraPie = 22.f;
+
+	/** Parte del balanceo del paso que la cabeza compensa (la mirada no bota). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ClampMin = "0", ClampMax = "1"))
+	float EstabilizacionCabezaPaso = 0.8f;
+
+	/** Por encima de la velocidad de referencia (esprint): inclinación y subida de rodillas extra. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float InclinacionEsprint = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float RodillasEsprint = 18.f;
+
+	/** Los codos se doblan más cuando el brazo va adelante (bombeo de la carrera). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locomocion", meta = (ForceUnits = "deg"))
+	float BombeoCodo = 30.f;
+
+	// --- Dash con identidad: arranque explosivo, estirado en vuelo y frenada. ---
+
+	/** Fracción del dash que dura el arranque (el cuerpo se encoge y sale disparado). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0.01", ClampMax = "0.5"))
+	float FraccionArranqueDash = 0.18f;
+
+	/** Desde esta fracción del dash empieza la frenada (pies por delante, el tronco se echa atrás). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0.5", ClampMax = "1"))
+	float FraccionFrenadaDash = 0.72f;
+
+	/** Dash a un lado: el cuerpo se ladea hacia él estos grados y el brazo libre se abre de contrapeso. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ForceUnits = "deg"))
+	float LadeoDashLateral = 26.f;
+
+	/** Dash hacia atrás: el tronco se echa atrás y la espada se adelanta, en guardia. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ForceUnits = "deg"))
+	float InclinacionDashAtras = 20.f;
+
+	/** Hundimiento de la cadera al arrancar el dash (cm/s, la mitad) e impulso de la capa (grados/s, el doble). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0"))
+	float ImpulsoDash = 140.f;
+
+	// --- Capa con muelles: se queda atrás, ondea, se abre en las curvas y en los dash. ---
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Capa", meta = (ClampMin = "0.1", ForceUnits = "Hz"))
+	float FrecuenciaCapa = 1.7f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Capa", meta = (ClampMin = "0", ClampMax = "2"))
+	float AmortiguacionCapa = 0.32f;
+
+	/** Grados que la capa se va atrás a la velocidad de esprint de referencia, y de lado al correr de lado. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Capa", meta = (ForceUnits = "deg"))
+	float AtrasCapa = 50.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Capa", meta = (ForceUnits = "deg"))
+	float LadoCapa = 30.f;
+
+	// --- Golpe dado: el brazo rebota en el contacto. ---
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ForceUnits = "deg"))
+	float RetrocesoImpacto = 16.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ClampMin = "0.1", ForceUnits = "Hz"))
+	float FrecuenciaRetrocesoImpacto = 5.f;
+
+	// --- Suavizado por tramos: lo de las puntas (manos, hoja, cabeza) llega después que el tronco. ---
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "2"))
+	float FactorSuavizadoBrazos = 0.85f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "2"))
+	float FactorSuavizadoManos = 0.6f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "2"))
+	float FactorSuavizadoCabeza = 0.75f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Suavizado", meta = (ClampMin = "0.1", ClampMax = "3"))
+	float FactorSuavizadoPiernas = 1.3f;
+
+	/** Enemigos fuera de pantalla: la pose se actualiza con este intervalo (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
+	float IntervaloFueraDePantalla = 0.25f;
+
+	/** La mirada busca enemigo cercano cada tanto, no cada fotograma (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
+	float IntervaloBusquedaMirada = 0.2f;
 };
 
 /**
- * Animación procedural del caballero sobre una malla poseable con esqueleto propio.
+ * Animación procedural del caballero (y de los goblins) sobre una malla poseable con esqueleto propio.
  *
- * Cada fotograma construye una pose objetivo a partir del estado del juego (movimiento, paredes,
- * dash, ataques por su línea de tiempo, armas, muerte) y suaviza la pose actual hacia ella, así
- * los cambios de estado y las cancelaciones salen fluidos. La pose es, por hueso, una dirección
- * absoluta a la que apuntar o un giro relativo, compuestos sobre la pose de reposo por un FK propio.
+ * Cada fotograma construye una pose objetivo a partir del estado del juego (movimiento, paredes, dash,
+ * ataques con su gesto, armas, muerte), le suma la capa secundaria (giro por capas, inercia del tronco,
+ * rebote, respiración, reposo vivo; FSAEVUSCapaSecundaria) y suaviza la pose actual hacia ella por
+ * tramos: el tronco llega antes que las manos, la hoja y la cabeza. La capa y el rebote del brazo van
+ * con muelles. La pose es, por hueso, una dirección absoluta a la que apuntar o un giro relativo,
+ * compuestos sobre la pose de reposo por un FK propio.
  *
  * Ejes del espacio de la malla (el personaje mira a +Y): Adelante = +Y, Derecha = -X, Arriba = +Z.
  * Es un prototipo: lo sustituirán animaciones hechas a mano cuando haya diseño final.
@@ -309,10 +413,17 @@ public:
 	/** Avanza la animación DeltaTime segundos (lo llama el tick; los tests lo llaman a mano). */
 	void Actualizar(float DeltaTime);
 
+	/** Peso del cuerpo: 1 = humano; más es más lento y pesado (jefes). Lo fija el enemigo según su tipo. */
+	void FijarPeso(float NuevoPeso) { Peso = FMath::Max(0.1f, NuevoPeso); }
+
+	/** Movimiento secundario de este fotograma (tests, depuración). */
+	const FSAEVUSSalidaSecundaria& ObtenerSecundaria() const { return CapaSecundaria.ObtenerSalida(); }
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, Category = "SAEVUS|Animacion")
 	FSAEVUSAjusteAnimacion Ajuste;
@@ -347,7 +458,8 @@ private:
 	void PoseDash(FPose& Pose);
 	void PoseCarreraPared(FPose& Pose, float DeltaTime);
 	void PoseEscalada(FPose& Pose, float DeltaTime);
-	void PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, int32 IndiceCombo, bool bAereo, ESAEVUSDireccionAtaque Direccion, float Tiempo);
+	/** El gesto del ataque (SAEVUSGestosAtaque) en su instante, con su pisada o sus piernas recogidas. */
+	void PoseAtaque(FPose& Pose, const FSAEVUSDefinicionAtaque& Ataque, float Tiempo);
 	void PoseDisparo(FPose& Pose);
 	void PoseMuerte(FPose& Pose, float DeltaTime);
 	void PoseCuracion(FPose& Pose);
@@ -355,18 +467,36 @@ private:
 	void PoseGuardia(FPose& Pose);
 	/** Oculta y muestra el cuerpo durante la invulnerabilidad tras un golpe. */
 	void AplicarParpadeo();
-	void PoseCapa(FPose& Pose, float Velocidad, float VelocidadVertical);
+	/** Capa con muelles: atrás con la velocidad, de lado al correr de lado o girar, levantada al caer. */
+	void PoseCapa(FPose& Pose, float DeltaTime);
+	/** Suma a la pose el movimiento secundario (giros por capas, inercia, rebote, respiración, reposo vivo). */
+	void AplicarSecundaria(FPose& Pose, float DeltaTime, bool bAccion, bool bEsfuerzo, bool bReposoLibre);
+	/** Gestos de reposo (mirar atrás, girar la hoja, estirar los hombros) sobre la pose de reposo. */
+	void PoseGestoReposo(FPose& Pose, const FSAEVUSSalidaSecundaria& Secundaria);
+
+	/**
+	 * Suma un giro (espacio de malla) al hueso: compuesto con su giro relativo, y las direcciones absolutas de
+	 * todo lo que cuelga de él (brazos, piernas, hoja) giran igual, así el miembro va con el tramo que se mueve.
+	 */
+	void GirarTramo(FPose& Pose, ESAEVUSHueso Hueso, const FQuat& Giro) const;
 
 	/** Compone la pose objetivo sobre la de reposo (FK): rotaciones objetivo en espacio de malla. */
 	void ResolverObjetivo(const FPose& Pose, FQuat (&OutRotaciones)[static_cast<int32>(ESAEVUSHueso::Total)]) const;
-	/** Suaviza las rotaciones actuales hacia las objetivo, recalcula posiciones y lo aplica a la malla. */
+	/** Suaviza las rotaciones actuales hacia las objetivo por tramos, recalcula posiciones y lo aplica a la malla. */
 	void SuavizarYAplicar(const FPose& Pose, const FQuat (&Objetivo)[static_cast<int32>(ESAEVUSHueso::Total)], float DeltaTime, bool bAccion);
+	/** Escribe las transformaciones de los huesos (espacio de componente) en la malla de una vez, sin buscar nombres. */
+	void EscribirEnMalla(const FTransform (&Componente)[static_cast<int32>(ESAEVUSHueso::Total)]);
 
 	UFUNCTION()
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
 
 	void AlSaltoAereo();
 	void AlSaltoPared(const FVector& NormalPared);
+	void AlIniciarDash(const FVector& Direccion);
+	void AlAterrizar(float VelocidadCaida);
+	void AlImpactar(const FSAEVUSDefinicionAtaque& Ataque);
+	/** Jefes: al entrar en una fase nueva, rugen (SAEVUSAnimacionEnemigo.cpp). */
+	void AlCambiarFaseEnemigo(int32 Fase);
 
 	/** Dirección horizontal del mundo pasada al espacio de la malla (unitaria); al frente si es nula. */
 	FVector DireccionMalla(const FVector& DireccionMundo) const;
@@ -374,9 +504,10 @@ private:
 	UFUNCTION()
 	void AlCambiarVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
 
+	/** Brazos sueltos tras un golpe recibido (el tronco lo empuja la capa secundaria). */
 	void PoseReaccionGolpe(FPose& Pose);
-	/** La cabeza mira al enemigo cercano si ninguna otra pose la ocupa. */
-	void PoseMirada(FPose& Pose);
+	/** La cabeza mira al enemigo cercano (o vaga, quieta) si ninguna otra pose la ocupa. */
+	void PoseMirada(FPose& Pose, float DeltaTime);
 
 	/** Dirección de reposo de un hueso en espacio de malla (hacia su hijo, o la fija de las hojas). */
 	FVector DireccionReposo(int32 Hueso) const;
@@ -384,20 +515,34 @@ private:
 	UPROPERTY()
 	TObjectPtr<UPoseableMeshComponent> Malla;
 
-	USAEVUSComponenteMovimiento* Movimiento = nullptr;
+	// Componentes hermanos del dueño (viven lo mismo que él).
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteMovimiento> Movimiento;
 	/** Movimiento de cualquier dueño (los enemigos usan el del motor). */
-	UCharacterMovementComponent* MovimientoBase = nullptr;
-	USAEVUSComponenteIAEnemigo* IA = nullptr;
-	USAEVUSComponenteCombate* Combate = nullptr;
-	USAEVUSComponenteArmas* Armas = nullptr;
-	USAEVUSComponenteVida* Vida = nullptr;
-	USAEVUSComponenteAlma* Alma = nullptr;
-	USAEVUSComponenteGuardia* Guardia = nullptr;
+	UPROPERTY(Transient)
+	TObjectPtr<UCharacterMovementComponent> MovimientoBase;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteIAEnemigo> IA;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteCombate> Combate;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteArmas> Armas;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteVida> Vida;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteAlma> Alma;
+	UPROPERTY(Transient)
+	TObjectPtr<USAEVUSComponenteGuardia> Guardia;
 
 	bool bEsqueletoValido = false;
 	int32 IndiceMalla[static_cast<int32>(ESAEVUSHueso::Total)];
 	int32 Padre[static_cast<int32>(ESAEVUSHueso::Total)];
 	FTransform ReposoComponente[static_cast<int32>(ESAEVUSHueso::Total)];
+	/** Para cada hueso, qué huesos cuelgan de él (bit i = hueso i; incluye el propio). */
+	uint32 Subarbol[static_cast<int32>(ESAEVUSHueso::Total)];
+	/** Pose de la malla entera en espacio de componente (reposo, con los huesos propios encima) y padre de cada hueso. */
+	TArray<FTransform> ComponenteMalla;
+	TArray<int32> PadreMalla;
 
 	// Pose actual (ya suavizada) en espacio de malla.
 	FQuat RotacionActual[static_cast<int32>(ESAEVUSHueso::Total)];
@@ -420,4 +565,28 @@ private:
 	float VelocidadVerticalAire = 0.f;
 	/** Intensidad del último aterrizaje (según la velocidad de caída). */
 	float FuerzaAterrizaje = 1.f;
+
+	FSAEVUSCapaSecundaria CapaSecundaria;
+	/** Tramos de la capa: X = hacia atrás, Y = hacia la derecha (grados). */
+	FSAEVUSMuelleVector MuellesCapa[3];
+	/** Rebote del brazo al acertar (grados). */
+	FSAEVUSMuelle RetrocesoImpacto;
+	float Peso = 1.f;
+	/** Tiempo acumulado sin actualizar (enemigos fuera de pantalla). */
+	float TiempoPendiente = 0.f;
+	/** Enemigo al que mira la cabeza (se busca cada IntervaloBusquedaMirada). */
+	TWeakObjectPtr<AActor> ObjetivoMirada;
+	float TiempoBusquedaMirada = 0.f;
+	/** Giro de la cabeza hacia lo que mira (muelle): X = giro, Y = cabeceo. */
+	FSAEVUSMuelleVector GiroMirada;
+	/** Lado del enemigo del que vino el último golpe recibido (espacio de malla), para la muerte. */
+	FVector DireccionUltimoGolpe = FVector::ZeroVector;
+	FDelegateHandle ManejadorDash;
+	FDelegateHandle ManejadorImpacto;
+	FDelegateHandle ManejadorSaltoAereo;
+	FDelegateHandle ManejadorSaltoPared;
+	FDelegateHandle ManejadorFase;
+	FDelegateHandle ManejadorAterrizaje;
+	/** Rugido de cambio de fase en curso (s que quedan). */
+	float TiempoRugido = 0.f;
 };

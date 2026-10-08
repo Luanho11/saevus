@@ -14,6 +14,9 @@ class USAEVUSComponenteGuardia;
 class USAEVUSComponenteSonido;
 class USAEVUSComponenteAnimacionProcedural;
 class USAEVUSComponenteEfectosCombate;
+class USAEVUSComponenteEstelaEspada;
+class USAEVUSComponenteEcoDash;
+class USAEVUSComponenteMotasAmbiente;
 class USAEVUSComponenteArmas;
 class USAEVUSComponenteCamara;
 class USAEVUSComponenteCombate;
@@ -79,6 +82,8 @@ public:
 	USAEVUSComponenteAlma* ObtenerAlma() const { return Alma; }
 	USAEVUSComponenteGuardia* ObtenerGuardia() const { return Guardia; }
 	USAEVUSComponenteEfectosCombate* ObtenerEfectosCombate() const { return EfectosCombate; }
+	USAEVUSComponenteEstelaEspada* ObtenerEstelaEspada() const { return EstelaEspada; }
+	USAEVUSComponenteEcoDash* ObtenerEcoDash() const { return EcoDash; }
 	USAEVUSComponenteEstelaDash* ObtenerEstelaDash() const { return EstelaDash; }
 	USAEVUSComponentePolvoMovimiento* ObtenerPolvoMovimiento() const { return PolvoMovimiento; }
 	UPoseableMeshComponent* ObtenerCuerpo() const { return Cuerpo; }
@@ -144,9 +149,13 @@ public:
 	/** Lo olvida si es el actual. */
 	void QuitarInteractuable(AActor* Actor);
 	AActor* ObtenerInteractuable() const { return Interactuable.Get(); }
+	const USAEVUSConfigEntrada* ObtenerConfigEntrada() const { return ConfigEntrada; }
+	const FSAEVUSAjusteProgreso& ObtenerProgreso() const { return Progreso; }
 
 	/** Se sienta en Asiento (banco): quieto hasta que se mueve, salta, ataca o vuelve a interactuar. */
 	void Sentarse(const FTransform& Asiento);
+	/** Solo de pie en el suelo, vivo, sin dash y sin atacar. */
+	bool PuedeSentarse() const;
 	void Levantarse();
 	bool EstaSentado() const { return bSentado; }
 
@@ -163,6 +172,8 @@ public:
 	 * así funciona en cualquier mapa y en los mundos de prueba.
 	 */
 	virtual bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const override;
+	/** Devuelve la vida que se perdió de verdad (0 si la guardia o la invulnerabilidad lo paran todo). */
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -231,6 +242,18 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteEfectosCombate> EfectosCombate;
+
+	/** Media luna que sigue al filo en la fase activa de los tajos (REF-08 E). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteEstelaEspada> EstelaEspada;
+
+	/** Polvo en suspensión alrededor del jugador (atmósfera). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteMotasAmbiente> MotasAmbiente;
+
+	/** Siluetas del cuerpo que quedan atrás en el dash (su identidad visual). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USAEVUSComponenteEcoDash> EcoDash;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USAEVUSComponenteSonido> Sonido;

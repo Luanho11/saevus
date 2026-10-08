@@ -21,7 +21,7 @@ Fase de bocetos: el caballero se anima **por código** sobre su esqueleto propio
 2. Cada hueso tiene un **objetivo**: apuntar a una dirección del espacio de la malla, o un giro relativo.
 3. **FK propio** sobre la pose de reposo: `Q_hueso = (Q_padre_final · Q_padre_reposo⁻¹) · Giro · Q_hueso_reposo`; al apuntar, el giro mínimo entre la dirección de reposo heredada y la deseada.
 4. **Suavizado exponencial** de las rotaciones finales (`Suavizado`, más seco en acciones con `SuavizadoAccion`, más lento en la capa para que ondee). Las posiciones se recalculan desde las rotaciones suavizadas, así los huesos conservan su longitud.
-5. Se escribe en espacio de componente con `SetBoneTransformByName`, **conservando la escala de reposo** de cada hueso. La espada y la pistola se muestran u ocultan escalando su hueso a 0 o a 1.
+5. Se suma la capa secundaria y se escribe de una vez (transformados locales), **conservando la escala de reposo** de cada hueso. La espada y la pistola se muestran u ocultan escalando su hueso a 0 o a 1.
 
 Ejes del espacio de la malla: Adelante = +Y, Derecha = −X, Arriba = +Z.
 
@@ -30,6 +30,37 @@ Además, durante la invulnerabilidad tras un golpe el cuerpo parpadea (se oculta
 **Mirada:** si ninguna pose ocupa la cabeza, se gira hacia el enemigo vivo más cercano dentro de `RadioMirada` (15 m), con `GiroMaximoCabeza` (60°) e `InclinacionMaximaCabeza` (30°); detrás del todo no se gira. Lee mejor de dónde viene el peligro.
 
 **Estela del arma:** `ObtenerHoja()` da la base y la punta del aguijón en el mundo (hueso `arma` + `LongitudHoja` en su dirección actual). `USAEVUSComponenteEfectosCombate` reparte partículas finas a lo largo de la hoja en cada fotograma de la fase activa del tajo, más densas hacia la punta: dibujan el arco del golpe.
+
+## Vida del cuerpo (iteración integral, 2026-10-07)
+
+El dueño pidió que el personaje deje de sentirse rígido: que no gire como una sola pieza, que tenga peso, respiración, balanceo y reacción. Se añadieron cinco piezas:
+
+**Muelles (`Animacion/SAEVUSMuelle.h`).** `TSAEVUSMuelle<T>`: muelle amortiguado de segundo orden (frecuencia en Hz, amortiguación adimensional), integrado en subpasos fijos (estable con fotogramas largos). Con amortiguación baja se pasa del objetivo y se asienta: eso es lo que da peso.
+
+**Capa secundaria (`Animacion/SAEVUSCapaSecundaria.{h,cpp}`, ajustes `FSAEVUSAjusteSecundario` dentro de `FSAEVUSAjusteAnimacion::Secundario`).** Independiente del esqueleto; recibe la guiñada y la velocidad del actor y devuelve desplazamientos:
+- **Giro por capas:** al girar (la cámara manda el cuerpo, GunZ), la cadera se queda donde estaba y un muelle la trae (`FrecuenciaCadera`, `MaxRetrasoCadera`); el pecho lleva una parte (`FraccionRetrasoPecho`) y la cabeza **se adelanta** al giro (`AdelantoCabeza`). Quieto y muy torcido, los pies dan un **paso de giro**. Corriendo, el cuerpo se inclina hacia dentro de las curvas (`LadeoCurva`) y hacia donde corre de lado (`LadeoLateral`). En una acción (ataque, dash) el retraso es pequeño: el golpe sale hacia la cámara.
+- **Inercia del tronco:** cada cambio de velocidad empuja el tronco al revés (péndulo, `EscalaInercia`): al frenar sigue hacia delante y vuelve; al arrancar se queda atrás. La cabeza compensa casi todo (`EstabilizacionCabeza`): la mirada no bota.
+- **Rebote:** aterrizar o recibir un golpe hunde la cadera con un muelle; las rodillas se doblan lo justo para que los pies no se hundan en el suelo.
+- **Respiración con cansancio:** esprintar, atacar y hacer dash cansan; cansado respira más rápido y hondo (pecho y hombros), y se le pasa en calma.
+- **Reposo vivo:** quieto, el peso pasa de un pie a otro (la rodilla libre se dobla), la cabeza vaga con ruido suave y cada pocos segundos sale un **gesto de reposo** por turno: mirar atrás por encima de los hombros, alzar y girar la hoja, estirar los hombros.
+
+**Gestos de ataque (`Animacion/SAEVUSGestosAtaque.{h,cpp}`).** Cada ataque tiene su gesto en los datos (`FSAEVUSDefinicionAtaque::Gesto`, `ESAEVUSGestoAtaque`): tajo de derecha a izquierda, revés (pie izquierdo delante), remate a dos manos, estocada a fondo (tajo en carrera), tajo hacia arriba, y en el aire diagonal, revés con las piernas al lado contrario y remate con todo el cuerpo volcado; el ataque cargado es un giro entero. Un gesto son claves en "tiempo de fases" (0–1 preparación, 1–2 activa, 2–3 recuperación, valga lo que valga cada fase en los datos) con brazo, hoja, brazo libre, codos, giro de pecho y cadera, inclinación, ladeo, vuelco, giro entero, postura y bajada; se interpolan en arco con curva suave o de corte rápido. Todos tienen **amago** (la hoja va atrás antes de salir), **corte** rápido y **seguimiento** que se pasa del final. Cada tajo de la cadena empieza donde acabó el anterior, así el combo fluye. La cabeza compensa el giro del tronco (mira al frente) y cada gesto pisa a su manera (`FSAEVUSPisadaGesto`). Al acertar, la hoja **rebota** un instante (`AlImpactar` del combate → muelle `RetrocesoImpacto`). El sentido del arco dibujado sale del gesto (`SAEVUSCombate::SentidoBarrido`), así arco y hoja coinciden.
+
+**Dash con identidad.** En tres tiempos: **arranque** (se encoge y sale disparado, la cadera se hunde), **vuelo** (estirado, la pierna de atrás tendida) y **frenada** (la de delante se adelanta y el tronco se endereza; la inercia lo balancea al acabar). De frente, estocada baja con la espada atrás; hacia atrás, el tronco atrás y la espada en guardia; de lado, ladeado hacia el lado con el brazo libre abierto de contrapeso. La capa sale despedida. Además, los **ecos** (`USAEVUSComponenteEcoDash`): siluetas de luz fría que copian la pose a lo largo del dash y se apagan (material `M_EcoDash`, aditivo con borde de Fresnel; un grupo fijo de mallas reutilizado).
+
+**Locomoción viva.** La cadera gira con la zancada y cae hacia la pierna que se levanta; el pecho gira al revés; los pies ruedan (talón al apoyar, punta al despegar); los codos se doblan más al ir el brazo delante; al esprintar, más inclinación y rodillas más altas; en el aire las piernas pedalean un poco y las puntas bajan al caer. **Capa con muelles** en sus tres tramos (cada uno más lento): atrás con la velocidad, de lado al correr de lado y hacia fuera de las curvas; al frenar se pasa hacia delante y vuelve.
+
+**Suavizado por tramos.** El tronco llega primero; brazos, manos y hoja, y cabeza después (acción superpuesta); las piernas, más rápidas (pisan).
+
+**Golpes recibidos y muerte.** El golpe empuja el tronco lejos de quien golpea (capa secundaria) y suelta los brazos. Al morir, ceden primero las rodillas y luego el cuerpo cae **lejos del golpe** que lo mató.
+
+## Enemigos (`Animacion/SAEVUSAnimacionEnemigo.cpp`)
+
+Los goblins y el Rey Goblin usan la misma locomoción y capa secundaria, encorvados (la cabeza compensa) y nerviosos (miran a su alrededor a tirones). Cada ataque tiene su gesto (`FSAEVUSAtaqueEnemigo::Gesto`, `ESAEVUSGestoEnemigo`; en automático, según el tipo): tajo, mazazo a dos manos, manotazo con la garra, estocada, lanzamiento, embestida y salto (encogido, arriba con el arma alzada y mazazo al caer). El **aviso** es una anticipación que tiembla de tensión al final; el **golpe** sale disparado; la **recuperación** se queda abajo jadeando; **aturdido**, se tambalea con un bamboleo que se apaga. El peso (`FSAEVUSAjusteEnemigo::PesoAnimacion`: goblin 1, guerrero 1,4, Rey Goblin 2,2) hace los muelles más lentos y los pasos del jefe hunden la cadera. Al cambiar de fase, el jefe **ruge** (brazos abiertos, cabeza atrás).
+
+## Rendimiento
+
+Los huesos se escriben de una vez en `BoneSpaceTransforms` de la malla poseable (antes, `SetBoneTransformByName` reconstruía la pose entera en cada llamada: 25 veces por personaje y fotograma). Los nombres de hueso son `FName` creados una vez. Los enemigos que no se ven se animan cada `IntervaloFueraDePantalla` (0,25 s). La mirada busca enemigo cada `IntervaloBusquedaMirada` (0,2 s).
 
 ## Animación direccional (GunZ, tarea 68)
 
@@ -69,10 +100,11 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 
 ## Tests
 
-`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, ZancadaTajo, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible, Direccional}`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
+`SAEVUS.Animacion.{Esqueleto, EscalaReposo, Correr, Ataque, ZancadaTajo, TajoArriba, EstelaArma, MiradaEnemigo, Dash, ArmaVisible, Direccional, PuntaCapa, Muelle, GiroPorCapas, InerciaFrenada, Cansancio, ReposoVivo, GestosDistintos}`, `SAEVUS.Efectos.EstelaEspada`, `SAEVUS.Enemigo.Gestos`. La prueba de humo guarda las capturas `SAEVUS_PruebaHumo_{Correr,Dash,Ataque}.png` en `Saved/Screenshots/WindowsEditor/`.
 
 ## Pendiente
 
 - ~~Los materiales `M_Caballero_*` no sustituyen a los que crea Interchange~~: resuelto en la tarea 5 con *overrides* `MI_Caballero_*` en el componente (`pipeline-assets.md`, Sombreado).
 - La escala 0 del arma oculta no la saca de los límites de física.
-- Pulido: anticipación y estela de los tajos, transiciones de cancelación más marcadas, cara mirando a la cámara en el reposo.
+- Ajuste fino a ojo de los gestos y muelles en el juego (los valores son de primera pasada).
+- Los personajes los rehace el dueño: los gestos dependen solo de los 25 huesos, así sirven igual para los modelos nuevos.

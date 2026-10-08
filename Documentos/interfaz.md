@@ -33,7 +33,13 @@ El marcador de golpes de los muñecos ("Golpes | Último | Total") es de depurac
 
 Escala con las reglas de DPI del proyecto (por defecto, según el lado corto de la pantalla; a 720p todo es dos tercios del tamaño a 1080p). Las medidas del struct están en unidades de 1080p.
 
-- **Pantalla de muerte:** sin pawn o con el pawn muerto (`FSAEVUSEstadoInterfaz::bJugadorMuerto`), un velo negro con "Has caído" se funde en 1 s; al reaparecer se aclara en 0,5 s (`OpacidadMuerte`, `FundidoMuerte`, `FundidoReaparicion`). La prueba de humo guarda `SAEVUS_PruebaHumo_Muerte.png`.
+- **Pantalla de muerte:** sin pawn o con el pawn muerto (`FSAEVUSEstadoInterfaz::bJugadorMuerto`), la pantalla se oscurece y una **banda negra a lo ancho** muestra "Has caído" en rojo sangre seca, que crece despacio (`ColorTextoMuerte`, `AlturaBandaMuerte`, `CrecimientoTextoMuerte`); se funde en 1 s y al reaparecer se aclara en 0,5 s. La prueba de humo guarda `SAEVUS_PruebaHumo_Muerte.png`.
+- **Rastro del daño** (iteración integral, 2026-10-07): tras un golpe, lo perdido de la barra de vida (y de la del jefe) queda en color claro y se vacía tras una espera (`EsperaRastroDanio`, `RapidezRastroDanio`, `ColorRastroDanio`): se lee cuánto quitó el golpe. Curar lo pisa en el acto.
+- **Destello de daño:** al recibir un golpe, un velo rojo a pantalla completa que se apaga (`OpacidadDestelloDanio`, `DuracionDestelloDanio`).
+- **Brillo del alma:** la barra de alma se ilumina un instante al ganar alma (`DuracionBrilloAlma`).
+- **Título de zona** con dos rayas color hueso que lo enmarcan y crecen con el fundido (`AnchoRayasZona`).
+- **Tecla de interactuar:** el aviso usa la tecla asignada de verdad (Enhanced Input), no una `[E]` fija.
+- **Vida por máscara:** se lee del personaje (`FSAEVUSAjusteProgreso`); la de la interfaz es solo el respaldo sin personaje.
 
 ## Menú de pausa
 

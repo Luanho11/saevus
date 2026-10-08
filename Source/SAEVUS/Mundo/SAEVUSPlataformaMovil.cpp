@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSPlataformaMovil.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
@@ -8,7 +9,7 @@
 
 namespace SAEVUSPlataforma
 {
-	const TCHAR* const RutaCubo = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const TCHAR* const RutaCubo = SAEVUSFormas::Cubo;
 }
 
 ASAEVUSPlataformaMovil::ASAEVUSPlataformaMovil()

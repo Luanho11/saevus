@@ -53,11 +53,19 @@ public:
 	/** Material de sus proyectiles (el de la máscara: brilla igual). */
 	UMaterialInterface* ObtenerMaterialProyectil() const;
 
-	/** Se emite al morir cualquier enemigo (puertas del tutorial, recuentos). */
+	/**
+	 * Se emite cuando un enemigo deja la pelea: al morir o al desaparecer sin morir (caído fuera del mundo).
+	 * Es global (todas las partidas de PIE): quien escucha compara con sus propios enemigos.
+	 */
 	static FSAEVUSEventoEnemigo AlMorirEnemigo;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	//~ Inicio de la interfaz de ACharacter
 	virtual void LaunchCharacter(FVector LaunchVelocity, bool bXYOverride, bool bZOverride) override;
+
+	/** Salto o impulso de la propia IA: no se escala por EscalaEmpujeRecibido (los empujes de fuera sí, también al atacar). */
+	void LanzarPropio(const FVector& Velocidad);
 	//~ Fin de la interfaz de ACharacter
 
 	/**
@@ -65,6 +73,8 @@ public:
 	 * así funciona en cualquier mapa y en los mundos de prueba.
 	 */
 	virtual bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const override;
+	/** Devuelve la vida que se perdió de verdad (0 si el escudo lo para todo). */
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -145,5 +155,9 @@ private:
 	float TiempoMuerto = 0.f;
 	float TiempoAleteo = 0.f;
 	float TiempoDestello = 0.f;
+	/** Cierto mientras la IA lanza al enemigo (LanzarPropio): ese impulso no se escala. */
+	bool bLanzamientoPropio = false;
 	bool bDestelloPintado = false;
+	/** Último brillo puesto en la máscara (se reescribe solo si cambia). */
+	float BrilloAplicado = -1.f;
 };

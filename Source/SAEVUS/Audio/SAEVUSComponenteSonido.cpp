@@ -166,7 +166,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	}
 	if (const ACharacter* Personaje = Cast<ACharacter>(Duenio))
 	{
-		if (USAEVUSComponenteMovimiento* Movimiento = Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()))
+		if (USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje))
 		{
 			Manejadores.Emplace(Movimiento, Movimiento->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash));
 			Manejadores.Emplace(Movimiento, Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo));

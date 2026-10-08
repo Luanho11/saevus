@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Tutorial/SAEVUSPeligro.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Components/BoxComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -8,7 +9,7 @@
 
 namespace SAEVUSPeligro
 {
-	const TCHAR* const RutaCono = TEXT("/Engine/BasicShapes/Cone.Cone");
+	const TCHAR* const RutaCono = SAEVUSFormas::Cono;
 	constexpr float TamanoForma = 100.f;
 	// Cada pincho ocupa casi toda su celda y toda la altura de la caja.
 	constexpr float FraccionAnchoPincho = 0.8f;

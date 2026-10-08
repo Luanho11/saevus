@@ -7,6 +7,7 @@
 #include "AnimationRuntime.h"
 #include "Armas/SAEVUSTiposArma.h"
 #include "Components/PoseableMeshComponent.h"
+#include "Efectos/SAEVUSComponenteEstelaEspada.h"
 #include "Engine/SkeletalMesh.h"
 #include "Movimiento/SAEVUSAjustesMovimiento.h"
 
@@ -34,6 +35,9 @@ namespace SAEVUSPruebasAnimacion
 	constexpr float BajadaMinimaPelvisTajo = 8.f;
 	// La punta de la capa (capa_3, REF-02) se va hacia atrás al correr.
 	constexpr float GiroMinimoPuntaCapa = 10.f;
+	// Estela de la espada (REF-08 E): la media luna de un tajo tiene varios tramos y se apaga sola.
+	constexpr int32 TramosMinimosEstela = 8;
+	constexpr float TiempoApagarEstela = 0.4f;
 
 	/** Mundo con suelo y un personaje con el caballero en su malla poseable. */
 	struct FMundoAnimacion
@@ -233,6 +237,43 @@ bool FSAEVUSPruebaAnimacionCapa::RunTest(const FString& Parameters)
 	const float Grados = FMath::RadiansToDegrees(static_cast<float>(Reposo.AngularDistance(Corriendo)));
 	AddInfo(FString::Printf(TEXT("Punta de la capa girada %.0f grados al correr"), Grados));
 	TestTrue(TEXT("La punta de la capa sigue el movimiento"), Grados > GiroMinimoPuntaCapa);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEstelaEspada, "SAEVUS.Efectos.EstelaEspada", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEstelaEspada::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	USAEVUSComponenteEstelaEspada* Estela = Mundo.Personaje->ObtenerEstelaEspada();
+	if (!TestNotNull(TEXT("El personaje tiene estela de espada"), Estela))
+	{
+		return false;
+	}
+	Mundo.AvanzarDurante(TiempoAsentarPose);
+	TestEqual(TEXT("Sin tajo no hay estela"), Estela->ObtenerNumeroTramos(), 0);
+	USAEVUSComponenteCombate* Combate = Mundo.Personaje->ObtenerCombate();
+	Mundo.Personaje->PedirAtaque();
+	const FSAEVUSDefinicionAtaque* Ataque = Combate->ObtenerAtaqueActual();
+	if (!TestNotNull(TEXT("Ataque en curso"), Ataque))
+	{
+		return false;
+	}
+	int32 MaximoTramos = 0;
+	while (Combate->EstaAtacando() && Combate->ObtenerTiempoAtaque() < Ataque->TiempoPreparacion + Ataque->TiempoActivo)
+	{
+		Mundo.MundoPrueba.Paso();
+		MaximoTramos = FMath::Max(MaximoTramos, Estela->ObtenerNumeroTramos());
+	}
+	AddInfo(FString::Printf(TEXT("La media luna del tajo llegó a %d tramos"), MaximoTramos));
+	TestTrue(TEXT("El tajo deja una media luna curva"), MaximoTramos >= TramosMinimosEstela);
+	Mundo.AvanzarDurante(TiempoApagarEstela);
+	TestEqual(TEXT("La estela se apaga sola"), Estela->ObtenerNumeroTramos(), 0);
 	return true;
 }
 

@@ -43,6 +43,30 @@ enum class ESAEVUSTipoAtaqueEnemigo : uint8
 	Picado
 };
 
+/**
+ * Animación de un ataque de enemigo: cómo se prepara (el aviso que lee el jugador), cómo golpea y cómo se
+ * queda. Automatico la saca del tipo de ataque; los demás dan a cada ataque su propio gesto.
+ */
+UENUM(BlueprintType)
+enum class ESAEVUSGestoEnemigo : uint8
+{
+	Automatico,
+	/** Arma alzada atrás por encima del hombro y tajo cruzado hacia delante y abajo. */
+	Tajo,
+	/** A dos manos por encima de la cabeza y hasta el suelo, con todo el cuerpo. */
+	Mazazo,
+	/** Revés con la mano libre abierta, girando el tronco. */
+	Manotazo,
+	/** El arma recogida atrás y lanzada recta al frente. */
+	Estocada,
+	/** Brazo atrás y lanzamiento por encima del hombro, con paso. */
+	Lanzamiento,
+	/** Agachado y echado hacia delante, el arma por delante: carrera. */
+	Embestida,
+	/** Encogido para saltar, recogido en el aire con el arma arriba, golpe al caer. */
+	Salto
+};
+
 /** Un ataque de enemigo. Tiempos en segundos; se escalan con la fase. */
 USTRUCT(BlueprintType)
 struct FSAEVUSAtaqueEnemigo
@@ -54,6 +78,30 @@ struct FSAEVUSAtaqueEnemigo
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque")
 	ESAEVUSTipoAtaqueEnemigo Tipo = ESAEVUSTipoAtaqueEnemigo::Embestida;
+
+	/** Su animación (Automatico: según el tipo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque")
+	ESAEVUSGestoEnemigo Gesto = ESAEVUSGestoEnemigo::Automatico;
+
+	/** El gesto que se ve: el elegido o, en automático, el del tipo de ataque. */
+	ESAEVUSGestoEnemigo ObtenerGesto() const
+	{
+		if (Gesto != ESAEVUSGestoEnemigo::Automatico)
+		{
+			return Gesto;
+		}
+		switch (Tipo)
+		{
+		case ESAEVUSTipoAtaqueEnemigo::Embestida:
+			return ESAEVUSGestoEnemigo::Embestida;
+		case ESAEVUSTipoAtaqueEnemigo::Salto:
+			return ESAEVUSGestoEnemigo::Salto;
+		case ESAEVUSTipoAtaqueEnemigo::Proyectil:
+			return ESAEVUSGestoEnemigo::Lanzamiento;
+		default:
+			return ESAEVUSGestoEnemigo::Tajo;
+		}
+	}
 
 	/** Solo se elige con el objetivo entre estas distancias (horizontales, de centro a centro). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Elección", meta = (ClampMin = "0", ForceUnits = "cm"))
@@ -236,6 +284,13 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	/** Tiempo entre morir y desaparecer (se encoge y suelta partículas). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0", ForceUnits = "s"))
 	float DuracionMuerte = 0.6f;
+
+	/**
+	 * Peso de su animación: 1 = un goblin (nervioso, rápido); más es más lento y pesado (el Rey Goblin): los
+	 * muelles van más despacio, los pasos retumban y la respiración es más honda.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animacion", meta = (ClampMin = "0.3", ClampMax = "4"))
+	float PesoAnimacion = 1.f;
 
 	/**
 	 * Rendimiento: en reposo y a más de RadioDeteccion × este factor del objetivo, el enemigo se

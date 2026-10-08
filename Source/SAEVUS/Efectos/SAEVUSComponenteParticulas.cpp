@@ -1,13 +1,14 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Efectos/SAEVUSComponenteParticulas.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace SAEVUSParticulas
 {
 	// Malla por defecto: el cubo del motor (12 triángulos). Se puede cambiar en el Blueprint.
-	const TCHAR* const RutaMallaPorDefecto = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const TCHAR* const RutaMallaPorDefecto = SAEVUSFormas::Cubo;
 	// Velocidad a la que una partícula orientada mide 1 + Estiramiento veces su tamaño.
 	constexpr float VelocidadEstiramiento = 1000.f;
 }
@@ -63,6 +64,7 @@ void USAEVUSComponenteParticulas::Emitir(const FVector& Posicion, const FVector&
 	Particula.Velocidad = Velocidad;
 	Particula.Rotacion = FRotator(Aleatorio.FRandRange(0.f, 360.f), Aleatorio.FRandRange(0.f, 360.f), Aleatorio.FRandRange(0.f, 360.f));
 	Particula.Giro = FRotator(Aleatorio.FRandRange(-1.f, 1.f), Aleatorio.FRandRange(-1.f, 1.f), Aleatorio.FRandRange(-1.f, 1.f)) * Ajuste.GiroMaximo;
+	NumVivas += Particula.bViva ? 0 : 1;
 	Particula.Edad = 0.f;
 	Particula.bViva = true;
 	bInstanciasSucias = true;
@@ -78,17 +80,17 @@ void USAEVUSComponenteParticulas::EmitirRafaga(const FVector& Posicion, const FV
 
 int32 USAEVUSComponenteParticulas::ObtenerParticulasActivas() const
 {
-	int32 Activas = 0;
-	for (const FParticula& Particula : Particulas)
-	{
-		Activas += Particula.bViva ? 1 : 0;
-	}
-	return Activas;
+	return NumVivas;
 }
 
 void USAEVUSComponenteParticulas::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	// Sin nada vivo ni que esconder no hay trabajo (el emisor sigue escuchando: emitir lo despierta).
+	if (NumVivas == 0 && !bInstanciasSucias)
+	{
+		return;
+	}
 
 	const float Frenado = FMath::Max(0.f, 1.f - Ajuste.Arrastre * DeltaTime);
 	for (FParticula& Particula : Particulas)
@@ -101,6 +103,7 @@ void USAEVUSComponenteParticulas::TickComponent(float DeltaTime, ELevelTick Tick
 		if (Particula.Edad >= Ajuste.Vida)
 		{
 			Particula.bViva = false;
+			--NumVivas;
 			bInstanciasSucias = true;
 			continue;
 		}

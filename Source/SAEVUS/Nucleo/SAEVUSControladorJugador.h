@@ -84,4 +84,8 @@ private:
 
 	float Sensibilidad = 1.f;
 	float Volumen = 1.f;
+
+	/** Límites de la sensibilidad de la cámara (las opciones van de 0,5 a 2). */
+	static constexpr float SensibilidadMinima = 0.1f;
+	static constexpr float SensibilidadMaxima = 5.f;
 };

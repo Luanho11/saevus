@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSPalanca.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -13,8 +14,8 @@
 
 namespace SAEVUSPalanca
 {
-	const TCHAR* const RutaCubo = TEXT("/Engine/BasicShapes/Cube.Cube");
-	const TCHAR* const RutaCilindro = TEXT("/Engine/BasicShapes/Cylinder.Cylinder");
+	const TCHAR* const RutaCubo = SAEVUSFormas::Cubo;
+	const TCHAR* const RutaCilindro = SAEVUSFormas::Cilindro;
 	// Caja golpeable y piezas boceto (cm; las formas del motor miden 100).
 	const FVector ExtensionCaja(40.f, 40.f, 80.f);
 	const FVector EscalaBase(0.6f, 0.6f, 0.3f);
@@ -61,7 +62,7 @@ ASAEVUSPalanca::ASAEVUSPalanca()
 float ASAEVUSPalanca::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Accionar();
-	// No es daño hecho: ni alma, ni munición, ni parada de golpe.
+	// No es daño hecho: no da alma ni munición (la hoja sí rebota en ella, con su parada de golpe).
 	return 0.f;
 }
 

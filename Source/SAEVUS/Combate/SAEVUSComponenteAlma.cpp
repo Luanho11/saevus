@@ -29,8 +29,7 @@ void USAEVUSComponenteAlma::BeginPlay()
 
 USAEVUSComponenteMovimiento* USAEVUSComponenteAlma::ObtenerMovimiento() const
 {
-	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
-	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	return SAEVUSMovimiento::DelActor(GetOwner());
 }
 
 void USAEVUSComponenteAlma::GanarAlma(float Cantidad)
@@ -104,7 +103,7 @@ void USAEVUSComponenteAlma::FijarCurando(bool bNuevo)
 	// Curar ancla al personaje: sin velocidad en el suelo mientras dura.
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
-		Movimiento->FijarEscalaVelocidadAccion(bCurando ? 0.f : 1.f);
+		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Curacion, bCurando ? 0.f : 1.f);
 	}
 }
 

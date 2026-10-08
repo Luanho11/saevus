@@ -13,6 +13,7 @@ class USAEVUSComponenteMovimiento;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSAEVUSFirmaGolpeAtaque, AActor*, ActorGolpeado, float, Danio);
 DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoAtaque);
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoImpactoAtaque, const FSAEVUSDefinicionAtaque& /*Ataque*/);
 
 /**
  * Base del cuerpo a cuerpo: ejecuta las líneas de tiempo de ataque de un repertorio, guarda las
@@ -41,6 +42,9 @@ public:
 	/** El botón de ataque se mantiene (cierto) o se suelta (falso): carga el ataque cargado. */
 	void FijarAtaqueMantenido(bool bMantenido);
 
+	/** Pierde la carga sin lanzar el ataque cargado (cambio a un arma de fuego, muerte). */
+	void CancelarCarga();
+
 	/** La carga está lista: soltar lanza el ataque cargado. */
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Combate")
 	bool EstaCargado() const { return bAtaqueMantenido && TiempoCargando >= ObtenerRepertorio().TiempoCarga; }
@@ -60,13 +64,16 @@ public:
 	bool IntentarCancelarPor(ESAEVUSAccionCancelacion Accion);
 
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Combate")
-	bool EstaAtacando() const { return AtaqueActual != nullptr; }
+	bool EstaAtacando() const { return bAtacando; }
+
+	/** Corta el ataque en curso sin más (muerte, cambio de repertorio). */
+	void TerminarAtaque();
 
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Combate")
 	ESAEVUSFaseAtaque ObtenerFaseAtaque() const;
 
 	/** El ataque en curso, o nulo. */
-	const FSAEVUSDefinicionAtaque* ObtenerAtaqueActual() const { return AtaqueActual; }
+	const FSAEVUSDefinicionAtaque* ObtenerAtaqueActual() const { return bAtacando ? &AtaqueEnCurso : nullptr; }
 
 	/** Posición del ataque en curso en su cadena (0 = primero), o INDEX_NONE. */
 	int32 ObtenerIndiceCombo() const { return IndiceCombo; }
@@ -97,9 +104,12 @@ public:
 	/** Se emite al empezar cada ataque (sonido, efectos). */
 	FSAEVUSEventoAtaque AlIniciarAtaque;
 
-	/** Se dispara una vez por cada actor golpeado (que recibe daño) por un ataque. */
+	/** Se dispara una vez por cada actor golpeado (que pierde vida) por un ataque, con el daño hecho. */
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Combate")
 	FSAEVUSFirmaGolpeAtaque AlGolpear;
+
+	/** Se emite una vez por ataque, en su primer contacto (con lo que sea): retroceso del brazo, sacudida. */
+	FSAEVUSEventoImpactoAtaque AlImpactar;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -119,9 +129,10 @@ private:
 	void IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDireccionAtaque Direccion);
 	/** Tajo en carrera: el ataque que sale de un dash, en la dirección del dash. */
 	void IniciarTajoEnCarrera(bool bEnAire, const FVector& DireccionDash);
-	/** Pone en marcha AtaqueActual: giro, estocada y escala de velocidad (hacia DireccionForzada si se da). */
+	/** Qué ataque es: posición en su cadena, cadena aérea, dirección, tajo en carrera o cargado. */
+	void FijarContexto(int32 Indice, bool bEnAire, ESAEVUSDireccionAtaque Direccion, bool bCarrera, bool bCargado);
+	/** Pone en marcha el ataque: giro, estocada y escala de velocidad (hacia DireccionForzada si se da). */
 	void PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada = nullptr);
-	void TerminarAtaque();
 	void DetectarGolpes(const FSAEVUSDefinicionAtaque& Ataque);
 	/** Retroceso, empuje, rebote y parada de golpe del primer acierto de un ataque. */
 	void AplicarImpacto(const FSAEVUSDefinicionAtaque& Ataque, TConstArrayView<AActor*> Golpeados);
@@ -131,7 +142,9 @@ private:
 	ACharacter* ObtenerPersonaje() const;
 	USAEVUSComponenteMovimiento* ObtenerMovimiento() const;
 
-	const FSAEVUSDefinicionAtaque* AtaqueActual = nullptr;
+	/** Copia del ataque en curso (válida mientras bAtacando). */
+	FSAEVUSDefinicionAtaque AtaqueEnCurso;
+	bool bAtacando = false;
 	int32 IndiceCombo = INDEX_NONE;
 	bool bCadenaAerea = false;
 	float TiempoAtaque = 0.f;

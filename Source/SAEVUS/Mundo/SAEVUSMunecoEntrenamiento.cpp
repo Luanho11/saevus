@@ -1,6 +1,8 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
+#include "Combate/SAEVUSTiposCombate.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -17,7 +19,7 @@ namespace SAEVUSMuneco
 	constexpr float MediaAlturaCapsula = 96.f;
 
 	// Cilindro del motor (100 cm de ancho y alto, pivote en el centro) estirado a la cápsula.
-	const TCHAR* const RutaMallaCuerpo = TEXT("/Engine/BasicShapes/Cylinder.Cylinder");
+	const TCHAR* const RutaMallaCuerpo = SAEVUSFormas::Cilindro;
 	constexpr float TamanoCilindro = 100.f;
 
 	constexpr float AlturaLecturaSobreCapsula = 30.f;
@@ -28,6 +30,8 @@ ASAEVUSMunecoEntrenamiento::ASAEVUSMunecoEntrenamiento()
 {
 	using namespace SAEVUSMuneco;
 	PrimaryActorTick.bCanEverTick = false;
+	// Cuenta como golpe (alma, chispas) aunque no tenga vida: es para practicar.
+	Tags.Add(SAEVUSCombate::EtiquetaBlancoPractica);
 
 	Capsula = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsula"));
 	Capsula->InitCapsuleSize(RadioCapsula, MediaAlturaCapsula);

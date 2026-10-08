@@ -68,6 +68,28 @@ struct FSAEVUSAjusteCamara
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "1"))
 	float DesenfoqueMovimiento = 0.f;
 
+	/**
+	 * Gradación de mundo en ruinas (dirección artística): las sombras tiran a azul frío y las luces a oro viejo,
+	 * como una pintura antigua; ganancia por canal de cada zona tonal (1 = sin cambio).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo")
+	FLinearColor TinteSombras = FLinearColor(0.9f, 0.96f, 1.12f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo")
+	FLinearColor TinteLuces = FLinearColor(1.1f, 1.0f, 0.84f);
+
+	/** Contraste de las sombras (más de 1 = negros más hondos, el tono oscuro del juego). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0.5", ClampMax = "2"))
+	float ContrasteSombras = 1.12f;
+
+	/** Resplandor (bloom) suave en las luces fuertes: braseros, filo, ecos. 0 = apagado; barato a esta intensidad. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0", ClampMax = "4"))
+	float Resplandor = 0.45f;
+
+	/** Desde qué brillo resplandece (más alto = solo lo muy brillante). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estilo", meta = (ClampMin = "0"))
+	float UmbralResplandor = 1.2f;
+
 	/** Sacudida de cámara en los impactos (modelo de "trauma": cada evento suma; la sacudida es su cuadrado). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida")
 	bool bSacudida = true;

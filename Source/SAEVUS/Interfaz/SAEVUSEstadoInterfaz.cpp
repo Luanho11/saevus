@@ -16,14 +16,14 @@
 
 #define LOCTEXT_NAMESPACE "SAEVUSInterfaz"
 
-FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const UWorld* Mundo, float VidaPorMascara, float FundidoAviso)
+FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const UWorld* Mundo, float VidaPorMascara, float FundidoAviso, const FString& TeclaInteraccion)
 {
 	FSAEVUSEstadoInterfaz Estado;
-	const USAEVUSComponenteVida* VidaJugador = Pawn ? Pawn->FindComponentByClass<USAEVUSComponenteVida>() : nullptr;
-	Estado.bJugadorMuerto = !Pawn || (VidaJugador && VidaJugador->EstaMuerto());
+	const USAEVUSComponenteVida* Vida = Pawn ? Pawn->FindComponentByClass<USAEVUSComponenteVida>() : nullptr;
+	Estado.bJugadorMuerto = !Pawn || (Vida && Vida->EstaMuerto());
 	if (Pawn)
 	{
-		if (const USAEVUSComponenteVida* Vida = Pawn->FindComponentByClass<USAEVUSComponenteVida>(); Vida && VidaPorMascara > 0.f)
+		if (Vida && VidaPorMascara > 0.f)
 		{
 			const int32 Numero = FMath::CeilToInt32(Vida->ObtenerVidaMaxima() / VidaPorMascara);
 			for (int32 Indice = 0; Indice < Numero; ++Indice)
@@ -40,7 +40,7 @@ FSAEVUSEstadoInterfaz FSAEVUSEstadoInterfaz::Calcular(const APawn* Pawn, const U
 		const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(Pawn);
 		if (const ISAEVUSInteractuable* Objeto = Personaje && !Personaje->EstaSentado() ? Cast<ISAEVUSInteractuable>(Personaje->ObtenerInteractuable()) : nullptr)
 		{
-			Estado.TextoInteraccion = FText::Format(LOCTEXT("Interaccion", "[E]  {0}"), Objeto->ObtenerTextoInteraccion());
+			Estado.TextoInteraccion = FText::Format(LOCTEXT("Interaccion", "[{0}]  {1}"), FText::FromString(TeclaInteraccion), Objeto->ObtenerTextoInteraccion());
 		}
 		if (const USAEVUSComponenteArmas* Armas = Pawn->FindComponentByClass<USAEVUSComponenteArmas>())
 		{

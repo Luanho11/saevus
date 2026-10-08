@@ -141,13 +141,11 @@ void USAEVUSComponenteEfectosCombate::EmitirCarga(float DeltaTime)
 		return;
 	}
 	// Más partículas cuanto más cargado; lista, al doble.
-	AcumuladoCarga += AjusteEfectos.ParticulasPorSegundoCarga * DeltaTime * (Combate->EstaCargado() ? 2.f : Progreso);
-	const int32 Cantidad = FMath::FloorToInt32(AcumuladoCarga);
-	AcumuladoCarga -= Cantidad;
+	const int32 Cantidad = ConsumirEmision(AcumuladoCarga, AjusteEfectos.ParticulasPorSegundoCarga * (Combate->EstaCargado() ? 2.f : Progreso), DeltaTime);
 	for (int32 Indice = 0; Indice < Cantidad; ++Indice)
 	{
 		const FVector Destino = FMath::Lerp(Base, Punta, Aleatorio.FRand());
-		const FVector Desde = Destino + Aleatorio.VRand() * AjusteEfectos.RadioConvergencia * 0.5f;
+		const FVector Desde = Destino + Aleatorio.GetUnitVector() * AjusteEfectos.RadioConvergencia * 0.5f;
 		Emitir(Desde, (Destino - Desde) / FMath::Max(ObtenerAjuste().Vida, UE_KINDA_SMALL_NUMBER));
 	}
 }
@@ -159,14 +157,12 @@ void USAEVUSComponenteEfectosCombate::TickComponent(float DeltaTime, ELevelTick 
 	EmitirCarga(DeltaTime);
 	if (Alma && Alma->EstaCurando())
 	{
-		AcumuladoEmision += AjusteEfectos.ParticulasPorSegundoCurando * DeltaTime;
-		const int32 Cantidad = FMath::FloorToInt32(AcumuladoEmision);
-		AcumuladoEmision -= Cantidad;
+		const int32 Cantidad = ConsumirEmision(AcumuladoEmision, AjusteEfectos.ParticulasPorSegundoCurando, DeltaTime);
 		const FVector Centro = GetOwner()->GetActorLocation();
 		for (int32 Indice = 0; Indice < Cantidad; ++Indice)
 		{
 			// Desde un punto al azar alrededor del cuerpo, hacia el centro: el alma se concentra.
-			const FVector Desde = Centro + FMath::VRand() * AjusteEfectos.RadioConvergencia;
+			const FVector Desde = Centro + Aleatorio.GetUnitVector() * AjusteEfectos.RadioConvergencia;
 			Emitir(Desde, (Centro - Desde) / FMath::Max(ObtenerAjuste().Vida, UE_KINDA_SMALL_NUMBER));
 		}
 	}

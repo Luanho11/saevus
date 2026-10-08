@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Enemigos/SAEVUSEnemigo.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -22,8 +23,8 @@ namespace SAEVUSEnemigo
 	const FSAEVUSAjusteEnemigo AjusteBase;
 
 	// Formas del motor: 100 cm, pivote en el centro.
-	const TCHAR* const RutaEsfera = TEXT("/Engine/BasicShapes/Sphere.Sphere");
-	const TCHAR* const RutaCono = TEXT("/Engine/BasicShapes/Cone.Cone");
+	const TCHAR* const RutaEsfera = SAEVUSFormas::Esfera;
+	const TCHAR* const RutaCono = SAEVUSFormas::Cono;
 	constexpr float TamanoForma = 100.f;
 
 	// Proporciones del boceto respecto a la cápsula (fracciones del radio y la media altura).
@@ -203,7 +204,12 @@ void ASAEVUSEnemigo::AplicarAjuste()
 	{
 		Movimiento->SetMovementMode(MOVE_Flying);
 	}
-	Vida->FijarVidaMaxima(Ajuste.VidaMaxima);
+	Animacion->FijarPeso(Ajuste.PesoAnimacion);
+	// Solo si cambia: AplicarAjuste se repite (construcción, inicio, datos nuevos) y no debe curar a mitad de combate.
+	if (!FMath::IsNearlyEqual(Vida->ObtenerVidaMaxima(), FMath::Max(1.f, Ajuste.VidaMaxima)))
+	{
+		Vida->FijarVidaMaxima(Ajuste.VidaMaxima);
+	}
 
 	// Cuerpo con esqueleto: de pie en la base de la cápsula, animado desde la IA; oculta todo lo demás.
 	const bool bEsqueleto = TieneEsqueleto();
@@ -268,6 +274,7 @@ void ASAEVUSEnemigo::CrearMateriales()
 	MaterialMascara = UMaterialInstanceDynamic::Create(Datos->MaterialBase, this);
 	MaterialMascara->SetVectorParameterValue(ParametroColor, Ajuste.ColorMascara);
 	MaterialMascara->SetScalarParameterValue(ParametroAutoIluminacion, BrilloReposo);
+	BrilloAplicado = BrilloReposo;
 	Cuerpo->SetMaterial(0, MaterialCuerpo);
 	if (Datos->MallaCuerpo)
 	{
@@ -310,14 +317,24 @@ void ASAEVUSEnemigo::CrearMateriales()
 
 bool ASAEVUSEnemigo::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) const
 {
-	return GetLocalRole() == ROLE_Authority && CanBeDamaged() && Damage != 0.f;
+	return USAEVUSComponenteVida::PuedeRecibirDanio(this, Damage);
+}
+
+float ASAEVUSEnemigo::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	return Vida->MedirDanio([&] { Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser); });
 }
 
 void ASAEVUSEnemigo::LaunchCharacter(FVector LaunchVelocity, bool bXYOverride, bool bZOverride)
 {
-	// Los saltos propios de la IA no se escalan; los empujes recibidos sí (los jefes apenas se mueven).
-	const bool bPropio = IA && IA->ObtenerEstado() == ESAEVUSEstadoEnemigo::Atacar;
-	Super::LaunchCharacter(bPropio ? LaunchVelocity : LaunchVelocity * ObtenerAjuste().EscalaEmpujeRecibido, bXYOverride, bZOverride);
+	// Los saltos propios de la IA no se escalan; los empujes recibidos sí, aunque lleguen mientras ataca (los jefes apenas se mueven).
+	Super::LaunchCharacter(bLanzamientoPropio ? LaunchVelocity : LaunchVelocity * ObtenerAjuste().EscalaEmpujeRecibido, bXYOverride, bZOverride);
+}
+
+void ASAEVUSEnemigo::LanzarPropio(const FVector& Velocidad)
+{
+	TGuardValue<bool> Propio(bLanzamientoPropio, true);
+	LaunchCharacter(Velocidad, true, true);
 }
 
 void ASAEVUSEnemigo::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor* Asesino)
@@ -330,6 +347,16 @@ void ASAEVUSEnemigo::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor
 	Efectos->EmitirRafaga(GetActorLocation(), FVector::UpVector * VelocidadParticulasMuerte, ParticulasMuerte, DispersionParticulasMuerte);
 	SetLifeSpan(FMath::Max(ObtenerAjuste().DuracionMuerte, KINDA_SMALL_NUMBER));
 	AlMorirEnemigo.Broadcast(this);
+}
+
+void ASAEVUSEnemigo::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Destruido sin morir (fuera del mundo, quitado por un script): para las puertas también deja la pelea.
+	if (EndPlayReason == EEndPlayReason::Destroyed && !Vida->EstaMuerto())
+	{
+		AlMorirEnemigo.Broadcast(this);
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void ASAEVUSEnemigo::Tick(float DeltaSeconds)
@@ -374,8 +401,13 @@ void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)
 		// El cuerpo con esqueleto avisa y ataca con su pose; sin aplastarse.
 		Objetivo = FVector::OneVector;
 	}
-	EscalaPiezas = FMath::VInterpTo(EscalaPiezas, Objetivo, DeltaSeconds, RapidezEscala);
-	Piezas->SetRelativeScale3D(EscalaPiezas);
+	// Solo se escribe lo que cambia: mover un componente y tocar un material cada fotograma cuesta con muchos enemigos.
+	const FVector NuevaEscala = FMath::VInterpTo(EscalaPiezas, Objetivo, DeltaSeconds, RapidezEscala);
+	if (!NuevaEscala.Equals(EscalaPiezas, UE_KINDA_SMALL_NUMBER) || !Piezas->GetRelativeScale3D().Equals(NuevaEscala, UE_KINDA_SMALL_NUMBER))
+	{
+		EscalaPiezas = NuevaEscala;
+		Piezas->SetRelativeScale3D(EscalaPiezas);
+	}
 	const FSAEVUSAjusteEnemigo& Ajuste = ObtenerAjuste();
 	if (Ajuste.bVolador && IA->ObtenerEstado() != ESAEVUSEstadoEnemigo::Muerto)
 	{
@@ -384,8 +416,9 @@ void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)
 		const float Fase = static_cast<float>(GetUniqueID() % 7) * 0.9f;
 		Piezas->SetRelativeLocation(FVector(0.f, 0.f, Ajuste.AmplitudAleteo * FMath::Sin(UE_TWO_PI * Ajuste.FrecuenciaAleteo * TiempoAleteo + Fase)));
 	}
-	if (MaterialMascara)
+	if (MaterialMascara && Brillo != BrilloAplicado)
 	{
+		BrilloAplicado = Brillo;
 		MaterialMascara->SetScalarParameterValue(ParametroAutoIluminacion, Brillo);
 	}
 }

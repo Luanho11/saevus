@@ -1,6 +1,8 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Enemigos/SAEVUSProyectil.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSCanalesColision.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Enemigos/SAEVUSEnemigo.h"
@@ -14,7 +16,7 @@
 namespace SAEVUSProyectil
 {
 	constexpr float Radio = 18.f;
-	const TCHAR* const RutaEsfera = TEXT("/Engine/BasicShapes/Sphere.Sphere");
+	const TCHAR* const RutaEsfera = SAEVUSFormas::Esfera;
 	constexpr float TamanoForma = 100.f;
 	constexpr float BrilloProyectil = 2.f;
 	const FName ParametroAutoIluminacion(TEXT("AutoIluminacion"));
@@ -27,12 +29,16 @@ ASAEVUSProyectil::ASAEVUSProyectil()
 
 	Esfera = CreateDefaultSubobject<USphereComponent>(TEXT("Esfera"));
 	Esfera->InitSphereRadius(Radio);
-	// Objeto dinámico consultable (lo encuentra la esfera del tajo); choca con el escenario y solapa pawns.
-	Esfera->SetCollisionObjectType(ECC_WorldDynamic);
+	// Cuerpo físico consultable (lo encuentra el tajo, que lo devuelve: bloquea el canal del arma); choca con el
+	// escenario fijo y con el dinámico (puertas, paredes rompibles, palancas) y solapa pawns. No es WorldDynamic
+	// para que los proyectiles de un abanico, que salen juntos, no choquen entre sí.
+	Esfera->SetCollisionObjectType(ECC_PhysicsBody);
 	Esfera->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Esfera->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Esfera->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	Esfera->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	Esfera->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	Esfera->SetCollisionResponseToChannel(SAEVUSColision::TrazaArma, ECR_Block);
 	Esfera->SetGenerateOverlapEvents(true);
 	RootComponent = Esfera;
 
@@ -53,6 +59,14 @@ void ASAEVUSProyectil::Lanzar(const FVector& Direccion, float NuevaVelocidad, fl
 	Edad = 0.f;
 	bDevuelto = false;
 	Esfera->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::AlSolapar);
+	if (Material)
+	{
+		// Una instancia dinámica no puede ser padre de otra: se parte de su material.
+		if (const UMaterialInstanceDynamic* Dinamico = Cast<UMaterialInstanceDynamic>(Material))
+		{
+			Material = Dinamico->Parent;
+		}
+	}
 	if (Material)
 	{
 		UMaterialInstanceDynamic* Brillo = UMaterialInstanceDynamic::Create(Material, this);

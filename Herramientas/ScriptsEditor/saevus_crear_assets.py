@@ -286,6 +286,56 @@ def parametro_vector(material, nombre, color, x, y):
     return expresion
 
 
+def crear_material_estela(nombre, color, brillo):
+    """
+    Material de estela (REF-08 E): aditivo, sin luz, de dos caras; el color de vértice da la opacidad (alfa), así
+    la cinta se apaga hacia dentro y con la edad. Barato: tres nodos, sin texturas.
+    """
+    edicion = unreal.MaterialEditingLibrary
+    material = material_vacio(nombre, DIR_MATERIALES)
+    material.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
+    material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    material.set_editor_property("two_sided", True)
+    tinte = parametro_vector(material, "Color", color, -900, 0)
+    vertice = nodo(material, unreal.MaterialExpressionVertexColor, -900, 200)
+    intensidad = parametro_escalar(material, "Brillo", brillo, -900, 400)
+    con_alfa = nodo(material, unreal.MaterialExpressionMultiply, -600, 100)
+    edicion.connect_material_expressions(tinte, "", con_alfa, "A")
+    edicion.connect_material_expressions(vertice, "A", con_alfa, "B")
+    emision = nodo(material, unreal.MaterialExpressionMultiply, -350, 150)
+    edicion.connect_material_expressions(con_alfa, "", emision, "A")
+    edicion.connect_material_expressions(intensidad, "", emision, "B")
+    edicion.connect_material_property(emision, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    edicion.recompile_material(material)
+    return material
+
+
+def crear_material_eco(nombre, color, brillo):
+    """
+    Material de los ecos del dash: aditivo y sin luz; brilla más en el borde de la silueta (Fresnel), así el
+    eco se lee como un contorno de luz fría que se apaga (el componente baja Brillo con la edad).
+    """
+    edicion = unreal.MaterialEditingLibrary
+    material = material_vacio(nombre, DIR_MATERIALES)
+    material.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
+    material.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    material.set_editor_property("used_with_skeletal_mesh", True)
+    tinte = parametro_vector(material, "Color", color, -900, 0)
+    intensidad = parametro_escalar(material, "Brillo", brillo, -900, 300)
+    borde = nodo(material, unreal.MaterialExpressionFresnel, -900, 150)
+    borde.set_editor_property("exponent", 2.0)
+    borde.set_editor_property("base_reflect_fraction", 0.25)
+    con_borde = nodo(material, unreal.MaterialExpressionMultiply, -600, 100)
+    edicion.connect_material_expressions(tinte, "", con_borde, "A")
+    edicion.connect_material_expressions(borde, "", con_borde, "B")
+    emision = nodo(material, unreal.MaterialExpressionMultiply, -350, 150)
+    edicion.connect_material_expressions(con_borde, "", emision, "A")
+    edicion.connect_material_expressions(intensidad, "", emision, "B")
+    edicion.connect_material_property(emision, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    edicion.recompile_material(material)
+    return material
+
+
 def material_vacio(nombre, directorio):
     ruta = f"{directorio}/{nombre}"
     if eal.does_asset_exist(ruta):
@@ -566,6 +616,15 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     # Alma: blanco azulado, el mismo tono frío que el borde del caballero.
     material_alma = crear_material_color("M_ParticulaAlma", (0.7, 0.85, 1.0, 1.0), sin_luz=True)
     personaje.get_editor_property("efectos_combate").set_editor_property("override_materials", [material_alma])
+    # Estela de la espada: media luna blanca azulada (REF-08 E), el mismo frío que el filo.
+    material_estela_espada = crear_material_estela("M_EstelaEspada", (0.72, 0.86, 1.0, 1.0), 2.5)
+    personaje.get_editor_property("estela_espada").set_editor_property("override_materials", [material_estela_espada])
+    # Polvo en el aire: motas cálidas sin luz, como polvo en un rayo de sol.
+    material_mota = crear_material_color("M_ParticulaMota", (1.0, 0.78, 0.5, 1.0), sin_luz=True)
+    personaje.get_editor_property("motas_ambiente").set_editor_property("override_materials", [material_mota])
+    # Ecos del dash: silueta de luz fría (REF-08 D), el mismo tono que la estela.
+    material_eco = crear_material_eco("M_EcoDash", (0.55, 0.75, 1.0, 1.0), 1.6)
+    personaje.get_editor_property("eco_dash").set_editor_property("material_eco", material_eco)
 
     bp_controlador = obtener_o_crear_blueprint("BP_SAEVUSControladorJugador", unreal.SAEVUSControladorJugador)
     controlador = cdo_blueprint(bp_controlador)
@@ -698,10 +757,10 @@ ENEMIGOS["DA_Goblin"] = {
     "danio_contacto": 0.0,
     "ataques": [
         # Tajo corto con el cuchillo y, desde más lejos, una estocada en carrera.
-        {"nombre": "Tajo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 190.0,
+        {"nombre": "Tajo", "tipo": "GOLPE", "gesto": "TAJO", "distancia_minima": 0.0, "distancia_maxima": 190.0,
          "tiempo_telegrafiar": 0.45, "duracion": 0.2, "tiempo_recuperacion": 0.7, "danio": 10.0,
          "radio_golpe": 80.0, "alcance_golpe": 100.0},
-        {"nombre": "Estocada", "tipo": "EMBESTIDA", "distancia_minima": 250.0, "distancia_maxima": 550.0,
+        {"nombre": "Estocada", "tipo": "EMBESTIDA", "gesto": "ESTOCADA", "distancia_minima": 250.0, "distancia_maxima": 550.0,
          "tiempo_telegrafiar": 0.55, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 12.0, "velocidad": 1000.0},
     ],
 }
@@ -709,10 +768,10 @@ ENEMIGOS["DA_Goblin_Maza"] = {
     "nombre_visible": "Goblin guerrero", "vida_maxima": 60.0, "radio_capsula": 50.0, "media_altura_capsula": 75.0,
     "color_cuerpo": (0.11, 0.087, 0.076), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 220.0, "radio_deteccion": 1000.0, "radio_perdida": 1800.0, "radio_patrulla": 150.0,
-    "danio_contacto": 0.0, "escala_empuje_recibido": 0.5,
+    "danio_contacto": 0.0, "escala_empuje_recibido": 0.5, "peso_animacion": 1.4,
     "ataques": [
         # Mazazo lento y amplio (aviso largo) y un salto con la maza desde lejos.
-        {"nombre": "Mazazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 260.0,
+        {"nombre": "Mazazo", "tipo": "GOLPE", "gesto": "MAZAZO", "distancia_minima": 0.0, "distancia_maxima": 260.0,
          "tiempo_telegrafiar": 0.8, "duracion": 0.3, "tiempo_recuperacion": 1.0, "danio": 22.0,
          "radio_golpe": 130.0, "alcance_golpe": 140.0},
         {"nombre": "Salto", "tipo": "SALTO", "distancia_minima": 300.0, "distancia_maxima": 800.0,
@@ -729,7 +788,7 @@ ENEMIGOS["DA_Goblin_Hondero"] = {
         # Piedra con la honda desde lejos (se bloquea con la guardia y se devuelve con un tajo) y un manotazo de cerca.
         {"nombre": "Piedra", "tipo": "PROYECTIL", "distancia_minima": 450.0, "distancia_maxima": 1300.0,
          "tiempo_telegrafiar": 0.6, "duracion": 0.3, "tiempo_recuperacion": 1.0, "danio": 10.0, "velocidad": 1100.0},
-        {"nombre": "Manotazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 170.0,
+        {"nombre": "Manotazo", "tipo": "GOLPE", "gesto": "MANOTAZO", "distancia_minima": 0.0, "distancia_maxima": 170.0,
          "tiempo_telegrafiar": 0.4, "duracion": 0.2, "tiempo_recuperacion": 0.8, "danio": 8.0,
          "radio_golpe": 70.0, "alcance_golpe": 90.0},
     ],
@@ -740,7 +799,7 @@ ENEMIGOS["DA_Jefe_ReyGoblin"] = {
     "nombre_visible": "Rey Goblin", "vida_maxima": 320.0, "es_jefe": True, "radio_capsula": 95.0, "media_altura_capsula": 160.0,
     "color_cuerpo": (0.068, 0.044, 0.038), "color_mascara": COLOR_ARMA_GOBLIN,
     "velocidad_movimiento": 240.0, "radio_deteccion": 1500.0, "radio_perdida": 4000.0, "radio_patrulla": 0.0,
-    "danio_contacto": 0.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5,
+    "danio_contacto": 0.0, "escala_empuje_recibido": 0.15, "duracion_muerte": 1.5, "peso_animacion": 2.2,
     "ataques": [
         {"nombre": "Cuchillazo", "tipo": "GOLPE", "distancia_minima": 0.0, "distancia_maxima": 300.0,
          "tiempo_telegrafiar": 0.7, "duracion": 0.3, "tiempo_recuperacion": 0.9, "danio": 25.0,
@@ -854,6 +913,8 @@ def crear_datos_enemigos(material_base, material_particulas):
                     for campo_ataque, valor_ataque in definicion.items():
                         if campo_ataque == "tipo":
                             valor_ataque = valor_enum(unreal.SAEVUSTipoAtaqueEnemigo, valor_ataque)
+                        elif campo_ataque == "gesto":
+                            valor_ataque = valor_enum(unreal.SAEVUSGestoEnemigo, valor_ataque)
                         ataque.set_editor_property(campo_ataque, valor_ataque)
                     ataques.append(ataque)
                 ajuste.set_editor_property("ataques", ataques)

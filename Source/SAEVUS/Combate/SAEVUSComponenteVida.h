@@ -53,8 +53,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Vida")
 	bool EstaEnInvulnerabilidadTrasGolpe() const;
 
-	/** Cambia la vida máxima y deja la vida completa (tipos de enemigo al aparecer). */
+	/** Cambia la vida máxima y deja la vida completa (tipos de enemigo al aparecer); avisa por AlCambiarVida si la vida cambia. */
 	void FijarVidaMaxima(float NuevaVidaMaxima);
+
+	/**
+	 * Daño del motor medido en vida: ejecuta Aplicar (el TakeDamage del dueño, que llega aquí por OnTakeAnyDamage)
+	 * y devuelve la vida que se perdió de verdad. Así ApplyDamage devuelve 0 si la guardia, un escudo o la
+	 * invulnerabilidad lo paran todo, y quien golpea sabe si acertó.
+	 */
+	float MedirDanio(TFunctionRef<void()> Aplicar);
+
+	/** Regla común de ShouldTakeDamage para los personajes con vida: con autoridad, dañable y daño distinto de cero. */
+	static bool PuedeRecibirDanio(const AActor* Duenio, float Danio);
 
 	/** Segundos de invulnerabilidad tras cada golpe recibido. 0 = ninguna (enemigos). */
 	void FijarInvulnerabilidadTrasGolpe(float Duracion) { DuracionInvulnerableTrasGolpe = Duracion; }

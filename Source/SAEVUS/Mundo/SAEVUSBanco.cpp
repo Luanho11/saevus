@@ -1,6 +1,8 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSBanco.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSCanalesColision.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Combate/SAEVUSComponenteVida.h"
@@ -17,7 +19,7 @@
 
 namespace SAEVUSBanco
 {
-	const TCHAR* const RutaCubo = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const TCHAR* const RutaCubo = SAEVUSFormas::Cubo;
 	// Medidas del boceto (cm; el cubo del motor mide 100): asiento largo y bajo con respaldo.
 	const FVector ExtensionZona(110.f, 110.f, 100.f);
 	const FVector EscalaAsiento(0.6f, 2.f, 0.4f);
@@ -34,11 +36,7 @@ ASAEVUSBanco::ASAEVUSBanco()
 	using namespace SAEVUSBanco;
 	Zona = CreateDefaultSubobject<UBoxComponent>(TEXT("Zona"));
 	Zona->SetBoxExtent(ExtensionZona);
-	Zona->SetCollisionProfileName(UCollisionProfile::CustomCollisionProfileName);
-	Zona->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Zona->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Zona->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	Zona->SetGenerateOverlapEvents(true);
+	SAEVUSColision::ConfigurarZonaJugador(Zona);
 	RootComponent = Zona;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cubo(RutaCubo);
@@ -93,7 +91,8 @@ FTransform ASAEVUSBanco::ObtenerPuntoReaparicion() const
 
 void ASAEVUSBanco::Interactuar(ASAEVUSPersonaje* Personaje)
 {
-	if (!Personaje)
+	// De pie en el suelo y sin atacar: no se sienta en pleno salto ni a mitad de un tajo.
+	if (!Personaje || !Personaje->PuedeSentarse())
 	{
 		return;
 	}
@@ -110,7 +109,7 @@ void ASAEVUSBanco::Interactuar(ASAEVUSPersonaje* Personaje)
 	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Banco, GetActorLocation());
 	if (USAEVUSSubsistemaTutorial* Tutorial = GetWorld()->GetSubsystem<USAEVUSSubsistemaTutorial>())
 	{
-		Tutorial->MostrarMensaje(LOCTEXT("Descansas", "Descansas"), LOCTEXT("DescansasTexto", "Vida y munición recuperadas. Tu avance queda guardado."),
+		Tutorial->MostrarMensaje(LOCTEXT("Descansas", "Descansas"), LOCTEXT("DescansasTexto", "Vida recuperada. Si caes, vuelves aquí; \"Continuar\" también."),
 			SAEVUSBanco::DuracionAviso);
 	}
 }

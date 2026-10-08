@@ -6,8 +6,7 @@
 
 USAEVUSComponenteMovimiento* USAEVUSComponenteEstelaDash::ObtenerMovimiento() const
 {
-	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
-	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	return SAEVUSMovimiento::DelActor(GetOwner());
 }
 
 void USAEVUSComponenteEstelaDash::BeginPlay()
@@ -58,9 +57,7 @@ void USAEVUSComponenteEstelaDash::TickComponent(float DeltaTime, ELevelTick Tick
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	if (Movimiento && Movimiento->EstaEnDash() && Movimiento->ObtenerAjusteDash().bEstela)
 	{
-		AcumuladoEmision += AjusteEstela.ParticulasPorSegundo * DeltaTime;
-		const int32 Cantidad = FMath::FloorToInt32(AcumuladoEmision);
-		AcumuladoEmision -= Cantidad;
+		const int32 Cantidad = ConsumirEmision(AcumuladoEmision, AjusteEstela.ParticulasPorSegundo, DeltaTime);
 		if (Cantidad > 0)
 		{
 			EmitirRafaga(ObtenerPuntoEmision(), -Movimiento->ObtenerDireccionDash() * AjusteEstela.VelocidadRetroceso, Cantidad, AjusteEstela.Dispersion);

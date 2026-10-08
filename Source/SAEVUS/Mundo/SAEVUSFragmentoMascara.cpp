@@ -1,17 +1,20 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSFragmentoMascara.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSCanalesColision.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Nucleo/SAEVUSGuardado.h"
 #include "Personaje/SAEVUSPersonaje.h"
+#include "SAEVUS.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace SAEVUSFragmento
 {
-	const TCHAR* const RutaEsfera = TEXT("/Engine/BasicShapes/Sphere.Sphere");
+	const TCHAR* const RutaEsfera = SAEVUSFormas::Esfera;
 	constexpr float RadioZona = 60.f;
 	// Media máscara: una esfera aplastada.
 	const FVector EscalaMalla(0.25f, 0.12f, 0.35f);
@@ -22,11 +25,7 @@ ASAEVUSFragmentoMascara::ASAEVUSFragmentoMascara()
 	PrimaryActorTick.bCanEverTick = true;
 	Zona = CreateDefaultSubobject<USphereComponent>(TEXT("Zona"));
 	Zona->InitSphereRadius(SAEVUSFragmento::RadioZona);
-	Zona->SetCollisionProfileName(UCollisionProfile::CustomCollisionProfileName);
-	Zona->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Zona->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Zona->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	Zona->SetGenerateOverlapEvents(true);
+	SAEVUSColision::ConfigurarZonaJugador(Zona);
 	RootComponent = Zona;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Esfera(SAEVUSFragmento::RutaEsfera);
@@ -37,12 +36,23 @@ ASAEVUSFragmentoMascara::ASAEVUSFragmentoMascara()
 	Malla->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+FName ASAEVUSFragmentoMascara::ObtenerIdentificador() const
+{
+	// Sin identificador puesto a mano: el nombre del actor en su mapa, estable entre sesiones y distinto para cada
+	// fragmento (si no, recoger uno sin identificador haría desaparecer a todos los demás que tampoco lo tienen).
+	return Identificador.IsNone() ? FName(*FString::Printf(TEXT("%s.%s"), *SAEVUSGuardado::NombreMapa(GetWorld()).ToString(), *GetName())) : Identificador;
+}
+
 void ASAEVUSFragmentoMascara::BeginPlay()
 {
 	Super::BeginPlay();
+	if (Identificador.IsNone())
+	{
+		UE_LOG(LogSAEVUS, Warning, TEXT("%s no tiene Identificador; se guarda como '%s'."), *GetName(), *ObtenerIdentificador().ToString());
+	}
 	// Ya recogido en otra partida: no aparece.
 	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
-	if (Guardado && Guardado->FragmentoRecogido(Identificador))
+	if (Guardado && Guardado->FragmentoRecogido(ObtenerIdentificador()))
 	{
 		Destroy();
 		return;
@@ -70,7 +80,7 @@ void ASAEVUSFragmentoMascara::Recoger(ASAEVUSPersonaje* Personaje)
 	{
 		return;
 	}
-	Personaje->RecogerFragmentoMascara(Identificador);
+	Personaje->RecogerFragmentoMascara(ObtenerIdentificador());
 	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Banco, GetActorLocation());
 	Destroy();
 }

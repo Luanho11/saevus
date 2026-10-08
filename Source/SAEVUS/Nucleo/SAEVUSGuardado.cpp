@@ -32,6 +32,23 @@ namespace SAEVUSGuardado
 		return Partida && UGameplayStatics::SaveGameToSlot(Partida, Ranura, IndiceUsuario);
 	}
 
+	/** Como Guardar, pero la escritura del disco va en otro hilo: la partida no se para al guardar jugando. */
+	void GuardarSinEsperar(USAEVUSPartidaGuardada* Partida, const FString& Ranura)
+	{
+		if (!Partida)
+		{
+			return;
+		}
+		UGameplayStatics::AsyncSaveGameToSlot(Partida, Ranura, IndiceUsuario, FAsyncSaveGameToSlotDelegate::CreateLambda(
+			[](const FString& RanuraGuardada, int32, bool bBien)
+			{
+				if (!bBien)
+				{
+					UE_LOG(LogSAEVUS, Warning, TEXT("No se pudo guardar la partida en '%s'"), *RanuraGuardada);
+				}
+			}));
+	}
+
 	FName NombreMapa(const UWorld* Mundo)
 	{
 		return Mundo ? FName(*UGameplayStatics::GetCurrentLevelName(Mundo, true)) : NAME_None;
@@ -50,7 +67,21 @@ void USAEVUSSubsistemaGuardado::Initialize(FSubsystemCollectionBase& Coleccion)
 {
 	Super::Initialize(Coleccion);
 	Partida = SAEVUSGuardado::Cargar(SAEVUSGuardado::RanuraPorDefecto);
+	if (!Partida)
+	{
+		// Sin partida no hay nada que leer ni escribir: una vacía, así el resto del subsistema nunca ve un nulo.
+		Partida = NewObject<USAEVUSPartidaGuardada>(this);
+	}
 	bGuardarActivo = !FParse::Param(FCommandLine::Get(), SAEVUSGuardado::ParametroSinGuardar);
+}
+
+void USAEVUSSubsistemaGuardado::Deinitialize()
+{
+	if (bGuardarActivo && !SAEVUSGuardado::Guardar(Partida, SAEVUSGuardado::RanuraPorDefecto))
+	{
+		UE_LOG(LogSAEVUS, Warning, TEXT("No se pudo guardar la partida en '%s'"), SAEVUSGuardado::RanuraPorDefecto);
+	}
+	Super::Deinitialize();
 }
 
 USAEVUSSubsistemaGuardado* USAEVUSSubsistemaGuardado::Obtener(const UObject* Contexto)
@@ -92,26 +123,35 @@ void USAEVUSSubsistemaGuardado::GuardarFragmento(FName Identificador)
 
 void USAEVUSSubsistemaGuardado::GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto)
 {
+	const FName Mapa = SAEVUSGuardado::NombreMapa(Mundo);
 	Partida->bTienePuntoControl = true;
-	Partida->MapaPuntoControl = SAEVUSGuardado::NombreMapa(Mundo);
+	Partida->MapaPuntoControl = Mapa;
 	Partida->PuntoControl = Punto;
+	Partida->PuntosControl.Add(Mapa, Punto);
 	Guardar();
 }
 
 bool USAEVUSSubsistemaGuardado::ObtenerPuntoControl(const UWorld* Mundo, FTransform& OutPunto) const
 {
-	if (!Partida->bTienePuntoControl || Partida->MapaPuntoControl != SAEVUSGuardado::NombreMapa(Mundo))
+	const FName Mapa = SAEVUSGuardado::NombreMapa(Mundo);
+	if (const FTransform* Punto = Partida->PuntosControl.Find(Mapa))
 	{
-		return false;
+		OutPunto = *Punto;
+		return true;
 	}
-	OutPunto = Partida->PuntoControl;
-	return true;
+	// Partidas guardadas antes de tener un punto por mapa.
+	if (Partida->bTienePuntoControl && Partida->MapaPuntoControl == Mapa)
+	{
+		OutPunto = Partida->PuntoControl;
+		return true;
+	}
+	return false;
 }
 
 void USAEVUSSubsistemaGuardado::Guardar()
 {
-	if (bGuardarActivo && !SAEVUSGuardado::Guardar(Partida, SAEVUSGuardado::RanuraPorDefecto))
+	if (bGuardarActivo)
 	{
-		UE_LOG(LogSAEVUS, Warning, TEXT("No se pudo guardar la partida en '%s'"), SAEVUSGuardado::RanuraPorDefecto);
+		SAEVUSGuardado::GuardarSinEsperar(Partida, SAEVUSGuardado::RanuraPorDefecto);
 	}
 }

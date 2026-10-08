@@ -39,8 +39,7 @@ void USAEVUSComponenteGuardia::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 USAEVUSComponenteMovimiento* USAEVUSComponenteGuardia::ObtenerMovimiento() const
 {
-	const ACharacter* Personaje = Cast<ACharacter>(GetOwner());
-	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	return SAEVUSMovimiento::DelActor(GetOwner());
 }
 
 void USAEVUSComponenteGuardia::FijarGuardiaPedida(bool bNueva)
@@ -76,7 +75,7 @@ void USAEVUSComponenteGuardia::Entrar()
 	InicioGuardia = GetWorld()->GetTimeSeconds();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
-		Movimiento->FijarEscalaVelocidadAccion(Ajuste.EscalaVelocidad);
+		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Guardia, Ajuste.EscalaVelocidad);
 		// En guardia se encara hacia donde mira la cámara, no hacia donde se camina.
 		bOrientabaAlMovimiento = Movimiento->bOrientRotationToMovement;
 		Movimiento->bOrientRotationToMovement = false;
@@ -92,7 +91,7 @@ void USAEVUSComponenteGuardia::Salir()
 	bEnGuardia = false;
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
-		Movimiento->FijarEscalaVelocidadAccion(1.f);
+		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Guardia, 1.f);
 		Movimiento->bOrientRotationToMovement = bOrientabaAlMovimiento;
 	}
 }

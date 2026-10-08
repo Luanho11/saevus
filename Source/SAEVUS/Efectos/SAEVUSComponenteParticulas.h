@@ -72,6 +72,18 @@ public:
 
 	int32 ObtenerParticulasActivas() const;
 
+	/**
+	 * Partículas enteras que tocan este fotograma a PorSegundo: suma al acumulado y devuelve la parte entera (el
+	 * resto se queda para el siguiente), así el ritmo no depende de los fps.
+	 */
+	static int32 ConsumirEmision(float& Acumulado, float PorSegundo, float DeltaTime)
+	{
+		Acumulado += PorSegundo * DeltaTime;
+		const int32 Cantidad = FMath::FloorToInt32(Acumulado);
+		Acumulado -= Cantidad;
+		return Cantidad;
+	}
+
 	const FSAEVUSAjusteParticulas& ObtenerAjuste() const { return Ajuste; }
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -102,5 +114,7 @@ private:
 	TArray<FParticula> Particulas;
 	TArray<FTransform> Transformaciones;
 	int32 SiguienteHueco = 0;
+	/** Partículas vivas ahora (se lleva la cuenta al nacer y morir). */
+	int32 NumVivas = 0;
 	bool bInstanciasSucias = false;
 };

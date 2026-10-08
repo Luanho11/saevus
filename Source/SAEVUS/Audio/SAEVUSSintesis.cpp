@@ -2,6 +2,7 @@
 
 #include "Audio/SAEVUSSintesis.h"
 #include "Math/RandomStream.h"
+#include "Misc/ScopeLock.h"
 #include "Sound/SoundWaveProcedural.h"
 
 namespace SAEVUSSintesis
@@ -41,12 +42,37 @@ namespace SAEVUSSintesis
 		return Muestras;
 	}
 
+	/** Huella de un sonido: dos sonidos con los mismos datos suenan igual (la semilla también va). */
+	uint32 Huella(const FSAEVUSSonidoSintetizado& Sonido)
+	{
+		uint32 Resultado = GetTypeHash(Sonido.Semilla);
+		for (const float Valor : { Sonido.Duracion, Sonido.FrecuenciaInicio, Sonido.FrecuenciaFin, Sonido.Aspereza, Sonido.MezclaRuido,
+			Sonido.FiltroRuido, Sonido.Ataque, Sonido.Caida, Sonido.Volumen })
+		{
+			Resultado = HashCombine(Resultado, GetTypeHash(Valor));
+		}
+		return Resultado;
+	}
+
 	TArray<uint8> SintetizarBytes(const FSAEVUSSonidoSintetizado& Sonido)
 	{
+		// Los enemigos del mismo tipo piden los mismos sonidos: se sintetizan una vez y se copian.
+		static TMap<uint32, TArray<uint8>> Cache;
+		static FCriticalSection Cerrojo;
+		const uint32 Clave = Huella(Sonido);
+		{
+			FScopeLock Bloqueo(&Cerrojo);
+			if (const TArray<uint8>* Guardado = Cache.Find(Clave))
+			{
+				return *Guardado;
+			}
+		}
 		const TArray<int16> Muestras = Sintetizar(Sonido);
 		TArray<uint8> Bytes;
 		Bytes.SetNumUninitialized(Muestras.Num() * sizeof(int16));
 		FMemory::Memcpy(Bytes.GetData(), Muestras.GetData(), Bytes.Num());
+		FScopeLock Bloqueo(&Cerrojo);
+		Cache.Add(Clave, Bytes);
 		return Bytes;
 	}
 

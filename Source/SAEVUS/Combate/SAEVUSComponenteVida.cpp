@@ -106,8 +106,25 @@ bool USAEVUSComponenteVida::EstaInvulnerable() const
 void USAEVUSComponenteVida::FijarVidaMaxima(float NuevaVidaMaxima)
 {
 	VidaMaxima = FMath::Max(1.f, NuevaVidaMaxima);
+	const float Delta = VidaMaxima - Vida;
 	Vida = VidaMaxima;
 	bMuerto = false;
+	if (Delta != 0.f)
+	{
+		AlCambiarVida.Broadcast(this, Delta, nullptr);
+	}
+}
+
+float USAEVUSComponenteVida::MedirDanio(TFunctionRef<void()> Aplicar)
+{
+	const float Antes = Vida;
+	Aplicar();
+	return FMath::Max(0.f, Antes - Vida);
+}
+
+bool USAEVUSComponenteVida::PuedeRecibirDanio(const AActor* Duenio, float Danio)
+{
+	return Duenio && Duenio->GetLocalRole() == ROLE_Authority && Duenio->CanBeDamaged() && Danio != 0.f;
 }
 
 bool USAEVUSComponenteVida::EstaEnInvulnerabilidadTrasGolpe() const

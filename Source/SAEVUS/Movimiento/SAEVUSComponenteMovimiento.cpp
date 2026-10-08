@@ -398,7 +398,7 @@ float USAEVUSComponenteMovimiento::GetMaxSpeed() const
 	}
 	if (IsMovingOnGround())
 	{
-		return ObtenerVelocidadPaso(ObtenerPasoActual()) * EscalaVelocidadAccion;
+		return ObtenerVelocidadPaso(ObtenerPasoActual()) * ObtenerEscalaVelocidadAccion();
 	}
 	// En el aire también hay tope por paso, así el control aéreo nunca baja un salto de esprint a velocidad de carrera.
 	if (IsFalling())
@@ -406,6 +406,16 @@ float USAEVUSComponenteMovimiento::GetMaxSpeed() const
 		return ObtenerVelocidadPaso(ObtenerPasoAire());
 	}
 	return Super::GetMaxSpeed();
+}
+
+float USAEVUSComponenteMovimiento::ObtenerEscalaVelocidadAccion() const
+{
+	float Escala = 1.f;
+	for (const float EscalaFuente : EscalasVelocidadAccion)
+	{
+		Escala = FMath::Min(Escala, EscalaFuente);
+	}
+	return Escala;
 }
 
 float USAEVUSComponenteMovimiento::GetGravityZ() const
@@ -528,6 +538,10 @@ void USAEVUSComponenteMovimiento::OnMovementModeChanged(EMovementMode PreviousMo
 	{
 		TiempoCoyoteRestante = 0.f;
 	}
+	if (PreviousMovementMode == MOVE_Falling && IsMovingOnGround() && !(CharacterOwner && CharacterOwner->bClientUpdating))
+	{
+		AlAterrizar.Broadcast(FMath::Max(0.f, -VelocidadVerticalEnAire));
+	}
 
 	const bool bEstabaEnCarreraPared = PreviousMovementMode == MOVE_Custom
 		&& PreviousCustomMode == static_cast<uint8>(ESAEVUSModoMovimientoPersonalizado::CarreraPared);
@@ -568,6 +582,10 @@ void USAEVUSComponenteMovimiento::OnMovementUpdated(float DeltaSeconds, const FV
 	TiempoBufferSaltoRestante = FMath::Max(0.f, TiempoBufferSaltoRestante - DeltaSeconds);
 
 	TiempoEstocadaRestante = FMath::Max(0.f, TiempoEstocadaRestante - DeltaSeconds);
+	if (IsFalling())
+	{
+		VelocidadVerticalEnAire = static_cast<float>(Velocity.Z);
+	}
 
 	if (EstaEnDash())
 	{
@@ -660,4 +678,10 @@ void USAEVUSComponenteMovimiento::AplicarAjustes()
 	{
 		CharacterOwner->JumpMaxHoldTime = Aire.TiempoMaximoMantenerSalto;
 	}
+}
+
+USAEVUSComponenteMovimiento* SAEVUSMovimiento::DelActor(const AActor* Actor)
+{
+	const ACharacter* Personaje = Cast<ACharacter>(Actor);
+	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
 }

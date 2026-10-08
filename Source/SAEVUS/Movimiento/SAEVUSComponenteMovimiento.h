@@ -12,6 +12,8 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoDash, const FVector& /*Direccion*/);
 DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoSaltoAereo);
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoSaltoPared, const FVector& /*NormalPared*/);
+/** Se emite al tocar suelo tras caer, con la velocidad de caída (positiva, cm/s). */
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoAterrizaje, float /*VelocidadCaida*/);
 
 /**
  * Movimiento del personaje de SAEVUS.
@@ -79,6 +81,9 @@ public:
 	/** Se emite al saltar desde una pared, con su normal (no en las repeticiones de corrección del cliente). */
 	FSAEVUSEventoSaltoPared AlSaltoPared;
 
+	/** Se emite al aterrizar tras caer, con la velocidad de caída (animación, polvo; no en las repeticiones del cliente). */
+	FSAEVUSEventoAterrizaje AlAterrizar;
+
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnDash() const { return TiempoDashRestante > 0.f; }
 
@@ -100,8 +105,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Movimiento")
 	bool EstaEnEstocada() const { return TiempoEstocadaRestante > 0.f; }
 
-	/** Escala el tope de velocidad en el suelo mientras una acción (p. ej. un ataque) compromete al personaje. 1 = nada. */
-	void FijarEscalaVelocidadAccion(float Escala) { EscalaVelocidadAccion = Escala; }
+	/**
+	 * Escala el tope de velocidad en el suelo mientras una acción (ataque, curación, guardia) compromete al
+	 * personaje. 1 = nada. Cada fuente tiene la suya y se aplica la más baja.
+	 */
+	void FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad Fuente, float Escala) { EscalasVelocidadAccion[static_cast<int32>(Fuente)] = Escala; }
+
+	/** Escala de velocidad que se aplica ahora: la más baja de todas las fuentes. */
+	float ObtenerEscalaVelocidadAccion() const;
 
 	/** Escala la gravedad mientras una acción lo pide (tajos aéreos que flotan). 1 = nada. */
 	void FijarEscalaGravedadAccion(float Escala) { EscalaGravedadAccion = Escala; }
@@ -245,7 +256,7 @@ private:
 	FVector DireccionEstocada = FVector::ForwardVector;
 	float VelocidadEstocada = 0.f;
 	float TiempoEstocadaRestante = 0.f;
-	float EscalaVelocidadAccion = 1.f;
+	float EscalasVelocidadAccion[static_cast<int32>(ESAEVUSFuenteEscalaVelocidad::Total)] = { 1.f, 1.f, 1.f };
 	float EscalaGravedadAccion = 1.f;
 
 	// Estado del dash. Lo guarda y restaura FSAEVUSMovimientoGuardado para que las repeticiones tras una corrección coincidan.
@@ -272,4 +283,12 @@ private:
 	ESAEVUSPaso PasoAire = ESAEVUSPaso::Correr;
 	float TiempoCoyoteRestante = 0.f;
 	float TiempoBufferSaltoRestante = 0.f;
+	/** Velocidad vertical del último paso en el aire: la del choque con el suelo al aterrizar. */
+	float VelocidadVerticalEnAire = 0.f;
 };
+
+namespace SAEVUSMovimiento
+{
+	/** El movimiento SAEVUS de Actor (un personaje); nulo si no tiene. Lo usan los componentes hermanos. */
+	SAEVUS_API USAEVUSComponenteMovimiento* DelActor(const AActor* Actor);
+}

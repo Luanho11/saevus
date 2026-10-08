@@ -10,6 +10,7 @@
 #include "Misc/CommandLine.h"
 #include "Nucleo/SAEVUSControladorJugador.h"
 #include "Nucleo/SAEVUSGuardado.h"
+#include "Combate/SAEVUSComponenteVida.h"
 #include "Personaje/SAEVUSPersonaje.h"
 #include "TimerManager.h"
 
@@ -18,6 +19,8 @@ namespace SAEVUSModoJuego
 	// Opción de la URL con la que UE elige el inicio de llegada (InitNewPlayer → FindPlayerStart).
 	const TCHAR* const OpcionPaso = TEXT("portal");
 }
+
+const TCHAR* const ASAEVUSModoJuego::OpcionContinuar = TEXT("continuar");
 
 ASAEVUSModoJuego::ASAEVUSModoJuego()
 {
@@ -50,13 +53,22 @@ void ASAEVUSModoJuego::HandleStartingNewPlayer_Implementation(APlayerController*
 	if (NuevoJugador && LlegoPorPaso() && NuevoJugador->StartSpot.IsValid())
 	{
 		FijarPuntoControl(NuevoJugador->StartSpot->GetActorTransform());
+		return;
+	}
+	// "Continuar" desde el menú de otro mapa: se aparece en el punto de control guardado de este.
+	FTransform Punto;
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	if (NuevoJugador && UGameplayStatics::HasOption(OptionsString, OpcionContinuar) && Guardado && Guardado->ObtenerPuntoControl(GetWorld(), Punto))
+	{
+		FijarPuntoControl(Punto);
+		ReiniciarJugador(NuevoJugador);
 	}
 }
 
 bool ASAEVUSModoJuego::DebeMostrarMenuPrincipal() const
 {
-	// Al llegar por un paso desde otro mapa ya se está jugando.
-	if (LlegoPorPaso())
+	// Al llegar por un paso desde otro mapa, o al continuar la partida, ya se está jugando.
+	if (LlegoPorPaso() || UGameplayStatics::HasOption(OptionsString, OpcionContinuar))
 	{
 		return false;
 	}
@@ -76,8 +88,7 @@ void ASAEVUSModoJuego::NotificarMuerteJugador(AController* Controlador)
 	{
 		return;
 	}
-	FTimerHandle SinUso;
-	GetWorldTimerManager().SetTimer(SinUso, FTimerDelegate::CreateUObject(this, &ThisClass::ReaparecerJugador, TWeakObjectPtr<AController>(Controlador)),
+	GetWorldTimerManager().SetTimer(TemporizadorReaparicion, FTimerDelegate::CreateUObject(this, &ThisClass::ReaparecerJugador, TWeakObjectPtr<AController>(Controlador)),
 		FMath::Max(RetardoReaparicion, UE_KINDA_SMALL_NUMBER), false);
 }
 
@@ -89,17 +100,16 @@ void ASAEVUSModoJuego::ReaparecerJugador(TWeakObjectPtr<AController> Controlador
 	}
 	if (APawn* PawnMuerto = Controlador->GetPawn())
 	{
+		// Si ya reapareció por otro camino (volver al punto de control desde la pausa), este pawn está vivo: no se toca.
+		const ASAEVUSPersonaje* Personaje = Cast<ASAEVUSPersonaje>(PawnMuerto);
+		if (Personaje && !Personaje->ObtenerVida()->EstaMuerto())
+		{
+			return;
+		}
 		Controlador->UnPossess();
 		PawnMuerto->SetLifeSpan(FMath::Max(DuracionCadaver, UE_KINDA_SMALL_NUMBER));
 	}
-	if (bTienePuntoControl)
-	{
-		RestartPlayerAtTransform(Controlador.Get(), PuntoControl);
-	}
-	else
-	{
-		RestartPlayer(Controlador.Get());
-	}
+	ReaparecerEnPuntoControl(Controlador.Get());
 }
 
 void ASAEVUSModoJuego::ReiniciarJugador(AController* Controlador)
@@ -108,11 +118,18 @@ void ASAEVUSModoJuego::ReiniciarJugador(AController* Controlador)
 	{
 		return;
 	}
+	// La reaparición tras morir que estuviera esperando ya no hace falta.
+	GetWorldTimerManager().ClearTimer(TemporizadorReaparicion);
 	if (APawn* PawnActual = Controlador->GetPawn())
 	{
 		Controlador->UnPossess();
 		PawnActual->Destroy();
 	}
+	ReaparecerEnPuntoControl(Controlador);
+}
+
+void ASAEVUSModoJuego::ReaparecerEnPuntoControl(AController* Controlador)
+{
 	if (bTienePuntoControl)
 	{
 		RestartPlayerAtTransform(Controlador, PuntoControl);

@@ -27,6 +27,8 @@ USAEVUSComponenteArmas::USAEVUSComponenteArmas()
 void USAEVUSComponenteArmas::BeginPlay()
 {
 	Super::BeginPlay();
+	// Cada partida dispersa distinto (sin semilla, todas repetían los mismos tiros).
+	FlujoDispersion.Initialize(static_cast<int32>(FPlatformTime::Cycles()));
 	RellenarMunicion();
 	if (USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>())
 	{
@@ -280,7 +282,7 @@ void USAEVUSComponenteArmas::Disparar(const FSAEVUSAjusteArmaFuego& Ajuste)
 	// El cuerpo gira hacia donde va el disparo.
 	if (const ACharacter* Personaje = Cast<ACharacter>(Duenio))
 	{
-		if (USAEVUSComponenteMovimiento* Movimiento = Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()))
+		if (USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje))
 		{
 			Movimiento->GirarHacia(DireccionApunte);
 		}

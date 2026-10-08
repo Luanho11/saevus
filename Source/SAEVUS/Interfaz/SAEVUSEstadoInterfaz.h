@@ -46,5 +46,5 @@ struct SAEVUS_API FSAEVUSEstadoInterfaz
 	 * Calcula el estado para el pawn del jugador. El jefe visible es el más cercano que esté vivo
 	 * y activo (ya no en reposo).
 	 */
-	static FSAEVUSEstadoInterfaz Calcular(const APawn* Pawn, const UWorld* Mundo, float VidaPorMascara, float FundidoAviso);
+	static FSAEVUSEstadoInterfaz Calcular(const APawn* Pawn, const UWorld* Mundo, float VidaPorMascara, float FundidoAviso, const FString& TeclaInteraccion = TEXT("E"));
 };

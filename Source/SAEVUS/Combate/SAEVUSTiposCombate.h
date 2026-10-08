@@ -19,12 +19,40 @@ enum class ESAEVUSFaseAtaque : uint8
 	Recuperacion
 };
 
-/** Hacia dónde va un ataque cuerpo a cuerpo (tajos de Hollow Knight: de frente, arriba, abajo en el aire). */
+/** Hacia dónde va un ataque cuerpo a cuerpo: de frente o hacia arriba (la inclinación de la cámara lo elige). */
 UENUM(BlueprintType)
 enum class ESAEVUSDireccionAtaque : uint8
 {
 	Frontal,
 	Arriba
+};
+
+/**
+ * Animación de un ataque: cada gesto tiene su trayectoria de la hoja, su giro del tronco, su paso y su
+ * asentamiento (SAEVUSGestosAtaque.cpp). Va en los datos del ataque, así cada golpe del repertorio se
+ * ve distinto y uno nuevo solo tiene que elegir el suyo.
+ */
+UENUM(BlueprintType)
+enum class ESAEVUSGestoAtaque : uint8
+{
+	/** Tajo horizontal de derecha a izquierda, con el pie derecho adelante. */
+	TajoDerecha,
+	/** Revés: desde la cadera izquierda hacia arriba a la derecha, con el pie izquierdo adelante. */
+	Reves,
+	/** Remate: la hoja por encima de la cabeza a dos manos y abajo hasta el suelo, zancada honda. */
+	Remate,
+	/** Estocada a fondo: la hoja recogida junto al pecho sale recta hacia delante (tajo en carrera). */
+	Estocada,
+	/** Tajo hacia arriba: desde abajo delante hasta por encima de la cabeza, el cuerpo arqueado atrás. */
+	TajoArriba,
+	/** En el aire: diagonal de arriba a la derecha a abajo a la izquierda, las piernas recogidas. */
+	AereoDiagonal,
+	/** En el aire: revés horizontal con el cuerpo torcido y las piernas al lado contrario. */
+	AereoReves,
+	/** En el aire: tajo vertical con todo el cuerpo volcado hacia delante, las piernas atrás. */
+	AereoRemate,
+	/** Giro completo con la hoja extendida (ataque cargado). */
+	Giratorio
 };
 
 /** Acciones del jugador que pueden cortar un ataque, cada una con su ventana en los datos del ataque. */
@@ -48,6 +76,10 @@ struct FSAEVUSDefinicionAtaque
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque")
 	FName Nombre = TEXT("Ataque");
+
+	/** Animación del ataque (trayectoria de la hoja, tronco, paso). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque")
+	ESAEVUSGestoAtaque Gesto = ESAEVUSGestoAtaque::TajoDerecha;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoPreparacion = 0.1f;
@@ -231,6 +263,18 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones")
 	bool bAtaqueTerminaDash = true;
 };
+
+namespace SAEVUSCombate
+{
+	/**
+	 * Etiqueta de actor de los blancos de práctica (muñecos): cuentan como golpe (alma, chispas) aunque no
+	 * tengan USAEVUSComponenteVida. El resto del escenario que recibe daño (puertas, plataformas) no cuenta.
+	 */
+	SAEVUS_API extern const FName EtiquetaBlancoPractica;
+
+	/** Sentido del barrido de un gesto vista desde arriba: +1 de derecha a izquierda, −1 al revés. */
+	SAEVUS_API float SentidoBarrido(ESAEVUSGestoAtaque Gesto);
+}
 
 /** Repertorio cuerpo a cuerpo editable asignado a USAEVUSComponenteCombate. */
 UCLASS(BlueprintType, Const)

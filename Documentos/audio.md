@@ -32,7 +32,19 @@ Sin archivos de audio: los efectos se **sintetizan por código** al empezar la p
 
 `USAEVUSSubsistemaSonidoMundo` (`FSAEVUSAjusteSonidosMundo`): sonidos de objetos, sintetizados la primera vez que suenan y guardados. **Palanca** (golpe metálico seco, `ASAEVUSPalanca::Accionar`) y **Puerta** (retumbo largo y grave de piedra, `ASAEVUSPuertaArena::Abrir`, también las compuertas). Se llama con `USAEVUSSubsistemaSonidoMundo::Reproducir(Contexto, Sonido, Posicion)`.
 
-`SAEVUSSintesis::SintetizarBytes` y `CrearOnda` son las piezas compartidas por los componentes y el subsistema.
+`SAEVUSSintesis::SintetizarBytes` y `CrearOnda` son las piezas compartidas por los componentes y el subsistema. `SintetizarBytes` guarda lo sintetizado por huella del sonido: los enemigos del mismo tipo no repiten la síntesis.
+
+## Música (`SAEVUSMusica`, `USAEVUSSubsistemaMusica`)
+
+Música **generada por código** (iteración integral, 2026-10-07), sin archivos: tres bucles que se sintetizan una vez en otro hilo al empezar la partida (`SAEVUSMusica::GenerarPista`, funciones puras) y suenan a la vez; el subsistema de mundo los **funde** según lo que pasa (`FSAEVUSAjusteMusica`):
+
+| Pista | Cuándo | Qué suena |
+|---|---|---|
+| Exploración (32 s) | Calma | Bordón grave de re con su quinta que respira, acordes lentos re m – si♭ – sol m – la (la sensible da la tensión), una voz de coro a ratos, campanas lejanas inarmónicas en sitios fijos (semilla) y viento grave en ráfagas. Reverberación de sala de piedra grande. |
+| Combate (120 ppm, 8 compases) | Un enemigo cerca persigue o ataca | Tambores graves (taiko) sincopados, ostinato de cuerdas graves en corcheas sobre los mismos acordes, colchón de tensión y golpe de metales graves en cada cambio de acorde. |
+| Jefe (140 ppm, 8 compases) | Un jefe despierto | Más tambores, re frigio (mi♭: lo más oscuro del modo), coro arriba y metales a contratiempo. |
+
+La calma no se apaga en la pelea: queda de fondo (`CalmaEnPelea`). La pelea sigue sonando un rato tras el último enemigo (`EsperaFinPelea`); entrar es más rápido que salir. Las pistas cierran el bucle sumando la cola de la reverberación al principio, así enlazan sin salto. Suenan en los menús (son sonido de interfaz) y no se crean sin dispositivo de audio (tests, `-NoSound`). El volumen general de las opciones va encima.
 
 ## Tests
 
@@ -40,6 +52,7 @@ Sin archivos de audio: los efectos se **sintetizan por código** al empezar la p
 
 ## Pendiente
 
-- Pasos, aterrizaje, música ambiental.
+- Pasos y aterrizaje.
+- Música: un tema propio por zona y transiciones a compás (ahora los fundidos son libres).
 - Posicionales (3D) para lo que no sea del jugador; mezcla y atenuación.
 - Sustituir por sonidos diseñados a mano cuando haya dirección de audio.

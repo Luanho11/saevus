@@ -72,7 +72,7 @@ void ASAEVUSHUDDepuracion::DibujarDepuracion()
 {
 
 	const ACharacter* Personaje = Cast<ACharacter>(GetOwningPawn());
-	const USAEVUSComponenteMovimiento* Movimiento = Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	const USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Personaje);
 	if (!Movimiento)
 	{
 		return;

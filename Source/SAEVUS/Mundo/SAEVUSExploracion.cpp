@@ -98,7 +98,14 @@ void USAEVUSSubsistemaExploracion::Tick(float DeltaTime)
 	const APlayerController* Controlador = GetWorld()->GetFirstPlayerController();
 	if (const APawn* Jugador = Controlador ? Controlador->GetPawn() : nullptr)
 	{
-		Descubrir(Jugador->GetActorLocation());
+		// Solo al pasar a otra celda: quieto o dentro de la misma no hay nada nuevo que descubrir.
+		const FIntPoint Centro = SAEVUSExploracion::Celda(Jugador->GetActorLocation());
+		if (!bHayCeldaActual || Centro != CeldaActual)
+		{
+			bHayCeldaActual = true;
+			CeldaActual = Centro;
+			Descubrir(Jugador->GetActorLocation());
+		}
 	}
 	TiempoSinGuardar += DeltaTime;
 	if (bSucio && TiempoSinGuardar >= SAEVUSExploracion::IntervaloGuardado)

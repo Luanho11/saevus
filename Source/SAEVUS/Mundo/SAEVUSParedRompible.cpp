@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Mundo/SAEVUSParedRompible.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -9,7 +10,7 @@
 
 namespace SAEVUSParedRompible
 {
-	const TCHAR* const RutaCubo = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const TCHAR* const RutaCubo = SAEVUSFormas::Cubo;
 	// Frecuencia del temblor (oscilaciones por segundo).
 	constexpr float FrecuenciaTemblor = 40.f;
 }

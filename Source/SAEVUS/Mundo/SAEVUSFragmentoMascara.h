@@ -24,7 +24,8 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	FName ObtenerIdentificador() const { return Identificador; }
+	/** Identificador con el que se guarda: el puesto a mano o, sin él, uno derivado del mapa y del actor. */
+	FName ObtenerIdentificador() const;
 	void FijarIdentificador(FName Nuevo) { Identificador = Nuevo; }
 
 	/** Lo recoge Personaje (lo llama el solape; los tests, a mano). */

@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: SESIÓN INTERACTIVA ACTIVA (fase "Producción artística")**
-**Último latido: 2026-10-07 10:54** (la sesión activa lo actualiza en cada commit)
+**Estado: SESIÓN INTERACTIVA ACTIVA (iteración integral: revisión externa + vida del personaje)**
+**Último latido: 2026-10-07 20:58** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -156,7 +156,23 @@ Las imágenes de `assets/` son la **referencia visual canónica** (`Documentos/R
 99. [ ] Audio fundamental por capas: tajo, impacto, parry, bloqueo, dash, pared, aterrizaje, daño, muerte, UI, jefe.
 100. [ ] Vertical slice: tutorial corto + sala de goblins + Rey Goblin en la mazmorra nueva, todo con el arte nuevo; empaquetado y prueba del .exe.
 
+### Fase "Iteración integral" (dueño, 2026-10-07) — manda sobre el orden de la de arriba
+Revisión externa del código (otro chat de Claude; respuesta punto por punto en `Documentos/REVISION_CODIGO.md`) y petición del dueño: corregir todo, quitar la rigidez (giro por capas, peso, respiración, reacción, dash con identidad, un gesto por golpe), animar enemigos y jefes, música, efectos, HUD, y dirección artística cercana a Elden Ring en 2D dibujado. **Los personajes los rehace el dueño** (no tocar sus modelos).
+101. [x] Errores E1–E12 de la revisión, con tests (`SAEVUS.Combate.{EscudoSinDanio, ZonaNoEsGolpe, FotogramaLargo, ParadaEscalaCero}`, `SAEVUS.Movimiento.EscalasVelocidad`, `SAEVUS.Tutorial.PuertaEnemigoDesaparece`).
+102. [x] Rendimiento R1–R5, R7, R8 (huesos de una vez, guardado en otro hilo, cachés de la IA y del sonido, interfaz sin trabajo de más, partículas y estela). Pendiente R6 (mapa de pausa).
+103. [x] Duplicados D1–D8 y malas prácticas M1, M4–M8. Pendientes M2 (delegado estático → subsistema, con la red), M3 (renombrar el HUD de depuración con redirecciones), M9 (bajas del sonido).
+104. [x] Vida del cuerpo: muelles, capa secundaria (giro por capas, inercia, rebote, respiración con cansancio, reposo vivo con gestos), locomoción viva, capa con muelles, suavizado por tramos (`animacion.md`).
+105. [x] Un gesto por ataque (nueve, por datos) con amago, corte y seguimiento; combo que enlaza; rebote de la hoja al acertar.
+106. [x] Dash en tres tiempos y por dirección + ecos (`USAEVUSComponenteEcoDash`, `M_EcoDash`).
+107. [x] Goblins y Rey Goblin: gesto por ataque, aviso con tensión, recuperación, aturdido, rugido de fase, peso del jefe.
+108. [x] Música generada (exploración, combate, jefe) con fundidos según la pelea (`audio.md`).
+109. [x] HUD: rastro del daño, destello rojo, brillo del alma, muerte con banda, título de zona con rayas, tecla real (`interfaz.md`).
+110. [x] Atmósfera: gradación (sombras frías, luces de oro viejo, negros hondos, resplandor suave) y motas de polvo en el aire.
+111. [ ] Ajuste a ojo en el juego de gestos, muelles, música y gradación (los valores son de primera pasada); capturas comparadas con REF-04.
+112. [ ] Dirección artística en los mapas: luz de rayos entre columnas, niebla por salas, braseros con brasas, estandartes; versiones baratas para la Vega 8.
+113. [ ] Sonido por capas para los gestos (cada golpe con su sonido) y pasos; transiciones de música a compás.
+
 ## Estado del turno
-- Completado: tareas 85–87; bloques de 89, 92, 93, 95 y 97 (commits 453ca1f…e992632). Verificación completa 132/132 y humo SUPERADA en el tutorial con el kit (38 fps a 720p con la máquina cargada; medir aislado en la tarea 84).
-- A medias: —
-- Siguiente paso exacto: tareas 90–91 (combate): golpe por barrido continuo de la hoja entre fotogramas además del abanico, parámetros por ataque (daño, alcance, arco, fases, parada de golpe, retroceso, aturdimiento, sacudida) y un laboratorio de combate `L_LaboratorioCombate` con la cápsula, hurtbox, hitbox, trayectoria de la hoja y fases visibles.
+- Completado: tareas 101–110 (iteración integral; ver `REVISION_CODIGO.md` y `REGISTRO_SESIONES.md`). Verificación completa con juego: 150/150 tests, assets SUPERADA, humo SUPERADA (31 fps en frío), recorrido Mazmorra → tutorial SUPERADO.
+- A medias: fuego de los braseros (`ASAEVUSFuegoBrasero`, sin verificar ni en el commit; script de cambios preparado) y sonido por gesto con pasos y aterrizaje (tarea 113, script preparado).
+- Siguiente paso exacto: aplicar 112 (braseros) y 113 (sonido), verificar con juego; luego 111 (ajuste a ojo con capturas de la prueba de humo).

@@ -1,75 +1,33 @@
-# Resumen para el dueño (fase "Rehacer como GunZ", 2026-10-04)
+# Resumen para el dueño (fase "Iteración integral", 2026-10-07)
 
-Seguí tu mensaje: la jugabilidad es la de GunZ y Hollow Knight queda para la temática, el arte y el sombreado. Este documento es el punto de entrada: qué cambió, cómo probarlo y qué queda para ti.
+Pasaste el código por otro chat de Claude y te sorprendió lo que encontró. Comprobé cada punto contra el código: **todo era cierto**. Está corregido, y además ataqué lo que pediste: que el personaje deje de sentirse rígido, que cada golpe tenga su animación, enemigos y jefe animados, música, HUD y una atmósfera más cuidada. Los personajes no los toqué (los vas a rehacer tú): toda la animación depende solo de los 25 huesos, así que sirve igual para tus modelos nuevos.
 
-## Cómo probarlo
+## La revisión
 
-1. Abre `SAEVUS.uproject` y pulsa **Play**. Arranca en el tutorial con el menú principal: **Tutorial**, **Mazmorra**, **Continuar** (si hay partida guardada), **Opciones** y **Salir**.
-2. Teclas en `controles.md`. Lo básico:
-   - **Moverse:** WASD en ocho direcciones; el cuerpo mira siempre a la cámara.
-   - **Saltar:** Espacio, con doble salto.
-   - **Dash:** **doble toque** de una dirección. Sin espera entre dashes ni límite por salto.
-   - **Combate:** clic izquierdo para los tajos (mira arriba para el tajo hacia arriba; mantén y suelta para el giro cargado), **clic derecho** para la guardia, **Q** para curar, **E** para sentarte en los bancos.
-   - **Pausa:** **P**. F6 muestra los datos de depuración.
-3. **Tutorial ("Mazmorra del Umbral"):** diez salas cerradas tipo mazmorra; cada una enseña una cosa con un aviso que dice qué pulsar. Al final hay goblins en el gran salón, un banco, el paso a la Mazmorra y un reto opcional.
-4. **Mazmorra** (`mazmorra.md`): práctica libre con el Dungeon de GunZ como referencia de estructura:
-   - salón central con balcones, columnas y estrado;
-   - galería de fosos con una pared falsa;
-   - pozo con chimenea y ascensor;
-   - terraza con palanca y compuerta;
-   - goblins y el **Rey Goblin** en la sala del trono.
+Punto por punto, con lo que se hizo y el test que lo vigila: **`REVISION_CODIGO.md`**. Lo más grave estaba en el combate (un tajo a un escudo, a una puerta o a la zona de un banco daba alma) y en la reaparición (morir y volver al punto de control desde la pausa duplicaba al jugador). También rendimiento: la animación reconstruía la pose entera 25 veces por fotograma y personaje.
 
-Si algo no compila o falta un asset, `powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 -ConJuego` lo reconstruye y lo prueba todo, en unos 25 minutos en esta máquina:
-- compila, crea los assets y pasa los 131 tests;
-- juega la prueba de humo;
-- recorre sola la Mazmorra, cruza al tutorial y lo recorre entero.
+## Qué mirar en el juego
 
-## Qué cambió (todo boceto, todo cambiable por datos)
+Abre `SAEVUS.uproject` y pulsa **Play** (teclas en `controles.md`).
 
-| Pediste | Hecho |
-|---|---|
-| Quitar armas de fuego, enemigos y jefes actuales | Solo la espada; sin teclas de armas. Los enemigos de antes siguen en los datos, fuera de los mapas. El código de las armas queda dormido. |
-| Quitar el tajo hacia abajo | Fuera, con su rebote y su foso. |
-| Dash como GunZ, sin latencia ni 1 por salto | Sin enfriamiento ni límite por salto. La gravedad sigue actuando, así que encadenar dashes no hace volar. |
-| La cámara siempre detrás; el cuerpo no gira la cabeza atrás en el dash | El cuerpo sigue a la cámara. Andar hacia atrás es andar de espaldas, y ni el dash, ni el salto de pared, ni los tajos lo giran. |
-| Animaciones (lo principal) | Piernas en ocho direcciones con giro de cadera. Volteretas en los dashes laterales y hacia atrás. Vuelta en el salto de pared. Aterrizaje según la caída. |
-| Sombreado dibujado tipo Hollow Knight en 3D | Post-proceso dibujado: luz en bandas planas con sombra fría, tinta en siluetas y pliegues, niebla en capas y grano de papel. Sin desenfoque de movimiento. Colores de luna y braseros corregidos. |
-| Mapas tipo tutorial con el Dungeon de GunZ de referencia | Tutorial rehecho en salas cerradas y Mazmorra nueva, que sustituye a la Zona 1. |
-| Alcance de espada intuitivo y limpio | Los tajos golpean en un abanico delante y el arco del tajo dibuja ese abanico: lo que ves es lo que golpea. |
-| Goblins y jefes de GunZ, mejorados, renderizados en Blender | Goblin de cuchillo, de maza y hondero, y el Rey Goblin. Sin daño por contacto. Antes de cada ataque se agachan y su arma brilla. Render en `capturas/Goblins.png`. |
-| Más partículas | Arco del tajo, polvo al aterrizar, en las paredes, en el salto de pared y en el dash por el suelo. Se suman a la estela del dash. |
-| Menús sin cosas genéricas; mejor fuente; mensajes claros | Títulos espaciados, menús de solo texto, teclas dibujadas en los avisos y textos que dicen qué hacer en cada sala. El marcador de los muñecos solo sale con F6. |
-| Listo para probar en un ejecutable | Preparado y seguro de memoria, pero no lo lancé (ver abajo). |
+- **Gira la cámara deprisa, quieto:** la cabeza se adelanta, el pecho la sigue y la cadera llega la última; si te quedas muy torcido, los pies dan un paso para alcanzarte.
+- **Corre y frena en seco:** el tronco sigue hacia delante y vuelve, la capa se pasa y ondea. Corriendo en curva el cuerpo se inclina hacia dentro.
+- **Quédate quieto unos segundos:** respira (más rápido y hondo si vienes de esprintar o pelear), pasa el peso de un pie a otro y la mirada vaga; cada poco hace un gesto: mirar atrás, alzar y girar la espada, estirar los hombros.
+- **Combo de suelo (clic, clic, clic):** tajo de derecha a izquierda → revés con el pie izquierdo delante → remate a dos manos por encima de la cabeza. Cada uno empieza donde acabó el anterior. Al acertar, la hoja rebota.
+- **En el aire:** diagonal → revés con las piernas al lado contrario → remate con todo el cuerpo volcado. Mirando arriba, tajo hacia arriba. Atacando en un dash, estocada a fondo. Manteniendo, giro cargado.
+- **Dash en las cuatro direcciones:** se encoge, sale disparado y frena; de frente baja con la espada atrás, hacia atrás se echa atrás con la espada en guardia, de lado se ladea con el brazo libre de contrapeso. Deja **ecos** de luz fría.
+- **Goblins y Rey Goblin** (sala de goblins del tutorial, salón y trono de la Mazmorra): cada ataque tiene su gesto (tajo, mazazo a dos manos, manotazo, estocada, lanzamiento, embestida, salto con mazazo al caer). El aviso tiembla de tensión justo antes de soltar el golpe. Golpeados se tambalean. El Rey pisa pesado y **ruge** al pasar a la segunda fase.
+- **Música:** calma al explorar; al acercarse goblins que te persiguen entran tambores y cuerdas; con el Rey, el tema del jefe. Todo generado por código, sin archivos.
+- **HUD:** al recibir un golpe, la parte perdida de la barra queda clara un momento y se vacía (y un destello rojo); la barra de alma brilla al ganar alma; al morir, banda negra con "Has caído" en rojo; el aviso de los bancos muestra tu tecla real.
+- **Atmósfera:** sombras frías y luces de oro viejo, negros más hondos, resplandor suave en las luces fuertes y polvo flotando en el aire.
 
-Rendimiento: la prueba de humo va a ≈ 65 fps de media a 720p en Media dentro del editor. Antes eran ≈ 44; la mejora viene sobre todo de quitar el desenfoque de movimiento.
+## Lo que queda (tareas 111–113 de `PROGRESS.md`)
 
-## Capturas (`capturas/`)
+- Ajustar a ojo, en el juego, los gestos, los muelles, la música y la gradación: los valores son de primera pasada y están todos en datos (`FSAEVUSAjusteAnimacion`, `FSAEVUSAjusteSecundario`, `FSAEVUSAjusteMusica`, `FSAEVUSAjusteCamara`, `FSAEVUSAjusteInterfaz`).
+- Atmósfera en los mapas (rayos de luz, niebla por salas, brasas, estandartes) con versiones baratas para la Vega 8.
+- Un sonido distinto por gesto y pasos.
+- De la revisión quedan, documentados: el mapa de la pausa (R6), el delegado estático (M2), renombrar el HUD de depuración (M3) y las bajas del sonido (M9). Ninguno afecta a lo que se ve al jugar.
 
-- `Menu.png`: menú principal.
-- `Pausa.png`: pausa con el mapa.
-- `Tutorial_Inicio.png`: primera sala con su aviso y el título de zona.
-- `Tutorial_SalaArmas.png` y `Tutorial_Goblins.png`.
-- `Mazmorra_Terraza.png`: palanca y compuerta.
-- `Ataque.png`: arco del tajo.
-- `Dash.png`, `Correr.png`, `Guardia.png`, `Muerte.png`.
-- `Enemigos.png`: un goblin reaccionando.
-- `Goblins.png`: render en Blender.
+## Verificación
 
-## Lo que queda para ti
-
-- **Ejecutable: hecho.** `Saved\Empaquetado\Windows\SAEVUS.exe` (959 MB) arranca en el tutorial con el menú principal. Pasa la prueba de humo completa a 78 fps (Media, 720p). Para volver a generarlo: `Herramientas\Empaquetar.ps1` con todo cerrado; para comprobarlo, `Herramientas\Probar-Ejecutable.ps1`.
-- **Fuente Cinzel:** la quieres, pero el permiso automático de Claude Code bloqueó la descarga. Pon `Cinzel-Regular.ttf`, `Cinzel-SemiBold.ttf` y `Cinzel-Bold.ttf` (Google Fonts o el repositorio NDISCOVER/Cinzel) en `ArteFuente\Fuentes\`, o autoriza la descarga.
-- **Preguntas:**
-  - ¿El abanico de la espada (1,7 m, ±75°) se siente bien?
-  - ¿Los goblins se dejan golpear como esperabas?
-  - ¿Las volteretas de los dashes laterales te gustan, o prefieres un deslizamiento?
-- **Tarea 61 aparcada:** las esquirlas (moneda de los enemigos) están en `git stash` desde antes del cambio de rumbo. Las retomo si las quieres para los goblins.
-
-## Dónde mirar
-
-- `ESTADO_PROYECTO.md`: estado actual.
-- `REGISTRO_SESIONES.md`: qué se hizo y qué problemas hubo.
-- `PROGRESS.md`: cola de tareas.
-- Por tema: `movimiento.md`, `combate.md`, `animacion.md`, `enemigos.md`, `tutorial.md`, `mazmorra.md`, `interfaz.md`, `pipeline-assets.md`, `controles.md`.
-
-En el historial de git hay un commit por tarea, todos con el prefijo `auto:`.
+`powershell -ExecutionPolicy Bypass -File Herramientas\Verificar-Arranque.ps1 -ConJuego` compila, crea los assets, pasa los tests y juega la prueba de humo y el recorrido. Resultado de esta iteración en `REGISTRO_SESIONES.md`.

@@ -13,7 +13,9 @@
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "Efectos/SAEVUSComponenteEfectosCombate.h"
+#include "Efectos/SAEVUSComponenteEcoDash.h"
 #include "Efectos/SAEVUSComponenteEstelaDash.h"
+#include "Efectos/SAEVUSComponenteEstelaEspada.h"
 #include "Efectos/SAEVUSComponentePolvoMovimiento.h"
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
@@ -132,6 +134,8 @@ namespace SAEVUSPruebas
 			EstelaSimulada = Personaje->ObtenerEstelaDash();
 			PolvoSimulado = Personaje->ObtenerPolvoMovimiento();
 			EfectosSimulados = Personaje->ObtenerEfectosCombate();
+			EstelaEspadaSimulada = Personaje->ObtenerEstelaEspada();
+			EcoDashSimulado = Personaje->ObtenerEcoDash();
 			AnimacionSimulada = Personaje->ObtenerAnimacion();
 			return Personaje;
 		}
@@ -210,6 +214,15 @@ namespace SAEVUSPruebas
 			{
 				EfectosSimulados->TickComponent(PasoSimulacion, LEVELTICK_All, &EfectosSimulados->PrimaryComponentTick);
 			}
+			// Tras la animación: la estela y los ecos leen la pose de este paso.
+			if (EstelaEspadaSimulada)
+			{
+				EstelaEspadaSimulada->TickComponent(PasoSimulacion, LEVELTICK_All, &EstelaEspadaSimulada->PrimaryComponentTick);
+			}
+			if (EcoDashSimulado && EcoDashSimulado->IsComponentTickEnabled())
+			{
+				EcoDashSimulado->TickComponent(PasoSimulacion, LEVELTICK_All, &EcoDashSimulado->PrimaryComponentTick);
+			}
 			// Los proyectiles en vuelo se mueven a mano (se recogen antes: pueden destruirse al moverse).
 			TArray<ASAEVUSProyectil*> Proyectiles;
 			for (TActorIterator<ASAEVUSProyectil> Proyectil(Mundo); Proyectil; ++Proyectil)
@@ -250,6 +263,8 @@ namespace SAEVUSPruebas
 		USAEVUSComponenteEstelaDash* EstelaSimulada = nullptr;
 		USAEVUSComponentePolvoMovimiento* PolvoSimulado = nullptr;
 		USAEVUSComponenteEfectosCombate* EfectosSimulados = nullptr;
+		USAEVUSComponenteEstelaEspada* EstelaEspadaSimulada = nullptr;
+		USAEVUSComponenteEcoDash* EcoDashSimulado = nullptr;
 		USAEVUSComponenteAnimacionProcedural* AnimacionSimulada = nullptr;
 		TArray<TWeakObjectPtr<ASAEVUSEnemigo>> Enemigos;
 	};

@@ -26,7 +26,7 @@ struct FSAEVUSAjusteInterfaz
 {
 	GENERATED_BODY()
 
-	/** Vida que vale cada máscara (Hollow Knight muestra la vida en máscaras). */
+	/** Vida que vale cada máscara cuando no hay personaje del que leerla (con personaje manda su FSAEVUSAjusteProgreso). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "1"))
 	float VidaPorMascara = 20.f;
 
@@ -126,7 +126,48 @@ struct FSAEVUSAjusteInterfaz
 	float FundidoReaparicion = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "6"))
-	int32 TamanoTextoMuerte = 44;
+	int32 TamanoTextoMuerte = 60;
+
+	/** Texto de la muerte: rojo sangre seca, en una banda oscura a lo ancho; crece despacio mientras se ve. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte")
+	FLinearColor ColorTextoMuerte = FLinearColor(0.42f, 0.035f, 0.025f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0"))
+	float AlturaBandaMuerte = 190.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0"))
+	float CrecimientoTextoMuerte = 0.08f;
+
+	/**
+	 * Rastro del daño: tras un golpe, la parte perdida de la barra queda en un color claro y se vacía tras una
+	 * espera (se lee cuánto quitó el golpe). Espera (s) y rapidez (fracción de barra por segundo).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "0", ForceUnits = "s"))
+	float EsperaRastroDanio = 0.55f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "0.01"))
+	float RapidezRastroDanio = 0.7f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
+	FLinearColor ColorRastroDanio = FLinearColor(0.62f, 0.45f, 0.30f);
+
+	/** Destello rojo en los bordes de la pantalla al recibir un golpe: opacidad máxima y lo que tarda en irse. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "0", ClampMax = "1"))
+	float OpacidadDestelloDanio = 0.32f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida", meta = (ClampMin = "0.01", ForceUnits = "s"))
+	float DuracionDestelloDanio = 0.45f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vida")
+	FLinearColor ColorDestelloDanio = FLinearColor(0.35f, 0.f, 0.f);
+
+	/** Al ganar alma, la barra se ilumina un instante (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Alma", meta = (ClampMin = "0.01", ForceUnits = "s"))
+	float DuracionBrilloAlma = 0.35f;
+
+	/** Título de zona: largo de las rayas que lo enmarcan (crecen con el fundido). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zona", meta = (ClampMin = "0"))
+	float AnchoRayasZona = 520.f;
 };
 
 namespace SAEVUSInterfaz
@@ -136,7 +177,7 @@ namespace SAEVUSInterfaz
 }
 
 /**
- * Interfaz de juego: máscaras de vida y orbe de alma (arriba a la izquierda), arma y munición
+ * Interfaz de juego: emblema y barras de vida y alma (arriba a la izquierda), arma y munición
  * (abajo a la derecha), aviso del tutorial (arriba al centro) y barra del jefe activo (abajo al
  * centro). El árbol de widgets se construye en C++ con formas redondeadas de Slate, sin
  * texturas ni assets; escala con las reglas de DPI del proyecto. Una subclase Blueprint puede
@@ -160,8 +201,11 @@ protected:
 
 private:
 	void Construir();
-	/** Barra fina con marco (REF-08 A); devuelve la barra, ya dentro de su marco en Caja. */
-	UProgressBar* CrearBarra(FName Nombre, UPanelWidget* Caja, const FVector2D& Tamano, const FLinearColor& Color);
+	/**
+	 * Barra fina con marco (REF-08 A); devuelve la barra, ya dentro de su marco en Caja. Con OutRastro, debajo va
+	 * otra barra (el rastro del daño) del color del rastro.
+	 */
+	UProgressBar* CrearBarra(FName Nombre, UPanelWidget* Caja, const FVector2D& Tamano, const FLinearColor& Color, UProgressBar** OutRastro = nullptr);
 	UTextBlock* CrearTexto(FName Nombre, int32 Tamano, bool bCentrado);
 	/** Título: letras espaciadas en mayúsculas. */
 	UTextBlock* CrearTitulo(FName Nombre, int32 Tamano);
@@ -224,4 +268,43 @@ private:
 
 	/** Opacidad actual del velo de muerte (sube y baja con los fundidos). */
 	float OpacidadVelo = 0.f;
+
+	/** Barras de rastro del daño (detrás de las de vida). */
+	UPROPERTY(Transient)
+	TObjectPtr<UProgressBar> RastroVida;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UProgressBar> RastroJefe;
+
+	/** Destello rojo a pantalla completa al recibir un golpe. */
+	UPROPERTY(Transient)
+	TObjectPtr<UBorder> DestelloDanio;
+
+	/** Rayas que enmarcan el título de zona. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class USizeBox>> RayasZona;
+
+	/** Zona cuyo título se muestra (se busca una vez); el título deja de calcularse al apagarse. */
+	TWeakObjectPtr<const class ASAEVUSInfoZona> Zona;
+	bool bTituloZonaTerminado = false;
+
+	/** Rastros del daño: valor que muestran y tiempo desde el último golpe. */
+	float FraccionRastroVida = 1.f;
+	float FraccionRastroJefe = 1.f;
+	float TiempoDesdeDanioVida = 0.f;
+	float TiempoDesdeDanioJefe = 0.f;
+	float UltimaFraccionVida = -1.f;
+	float UltimaFraccionJefe = -1.f;
+	float UltimaFraccionAlma = -1.f;
+	float Destello = 0.f;
+	float BrilloAlma = 0.f;
+	float TiempoMuerto = 0.f;
+
+	/** Tecla de interactuar según la asignación de controles (se busca a ratos, no cada fotograma). */
+	FString TeclaInteraccion = TEXT("E");
+	float TiempoBuscarTecla = 0.f;
+	void ActualizarTeclaInteraccion();
+
+	/** Rastros, destellos y brillos que dependen del tiempo (no del estado solo). */
+	void AnimarBarras(const FSAEVUSEstadoInterfaz& Estado, float DeltaTime);
 };

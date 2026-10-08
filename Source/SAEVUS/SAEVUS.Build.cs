@@ -18,7 +18,9 @@ public class SAEVUS : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"UMG"
+			"UMG",
+			// Estela de la espada en media luna (malla generada cada fotograma; plugin del motor activado por defecto).
+			"ProceduralMeshComponent"
 		});
 
 		// Tiempos por fotograma (hilo de juego/render, GPU) para la prueba de humo de depuración.

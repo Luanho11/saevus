@@ -1,8 +1,12 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-06 (sesión 4, fase "Producción artística")_
+_Actualizado: 2026-10-07 (sesión 6, fase "Iteración integral")_
 
 ## Objetivo actual
+
+**Iteración integral** (dueño, 2026-10-07): el dueño pasó el código por otro chat de Claude; la revisión (E1–E12, R1–R8, D1–D8, M1–M9) está contestada y corregida en `REVISION_CODIGO.md`. Prioridad: que el juego se sienta vivo y pulido (animación con peso y reacción, un gesto por golpe, dash con identidad, enemigos y jefes animados, música, HUD, atmósfera cercana a Elden Ring en 2D dibujado). **Los personajes los rehace el dueño**; la animación solo depende de los 25 huesos. Tareas 101–113 de `PROGRESS.md`.
+
+Antes:
 
 **Producción artística** (dueño, 2026-10-06): las imágenes de `assets/` son la referencia visual canónica (`REFERENCIAS_ARTE.md`); la dirección artística derivada está en `ARTE_SAEVUS.md`. Pasar de "prototipo con arte de boceto" a una vertical slice coherente: protagonista → animación → espada → combate → goblin → jefe → mazmorra → VFX → UI → audio (tareas 85–100 de `PROGRESS.md`). La jugabilidad GunZ de abajo se mantiene.
 
@@ -36,6 +40,8 @@ Antes: **Rehacer como GunZ** (decisión del dueño, 2026-10-04): la jugabilidad 
 - **Todo en español:** código, herramientas, assets, documentos.
 - **Equilibrio** (`equilibrio.md`): tablas de daño/s por técnica y de enemigos calculadas desde los datos en `SAEVUS.Equilibrio.*`, con reglas de diseño comprobadas.
 - **Rendimiento** (`rendimiento.md`): Media a 720p en la Vega 8: tutorial 67–68 fps, mapa de pruebas 57–63 fps; el hilo de juego (11–13 ms) es el próximo cuello.
+
+- **Iteración integral (2026-10-07):** errores de la revisión externa corregidos con tests; animación con vida (muelles, giro por capas cabeza → pecho → cadera, inercia del tronco, rebote, respiración con cansancio, reposo vivo con gestos, locomoción con cadera, pies y codos, capa con muelles; `animacion.md`); nueve gestos de ataque distintos por datos (`SAEVUSGestosAtaque`); dash en tres tiempos con ecos (`USAEVUSComponenteEcoDash`); goblins y Rey Goblin con un gesto por ataque, aviso con tensión, aturdido y rugido de fase; música generada en tres pistas que se funden (`USAEVUSSubsistemaMusica`); HUD con rastro del daño, destello, muerte en banda y tecla real; gradación de color y motas en el aire; huesos escritos de una vez y otros arreglos de rendimiento.
 
 ## Verificación
 

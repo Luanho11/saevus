@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Tutorial/SAEVUSPuertaArena.h"
+#include "Nucleo/SAEVUSFormasMotor.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/StaticMeshComponent.h"
@@ -12,7 +13,7 @@
 
 namespace SAEVUSPuerta
 {
-	const TCHAR* const RutaCubo = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const TCHAR* const RutaCubo = SAEVUSFormas::Cubo;
 	constexpr float DuracionAviso = 5.f;
 }
 
@@ -53,7 +54,8 @@ bool ASAEVUSPuertaArena::QuedanEnemigos() const
 {
 	for (const TObjectPtr<ASAEVUSEnemigo>& Enemigo : Enemigos)
 	{
-		if (IsValid(Enemigo) && !Enemigo->ObtenerVida()->EstaMuerto())
+		// Uno destruido sin morir (caído fuera del mundo) ya no cuenta: la puerta no puede quedar cerrada para siempre.
+		if (IsValid(Enemigo) && !Enemigo->IsActorBeingDestroyed() && !Enemigo->ObtenerVida()->EstaMuerto())
 		{
 			return true;
 		}

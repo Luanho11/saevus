@@ -93,7 +93,10 @@ void ASAEVUSControladorJugador::MostrarMenuPrincipal()
 	if (!MenuPrincipal && ClaseMenuPausa)
 	{
 		MenuPrincipal = CreateWidget<USAEVUSWidgetPausa>(this, ClaseMenuPausa);
-		MenuPrincipal->FijarModo(ESAEVUSModoMenu::Principal);
+		if (MenuPrincipal)
+		{
+			MenuPrincipal->FijarModo(ESAEVUSModoMenu::Principal);
+		}
 	}
 	if (!EstaEnMenuPrincipal())
 	{
@@ -135,11 +138,22 @@ void ASAEVUSControladorJugador::JugarEn(const FString& Ruta)
 
 void ASAEVUSControladorJugador::ContinuarPartidaGuardada()
 {
-	CerrarMenuPrincipal();
-	FTransform Punto;
 	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	const FName Mapa = Guardado ? Guardado->ObtenerMapaUltimoPuntoControl() : NAME_None;
+	if (Mapa.IsNone())
+	{
+		return;
+	}
+	CerrarMenuPrincipal();
+	if (Mapa != SAEVUSGuardado::NombreMapa(GetWorld()))
+	{
+		// El último punto de control es de otro mapa: se abre ese y el modo de juego aparece en él.
+		UGameplayStatics::OpenLevel(this, Mapa, true, ASAEVUSModoJuego::OpcionContinuar);
+		return;
+	}
+	FTransform Punto;
 	ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>();
-	if (Guardado && ModoJuego && Guardado->ObtenerPuntoControl(GetWorld(), Punto))
+	if (ModoJuego && Guardado->ObtenerPuntoControl(GetWorld(), Punto))
 	{
 		ModoJuego->FijarPuntoControl(Punto);
 		ModoJuego->ReiniciarJugador(this);
@@ -200,7 +214,7 @@ void ASAEVUSControladorJugador::BeginPlay()
 	// Opciones de la sesión anterior.
 	if (const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
-		Sensibilidad = Guardado->ObtenerSensibilidad();
+		Sensibilidad = FMath::Clamp(Guardado->ObtenerSensibilidad(), SensibilidadMinima, SensibilidadMaxima);
 		Volumen = Guardado->ObtenerVolumen();
 	}
 	if (IsLocalPlayerController())
@@ -226,7 +240,8 @@ void ASAEVUSControladorJugador::FijarVolumen(float Nuevo)
 
 void ASAEVUSControladorJugador::FijarSensibilidad(float Nueva)
 {
-	Sensibilidad = Nueva;
+	// Como el volumen: acotada, así un valor guardado o escrito a mano nunca deja la cámara quieta o loca.
+	Sensibilidad = FMath::Clamp(Nueva, SensibilidadMinima, SensibilidadMaxima);
 	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
 		Guardado->GuardarSensibilidad(Nueva);

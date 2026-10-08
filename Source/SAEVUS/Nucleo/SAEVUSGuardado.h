@@ -19,7 +19,7 @@ struct FSAEVUSExploracionMapa
 
 /**
  * Lo que se guarda entre sesiones: opciones que no guarda el motor (la calidad ya va en
- * GameUserSettings.ini) y el último punto de control, por mapa.
+ * GameUserSettings.ini), el punto de control de cada mapa y en qué mapa fue el último (para "Continuar").
  */
 UCLASS()
 class SAEVUS_API USAEVUSPartidaGuardada : public USaveGame
@@ -37,12 +37,17 @@ public:
 	UPROPERTY()
 	bool bTienePuntoControl = false;
 
-	/** Mapa del punto de control (nombre corto, sin prefijo de PIE). */
+	/** Mapa del último punto de control (nombre corto, sin prefijo de PIE): "Continuar" vuelve a él. */
 	UPROPERTY()
 	FName MapaPuntoControl;
 
+	/** Punto de control del mapa MapaPuntoControl (partidas anteriores a PuntosControl). */
 	UPROPERTY()
 	FTransform PuntoControl;
+
+	/** Punto de control de cada mapa (nombre corto). */
+	UPROPERTY()
+	TMap<FName, FTransform> PuntosControl;
 
 	/** Fragmentos de máscara recogidos (por identificador). */
 	UPROPERTY()
@@ -80,6 +85,8 @@ class SAEVUS_API USAEVUSSubsistemaGuardado : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Coleccion) override;
+	/** Al cerrar el juego se escribe en el acto (una escritura en otro hilo podría no acabar). */
+	virtual void Deinitialize() override;
 
 	/** El subsistema de la instancia de juego de Contexto; nulo sin instancia (mundos de prueba). */
 	static USAEVUSSubsistemaGuardado* Obtener(const UObject* Contexto);
@@ -101,6 +108,8 @@ public:
 	void GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto);
 	/** Cierto si hay un punto de control guardado para el mapa de Mundo. */
 	bool ObtenerPuntoControl(const UWorld* Mundo, FTransform& OutPunto) const;
+	/** Mapa del último punto de control guardado (NAME_None si nunca hubo): adonde lleva "Continuar". */
+	FName ObtenerMapaUltimoPuntoControl() const { return Partida->bTienePuntoControl ? Partida->MapaPuntoControl : NAME_None; }
 
 private:
 	void Guardar();

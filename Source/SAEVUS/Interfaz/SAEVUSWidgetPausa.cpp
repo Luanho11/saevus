@@ -243,10 +243,9 @@ void USAEVUSWidgetPausa::Construir()
 	{
 		CrearBoton(Columna, TEXT("Tutorial"), LOCTEXT("Tutorial", "Tutorial"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlTutorial);
 		CrearBoton(Columna, TEXT("Mazmorra"), LOCTEXT("Mazmorra", "Mazmorra"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlMazmorra);
-		// "Continuar" solo si hay un punto de control guardado para este mapa.
-		FTransform Punto;
+		// "Continuar" solo si hay un punto de control guardado (en este mapa o en otro: lleva a él).
 		const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(GetOwningPlayer());
-		bHayPartidaGuardada = Guardado && Guardado->ObtenerPuntoControl(GetWorld(), Punto);
+		bHayPartidaGuardada = Guardado && !Guardado->ObtenerMapaUltimoPuntoControl().IsNone();
 		BotonContinuarPartida = CrearBoton(Columna, TEXT("ContinuarPartida"), LOCTEXT("ContinuarPartida", "Continuar"), BotonesInicio);
 		BotonContinuarPartida->OnClicked.AddDynamic(this, &ThisClass::AlContinuarPartida);
 	}

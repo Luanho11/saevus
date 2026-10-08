@@ -55,4 +55,7 @@ private:
 	TSet<FIntPoint> Celdas;
 	bool bSucio = false;
 	float TiempoSinGuardar = 0.f;
+	/** Celda en la que estaba el jugador el último fotograma (se descubre solo al cambiar). */
+	FIntPoint CeldaActual = FIntPoint::ZeroValue;
+	bool bHayCeldaActual = false;
 };

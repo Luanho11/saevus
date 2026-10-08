@@ -2,6 +2,7 @@
 
 #include "Combate/SAEVUSComponenteCombate.h"
 #include "CollisionQueryParams.h"
+#include "Combate/SAEVUSComponenteVida.h"
 #include "Depuracion/SAEVUSVariablesDepuracion.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/OverlapResult.h"
@@ -10,6 +11,7 @@
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
+#include "Nucleo/SAEVUSCanalesColision.h"
 
 namespace SAEVUSCombate
 {
@@ -17,6 +19,12 @@ namespace SAEVUSCombate
 
 	// Dibujo de depuración de la esfera de golpe (SAEVUS.Depuracion.Combate).
 	constexpr int32 SegmentosEsferaDepuracion = 12;
+
+	/** Golpe de verdad: algo con vida (enemigo, jugador) o un blanco de práctica; no el escenario que recibe daño. */
+	bool CuentaComoGolpe(const AActor* Objetivo)
+	{
+		return Objetivo->FindComponentByClass<USAEVUSComponenteVida>() || Objetivo->ActorHasTag(EtiquetaBlancoPractica);
+	}
 }
 
 USAEVUSComponenteCombate::USAEVUSComponenteCombate()
@@ -32,7 +40,7 @@ const FSAEVUSRepertorioMelee& USAEVUSComponenteCombate::ObtenerRepertorio() cons
 
 void USAEVUSComponenteCombate::FijarRepertorio(const USAEVUSDatosRepertorioMelee* NuevoRepertorio)
 {
-	// AtaqueActual apunta al repertorio anterior.
+	// El ataque en curso es del repertorio anterior.
 	TerminarAtaque();
 	DatosRepertorio = NuevoRepertorio;
 }
@@ -44,8 +52,7 @@ ACharacter* USAEVUSComponenteCombate::ObtenerPersonaje() const
 
 USAEVUSComponenteMovimiento* USAEVUSComponenteCombate::ObtenerMovimiento() const
 {
-	const ACharacter* Personaje = ObtenerPersonaje();
-	return Personaje ? Cast<USAEVUSComponenteMovimiento>(Personaje->GetCharacterMovement()) : nullptr;
+	return SAEVUSMovimiento::DelActor(GetOwner());
 }
 
 void USAEVUSComponenteCombate::PedirAtaque()
@@ -72,16 +79,18 @@ void USAEVUSComponenteCombate::FijarAtaqueMantenido(bool bMantenido)
 	TiempoCargando = 0.f;
 	// Soltar con la carga lista: el ataque cargado, si se puede atacar (o encadenar) ahora.
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
-	const bool bLibre = !AtaqueActual || TiempoAtaque >= AtaqueActual->EncadenarDesde;
+	const bool bLibre = !bAtacando || TiempoAtaque >= AtaqueEnCurso.EncadenarDesde;
 	if (bListo && bLibre && PuedeAtacarAhora())
 	{
-		IndiceCombo = 0;
-		bCadenaAerea = Movimiento && Movimiento->IsFalling();
-		DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
-		bTajoEnCarrera = false;
-		bAtaqueCargado = true;
+		FijarContexto(0, Movimiento && Movimiento->IsFalling(), ESAEVUSDireccionAtaque::Frontal, false, true);
 		PrepararAtaque(ObtenerRepertorio().AtaqueCargado);
 	}
+}
+
+void USAEVUSComponenteCombate::CancelarCarga()
+{
+	bAtaqueMantenido = false;
+	TiempoCargando = 0.f;
 }
 
 float USAEVUSComponenteCombate::ObtenerProgresoCarga() const
@@ -107,11 +116,11 @@ void USAEVUSComponenteCombate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool USAEVUSComponenteCombate::IntentarCancelarPor(ESAEVUSAccionCancelacion Accion)
 {
-	if (!AtaqueActual)
+	if (!bAtacando)
 	{
 		return true;
 	}
-	const float CancelarDesde = AtaqueActual->ObtenerCancelacionDesde(Accion);
+	const float CancelarDesde = AtaqueEnCurso.ObtenerCancelacionDesde(Accion);
 	if (CancelarDesde < 0.f || TiempoAtaque < CancelarDesde)
 	{
 		return false;
@@ -122,17 +131,19 @@ bool USAEVUSComponenteCombate::IntentarCancelarPor(ESAEVUSAccionCancelacion Acci
 
 ESAEVUSFaseAtaque USAEVUSComponenteCombate::ObtenerFaseAtaque() const
 {
-	return AtaqueActual ? AtaqueActual->ObtenerFaseEn(TiempoAtaque) : ESAEVUSFaseAtaque::Ninguna;
+	return bAtacando ? AtaqueEnCurso.ObtenerFaseEn(TiempoAtaque) : ESAEVUSFaseAtaque::Ninguna;
 }
 
 void USAEVUSComponenteCombate::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// La parada se cuenta en tiempo real: DeltaTime ya viene dilatado por la parada del dueño.
-	ParadaGolpe.Actualizar(DeltaTime / FMath::Max(GetOwner()->CustomTimeDilation, UE_KINDA_SMALL_NUMBER));
+	// La parada se cuenta en tiempo real: DeltaTime ya viene dilatado por la parada del dueño. Con escala 0 (congelado)
+	// DeltaTime es 0 y se usa el tiempo del mundo, así la parada también termina.
+	const float Dilatacion = GetOwner()->CustomTimeDilation;
+	ParadaGolpe.Actualizar(Dilatacion > UE_KINDA_SMALL_NUMBER ? DeltaTime / Dilatacion : GetWorld()->GetDeltaSeconds());
 
-	if (AtaqueActual)
+	if (bAtacando)
 	{
 		const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 		if (Movimiento && (Movimiento->EstaEnCarreraPared() || Movimiento->EstaEscalando()))
@@ -142,14 +153,18 @@ void USAEVUSComponenteCombate::TickComponent(float DeltaTime, ELevelTick TickTyp
 		}
 	}
 
-	if (AtaqueActual)
+	if (bAtacando)
 	{
+		const float Antes = TiempoAtaque;
 		TiempoAtaque += DeltaTime;
-		if (AtaqueActual->ObtenerFaseEn(TiempoAtaque) == ESAEVUSFaseAtaque::Activa)
+		// Golpea si este paso de tiempo toca la ventana activa, aunque un fotograma largo la salte entera.
+		const float InicioActivo = AtaqueEnCurso.TiempoPreparacion;
+		const float FinActivo = InicioActivo + AtaqueEnCurso.TiempoActivo;
+		if (TiempoAtaque >= InicioActivo && Antes < FinActivo)
 		{
-			DetectarGolpes(*AtaqueActual);
+			DetectarGolpes(AtaqueEnCurso);
 		}
-		if (TiempoAtaque >= AtaqueActual->ObtenerTiempoTotal())
+		if (TiempoAtaque >= AtaqueEnCurso.ObtenerTiempoTotal())
 		{
 			TerminarAtaque();
 		}
@@ -159,7 +174,7 @@ void USAEVUSComponenteCombate::TickComponent(float DeltaTime, ELevelTick TickTyp
 	TiempoBufferAtaqueRestante = FMath::Max(0.f, TiempoBufferAtaqueRestante - DeltaTime);
 
 	// La carga crece mientras se mantiene el botón y no hay ataque en curso (o está en su recuperación).
-	const bool bPuedeCargar = !AtaqueActual || AtaqueActual->ObtenerFaseEn(TiempoAtaque) == ESAEVUSFaseAtaque::Recuperacion;
+	const bool bPuedeCargar = !bAtacando || AtaqueEnCurso.ObtenerFaseEn(TiempoAtaque) == ESAEVUSFaseAtaque::Recuperacion;
 	if (bAtaqueMantenido && bPuedeCargar)
 	{
 		TiempoCargando += DeltaTime;
@@ -175,7 +190,7 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	const bool bEnAire = Movimiento && Movimiento->IsFalling();
 	const ESAEVUSDireccionAtaque Direccion = DireccionPedida;
-	if (!AtaqueActual)
+	if (!bAtacando)
 	{
 		// Atacar durante un dash: tajo en carrera en su dirección (GunZ).
 		if (Direccion == ESAEVUSDireccionAtaque::Frontal && Movimiento && Movimiento->EstaEnDash())
@@ -192,7 +207,7 @@ void USAEVUSComponenteCombate::ProcesarAtaqueEnBuffer()
 		}
 		return;
 	}
-	if (TiempoAtaque < AtaqueActual->EncadenarDesde)
+	if (TiempoAtaque < AtaqueEnCurso.EncadenarDesde)
 	{
 		return;
 	}
@@ -225,29 +240,29 @@ bool USAEVUSComponenteCombate::PuedeAtacarAhora() const
 	return !Movimiento->EstaEnDash() || ObtenerRepertorio().bAtaqueTerminaDash;
 }
 
+void USAEVUSComponenteCombate::FijarContexto(int32 Indice, bool bEnAire, ESAEVUSDireccionAtaque Direccion, bool bCarrera, bool bCargado)
+{
+	IndiceCombo = Indice;
+	bCadenaAerea = bEnAire;
+	DireccionAtaque = Direccion;
+	bTajoEnCarrera = bCarrera;
+	bAtaqueCargado = bCargado;
+}
+
 void USAEVUSComponenteCombate::IniciarAtaque(bool bEnAire, int32 Indice)
 {
 	const TArray<FSAEVUSDefinicionAtaque>& Cadena = bEnAire ? ObtenerRepertorio().ComboAire : ObtenerRepertorio().ComboSuelo;
-	USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
-	if (!Cadena.IsValidIndex(Indice) || !Movimiento)
+	if (!Cadena.IsValidIndex(Indice) || !ObtenerMovimiento())
 	{
 		return;
 	}
-	IndiceCombo = Indice;
-	bCadenaAerea = bEnAire;
-	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
-	bTajoEnCarrera = false;
-	bAtaqueCargado = false;
+	FijarContexto(Indice, bEnAire, ESAEVUSDireccionAtaque::Frontal, false, false);
 	PrepararAtaque(Cadena[Indice]);
 }
 
 void USAEVUSComponenteCombate::IniciarTajoEnCarrera(bool bEnAire, const FVector& DireccionDash)
 {
-	IndiceCombo = 0;
-	bCadenaAerea = bEnAire;
-	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
-	bTajoEnCarrera = true;
-	bAtaqueCargado = false;
+	FijarContexto(0, bEnAire, ESAEVUSDireccionAtaque::Frontal, true, false);
 	// Siguiendo a la cámara, el tajo en carrera también sale de frente.
 	const USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
 	const FVector Direccion = Movimiento && Movimiento->MiraHaciaCamara() ? FVector::ZeroVector : DireccionDash.GetSafeNormal2D();
@@ -260,18 +275,16 @@ void USAEVUSComponenteCombate::IniciarAtaqueDireccional(bool bEnAire, ESAEVUSDir
 	{
 		return;
 	}
-	IndiceCombo = 0;
-	bCadenaAerea = bEnAire;
-	DireccionAtaque = Direccion;
-	bTajoEnCarrera = false;
-	bAtaqueCargado = false;
+	FijarContexto(0, bEnAire, Direccion, false, false);
 	PrepararAtaque(ObtenerRepertorio().TajoArriba);
 }
 
 void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada)
 {
 	USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento();
-	AtaqueActual = &Ataque;
+	// Copia: el ataque en curso no depende de que el repertorio (un Data Asset) siga igual mientras dura.
+	AtaqueEnCurso = Ataque;
+	bAtacando = true;
 	TiempoAtaque = 0.f;
 	TiempoBufferAtaqueRestante = 0.f;
 	DireccionPedida = ESAEVUSDireccionAtaque::Frontal;
@@ -287,7 +300,7 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 	Movimiento->CancelarDash();
 	Movimiento->GirarHacia(Direccion);
 	Movimiento->IniciarEstocada(Direccion, Ataque.VelocidadEstocada, Ataque.DuracionEstocada);
-	Movimiento->FijarEscalaVelocidadAccion(Ataque.EscalaVelocidadSuelo);
+	Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Ataque, Ataque.EscalaVelocidadSuelo);
 	if (Movimiento->IsFalling())
 	{
 		// Tajo aéreo: frena la caída y flota mientras dura (GunZ).
@@ -302,16 +315,13 @@ void USAEVUSComponenteCombate::PrepararAtaque(const FSAEVUSDefinicionAtaque& Ata
 
 void USAEVUSComponenteCombate::TerminarAtaque()
 {
-	AtaqueActual = nullptr;
-	IndiceCombo = INDEX_NONE;
+	bAtacando = false;
 	TiempoAtaque = 0.f;
-	DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
-	bTajoEnCarrera = false;
-	bAtaqueCargado = false;
+	FijarContexto(INDEX_NONE, false, ESAEVUSDireccionAtaque::Frontal, false, false);
 	ActoresGolpeados.Reset();
 	if (USAEVUSComponenteMovimiento* Movimiento = ObtenerMovimiento())
 	{
-		Movimiento->FijarEscalaVelocidadAccion(1.f);
+		Movimiento->FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad::Ataque, 1.f);
 		Movimiento->FijarEscalaGravedadAccion(1.f);
 	}
 }
@@ -341,15 +351,15 @@ bool USAEVUSComponenteCombate::DentroDelAbanico(const FSAEVUSDefinicionAtaque& A
 bool USAEVUSComponenteCombate::ObtenerAbanicoActivo(FVector& OutOrigen, FVector& OutFrente, float& OutAvance, float& OutSentido) const
 {
 	const AActor* Duenio = GetOwner();
-	if (!AtaqueActual || !Duenio || AtaqueActual->AnguloAbanico <= 0.f || ObtenerFaseAtaque() != ESAEVUSFaseAtaque::Activa)
+	if (!bAtacando || !Duenio || AtaqueEnCurso.AnguloAbanico <= 0.f || ObtenerFaseAtaque() != ESAEVUSFaseAtaque::Activa)
 	{
 		return false;
 	}
-	OutOrigen = Duenio->GetActorLocation() + FVector::UpVector * AtaqueActual->AlturaGolpe;
+	OutOrigen = Duenio->GetActorLocation() + FVector::UpVector * AtaqueEnCurso.AlturaGolpe;
 	OutFrente = Duenio->GetActorForwardVector().GetSafeNormal2D();
-	OutAvance = FMath::Clamp((TiempoAtaque - AtaqueActual->TiempoPreparacion) / FMath::Max(AtaqueActual->TiempoActivo, UE_KINDA_SMALL_NUMBER), 0.f, 1.f);
-	// Como la animación: el primer tajo va de derecha a izquierda, el revés al contrario.
-	OutSentido = (!bCadenaAerea && IndiceCombo == 1) ? -1.f : 1.f;
+	OutAvance = FMath::Clamp((TiempoAtaque - AtaqueEnCurso.TiempoPreparacion) / FMath::Max(AtaqueEnCurso.TiempoActivo, UE_KINDA_SMALL_NUMBER), 0.f, 1.f);
+	// Como la hoja del gesto: el tajo va de derecha a izquierda, el revés al contrario.
+	OutSentido = SAEVUSCombate::SentidoBarrido(AtaqueEnCurso.Gesto);
 	return true;
 }
 
@@ -400,17 +410,20 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 		{
 			continue;
 		}
+		// Solo lo que la hoja puede tocar: las zonas de aviso, de banco o de paso (que solo solapan) no se golpean.
+		const UPrimitiveComponent* Componente = Solape.GetComponent();
+		if (!Componente || Componente->GetCollisionResponseToChannel(SAEVUSColision::TrazaArma) != ECR_Block)
+		{
+			continue;
+		}
 		if (bAbanico)
 		{
 			// El punto del objetivo más cercano al origen tiene que caer en el abanico.
 			FVector Punto = Objetivo->GetActorLocation();
-			if (const UPrimitiveComponent* Componente = Solape.GetComponent())
+			FVector Cercano;
+			if (Componente->GetClosestPointOnCollision(Origen, Cercano) >= 0.f)
 			{
-				FVector Cercano;
-				if (Componente->GetClosestPointOnCollision(Origen, Cercano) >= 0.f)
-				{
-					Punto = Cercano;
-				}
+				Punto = Cercano;
 			}
 			if (!DentroDelAbanico(Ataque, Origen, Frente, Punto))
 			{
@@ -422,11 +435,12 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 	for (AActor* Objetivo : Nuevos)
 	{
 		ActoresGolpeados.Add(Objetivo);
-		// Lo que no recibe daño (pinchos, escenario) cuenta para el impacto y el rebote, pero no es un
-		// golpe: no da alma ni chispas.
-		if (UGameplayStatics::ApplyDamage(Objetivo, Ataque.Danio, Duenio->GetInstigatorController(), Duenio, UDamageType::StaticClass()) > 0.f)
+		// Lo que no pierde vida (pinchos, escenario, un escudo de frente) cuenta para el impacto y el rebote,
+		// pero no es un golpe: no da alma ni chispas.
+		const float Hecho = UGameplayStatics::ApplyDamage(Objetivo, Ataque.Danio, Duenio->GetInstigatorController(), Duenio, UDamageType::StaticClass());
+		if (Hecho > 0.f && SAEVUSCombate::CuentaComoGolpe(Objetivo))
 		{
-			AlGolpear.Broadcast(Objetivo, Ataque.Danio);
+			AlGolpear.Broadcast(Objetivo, Hecho);
 		}
 	}
 	if (!Nuevos.IsEmpty())
@@ -480,4 +494,5 @@ void USAEVUSComponenteCombate::AplicarImpacto(const FSAEVUSDefinicionAtaque& Ata
 	TArray<AActor*, TInlineAllocator<5>> Parados(Golpeados);
 	Parados.Add(GetOwner());
 	ParadaGolpe.Iniciar(Parados, ObtenerRepertorio().EscalaTiempoParada, Ataque.DuracionParadaGolpe);
+	AlImpactar.Broadcast(Ataque);
 }
