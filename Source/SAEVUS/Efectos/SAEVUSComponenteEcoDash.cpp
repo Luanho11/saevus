@@ -26,6 +26,7 @@ void USAEVUSComponenteEcoDash::BeginPlay()
 	{
 		Cuerpo = GetOwner()->FindComponentByClass<UPoseableMeshComponent>();
 	}
+	PrepararGrupo();
 	if (USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(GetOwner()))
 	{
 		ManejadorDash = Movimiento->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash);
@@ -71,36 +72,47 @@ void USAEVUSComponenteEcoDash::AlIniciarDash(const FVector& Direccion)
 	SetComponentTickEnabled(true);
 }
 
+void USAEVUSComponenteEcoDash::PrepararGrupo()
+{
+	using namespace SAEVUSEcoDash;
+	// El grupo se crea una vez (en BeginPlay, o la primera vez si el cuerpo aún no tenía malla) y se reutiliza siempre.
+	if (!Mallas.IsEmpty() || !Cuerpo || !Cuerpo->GetSkinnedAsset())
+	{
+		return;
+	}
+	for (int32 Indice = 0; Indice < Ajuste.EcosPorDash; ++Indice)
+	{
+		UPoseableMeshComponent* Malla = NewObject<UPoseableMeshComponent>(GetOwner());
+		Malla->SetUsingAbsoluteLocation(true);
+		Malla->SetUsingAbsoluteRotation(true);
+		Malla->SetUsingAbsoluteScale(true);
+		Malla->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Malla->SetCastShadow(false);
+		Malla->SetVisibility(false);
+		Malla->RegisterComponent();
+		Malla->SetSkinnedAssetAndUpdate(Cuerpo->GetSkinnedAsset());
+		UMaterialInstanceDynamic* Material = MaterialEco ? UMaterialInstanceDynamic::Create(MaterialEco, this) : nullptr;
+		if (Material)
+		{
+			Material->SetVectorParameterValue(ParametroColor, Ajuste.Color);
+			for (int32 Ranura = 0; Ranura < Malla->GetNumMaterials(); ++Ranura)
+			{
+				Malla->SetMaterial(Ranura, Material);
+			}
+		}
+		Mallas.Add(Malla);
+		Materiales.Add(Material);
+		Ecos.AddDefaulted();
+	}
+}
+
 void USAEVUSComponenteEcoDash::DejarEco()
 {
 	using namespace SAEVUSEcoDash;
-	// El grupo se crea la primera vez (el cuerpo ya tiene malla) y se reutiliza siempre.
+	PrepararGrupo();
 	if (Mallas.IsEmpty())
 	{
-		for (int32 Indice = 0; Indice < Ajuste.EcosPorDash; ++Indice)
-		{
-			UPoseableMeshComponent* Malla = NewObject<UPoseableMeshComponent>(GetOwner());
-			Malla->SetUsingAbsoluteLocation(true);
-			Malla->SetUsingAbsoluteRotation(true);
-			Malla->SetUsingAbsoluteScale(true);
-			Malla->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Malla->SetCastShadow(false);
-			Malla->SetVisibility(false);
-			Malla->RegisterComponent();
-			Malla->SetSkinnedAssetAndUpdate(Cuerpo->GetSkinnedAsset());
-			UMaterialInstanceDynamic* Material = MaterialEco ? UMaterialInstanceDynamic::Create(MaterialEco, this) : nullptr;
-			if (Material)
-			{
-				Material->SetVectorParameterValue(ParametroColor, Ajuste.Color);
-				for (int32 Ranura = 0; Ranura < Malla->GetNumMaterials(); ++Ranura)
-				{
-					Malla->SetMaterial(Ranura, Material);
-				}
-			}
-			Mallas.Add(Malla);
-			Materiales.Add(Material);
-			Ecos.AddDefaulted();
-		}
+		return;
 	}
 	UPoseableMeshComponent* Malla = Mallas[Siguiente];
 	Malla->SetWorldTransform(Cuerpo->GetComponentTransform());

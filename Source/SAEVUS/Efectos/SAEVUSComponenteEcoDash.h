@@ -71,6 +71,8 @@ protected:
 
 private:
 	void AlIniciarDash(const FVector& Direccion);
+	/** Crea el grupo fijo de mallas de eco si aún no existe. */
+	void PrepararGrupo();
 	/** Deja un eco con la pose actual del cuerpo. */
 	void DejarEco();
 
