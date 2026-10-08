@@ -67,7 +67,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] ANIMVFX-24 repetición del reposo y estados emocionales
 - [x] ANIMVFX-25 límites de la malla poseable
 - [x] ANIMVFX-26 arma oculta con escala mínima 0,001 (no 0: matriz no invertible)
-- [ ] ANIMVFX-27 sacudida tras la colisión del brazo de cámara
+- [x] ANIMVFX-27 la sacudida se recorta con la sonda del brazo de cámara
 
 ## Enemigos y audio
 - [~] EA-1 no detecta a distinta altura ni tras una pared, patrulla sobre su eje y da la vuelta contra paredes, vuelve a su puesto; falta navegación

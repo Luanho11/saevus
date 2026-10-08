@@ -37,7 +37,16 @@ void USAEVUSComponenteCamara::GetCameraView(float DeltaTime, FMinimalViewInfo& D
 	ActualizarSacudida(DeltaTime);
 	if (Trauma > 0.f)
 	{
-		DesiredView.Location += DesiredView.Rotation.RotateVector(DesplazamientoSacudida);
+		// La sacudida llega después de la colisión del brazo: se recorta con la misma sonda para no meter la cámara en un muro.
+		const FVector Origen = DesiredView.Location;
+		FVector Destino = Origen + DesiredView.Rotation.RotateVector(DesplazamientoSacudida);
+		FHitResult Impacto;
+		FCollisionQueryParams Parametros(SCENE_QUERY_STAT(SacudidaCamara), false, GetOwner());
+		if (GetWorld() && GetWorld()->SweepSingleByChannel(Impacto, Origen, Destino, FQuat::Identity, ECC_Camera, FCollisionShape::MakeSphere(ObtenerAjuste().TamanoSonda), Parametros))
+		{
+			Destino = Origen + (Destino - Origen) * FMath::Clamp(Impacto.Time, 0.f, 1.f);
+		}
+		DesiredView.Location = Destino;
 		DesiredView.Rotation += GiroSacudida;
 	}
 }
