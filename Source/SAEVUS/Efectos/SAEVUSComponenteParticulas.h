@@ -86,6 +86,9 @@ public:
 
 	const FSAEVUSAjusteParticulas& ObtenerAjuste() const { return Ajuste; }
 
+	/** Cambia el comportamiento (antes de emitir la primera: el tamaño del pool se fija entonces). */
+	void FijarAjuste(const FSAEVUSAjusteParticulas& Nuevo) { Ajuste = Nuevo; }
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:

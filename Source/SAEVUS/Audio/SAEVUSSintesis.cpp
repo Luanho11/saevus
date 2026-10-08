@@ -3,6 +3,7 @@
 #include "Audio/SAEVUSSintesis.h"
 #include "Math/RandomStream.h"
 #include "Misc/ScopeLock.h"
+#include "Sound/SoundAttenuation.h"
 #include "Sound/SoundWaveProcedural.h"
 
 namespace SAEVUSSintesis
@@ -74,6 +75,25 @@ namespace SAEVUSSintesis
 		FScopeLock Bloqueo(&Cerrojo);
 		Cache.Add(Clave, Bytes);
 		return Bytes;
+	}
+
+	USoundAttenuation* ObtenerAtenuacion()
+	{
+		static TWeakObjectPtr<USoundAttenuation> Compartida;
+		if (!Compartida.IsValid())
+		{
+			USoundAttenuation* Nueva = NewObject<USoundAttenuation>(GetTransientPackage());
+			Nueva->AddToRoot();
+			FSoundAttenuationSettings& Ajustes = Nueva->Attenuation;
+			Ajustes.bAttenuate = true;
+			Ajustes.bSpatialize = true;
+			Ajustes.AttenuationShape = EAttenuationShape::Sphere;
+			// Pleno volumen hasta 6 m, silencio a los 30 m.
+			Ajustes.AttenuationShapeExtents = FVector(600.f);
+			Ajustes.FalloffDistance = 2400.f;
+			Compartida = Nueva;
+		}
+		return Compartida.Get();
 	}
 
 	USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion)

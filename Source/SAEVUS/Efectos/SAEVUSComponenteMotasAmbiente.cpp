@@ -5,7 +5,7 @@
 namespace SAEVUSMotas
 {
 	// Cada mota: muy pequeña, vive mucho, apenas frena y sube despacio (aire caliente).
-	constexpr float Tamano = 0.014f;
+	constexpr float Tamano = 0.032f;
 	constexpr float Vida = 7.f;
 	constexpr float Arrastre = 0.05f;
 	constexpr float Subida = 2.f;

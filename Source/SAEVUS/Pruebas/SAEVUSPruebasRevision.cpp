@@ -13,6 +13,10 @@
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Combate/SAEVUSParadaGolpe.h"
 #include "Combate/SAEVUSTiposCombate.h"
+#include "Components/PoseableMeshComponent.h"
+#include "Efectos/SAEVUSComponenteEcoDash.h"
+#include "Engine/SkeletalMesh.h"
+#include "Mundo/SAEVUSFuegoBrasero.h"
 #include "Enemigos/SAEVUSTiposEnemigo.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
@@ -243,6 +247,43 @@ bool FSAEVUSPruebaMuelle::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMuelleEstable, "SAEVUS.Animacion.MuelleEstable", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaMuelleEstable::RunTest(const FString& Parameters)
+{
+	// Todas las combinaciones reales (cadera hasta ~44 Hz) con fotogramas desde 1/240 s hasta 0,4 s: ninguna explota (ANIMVFX-1).
+	const float Pasos[] = { 1.f / 240.f, 1.f / 144.f, 1.f / 60.f, 1.f / 30.f, 1.f / 15.f, 0.1f, 0.25f, 0.4f };
+	const float Frecuencias[] = { 1.f, 2.2f, 8.f, 20.f, 43.6f };
+	const float Amortiguaciones[] = { 0.1f, 0.3f, 0.7f, 1.f };
+	for (const float Paso : Pasos)
+	{
+		for (const float Frecuencia : Frecuencias)
+		{
+			for (const float Amortiguacion : Amortiguaciones)
+			{
+				FSAEVUSMuelle Muelle;
+				Muelle.Valor = 55.f;
+				Muelle.Velocidad = 1000.f;
+				float Maximo = 0.f;
+				for (int32 Indice = 0; Indice < FMath::CeilToInt(30.f / FMath::Min(Paso, 0.1f)); ++Indice)
+				{
+					Muelle.Avanzar(0.f, Frecuencia, Amortiguacion, Paso);
+					Maximo = FMath::Max(Maximo, FMath::Abs(Muelle.Valor));
+				}
+				const FString Caso = FString::Printf(TEXT("paso %.4f, %.1f Hz, amortiguación %.1f"), Paso, Frecuencia, Amortiguacion);
+				TestTrue(TEXT("Finito: ") + Caso, FMath::IsFinite(Muelle.Valor) && FMath::IsFinite(Muelle.Velocidad));
+				TestTrue(TEXT("Acotado: ") + Caso, Maximo < 400.f);
+				TestTrue(TEXT("Se asienta: ") + Caso, FMath::Abs(Muelle.Valor) < 1.f);
+			}
+		}
+	}
+	// Un NaN heredado se descarta en vez de contagiar al siguiente fotograma.
+	FSAEVUSMuelle Roto;
+	Roto.Valor = NAN;
+	Roto.Avanzar(3.f, 4.f, 0.5f, 1.f / 60.f);
+	TestEqual(TEXT("El muelle roto parte del objetivo"), Roto.Valor, 3.f, 0.01f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaGiroPorCapas, "SAEVUS.Animacion.GiroPorCapas", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaGiroPorCapas::RunTest(const FString& Parameters)
 {
@@ -408,6 +449,69 @@ bool FSAEVUSPruebaGestosEnemigo::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Un proyectil se lanza"), Ataque.ObtenerGesto(), ESAEVUSGestoEnemigo::Lanzamiento);
 	Ataque.Gesto = ESAEVUSGestoEnemigo::Mazazo;
 	TestEqual(TEXT("El gesto elegido manda"), Ataque.ObtenerGesto(), ESAEVUSGestoEnemigo::Mazazo);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaEcoDash, "SAEVUS.Efectos.EcoDash", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaEcoDash::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	USkeletalMesh* Caballero = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/SAEVUS/Arte/Personajes/Caballero/SK_Caballero.SK_Caballero"));
+	if (!TestNotNull(TEXT("Caballero importado"), Caballero))
+	{
+		return false;
+	}
+	FMundoRevision Mundo;
+	Mundo.Personaje->ObtenerCuerpo()->SetSkinnedAssetAndUpdate(Caballero, true);
+	Mundo.Personaje->ObtenerAnimacion()->FijarMalla(Mundo.Personaje->ObtenerCuerpo());
+	const USAEVUSComponenteEcoDash* Eco = Mundo.Personaje->ObtenerEcoDash();
+	if (!TestNotNull(TEXT("El personaje deja ecos"), Eco))
+	{
+		return false;
+	}
+	Mundo.Personaje->ObtenerMovimiento()->PedirDash();
+	int32 Maximo = 0;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(0.2f); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+		Maximo = FMath::Max(Maximo, Eco->ObtenerEcosVisibles());
+	}
+	AddInfo(FString::Printf(TEXT("Ecos a la vista durante el dash: %d"), Maximo));
+	TestTrue(TEXT("El dash deja varios ecos"), Maximo >= 2);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(1.f); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+	}
+	TestEqual(TEXT("Y se apagan"), Eco->ObtenerEcosVisibles(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaFuegoDescansa, "SAEVUS.Mundo.FuegoBrasero", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaFuegoDescansa::RunTest(const FString& Parameters)
+{
+	// Sin render (como fuera de la vista), el fuego no titila ni suelta brasas: no cuesta nada.
+	SAEVUSPruebas::FMundoPrueba MundoPrueba;
+	ASAEVUSFuegoBrasero* Fuego = MundoPrueba.CrearActor<ASAEVUSFuegoBrasero>(FVector::ZeroVector);
+	const float Inicial = Fuego->ObtenerIntensidadActual();
+	for (int32 Indice = 0; Indice < 30; ++Indice)
+	{
+		Fuego->Tick(SAEVUSPruebas::PasoSimulacion);
+	}
+	TestTrue(TEXT("Tiene luz"), Inicial > 0.f);
+	TestEqual(TEXT("Sin verse no titila"), Fuego->ObtenerIntensidadActual(), Inicial);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaTonoGolpes, "SAEVUS.Audio.TonoGolpes", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaTonoGolpes::RunTest(const FString& Parameters)
+{
+	// Cada golpe suena distinto: el remate y el giro cargado graves, la estocada aguda.
+	const FSAEVUSRepertorioMelee Repertorio;
+	const float Tajo = Repertorio.ComboSuelo[0].TonoSonido;
+	TestTrue(TEXT("El remate suena más grave que el tajo"), Repertorio.ComboSuelo[2].TonoSonido < Tajo);
+	TestTrue(TEXT("El giro cargado, el más grave"), Repertorio.AtaqueCargado.TonoSonido < Repertorio.ComboSuelo[2].TonoSonido);
+	TestTrue(TEXT("La estocada en carrera suena aguda"), Repertorio.TajoEnCarrera.TonoSonido > Tajo);
+	TestNotEqual(TEXT("El revés no suena como el tajo"), Repertorio.ComboSuelo[1].TonoSonido, Tajo);
 	return true;
 }
 

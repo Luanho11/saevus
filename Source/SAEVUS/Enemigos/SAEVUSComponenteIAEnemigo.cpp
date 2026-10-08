@@ -20,6 +20,8 @@ namespace SAEVUSIAEnemigo
 	constexpr float DistanciaSinObjetivo = TNumericLimits<float>::Max();
 	// Voladores: cuánto pesa la diferencia de altura frente a avanzar (más = corrige la altura antes).
 	constexpr float GananciaAltura = 2.f;
+	// Tras recibir daño, el enemigo sabe dónde está el agresor y no lo pierde de vista por distancia durante este tiempo.
+	constexpr float DuracionAlertaPorDanio = 6.f;
 }
 
 USAEVUSComponenteIAEnemigo::USAEVUSComponenteIAEnemigo()
@@ -149,6 +151,15 @@ void USAEVUSComponenteIAEnemigo::AlCambiarVida(USAEVUSComponenteVida* Componente
 	ActualizarFase();
 	if (Delta < 0.f && !ComponenteVida->EstaMuerto())
 	{
+		// Un enemigo (o un jefe) al que hieren desde lejos o sin haber detectado a nadie va a por quien lo hirió (EA-2).
+		if (Instigador && Instigador->IsA<APawn>())
+		{
+			TiempoAlertaRestante = SAEVUSIAEnemigo::DuracionAlertaPorDanio;
+			if (Estado == ESAEVUSEstadoEnemigo::Reposo)
+			{
+				CambiarEstado(ESAEVUSEstadoEnemigo::Perseguir);
+			}
+		}
 		Aturdir();
 	}
 }
@@ -191,6 +202,7 @@ void USAEVUSComponenteIAEnemigo::Actualizar(float DeltaTime)
 		return;
 	}
 	TiempoEstado += DeltaTime;
+	TiempoAlertaRestante = FMath::Max(0.f, TiempoAlertaRestante - DeltaTime);
 	const FSAEVUSFaseEnemigo& FaseActual = ObtenerFaseActual();
 	const FSAEVUSAtaqueEnemigo* Ataque = ObtenerAtaqueActual();
 	// La fase acelera también el paso.
@@ -296,7 +308,7 @@ void USAEVUSComponenteIAEnemigo::FijarReposoLejano(bool bLejos)
 void USAEVUSComponenteIAEnemigo::ActualizarPerseguir()
 {
 	const float Distancia = DistanciaObjetivo();
-	if (Distancia > ObtenerAjuste().RadioPerdida)
+	if (Distancia > ObtenerAjuste().RadioPerdida && TiempoAlertaRestante <= 0.f)
 	{
 		CambiarEstado(ESAEVUSEstadoEnemigo::Reposo);
 		return;
@@ -339,10 +351,6 @@ void USAEVUSComponenteIAEnemigo::EmpezarAtaque()
 	bGolpeAplicado = false;
 	bDejoSuelo = false;
 	CambiarEstado(ESAEVUSEstadoEnemigo::Atacar);
-	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Proyectil)
-	{
-		LanzarProyectil(*Ataque);
-	}
 	if (Ataque->Tipo == ESAEVUSTipoAtaqueEnemigo::Picado)
 	{
 		// El picado va en línea recta en 3D hacia donde está el objetivo ahora.
@@ -406,10 +414,15 @@ void USAEVUSComponenteIAEnemigo::ActualizarAtacar()
 		bTermino |= bDejoSuelo && Movimiento->IsMovingOnGround();
 		break;
 	case ESAEVUSTipoAtaqueEnemigo::Proyectil:
-		// Lanzado al empezar; queda quieto la duración del ataque.
+		// Sale cuando el brazo llega al final del barrido; queda quieto la duración del ataque.
+		if (!bGolpeAplicado && TiempoEstado >= FMath::Min(Ataque->TiempoImpacto, Ataque->Duracion))
+		{
+			bGolpeAplicado = true;
+			LanzarProyectil(*Ataque);
+		}
 		break;
 	case ESAEVUSTipoAtaqueEnemigo::Golpe:
-		if (!bGolpeAplicado)
+		if (!bGolpeAplicado && TiempoEstado >= FMath::Min(Ataque->TiempoImpacto, Ataque->Duracion))
 		{
 			bGolpeAplicado = true;
 			const APawn* Pawn = ObtenerObjetivo();

@@ -114,18 +114,45 @@ void USAEVUSComponenteCombate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-bool USAEVUSComponenteCombate::IntentarCancelarPor(ESAEVUSAccionCancelacion Accion)
+bool USAEVUSComponenteCombate::PuedeCancelarPor(ESAEVUSAccionCancelacion Accion) const
 {
 	if (!bAtacando)
 	{
 		return true;
 	}
 	const float CancelarDesde = AtaqueEnCurso.ObtenerCancelacionDesde(Accion);
-	if (CancelarDesde < 0.f || TiempoAtaque < CancelarDesde)
+	return CancelarDesde >= 0.f && TiempoAtaque >= CancelarDesde;
+}
+
+bool USAEVUSComponenteCombate::IntentarCancelarPor(ESAEVUSAccionCancelacion Accion)
+{
+	if (!PuedeCancelarPor(Accion))
 	{
 		return false;
 	}
-	TerminarAtaque();
+	if (bAtacando)
+	{
+		TerminarAtaque();
+	}
+	return true;
+}
+
+bool USAEVUSComponenteCombate::GuardarAccionPendiente(ESAEVUSAccionCancelacion Accion, TFunction<void()> Ejecutar)
+{
+	if (!bAtacando)
+	{
+		return false;
+	}
+	const float CancelarDesde = AtaqueEnCurso.ObtenerCancelacionDesde(Accion);
+	const float Buffer = ObtenerRepertorio().TiempoBufferAccion;
+	// Sin ventana (el ataque compromete) o demasiado lejos: la pulsación se pierde, como debe.
+	if (CancelarDesde < 0.f || CancelarDesde - TiempoAtaque > Buffer)
+	{
+		return false;
+	}
+	EjecutarAccionPendiente = MoveTemp(Ejecutar);
+	AccionPendiente = Accion;
+	TiempoAccionPendienteRestante = Buffer;
 	return true;
 }
 
@@ -167,6 +194,22 @@ void USAEVUSComponenteCombate::TickComponent(float DeltaTime, ELevelTick TickTyp
 		if (TiempoAtaque >= AtaqueEnCurso.ObtenerTiempoTotal())
 		{
 			TerminarAtaque();
+		}
+	}
+
+	if (EjecutarAccionPendiente)
+	{
+		TiempoAccionPendienteRestante -= DeltaTime;
+		if (TiempoAccionPendienteRestante <= 0.f)
+		{
+			EjecutarAccionPendiente = nullptr;
+		}
+		else if (PuedeCancelarPor(AccionPendiente))
+		{
+			// Se vacía antes de ejecutar: la acción vuelve a pasar por IntentarCancelarPor y no debe reencolarse.
+			const TFunction<void()> Ejecutar = MoveTemp(EjecutarAccionPendiente);
+			EjecutarAccionPendiente = nullptr;
+			Ejecutar();
 		}
 	}
 

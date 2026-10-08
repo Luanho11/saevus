@@ -74,6 +74,19 @@ float USAEVUSComponenteVida::AplicarDanio(float Cantidad, AActor* Causante)
 	return Quitada;
 }
 
+void USAEVUSComponenteVida::Matar(AActor* Causante)
+{
+	if (bMuerto)
+	{
+		return;
+	}
+	const float Quitada = Vida;
+	Vida = 0.f;
+	bMuerto = true;
+	AlCambiarVida.Broadcast(this, -Quitada, Causante);
+	AlMorir.Broadcast(this, Causante);
+}
+
 float USAEVUSComponenteVida::Curar(float Cantidad)
 {
 	if (bMuerto || Cantidad <= 0.f)

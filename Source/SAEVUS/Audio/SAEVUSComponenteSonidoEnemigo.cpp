@@ -143,5 +143,5 @@ void USAEVUSComponenteSonidoEnemigo::Reproducir(const TArray<uint8>& Datos, floa
 		return;
 	}
 	++Reproducciones;
-	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::CrearOnda(this, Datos, Duracion), GetOwner()->GetActorLocation(), Ajuste.Volumen);
+	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::CrearOnda(this, Datos, Duracion), GetOwner()->GetActorLocation(), Ajuste.Volumen, 1.f, 0.f, SAEVUSSintesis::ObtenerAtenuacion());
 }

@@ -142,10 +142,11 @@ void ASAEVUSModoJuego::ReaparecerEnPuntoControl(AController* Controlador)
 
 void ASAEVUSModoJuego::FijarPuntoControl(const FTransform& Punto)
 {
-	PuntoControl = Punto;
+	// Solo posición y giro sobre el eje vertical: un volumen escalado no debe escalar ni inclinar al personaje (GAMEPLAY-13).
+	PuntoControl = FTransform(FRotator(0.f, Punto.Rotator().Yaw, 0.f), Punto.GetLocation(), FVector::OneVector);
 	bTienePuntoControl = true;
 	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
-		Guardado->GuardarPuntoControl(GetWorld(), Punto);
+		Guardado->GuardarPuntoControl(GetWorld(), PuntoControl);
 	}
 }

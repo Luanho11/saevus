@@ -44,6 +44,8 @@ namespace SAEVUSEnemigo
 	constexpr float BrilloAviso = 3.f;
 	constexpr int32 ParticulasMuerte = 40;
 	constexpr float VelocidadParticulasMuerte = 300.f;
+	/** Con esqueleto el cuerpo cae entero y solo se encoge en este último tramo de la vida del cadáver (ANIMVFX-18). */
+	constexpr float FraccionEncogidoMuerte = 0.3f;
 	constexpr float DispersionParticulasMuerte = 250.f;
 
 	// Destello al recibir un golpe: duración, mezcla hacia el blanco y brillo.
@@ -389,7 +391,7 @@ void ASAEVUSEnemigo::ActualizarAspecto(float DeltaSeconds)
 	{
 		TiempoMuerto += DeltaSeconds;
 		const float Fraccion = 1.f - FMath::Clamp(TiempoMuerto / FMath::Max(ObtenerAjuste().DuracionMuerte, KINDA_SMALL_NUMBER), 0.f, 1.f);
-		Objetivo = FVector(Fraccion);
+		Objetivo = FVector(TieneEsqueleto() ? FMath::Clamp(Fraccion / FraccionEncogidoMuerte, 0.f, 1.f) : Fraccion);
 		Brillo = 0.f;
 		break;
 	}

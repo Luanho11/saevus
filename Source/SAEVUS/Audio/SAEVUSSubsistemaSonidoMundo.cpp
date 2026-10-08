@@ -91,5 +91,5 @@ void USAEVUSSubsistemaSonidoMundo::ReproducirEn(ESAEVUSSonidoMundo Sonido, const
 		Datos[Indice] = SAEVUSSintesis::SintetizarBytes(Definicion);
 	}
 	++Reproducciones;
-	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::CrearOnda(this, Datos[Indice], Definicion.Duracion), Posicion, Ajuste.Volumen);
+	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::CrearOnda(this, Datos[Indice], Definicion.Duracion), Posicion, Ajuste.Volumen, 1.f, 0.f, SAEVUSSintesis::ObtenerAtenuacion());
 }

@@ -44,7 +44,7 @@ struct FSAEVUSAjusteEfectosCombate
 
 	/** Estela del aguijón: partículas repartidas a lo largo de la hoja en cada fotograma de la fase activa. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Estela del arma", meta = (ClampMin = "0"))
-	int32 ParticulasEstelaPorFotograma = 5;
+	int32 ParticulasEstelaPorFotograma = 1;
 
 	/** Partículas por segundo que se juntan en la hoja mientras se carga el ataque cargado. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Carga", meta = (ClampMin = "0"))
@@ -66,7 +66,7 @@ struct FSAEVUSAjusteEfectosCombate
 	 * dentro), barriéndolo en el sentido del tajo. Dibuja exactamente lo que golpea.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0"))
-	int32 ParticulasArcoPorPaso = 5;
+	int32 ParticulasArcoPorPaso = 1;
 
 	/** Pasos de ángulo por grado de barrido (el arco no deja huecos aunque el fotograma sea largo). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Arco del tajo", meta = (ClampMin = "0.05"))

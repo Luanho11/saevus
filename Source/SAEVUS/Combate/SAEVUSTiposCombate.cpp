@@ -25,12 +25,14 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 
 	FSAEVUSDefinicionAtaque Tajo2;
 	Tajo2.Nombre = TEXT("Tajo2");
+	Tajo2.TonoSonido = 1.12f;
 	Tajo2.Gesto = ESAEVUSGestoAtaque::Reves;
 	Tajo2.Danio = 12.f;
 
 	// Remate: más lento, más amplio, estocada más larga, y compromete: no se sale saltando y el dash llega tarde.
 	FSAEVUSDefinicionAtaque Remate;
 	Remate.Nombre = TEXT("Remate");
+	Remate.TonoSonido = 0.75f;
 	Remate.Gesto = ESAEVUSGestoAtaque::Remate;
 	Remate.TiempoPreparacion = 0.18f;
 	Remate.TiempoActivo = 0.12f;
@@ -53,6 +55,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	// Tajo aéreo: sin estocada, así lo lleva el impulso del salto.
 	FSAEVUSDefinicionAtaque TajoAereo;
 	TajoAereo.Nombre = TEXT("TajoAereo");
+	TajoAereo.TonoSonido = 1.05f;
 	TajoAereo.Gesto = ESAEVUSGestoAtaque::AereoDiagonal;
 	TajoAereo.TiempoPreparacion = 0.08f;
 	TajoAereo.TiempoActivo = 0.1f;
@@ -71,9 +74,11 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	// Cadena aérea de tres (GunZ): revés y un remate que empuja hacia abajo y ya no flota.
 	FSAEVUSDefinicionAtaque TajoAereo2 = TajoAereo;
 	TajoAereo2.Nombre = TEXT("TajoAereo2");
+	TajoAereo2.TonoSonido = 1.15f;
 	TajoAereo2.Gesto = ESAEVUSGestoAtaque::AereoReves;
 	FSAEVUSDefinicionAtaque RemateAereo = TajoAereo;
 	RemateAereo.Nombre = TEXT("RemateAereo");
+	RemateAereo.TonoSonido = 0.8f;
 	RemateAereo.Gesto = ESAEVUSGestoAtaque::AereoRemate;
 	RemateAereo.Danio = 18.f;
 	RemateAereo.TiempoRecuperacion = 0.35f;
@@ -86,6 +91,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 
 	// Tajo hacia arriba: esfera sobre la cabeza, sin estocada ni retroceso (no se empuja contra el techo).
 	TajoArriba.Nombre = TEXT("TajoArriba");
+	TajoArriba.TonoSonido = 1.2f;
 	TajoArriba.Gesto = ESAEVUSGestoAtaque::TajoArriba;
 	TajoArriba.TiempoPreparacion = 0.08f;
 	TajoArriba.TiempoActivo = 0.1f;
@@ -108,6 +114,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	// Tajo en carrera: el impulso del dash se convierte en una estocada larga y un golpe amplio.
 	TajoEnCarrera = Tajo1;
 	TajoEnCarrera.Nombre = TEXT("TajoEnCarrera");
+	TajoEnCarrera.TonoSonido = 1.3f;
 	TajoEnCarrera.Gesto = ESAEVUSGestoAtaque::Estocada;
 	TajoEnCarrera.TiempoPreparacion = 0.05f;
 	TajoEnCarrera.TiempoActivo = 0.14f;
@@ -129,6 +136,7 @@ FSAEVUSRepertorioMelee::FSAEVUSRepertorioMelee()
 	// Ataque cargado: giro completo con la hoja extendida; golpea todo alrededor. Compromete.
 	AtaqueCargado = Tajo1;
 	AtaqueCargado.Nombre = TEXT("AtaqueCargado");
+	AtaqueCargado.TonoSonido = 0.65f;
 	AtaqueCargado.Gesto = ESAEVUSGestoAtaque::Giratorio;
 	AtaqueCargado.TiempoPreparacion = 0.1f;
 	AtaqueCargado.TiempoActivo = 0.25f;

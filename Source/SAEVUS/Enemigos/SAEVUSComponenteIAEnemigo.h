@@ -46,6 +46,9 @@ public:
 	/** Interrumpe lo que esté haciendo (golpe recibido), salvo si no se aturde. */
 	void Aturdir();
 
+	/** Fuerza un estado sin pasar por las condiciones (pruebas y escenas guionizadas). */
+	void ForzarEstado(ESAEVUSEstadoEnemigo NuevoEstado) { CambiarEstado(NuevoEstado); }
+
 	/** Pasa a muerto; ya no actúa. */
 	void Morir();
 
@@ -111,5 +114,8 @@ private:
 	float SentidoPatrulla = 1.f;
 	FVector DireccionAtaque = FVector::ForwardVector;
 	bool bGolpeAplicado = false;
+
+	/** Mientras dura, el enemigo persigue sin perder al objetivo por distancia (le acaban de herir). */
+	float TiempoAlertaRestante = 0.f;
 	bool bDejoSuelo = false;
 };

@@ -61,6 +61,9 @@ FVector ASAEVUSPlataformaMovil::PosicionEn(float Instante) const
 void ASAEVUSPlataformaMovil::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	Tiempo += DeltaSeconds;
+	// El tiempo vuelve a empezar cada ciclo: un float que crece sin límite perdería precisión en sesiones largas (GAMEPLAY-27).
+	const float Viaje = static_cast<float>(Recorrido.Size()) / FMath::Max(Velocidad, 1.f);
+	const float Ciclo = FMath::Max(2.f * (PausaExtremo + Viaje), UE_KINDA_SMALL_NUMBER);
+	Tiempo = FMath::Fmod(Tiempo + DeltaSeconds, Ciclo);
 	SetActorLocation(PosicionEn(Tiempo));
 }

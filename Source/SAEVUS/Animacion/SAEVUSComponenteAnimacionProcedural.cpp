@@ -1303,7 +1303,13 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 	for (int32 Hueso = 0; Hueso < NumHuesos; ++Hueso)
 	{
 		const float AlfaHueso = AlfaTramo[static_cast<int32>(TramoDe(static_cast<ESAEVUSHueso>(Hueso)))];
-		RotacionActual[Hueso] = FQuat::Slerp(RotacionActual[Hueso], Objetivo[Hueso], AlfaHueso).GetNormalized();
+		// Un NaN en la pose no se recupera solo (el Slerp lo arrastra para siempre): vuelve al reposo (ANIMVFX-1).
+		if (RotacionActual[Hueso].ContainsNaN())
+		{
+			RotacionActual[Hueso] = ReposoComponente[Hueso].GetRotation();
+		}
+		const FQuat ObjetivoHueso = Objetivo[Hueso].ContainsNaN() ? ReposoComponente[Hueso].GetRotation() : Objetivo[Hueso];
+		RotacionActual[Hueso] = FQuat::Slerp(RotacionActual[Hueso], ObjetivoHueso, AlfaHueso).GetNormalized();
 	}
 	DesplazamientoRaizActual = FMath::Lerp(DesplazamientoRaizActual, Pose.DesplazamientoRaiz, AlfaCuerpo);
 	EscalaArmaActual = FMath::Lerp(EscalaArmaActual, Pose.EscalaArma, AlfaCuerpo);

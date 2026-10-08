@@ -81,6 +81,10 @@ struct FSAEVUSDefinicionAtaque
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque")
 	ESAEVUSGestoAtaque Gesto = ESAEVUSGestoAtaque::TajoDerecha;
 
+	/** Tono del siseo de la hoja (1 = el del sonido; menos, más grave y pesado): cada golpe suena distinto. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ataque", meta = (ClampMin = "0.25", ClampMax = "4"))
+	float TonoSonido = 1.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoPreparacion = 0.1f;
 
@@ -258,6 +262,10 @@ struct SAEVUS_API FSAEVUSRepertorioMelee
 	/** Una pulsación de ataque se recuerda este tiempo hasta que puede empezar. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entrada", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoBufferEntrada = 0.2f;
+
+	/** Cuánto antes de abrirse la ventana de cancelación (dash, salto) se recuerda la pulsación. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Entrada", meta = (ClampMin = "0", ForceUnits = "s"))
+	float TiempoBufferAccion = 0.15f;
 
 	/** Un ataque pulsado durante un dash termina el dash y empieza en el acto (si no, espera). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cancelaciones")

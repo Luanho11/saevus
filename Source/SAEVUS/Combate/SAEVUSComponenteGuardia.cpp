@@ -140,7 +140,10 @@ float USAEVUSComponenteGuardia::FiltrarDanio(float Cantidad, AActor* Causante)
 		return Cantidad;
 	}
 	++Bloqueos;
-	if (Ajuste.VentanaContraataque > 0.f && GetWorld()->GetTimeSeconds() - InicioGuardia <= Ajuste.VentanaContraataque)
+	// Solo es contraataque parar un ataque de verdad: el roce de un enemigo que no ataca se bloquea, sin dar alma (EA-24).
+	const USAEVUSComponenteIAEnemigo* IAAtacante = Causante->FindComponentByClass<USAEVUSComponenteIAEnemigo>();
+	const bool bEsAtaque = !IAAtacante || IAAtacante->ObtenerEstado() == ESAEVUSEstadoEnemigo::Atacar;
+	if (bEsAtaque && Ajuste.VentanaContraataque > 0.f && GetWorld()->GetTimeSeconds() - InicioGuardia <= Ajuste.VentanaContraataque)
 	{
 		Contraatacar(Causante);
 	}

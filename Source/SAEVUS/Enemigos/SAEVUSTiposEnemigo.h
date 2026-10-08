@@ -120,6 +120,13 @@ struct FSAEVUSAtaqueEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoRecuperacion = 0.7f;
 
+	/**
+	 * Golpe y Proyectil: cuánto después de empezar el ataque llega el golpe (o sale el proyectil), para que el
+	 * daño coincida con el barrido que se ve y no con el brazo todavía levantado (auditoría ANIMVFX-2).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
+	float TiempoImpacto = 0.15f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0"))
 	float Danio = 20.f;
 
@@ -283,7 +290,7 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 
 	/** Tiempo entre morir y desaparecer (se encoge y suelta partículas). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Muerte", meta = (ClampMin = "0", ForceUnits = "s"))
-	float DuracionMuerte = 0.6f;
+	float DuracionMuerte = 1.5f;
 
 	/**
 	 * Peso de su animación: 1 = un goblin (nervioso, rápido); más es más lento y pesado (el Rey Goblin): los

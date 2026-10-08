@@ -168,6 +168,12 @@ USAEVUSComponenteMovimiento::USAEVUSComponenteMovimiento()
 {
 	bWantsInitializeComponent = true;
 
+	// Una fuente nueva del enum empezaría a 0 con un inicializador corto y dejaría al jugador inmóvil (GAMEPLAY-21).
+	for (float& EscalaFuente : EscalasVelocidadAccion)
+	{
+		EscalaFuente = 1.f;
+	}
+
 	// GunZ: el cuerpo sigue a la cámara (AplicarAjustes lo decide con bMirarHaciaCamara).
 	bOrientRotationToMovement = false;
 	bUseControllerDesiredRotation = true;

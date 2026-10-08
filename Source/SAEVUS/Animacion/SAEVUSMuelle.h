@@ -11,13 +11,18 @@ inline T SAEVUSCeroMuelle() { return static_cast<T>(0); }
 template <>
 inline FVector SAEVUSCeroMuelle<FVector>() { return FVector::ZeroVector; }
 
+/** Comprobación de valores finitos para los tipos del muelle. */
+inline bool SAEVUSEsFinitoMuelle(float Valor) { return FMath::IsFinite(Valor); }
+inline bool SAEVUSEsFinitoMuelle(const FVector& Valor) { return !Valor.ContainsNaN(); }
+
 /**
  * Muelle amortiguado de segundo orden: el valor persigue a su objetivo con inercia, se pasa un poco y se
  * asienta (amortiguación < 1) o llega sin pasarse (1). Es lo que da peso a la animación procedural: la
  * cadera que se queda atrás al girar, el tronco que sigue hacia delante al frenar, la capa que ondea.
  *
  * Frecuencia en Hz (cuántas oscilaciones por segundo), Amortiguacion adimensional (0 = rebota siempre,
- * 1 = crítica). Se integra en subpasos de tamaño fijo, así es estable con fotogramas largos.
+ * 1 = crítica). Se integra con Euler implícito en subpasos: es estable con cualquier fotograma y frecuencia
+ * (el semiimplícito explotaba a NaN con la cadera a ~40 Hz y un tirón de 0,1 s, auditoría ANIMVFX-1).
  */
 template <typename T>
 struct TSAEVUSMuelle
@@ -32,16 +37,23 @@ struct TSAEVUSMuelle
 		{
 			return;
 		}
-		const float Omega = UE_TWO_PI * FMath::Max(Frecuencia, 0.01f);
+		// Un valor no finito (NaN o infinito) no se recupera solo: se descarta y se parte del objetivo.
+		if (!SAEVUSEsFinitoMuelle(Valor) || !SAEVUSEsFinitoMuelle(Velocidad))
+		{
+			Fijar(Objetivo);
+			return;
+		}
+		const float Omega = UE_TWO_PI * FMath::Clamp(Frecuencia, 0.01f, FrecuenciaMaxima);
 		const float Rigidez = Omega * Omega;
 		const float Friccion = 2.f * FMath::Max(Amortiguacion, 0.f) * Omega;
-		// Subpasos: el muelle más rígido (Omega alto) con un fotograma largo no debe explotar.
-		const int32 Pasos = FMath::Clamp(FMath::CeilToInt(DeltaTime / PasoMaximo), 1, MaxSubpasos);
-		const float Paso = DeltaTime / static_cast<float>(Pasos);
+		const float TiempoTotal = FMath::Min(DeltaTime, TiempoMaximo);
+		const int32 Pasos = FMath::Clamp(FMath::CeilToInt(TiempoTotal / PasoMaximo), 1, MaxSubpasos);
+		const float Paso = TiempoTotal / static_cast<float>(Pasos);
+		// Euler implícito: v' = (v + h·k·(objetivo − x)) / (1 + h·c + h²·k); x' = x + h·v'. Incondicionalmente estable.
+		const float Divisor = 1.f + Paso * Friccion + Paso * Paso * Rigidez;
 		for (int32 Indice = 0; Indice < Pasos; ++Indice)
 		{
-			// Euler semiimplícito: primero la velocidad, luego la posición con la velocidad nueva.
-			Velocidad += ((Objetivo - Valor) * Rigidez - Velocidad * Friccion) * Paso;
+			Velocidad = (Velocidad + (Objetivo - Valor) * (Paso * Rigidez)) / Divisor;
 			Valor += Velocidad * Paso;
 		}
 	}
@@ -57,9 +69,12 @@ struct TSAEVUSMuelle
 	}
 
 private:
-	// 1/240 s: estable hasta frecuencias de ~30 Hz con amortiguación baja.
+	// 1/240 s: precisión (el implícito amortigua de más con pasos largos, pero nunca explota).
 	static constexpr float PasoMaximo = 1.f / 240.f;
 	static constexpr int32 MaxSubpasos = 16;
+	/** Un fotograma más largo se recorta: tras un tirón no hace falta simular medio segundo de muelle. */
+	static constexpr float TiempoMaximo = 0.1f;
+	static constexpr float FrecuenciaMaxima = 20.f;
 };
 
 using FSAEVUSMuelle = TSAEVUSMuelle<float>;

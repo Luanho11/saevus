@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Async/Future.h"
 #include "Audio/SAEVUSMusica.h"
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"

@@ -5,6 +5,7 @@
 #include "Audio/SAEVUSSintesis.h"
 #include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
+#include "Math/RandomStream.h"
 #include "SAEVUSComponenteSonido.generated.h"
 
 class USAEVUSComponenteVida;
@@ -59,6 +60,28 @@ struct SAEVUS_API FSAEVUSAjusteSonidos
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
 	FSAEVUSSonidoSintetizado DobleSalto;
+
+	/** Pisada sorda en la piedra, una cada DistanciaPaso recorrida en el suelo (tono algo distinto cada vez). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
+	FSAEVUSSonidoSintetizado Paso;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "10", ForceUnits = "cm"))
+	float DistanciaPaso = 95.f;
+
+	/** Variación del tono de cada pisada (± esta fracción). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ClampMax = "0.5"))
+	float VariacionTonoPaso = 0.1f;
+
+	/** Golpe de botas al aterrizar; más fuerte cuanto más rápida la caída (a VelocidadCaidaAterrizaje, entero). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
+	FSAEVUSSonidoSintetizado Aterrizaje;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "1", ForceUnits = "cm/s"))
+	float VelocidadCaidaAterrizaje = 1000.f;
+
+	/** Por debajo de esta velocidad de caída no suena aterrizaje (escalones, rozar el suelo). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm/s"))
+	float VelocidadMinimaAterrizaje = 200.f;
 };
 
 /**
@@ -72,10 +95,14 @@ class SAEVUS_API USAEVUSComponenteSonido : public UActorComponent
 
 public:
 	/** Sonidos reproducidos desde el inicio (pruebas y depuración). */
+	USAEVUSComponenteSonido();
+
 	int32 ObtenerReproducciones() const { return Reproducciones; }
 
 protected:
 	virtual void BeginPlay() override;
+	/** Pisadas: cuenta la distancia andada en el suelo. */
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, Category = "SAEVUS|Sonido")
@@ -89,10 +116,11 @@ private:
 		float Duracion = 0.f;
 	};
 
-	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, GatilloEnSeco, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Total };
+	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, GatilloEnSeco, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Paso, Aterrizaje, Total };
 
 	void Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido);
-	void Reproducir(EEfecto Efecto, float VolumenCategoria);
+	void Reproducir(EEfecto Efecto, float VolumenCategoria, float Tono = 1.f);
+	void AlAterrizar(float VelocidadCaida);
 
 	void AlIniciarAtaque();
 	void AlIniciarDash(const FVector& Direccion);
@@ -116,4 +144,7 @@ private:
 	FEfecto Efectos[static_cast<int32>(EEfecto::Total)];
 	TArray<TPair<TWeakObjectPtr<UObject>, FDelegateHandle>> Manejadores;
 	int32 Reproducciones = 0;
+	/** Distancia andada en el suelo desde la última pisada. */
+	float RecorridoPaso = 0.f;
+	FRandomStream AleatorioPasos;
 };

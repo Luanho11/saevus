@@ -162,7 +162,14 @@ struct FSAEVUSAjusteDash
 
 	/** Invulnerabilidad desde el inicio del dash (esquiva). 0 = ninguna. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
-	float DuracionInvulnerable = 0.15f;
+	float DuracionInvulnerable = 0.10f;
+
+	/**
+	 * Un dash empezado antes de esta ventana desde el anterior cuenta como racha y no da invulnerabilidad:
+	 * encadenar dashes (GunZ) sigue permitido, pero ya no es inmortalidad (auditoría GAMEPLAY-1).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (ClampMin = "0", ForceUnits = "s"))
+	float VentanaRachaSinInvulnerabilidad = 0.45f;
 
 	/** Deja estela de partículas (el dash con aguijón sí; la voltereta con arma de fuego no). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Efectos")

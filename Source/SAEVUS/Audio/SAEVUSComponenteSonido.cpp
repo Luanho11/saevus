@@ -117,6 +117,34 @@ FSAEVUSAjusteSonidos::FSAEVUSAjusteSonidos()
 	DobleSalto.Caida = 0.07f;
 	DobleSalto.Volumen = 0.45f;
 	DobleSalto.Semilla = 71;
+
+	// Pisada: golpe sordo y corto de bota en piedra.
+	Paso.Duracion = 0.09f;
+	Paso.FrecuenciaInicio = 160.f;
+	Paso.FrecuenciaFin = 90.f;
+	Paso.MezclaRuido = 0.85f;
+	Paso.FiltroRuido = 0.12f;
+	Paso.Ataque = 0.003f;
+	Paso.Caida = 0.025f;
+	Paso.Volumen = 0.3f;
+	Paso.Semilla = 31;
+
+	// Aterrizaje: el mismo golpe, más largo y grave.
+	Aterrizaje.Duracion = 0.22f;
+	Aterrizaje.FrecuenciaInicio = 110.f;
+	Aterrizaje.FrecuenciaFin = 50.f;
+	Aterrizaje.MezclaRuido = 0.7f;
+	Aterrizaje.FiltroRuido = 0.08f;
+	Aterrizaje.Ataque = 0.004f;
+	Aterrizaje.Caida = 0.07f;
+	Aterrizaje.Volumen = 0.6f;
+	Aterrizaje.Semilla = 37;
+}
+
+USAEVUSComponenteSonido::USAEVUSComponenteSonido()
+{
+	// Tick para contar las pisadas.
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void USAEVUSComponenteSonido::Preparar(EEfecto Efecto, const FSAEVUSSonidoSintetizado& Sonido)
@@ -139,6 +167,9 @@ void USAEVUSComponenteSonido::BeginPlay()
 	Preparar(EEfecto::Contraataque, Ajuste.Contraataque);
 	Preparar(EEfecto::Dash, Ajuste.Dash);
 	Preparar(EEfecto::DobleSalto, Ajuste.DobleSalto);
+	Preparar(EEfecto::Paso, Ajuste.Paso);
+	Preparar(EEfecto::Aterrizaje, Ajuste.Aterrizaje);
+	AleatorioPasos.Initialize(static_cast<int32>(GetOwner()->GetUniqueID()));
 
 	AActor* Duenio = GetOwner();
 	if (USAEVUSComponenteCombate* Combate = Duenio->FindComponentByClass<USAEVUSComponenteCombate>())
@@ -170,6 +201,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 		{
 			Manejadores.Emplace(Movimiento, Movimiento->AlIniciarDash.AddUObject(this, &ThisClass::AlIniciarDash));
 			Manejadores.Emplace(Movimiento, Movimiento->AlSaltoAereo.AddUObject(this, &ThisClass::AlSaltoAereo));
+			Manejadores.Emplace(Movimiento, Movimiento->AlAterrizar.AddUObject(this, &ThisClass::AlAterrizar));
 		}
 	}
 }
@@ -196,13 +228,14 @@ void USAEVUSComponenteSonido::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			Movimiento->AlIniciarDash.Remove(Par.Value);
 			Movimiento->AlSaltoAereo.Remove(Par.Value);
+			Movimiento->AlAterrizar.Remove(Par.Value);
 		}
 	}
 	Manejadores.Reset();
 	Super::EndPlay(EndPlayReason);
 }
 
-void USAEVUSComponenteSonido::Reproducir(EEfecto Efecto, float VolumenCategoria)
+void USAEVUSComponenteSonido::Reproducir(EEfecto Efecto, float VolumenCategoria, float Tono)
 {
 	const FEfecto& Datos = Efectos[static_cast<int32>(Efecto)];
 	if (Datos.Datos.IsEmpty())
@@ -211,12 +244,15 @@ void USAEVUSComponenteSonido::Reproducir(EEfecto Efecto, float VolumenCategoria)
 	}
 	++Reproducciones;
 	// Una onda procedural nueva por reproducción: se consume al sonar.
-	UGameplayStatics::PlaySound2D(this, SAEVUSSintesis::CrearOnda(this, Datos.Datos, Datos.Duracion), Ajuste.VolumenGeneral * VolumenCategoria);
+	UGameplayStatics::PlaySound2D(this, SAEVUSSintesis::CrearOnda(this, Datos.Datos, Datos.Duracion), Ajuste.VolumenGeneral * VolumenCategoria, Tono);
 }
 
 void USAEVUSComponenteSonido::AlIniciarAtaque()
 {
-	Reproducir(EEfecto::Tajo, Ajuste.VolumenCombate);
+	// Cada golpe con su tono (datos del ataque): el remate suena grave y pesado, la estocada aguda.
+	const USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
+	const FSAEVUSDefinicionAtaque* Ataque = Combate ? Combate->ObtenerAtaqueActual() : nullptr;
+	Reproducir(EEfecto::Tajo, Ajuste.VolumenCombate, Ataque ? Ataque->TonoSonido : 1.f);
 }
 
 void USAEVUSComponenteSonido::AlGolpear(AActor* ActorGolpeado, float Cantidad)
@@ -265,4 +301,41 @@ void USAEVUSComponenteSonido::AlIniciarDash(const FVector& Direccion)
 void USAEVUSComponenteSonido::AlSaltoAereo()
 {
 	Reproducir(EEfecto::DobleSalto, Ajuste.VolumenMovimiento);
+}
+
+void USAEVUSComponenteSonido::AlAterrizar(float VelocidadCaida)
+{
+	// Un bajón de nada (escalón, estocada que roza el suelo) no suena como un aterrizaje.
+	if (VelocidadCaida < Ajuste.VelocidadMinimaAterrizaje)
+	{
+		RecorridoPaso = 0.f;
+		return;
+	}
+	const float Fuerza = FMath::Clamp(VelocidadCaida / Ajuste.VelocidadCaidaAterrizaje, 0.2f, 1.f);
+	Reproducir(EEfecto::Aterrizaje, Ajuste.VolumenMovimiento * Fuerza, FMath::Lerp(1.15f, 0.85f, Fuerza));
+	RecorridoPaso = 0.f;
+}
+
+void USAEVUSComponenteSonido::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	const USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(GetOwner());
+	const USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
+	// Sin pisadas mientras se ataca o se desliza en un dash/estocada: no son pasos.
+	if (!Movimiento || !Movimiento->IsMovingOnGround() || Movimiento->EstaEnDash() || Movimiento->EstaEnEstocada() || (Combate && Combate->EstaAtacando()))
+	{
+		return;
+	}
+	// Solo hay pisadas si el jugador anda de verdad (entrada), no con la inercia que queda tras un tajo o un dash.
+	if (Movimiento->GetCurrentAcceleration().IsNearlyZero())
+	{
+		return;
+	}
+	// Una pisada cada DistanciaPaso andada (dos por ciclo de zancada), con el tono algo cambiado.
+	RecorridoPaso += static_cast<float>(Movimiento->Velocity.Size2D()) * DeltaTime;
+	if (RecorridoPaso >= Ajuste.DistanciaPaso)
+	{
+		RecorridoPaso = FMath::Fmod(RecorridoPaso, Ajuste.DistanciaPaso);
+		Reproducir(EEfecto::Paso, Ajuste.VolumenMovimiento, 1.f + AleatorioPasos.FRandRange(-Ajuste.VariacionTonoPaso, Ajuste.VariacionTonoPaso));
+	}
 }

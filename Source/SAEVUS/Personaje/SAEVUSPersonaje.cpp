@@ -127,9 +127,26 @@ void ASAEVUSPersonaje::PostInitializeComponents()
 	}
 }
 
+void ASAEVUSPersonaje::FellOutOfWorld(const UDamageType& TipoDanio)
+{
+	if (Vida && !Vida->EstaMuerto())
+	{
+		Vida->Matar(nullptr);
+		return;
+	}
+	Super::FellOutOfWorld(TipoDanio);
+}
+
 void ASAEVUSPersonaje::AlIniciarDash(const FVector& Direccion)
 {
-	Vida->HacerInvulnerable(ObtenerMovimiento()->ObtenerAjusteDash().DuracionInvulnerable);
+	const FSAEVUSAjusteDash& AjusteDash = ObtenerMovimiento()->ObtenerAjusteDash();
+	const float Ahora = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	const bool bEnRacha = Ahora - TiempoUltimoDash < AjusteDash.VentanaRachaSinInvulnerabilidad;
+	TiempoUltimoDash = Ahora;
+	if (!bEnRacha)
+	{
+		Vida->HacerInvulnerable(AjusteDash.DuracionInvulnerable);
+	}
 }
 
 bool ASAEVUSPersonaje::CamaraBloqueada() const
@@ -301,6 +318,13 @@ void ASAEVUSPersonaje::PedirSalto()
 	}
 	if (!Combate->IntentarCancelarPor(ESAEVUSAccionCancelacion::Salto))
 	{
+		Combate->GuardarAccionPendiente(ESAEVUSAccionCancelacion::Salto, [Esto = TWeakObjectPtr<ASAEVUSPersonaje>(this)]()
+		{
+			if (Esto.IsValid())
+			{
+				Esto->PedirSalto();
+			}
+		});
 		return;
 	}
 	Alma->CancelarCuracion();
@@ -486,6 +510,16 @@ void ASAEVUSPersonaje::PedirDash()
 		ObtenerMovimiento()->FijarDashArmaFuego(Armas->TieneArmaFuegoEquipada());
 		ObtenerMovimiento()->PedirDash();
 	}
+	else
+	{
+		Combate->GuardarAccionPendiente(ESAEVUSAccionCancelacion::Dash, [Esto = TWeakObjectPtr<ASAEVUSPersonaje>(this)]()
+		{
+			if (Esto.IsValid())
+			{
+				Esto->PedirDash();
+			}
+		});
+	}
 }
 
 void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
@@ -495,6 +529,16 @@ void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
 		Alma->CancelarCuracion();
 		ObtenerMovimiento()->FijarDashArmaFuego(Armas->TieneArmaFuegoEquipada());
 		ObtenerMovimiento()->PedirDashEnDireccion(Direccion);
+	}
+	else
+	{
+		Combate->GuardarAccionPendiente(ESAEVUSAccionCancelacion::Dash, [Esto = TWeakObjectPtr<ASAEVUSPersonaje>(this), Direccion]()
+		{
+			if (Esto.IsValid())
+			{
+				Esto->PedirDashHacia(Direccion);
+			}
+		});
 	}
 }
 

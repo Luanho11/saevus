@@ -27,6 +27,10 @@ class SAEVUS_API USAEVUSPartidaGuardada : public USaveGame
 	GENERATED_BODY()
 
 public:
+	/** Versión del formato: permite migrar partidas antiguas al cargar (GAMEPLAY-7). */
+	UPROPERTY()
+	int32 Version = 0;
+
 	UPROPERTY()
 	float Sensibilidad = 1.f;
 
@@ -63,8 +67,20 @@ namespace SAEVUSGuardado
 	/** Ranura del juego; los tests usan otra. */
 	SAEVUS_API extern const TCHAR* const RanuraPorDefecto;
 
-	/** La partida de Ranura, o una nueva con los valores por defecto si no existe o no se puede leer. */
+	/** Versión actual del formato de la partida guardada. */
+	constexpr int32 VersionActual = 1;
+
+	/** Sufijo de la copia de seguridad de una ranura. */
+	SAEVUS_API extern const TCHAR* const SufijoCopia;
+
+	/**
+	 * La partida de Ranura, o una nueva con los valores por defecto si no existe. Si la ranura existe pero no se
+	 * puede leer, prueba con su copia de seguridad antes de rendirse; migra las partidas antiguas.
+	 */
 	SAEVUS_API USAEVUSPartidaGuardada* Cargar(const FString& Ranura);
+
+	/** Lleva una partida cargada a la versión actual (descarta lo que las versiones anteriores guardaban mal). */
+	SAEVUS_API void Migrar(USAEVUSPartidaGuardada* Partida);
 	SAEVUS_API bool Guardar(USAEVUSPartidaGuardada* Partida, const FString& Ranura);
 
 	/** Nombre corto del mapa de Mundo, igual en PIE y en el juego. */
@@ -112,7 +128,12 @@ public:
 	FName ObtenerMapaUltimoPuntoControl() const { return Partida->bTienePuntoControl ? Partida->MapaPuntoControl : NAME_None; }
 
 private:
+	/** Un solo guardado en vuelo: si llega otro cambio mientras se escribe, se reescribe al terminar. */
 	void Guardar();
+	void EscribirAhora();
+
+	bool bEscribiendo = false;
+	bool bSucio = false;
 
 	UPROPERTY()
 	TObjectPtr<USAEVUSPartidaGuardada> Partida;

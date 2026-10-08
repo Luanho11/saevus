@@ -2,8 +2,8 @@
 
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
-**Estado: SESIÓN INTERACTIVA ACTIVA (iteración integral: revisión externa + vida del personaje)**
-**Último latido: 2026-10-07 20:58** (la sesión activa lo actualiza en cada commit)
+**Estado: SESIÓN INTERACTIVA ACTIVA**
+**Último latido: 2026-10-08 13:51** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -174,5 +174,5 @@ Revisión externa del código (otro chat de Claude; respuesta punto por punto en
 
 ## Estado del turno
 - Completado: tareas 101–110 (iteración integral; ver `REVISION_CODIGO.md` y `REGISTRO_SESIONES.md`). Verificación completa con juego: 150/150 tests, assets SUPERADA, humo SUPERADA (31 fps en frío), recorrido Mazmorra → tutorial SUPERADO.
-- A medias: fuego de los braseros (`ASAEVUSFuegoBrasero`, sin verificar ni en el commit; script de cambios preparado) y sonido por gesto con pasos y aterrizaje (tarea 113, script preparado).
+- A medias (sin commit, verificación lanzada a las 21:00): fuego de los braseros (`ASAEVUSFuegoBrasero`), sonido por golpe con pasos y aterrizaje (113), motas más grandes y brillantes, tests `SAEVUS.Efectos.EcoDash`, `SAEVUS.Mundo.FuegoBrasero`, `SAEVUS.Audio.TonoGolpes`. Pendiente además: menús sin cápsulas (texto en hueso con rombos, entrada escalonada, sonido al navegar y confirmar).
 - Siguiente paso exacto: aplicar 112 (braseros) y 113 (sonido), verificar con juego; luego 111 (ajuste a ojo con capturas de la prueba de humo).

@@ -63,6 +63,16 @@ public:
 	 */
 	bool IntentarCancelarPor(ESAEVUSAccionCancelacion Accion);
 
+	/** Como IntentarCancelarPor, pero sin cancelar nada: ¿puede ocurrir ya la acción? */
+	bool PuedeCancelarPor(ESAEVUSAccionCancelacion Accion) const;
+
+	/**
+	 * Recuerda una acción pedida un instante antes de que se abra su ventana de cancelación y la ejecuta (con
+	 * Ejecutar) en cuanto se abra. Solo se guarda si la ventana existe y llega pronto; así una pulsación
+	 * adelantada 1–2 fotogramas no se pierde (GAMEPLAY-5). Devuelve si quedó guardada.
+	 */
+	bool GuardarAccionPendiente(ESAEVUSAccionCancelacion Accion, TFunction<void()> Ejecutar);
+
 	UFUNCTION(BlueprintPure, Category = "SAEVUS|Combate")
 	bool EstaAtacando() const { return bAtacando; }
 
@@ -149,6 +159,11 @@ private:
 	bool bCadenaAerea = false;
 	float TiempoAtaque = 0.f;
 	float TiempoBufferAtaqueRestante = 0.f;
+
+	/** Acción de movimiento adelantada a su ventana de cancelación (una sola: la última pulsada manda). */
+	TFunction<void()> EjecutarAccionPendiente;
+	ESAEVUSAccionCancelacion AccionPendiente = ESAEVUSAccionCancelacion::Dash;
+	float TiempoAccionPendienteRestante = 0.f;
 	ESAEVUSDireccionAtaque DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	ESAEVUSDireccionAtaque DireccionPedida = ESAEVUSDireccionAtaque::Frontal;
 	/** El impacto (retroceso, rebote, parada) se aplica una vez por ataque, en su primer acierto. */

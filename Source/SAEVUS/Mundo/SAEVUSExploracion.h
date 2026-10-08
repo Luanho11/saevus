@@ -16,7 +16,7 @@ namespace SAEVUSExploracion
 	/** Celdas alrededor del jugador que se descubren a la vez (1 = un cuadrado de 3 × 3). */
 	constexpr int32 RadioDescubrir = 1;
 	/** Cada cuánto se guarda lo nuevo explorado. */
-	constexpr float IntervaloGuardado = 5.f;
+	constexpr float IntervaloGuardado = 30.f;
 
 	SAEVUS_API FIntPoint Celda(const FVector& Posicion);
 	SAEVUS_API FBox2D CajaCelda(const FIntPoint& Celda);

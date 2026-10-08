@@ -620,7 +620,7 @@ def crear_blueprints(acciones, imc, config_entrada, movimiento, camara, repertor
     material_estela_espada = crear_material_estela("M_EstelaEspada", (0.72, 0.86, 1.0, 1.0), 2.5)
     personaje.get_editor_property("estela_espada").set_editor_property("override_materials", [material_estela_espada])
     # Polvo en el aire: motas cálidas sin luz, como polvo en un rayo de sol.
-    material_mota = crear_material_color("M_ParticulaMota", (1.0, 0.78, 0.5, 1.0), sin_luz=True)
+    material_mota = crear_material_color("M_ParticulaMota", (3.0, 2.2, 1.3, 1.0), sin_luz=True)
     personaje.get_editor_property("motas_ambiente").set_editor_property("override_materials", [material_mota])
     # Ecos del dash: silueta de luz fría (REF-08 D), el mismo tono que la estela.
     material_eco = crear_material_eco("M_EcoDash", (0.55, 0.75, 1.0, 1.0), 1.6)
@@ -1403,18 +1403,14 @@ def crear_columna(actores, etiqueta, x, y, alto, materiales, grosor=160.0):
 
 
 def crear_antorcha(actores, etiqueta, posicion, materiales):
-    """Brasero en la pared: bloque cálido que brilla y luz puntual sin sombras (barata)."""
+    """Brasero en la pared: bloque cálido que brilla y su fuego (ASAEVUSFuegoBrasero: luz cálida sin sombras que
+    titila y brasas que suben)."""
     crear_bloque(actores, f"{etiqueta}_Brasero", posicion, (30, 30, 40), materiales["Puerta"])
-    luz = actores.spawn_actor_from_class(unreal.PointLight, unreal.Vector(posicion.x, posicion.y, posicion.z + 60))
-    luz.set_actor_label(f"{etiqueta}_Luz")
-    componente = luz.get_component_by_class(unreal.PointLightComponent)
-    componente.set_mobility(unreal.ComponentMobility.MOVABLE)
-    componente.set_editor_property("intensity_units", unreal.LightUnits.CANDELAS)
-    componente.set_editor_property("intensity", 25.0)
-    componente.set_editor_property("attenuation_radius", 1100.0)
-    componente.set_editor_property("light_color", unreal.Color(r=255, g=160, b=80, a=255))
-    componente.set_editor_property("cast_shadows", False)
-    luz.set_folder_path("Iluminacion")
+    fuego = actores.spawn_actor_from_class(unreal.SAEVUSFuegoBrasero, posicion)
+    fuego.set_actor_label(f"{etiqueta}_Fuego")
+    if "Brasa" in materiales:
+        fuego.get_component_by_class(unreal.SAEVUSComponenteParticulas).set_material(0, materiales["Brasa"])
+    fuego.set_folder_path("Iluminacion")
 
 
 def antorchas_puerta(actores, etiqueta, x, ancho, materiales, lado=1):
@@ -1497,6 +1493,8 @@ def construir_mapa_tutorial(bp_modo_juego, datos_enemigos, material_base):
     editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_TUTORIAL)
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
+    # Brasas de los braseros: naranja intenso sin luz (el resplandor de la cámara las hace brillar).
+    materiales["Brasa"] = crear_material_color("M_ParticulaBrasa", (2.5, 1.0, 0.25, 1.0), sin_luz=True)
     mallas = importar_decorado(materiales["Acento"])
     iniciar_kit(actores, material_base)
 
@@ -1675,6 +1673,8 @@ def construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, material_base):
     editor_niveles, actores = abrir_mapa_limpio(RUTA_MAPA_MAZMORRA)
     materiales = {nombre: crear_instancia_material(f"MI_Escenario_{nombre}", DIR_ESTILO, material_base, valores)
                   for nombre, valores in PIEZAS_ESCENARIO.items()}
+    # Brasas de los braseros: naranja intenso sin luz (el resplandor de la cámara las hace brillar).
+    materiales["Brasa"] = crear_material_color("M_ParticulaBrasa", (2.5, 1.0, 0.25, 1.0), sin_luz=True)
     mallas = importar_decorado(materiales["Acento"])
     iniciar_kit(actores, material_base)
     puerta = lambda centro=0.0: [(centro, 600.0, 700.0)]

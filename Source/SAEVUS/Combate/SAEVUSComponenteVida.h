@@ -39,6 +39,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
 	float AplicarDanio(float Cantidad, AActor* Causante);
 
+	/** Mata de golpe, sin invulnerabilidad ni filtro (caer fuera del mundo, abismos sin volumen). */
+	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
+	void Matar(AActor* Causante);
+
 	/** Suma vida hasta VidaMaxima; devuelve cuánta sumó de verdad. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Vida")
 	float Curar(float Cantidad);

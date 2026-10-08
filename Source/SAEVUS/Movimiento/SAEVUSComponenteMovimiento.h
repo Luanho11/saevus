@@ -109,7 +109,14 @@ public:
 	 * Escala el tope de velocidad en el suelo mientras una acción (ataque, curación, guardia) compromete al
 	 * personaje. 1 = nada. Cada fuente tiene la suya y se aplica la más baja.
 	 */
-	void FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad Fuente, float Escala) { EscalasVelocidadAccion[static_cast<int32>(Fuente)] = Escala; }
+	void FijarEscalaVelocidadAccion(ESAEVUSFuenteEscalaVelocidad Fuente, float Escala)
+	{
+		const int32 Indice = static_cast<int32>(Fuente);
+		if (ensure(Indice >= 0 && Indice < static_cast<int32>(ESAEVUSFuenteEscalaVelocidad::Total)))
+		{
+			EscalasVelocidadAccion[Indice] = Escala;
+		}
+	}
 
 	/** Escala de velocidad que se aplica ahora: la más baja de todas las fuentes. */
 	float ObtenerEscalaVelocidadAccion() const;
@@ -256,7 +263,7 @@ private:
 	FVector DireccionEstocada = FVector::ForwardVector;
 	float VelocidadEstocada = 0.f;
 	float TiempoEstocadaRestante = 0.f;
-	float EscalasVelocidadAccion[static_cast<int32>(ESAEVUSFuenteEscalaVelocidad::Total)] = { 1.f, 1.f, 1.f };
+	float EscalasVelocidadAccion[static_cast<int32>(ESAEVUSFuenteEscalaVelocidad::Total)];
 	float EscalaGravedadAccion = 1.f;
 
 	// Estado del dash. Lo guarda y restaura FSAEVUSMovimientoGuardado para que las repeticiones tras una corrección coincidan.

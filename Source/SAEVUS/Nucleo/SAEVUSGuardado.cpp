@@ -10,21 +10,55 @@
 
 namespace SAEVUSGuardado
 {
+#if WITH_EDITOR
+	// Jugar desde el editor no debe pisar la partida del ejecutable (GAMEPLAY-31).
+	const TCHAR* const RanuraPorDefecto = TEXT("SAEVUS_Editor");
+#else
 	const TCHAR* const RanuraPorDefecto = TEXT("SAEVUS");
+#endif
+	const TCHAR* const SufijoCopia = TEXT("_bak");
 	const TCHAR* const ParametroSinGuardar = TEXT("SAEVUSSinGuardar");
 	constexpr int32 IndiceUsuario = 0;
 
+	void Migrar(USAEVUSPartidaGuardada* Partida)
+	{
+		if (!Partida || Partida->Version >= VersionActual)
+		{
+			return;
+		}
+		// Versión 0: un fragmento sin identificador se guardaba como None y ahora el mismo fragmento tiene uno
+		// propio, así que contaría dos veces (GAMEPLAY-26).
+		Partida->FragmentosMascara.RemoveAll([](const FName& Id) { return Id.IsNone(); });
+		Partida->Sensibilidad = FMath::Clamp(Partida->Sensibilidad, 0.1f, 5.f);
+		Partida->Version = VersionActual;
+	}
+
 	USAEVUSPartidaGuardada* Cargar(const FString& Ranura)
 	{
-		if (UGameplayStatics::DoesSaveGameExist(Ranura, IndiceUsuario))
+		const FString RanuraCopia = Ranura + SufijoCopia;
+		for (const FString* Candidata : { &Ranura, &RanuraCopia })
 		{
-			if (USAEVUSPartidaGuardada* Partida = Cast<USAEVUSPartidaGuardada>(UGameplayStatics::LoadGameFromSlot(Ranura, IndiceUsuario)))
+			if (!UGameplayStatics::DoesSaveGameExist(*Candidata, IndiceUsuario))
 			{
+				continue;
+			}
+			if (USAEVUSPartidaGuardada* Partida = Cast<USAEVUSPartidaGuardada>(UGameplayStatics::LoadGameFromSlot(*Candidata, IndiceUsuario)))
+			{
+				if (Candidata == &RanuraCopia)
+				{
+					UE_LOG(LogSAEVUS, Warning, TEXT("La partida '%s' estaba dañada; se recupera la copia de seguridad"), *Ranura);
+				}
+				Migrar(Partida);
 				return Partida;
 			}
-			UE_LOG(LogSAEVUS, Warning, TEXT("La partida guardada '%s' no se pudo leer; se empieza con una nueva"), *Ranura);
+			UE_LOG(LogSAEVUS, Warning, TEXT("La partida guardada '%s' no se pudo leer"), **Candidata);
 		}
-		return Cast<USAEVUSPartidaGuardada>(UGameplayStatics::CreateSaveGameObject(USAEVUSPartidaGuardada::StaticClass()));
+		USAEVUSPartidaGuardada* Nueva = Cast<USAEVUSPartidaGuardada>(UGameplayStatics::CreateSaveGameObject(USAEVUSPartidaGuardada::StaticClass()));
+		if (Nueva)
+		{
+			Nueva->Version = VersionActual;
+		}
+		return Nueva;
 	}
 
 	bool Guardar(USAEVUSPartidaGuardada* Partida, const FString& Ranura)
@@ -33,19 +67,21 @@ namespace SAEVUSGuardado
 	}
 
 	/** Como Guardar, pero la escritura del disco va en otro hilo: la partida no se para al guardar jugando. */
-	void GuardarSinEsperar(USAEVUSPartidaGuardada* Partida, const FString& Ranura)
+	void GuardarSinEsperar(USAEVUSPartidaGuardada* Partida, const FString& Ranura, TFunction<void(bool)> AlTerminar)
 	{
 		if (!Partida)
 		{
+			AlTerminar(false);
 			return;
 		}
 		UGameplayStatics::AsyncSaveGameToSlot(Partida, Ranura, IndiceUsuario, FAsyncSaveGameToSlotDelegate::CreateLambda(
-			[](const FString& RanuraGuardada, int32, bool bBien)
+			[AlTerminar](const FString& RanuraGuardada, int32, bool bBien)
 			{
 				if (!bBien)
 				{
 					UE_LOG(LogSAEVUS, Warning, TEXT("No se pudo guardar la partida en '%s'"), *RanuraGuardada);
 				}
+				AlTerminar(bBien);
 			}));
 	}
 
@@ -73,6 +109,11 @@ void USAEVUSSubsistemaGuardado::Initialize(FSubsystemCollectionBase& Coleccion)
 		Partida = NewObject<USAEVUSPartidaGuardada>(this);
 	}
 	bGuardarActivo = !FParse::Param(FCommandLine::Get(), SAEVUSGuardado::ParametroSinGuardar);
+	// Copia de seguridad: lo que se acaba de leer bien queda aparte antes de empezar a escribir encima.
+	if (bGuardarActivo && UGameplayStatics::DoesSaveGameExist(SAEVUSGuardado::RanuraPorDefecto, SAEVUSGuardado::IndiceUsuario))
+	{
+		SAEVUSGuardado::Guardar(Partida, FString(SAEVUSGuardado::RanuraPorDefecto) + SAEVUSGuardado::SufijoCopia);
+	}
 }
 
 void USAEVUSSubsistemaGuardado::Deinitialize()
@@ -93,7 +134,7 @@ USAEVUSSubsistemaGuardado* USAEVUSSubsistemaGuardado::Obtener(const UObject* Con
 
 void USAEVUSSubsistemaGuardado::GuardarSensibilidad(float Sensibilidad)
 {
-	Partida->Sensibilidad = Sensibilidad;
+	Partida->Sensibilidad = FMath::Clamp(Sensibilidad, 0.1f, 5.f);
 	Guardar();
 }
 
@@ -150,8 +191,33 @@ bool USAEVUSSubsistemaGuardado::ObtenerPuntoControl(const UWorld* Mundo, FTransf
 
 void USAEVUSSubsistemaGuardado::Guardar()
 {
-	if (bGuardarActivo)
+	if (!bGuardarActivo)
 	{
-		SAEVUSGuardado::GuardarSinEsperar(Partida, SAEVUSGuardado::RanuraPorDefecto);
+		return;
 	}
+	// Dos escrituras asíncronas a la vez sobre el mismo archivo pueden dejarlo truncado: una sola en vuelo.
+	if (bEscribiendo)
+	{
+		bSucio = true;
+		return;
+	}
+	EscribirAhora();
+}
+
+void USAEVUSSubsistemaGuardado::EscribirAhora()
+{
+	bEscribiendo = true;
+	bSucio = false;
+	SAEVUSGuardado::GuardarSinEsperar(Partida, SAEVUSGuardado::RanuraPorDefecto,
+		[Esto = TWeakObjectPtr<USAEVUSSubsistemaGuardado>(this)](bool)
+		{
+			if (USAEVUSSubsistemaGuardado* Subsistema = Esto.Get())
+			{
+				Subsistema->bEscribiendo = false;
+				if (Subsistema->bSucio)
+				{
+					Subsistema->EscribirAhora();
+				}
+			}
+		});
 }

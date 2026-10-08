@@ -6,6 +6,7 @@
 #include "SAEVUSSintesis.generated.h"
 
 class USoundWaveProcedural;
+class USoundAttenuation;
 
 /**
  * Un sonido boceto descrito por datos: un tono que barre de FrecuenciaInicio a FrecuenciaFin
@@ -63,6 +64,12 @@ namespace SAEVUSSintesis
 
 	/** Las muestras de Sintetizar como bytes PCM, listas para una onda procedural. */
 	SAEVUS_API TArray<uint8> SintetizarBytes(const FSAEVUSSonidoSintetizado& Sonido);
+
+	/**
+	 * Atenuación común de los sonidos situados en el mundo (enemigos, puertas, palancas): se oyen cerca y con
+	 * dirección, y se apagan con la distancia en lugar de sonar a pleno volumen en todo el mapa (auditoría EA-5).
+	 */
+	SAEVUS_API USoundAttenuation* ObtenerAtenuacion();
 
 	/** Onda procedural de un solo uso con Datos (se consume al sonar). */
 	SAEVUS_API USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion);

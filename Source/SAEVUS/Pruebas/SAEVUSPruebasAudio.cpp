@@ -76,15 +76,17 @@ bool FSAEVUSPruebaAudioEventos::RunTest(const FString& Parameters)
 		return false;
 	}
 	MundoPrueba.CrearActor<ASAEVUSMunecoEntrenamiento>(PosicionMuneco);
+	// Desde aquí: el aterrizaje al asentarse ya sonó.
+	const int32 Antes = Sonido->ObtenerReproducciones();
 	Jugador->PedirAtaque();
 	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(TiempoAtaque); ++Indice)
 	{
 		MundoPrueba.Paso();
 	}
-	TestEqual(TEXT("Un tajo que acierta: barrido y golpe"), Sonido->ObtenerReproducciones(), 2);
+	TestEqual(TEXT("Un tajo que acierta: barrido y golpe"), Sonido->ObtenerReproducciones() - Antes, 2);
 	Jugador->PedirDash();
 	MundoPrueba.Paso();
-	TestEqual(TEXT("El dash suena"), Sonido->ObtenerReproducciones(), 3);
+	TestEqual(TEXT("El dash suena"), Sonido->ObtenerReproducciones() - Antes, 3);
 	return true;
 }
 

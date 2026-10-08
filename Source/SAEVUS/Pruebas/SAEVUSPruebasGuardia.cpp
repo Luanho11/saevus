@@ -172,9 +172,14 @@ bool FSAEVUSPruebaGuardiaContraataque::RunTest(const FString& Parameters)
 	ASAEVUSEnemigo* Enemigo = Mundo.MundoPrueba.CrearEnemigo(Mundo.Jugador->GetActorLocation() + FVector(DistanciaCausante, 0.f, 0.f), nullptr, nullptr);
 	USAEVUSComponenteVida* Vida = Mundo.Jugador->ObtenerVida();
 
-	// Golpe justo al levantar la guardia: contraataque.
+	// El roce de un enemigo que no ataca se bloquea, pero no es contraataque (EA-24).
 	Mundo.Jugador->FijarGuardia(true);
 	Mundo.MundoPrueba.Paso();
+	TestEqual(TEXT("Contacto bloqueado"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
+	TestEqual(TEXT("El contacto no es contraataque"), Mundo.Guardia->ObtenerContraataques(), 0);
+
+	// Golpe justo al levantar la guardia, con el enemigo atacando: contraataque.
+	Enemigo->ObtenerIA()->ForzarEstado(ESAEVUSEstadoEnemigo::Atacar);
 	TestEqual(TEXT("Bloqueado"), Vida->AplicarDanio(Danio, Enemigo), 0.f);
 	TestEqual(TEXT("Contraataque"), Mundo.Guardia->ObtenerContraataques(), 1);
 	TestEqual(TEXT("El atacante queda aturdido"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Aturdido);

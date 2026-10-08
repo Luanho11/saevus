@@ -205,8 +205,14 @@ private:
 	/** Vida máxima sin máscaras extra (la de la vida al empezar). */
 	float VidaMaximaBase = 0.f;
 
+	/** Caer por debajo del mundo es morir y reaparecer, no quedarse sin personaje (GAMEPLAY-3). */
+	virtual void FellOutOfWorld(const UDamageType& TipoDanio) override;
+
 	/** Al empezar un dash: invulnerabilidad breve. */
 	void AlIniciarDash(const FVector& Direccion);
+
+	/** Momento del último dash (segundos del mundo): decide si el siguiente es una racha sin invulnerabilidad. */
+	float TiempoUltimoDash = -1000.f;
 
 	/** Rotación que orienta la entrada: la del controlador, o los ejes del mundo sin controlador (tests). */
 	FRotator ObtenerRotacionEntrada() const;

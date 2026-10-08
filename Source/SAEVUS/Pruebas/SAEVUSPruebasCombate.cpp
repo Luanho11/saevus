@@ -233,6 +233,35 @@ bool FSAEVUSPruebaCancelaciones::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaBufferCancelacion, "SAEVUS.Combate.BufferCancelacion", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaBufferCancelacion::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasCombate;
+
+	FMundoCombate Mundo;
+	if (!TestTrue(TEXT("Personaje asentado"), Mundo.bListo))
+	{
+		return false;
+	}
+	const FSAEVUSDefinicionAtaque& Primero = Mundo.Combate->ObtenerRepertorio().ComboSuelo[0];
+	const float Adelanto = Mundo.Combate->ObtenerRepertorio().TiempoBufferAccion * 0.5f;
+
+	// Un dash pulsado un instante antes de abrirse la ventana no se pierde: se ejecuta al abrirse.
+	Mundo.Personaje->PedirAtaque();
+	Mundo.AvanzarHastaTiempoAtaque(FMath::Max(Primero.CancelarConDashDesde - Adelanto, 0.f));
+	Mundo.Personaje->PedirDash();
+	Mundo.Paso();
+	TestFalse(TEXT("Aún no hay dash: la ventana no se ha abierto"), Mundo.Movimiento->EstaEnDash());
+	Mundo.AvanzarHastaTiempoAtaque(Primero.CancelarConDashDesde);
+	for (int32 Indice = 0; Indice < 3 && !Mundo.Movimiento->EstaEnDash(); ++Indice)
+	{
+		Mundo.Paso();
+	}
+	TestTrue(TEXT("El dash adelantado se ejecuta al abrirse la ventana"), Mundo.Movimiento->EstaEnDash());
+	TestFalse(TEXT("y el ataque terminó"), Mundo.Combate->EstaAtacando());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMovimientoAtaque, "SAEVUS.Combate.Movimiento", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaMovimientoAtaque::RunTest(const FString& Parameters)
 {

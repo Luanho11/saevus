@@ -244,6 +244,6 @@ void ASAEVUSControladorJugador::FijarSensibilidad(float Nueva)
 	Sensibilidad = FMath::Clamp(Nueva, SensibilidadMinima, SensibilidadMaxima);
 	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
-		Guardado->GuardarSensibilidad(Nueva);
+		Guardado->GuardarSensibilidad(Sensibilidad);
 	}
 }
