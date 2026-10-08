@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN DEL LOOP ACTIVA**
-**Último latido: 2026-10-08 18:45** (la sesión activa lo actualiza en cada commit) (la sesión activa lo actualiza en cada commit) (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-08 19:05** (la sesión activa lo actualiza en cada commit) (la sesión activa lo actualiza en cada commit) (la sesión activa lo actualiza en cada commit) (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -181,4 +181,4 @@ La auditoría detallada (`SAEVUS_Auditoria_Detallada.md`: gameplay, animación/V
 ## Estado del turno
 - Completado: tareas 101–110 (iteración integral; ver `REVISION_CODIGO.md` y `REGISTRO_SESIONES.md`). Verificación completa con juego: 150/150 tests, assets SUPERADA, humo SUPERADA (31 fps en frío), recorrido Mazmorra → tutorial SUPERADO.
 - A medias (sin commit, verificación lanzada a las 21:00): fuego de los braseros (`ASAEVUSFuegoBrasero`), sonido por golpe con pasos y aterrizaje (113), motas más grandes y brillantes, tests `SAEVUS.Efectos.EcoDash`, `SAEVUS.Mundo.FuegoBrasero`, `SAEVUS.Audio.TonoGolpes`. Pendiente además: menús sin cápsulas (texto en hueso con rombos, entrada escalonada, sonido al navegar y confirmar).
-- Siguiente paso exacto: auditoría v2 (tarea 116), siguiente: ANIMVFX-26 (ocultar el arma sin escalar a 0), ANIMVFX-20, ANIMVFX-27; luego 111–113. Último bloque hecho: eco del dash en BeginPlay (ANIMVFX-21; antes, salto variable GAMEPLAY-18), 166 tests verdes.
+- Siguiente paso exacto: auditoría v2 (tarea 116), siguiente: ANIMVFX-20 (motas de ambiente), ANIMVFX-27, luego 111–113; luego 111–113. Último bloque hecho: arma oculta sin escala 0 (ANIMVFX-26; antes eco del dash ANIMVFX-21, antes, salto variable GAMEPLAY-18), 166 tests verdes.

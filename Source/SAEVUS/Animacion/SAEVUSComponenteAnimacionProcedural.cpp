@@ -28,6 +28,8 @@ namespace SAEVUSAnimacion
 
 	// Margen sobre los límites de la malla poseable.
 	constexpr float EscalaLimitesMalla = 1.6f;
+	// Escala mínima de un arma "oculta": un cero exacto da una matriz no invertible (normales y sombras rotas).
+	constexpr float EscalaArmaOculta = 0.001f;
 
 	constexpr int32 NumHuesos = static_cast<int32>(ESAEVUSHueso::Total);
 	static_assert(NumHuesos <= 32, "Subarbol usa una máscara de 32 bits");
@@ -1348,11 +1350,11 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 		float Escala = 1.f;
 		if (Hueso == Indice(ESAEVUSHueso::Arma))
 		{
-			Escala = EscalaArmaActual;
+			Escala = FMath::Max(EscalaArmaActual, SAEVUSAnimacion::EscalaArmaOculta);
 		}
 		else if (Hueso == Indice(ESAEVUSHueso::ArmaFuego))
 		{
-			Escala = EscalaArmaFuegoActual;
+			Escala = FMath::Max(EscalaArmaFuegoActual, SAEVUSAnimacion::EscalaArmaOculta);
 		}
 		// La escala de reposo se conserva: el FBX de Blender puede traerla distinta de 1 (unidades del armazón).
 		Componente[Hueso] = FTransform(RotacionActual[Hueso], PosicionActual[Hueso], ReposoComponente[Hueso].GetScale3D() * Escala);

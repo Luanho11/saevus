@@ -66,7 +66,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [x] ANIMVFX-23 cadera retorcida tras rotaciones forzadas
 - [ ] ANIMVFX-24 repetición del reposo y estados emocionales
 - [x] ANIMVFX-25 límites de la malla poseable
-- [ ] ANIMVFX-26 ocultar el arma sin escalar a 0
+- [x] ANIMVFX-26 arma oculta con escala mínima 0,001 (no 0: matriz no invertible)
 - [ ] ANIMVFX-27 sacudida tras la colisión del brazo de cámara
 
 ## Enemigos y audio
