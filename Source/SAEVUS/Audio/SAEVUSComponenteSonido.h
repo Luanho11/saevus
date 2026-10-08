@@ -131,6 +131,7 @@ private:
 
 	UFUNCTION()
 	void AlGolpear(AActor* ActorGolpeado, float Cantidad);
+	void AlImpactarEscenario(AActor* Escenario);
 
 	UFUNCTION()
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);

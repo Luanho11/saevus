@@ -140,5 +140,7 @@ private:
 
 	FDelegateHandle ManejadorCurar;
 	FDelegateHandle ManejadorBloqueo;
+	FDelegateHandle ManejadorEscenario;
+	void AlImpactarEscenario(AActor* Escenario);
 	float AcumuladoEmision = 0.f;
 };

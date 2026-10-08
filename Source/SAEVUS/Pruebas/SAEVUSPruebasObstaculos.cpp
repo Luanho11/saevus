@@ -30,21 +30,13 @@ namespace SAEVUSPruebasObstaculos
 	// Medidas del tutorial.
 	constexpr float AlturaBloqueDobleSalto = 220.f;
 	constexpr float AnchoFosoDash = 800.f;
-	constexpr float AnchoFosoRebote = 1200.f;
-	const float XMunecosRebote[] = { 400.f, 850.f };
-	constexpr float ZMunecosRebote = -60.f;
 	constexpr float AnchoFosoCarreraPared = 900.f;
-	// Pinchos del foso de rebote: caja de 60 cm de alto con la cara de arriba en Z = -90.
-	constexpr float ZCentroPinchos = -120.f;
-	constexpr float MediaAlturaPinchos = 30.f;
-	constexpr float AlturaAtaquePinchos = 140.f;
 	constexpr float AlturaCornisa = 450.f;
 
 	// Pilotaje.
 	constexpr float DistanciaSaltoAntesDeCara = 280.f;
 	constexpr float MargenBorde = 40.f;
 	constexpr float RetardoDashTrasDobleSalto = 0.1f;
-	constexpr float AlcanceRebote = 120.f;
 	constexpr float YCarreraPared = 300.f;
 	constexpr float XSaltoCarreraPared = -100.f;
 	constexpr float XSoltarCarreraPared = 780.f;

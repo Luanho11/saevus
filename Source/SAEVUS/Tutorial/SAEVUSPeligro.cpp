@@ -17,7 +17,6 @@ namespace SAEVUSPeligro
 
 ASAEVUSPeligro::ASAEVUSPeligro()
 {
-	// Objeto dinámico que responde a consultas: así lo encuentra la esfera del tajo hacia abajo.
 	Caja->SetCollisionObjectType(ECC_WorldDynamic);
 
 	Pinchos = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Pinchos"));
@@ -29,7 +28,7 @@ ASAEVUSPeligro::ASAEVUSPeligro()
 
 float ASAEVUSPeligro::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// Los pinchos no se rompen ni cuentan como golpe (no dan alma); solo sirven para rebotar.
+	// Los pinchos no se rompen ni cuentan como golpe (no dan alma).
 	return 0.f;
 }
 

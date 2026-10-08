@@ -175,6 +175,7 @@ void USAEVUSComponenteSonido::BeginPlay()
 	if (USAEVUSComponenteCombate* Combate = Duenio->FindComponentByClass<USAEVUSComponenteCombate>())
 	{
 		Manejadores.Emplace(Combate, Combate->AlIniciarAtaque.AddUObject(this, &ThisClass::AlIniciarAtaque));
+		Manejadores.Emplace(Combate, Combate->AlImpactarEscenario.AddUObject(this, &ThisClass::AlImpactarEscenario));
 		Combate->AlGolpear.AddUniqueDynamic(this, &ThisClass::AlGolpear);
 	}
 	if (USAEVUSComponenteArmas* Armas = Duenio->FindComponentByClass<USAEVUSComponenteArmas>())
@@ -214,6 +215,7 @@ void USAEVUSComponenteSonido::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		if (USAEVUSComponenteCombate* Combate = Cast<USAEVUSComponenteCombate>(Par.Key.Get()))
 		{
 			Combate->AlIniciarAtaque.Remove(Par.Value);
+			Combate->AlImpactarEscenario.Remove(Par.Value);
 		}
 		else if (USAEVUSComponenteAlma* Alma = Cast<USAEVUSComponenteAlma>(Par.Key.Get()))
 		{
@@ -253,6 +255,12 @@ void USAEVUSComponenteSonido::AlIniciarAtaque()
 	const USAEVUSComponenteCombate* Combate = GetOwner()->FindComponentByClass<USAEVUSComponenteCombate>();
 	const FSAEVUSDefinicionAtaque* Ataque = Combate ? Combate->ObtenerAtaqueActual() : nullptr;
 	Reproducir(EEfecto::Tajo, Ajuste.VolumenCombate, Ataque ? Ataque->TonoSonido : 1.f);
+}
+
+void USAEVUSComponenteSonido::AlImpactarEscenario(AActor* Escenario)
+{
+	// Un golpe seco contra piedra o madera: el sonido metálico del bloqueo, más grave y suave.
+	Reproducir(EEfecto::Bloqueo, Ajuste.VolumenCombate * 0.6f, 0.8f);
 }
 
 void USAEVUSComponenteSonido::AlGolpear(AActor* ActorGolpeado, float Cantidad)

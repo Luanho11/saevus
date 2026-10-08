@@ -33,6 +33,9 @@ public:
 	void CerrarMenuPrincipal();
 	/** "Continuar": lleva al jugador al punto de control guardado de este mapa y cierra el menú. */
 	void ContinuarPartidaGuardada();
+
+	/** Borra el progreso guardado y empieza por el tutorial. */
+	void NuevaPartida();
 	bool EstaEnMenuPrincipal() const;
 
 	/** Abre otro mapa (ruta del paquete), cerrando antes los menús. */

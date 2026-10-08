@@ -9,9 +9,9 @@
 class UInstancedStaticMeshComponent;
 
 /**
- * Pinchos (Hollow Knight): tocarlos quita vida y devuelve al jugador al borde (como una caída),
- * pero el tajo hacia abajo los golpea y rebota en ellos. No dan alma ni reciben daño. La caja es
- * la zona peligrosa; los pinchos visibles (conos del motor) la llenan según su tamaño.
+ * Pinchos (Hollow Knight): tocarlos quita vida y devuelve al jugador al borde (como una caída).
+ * No dan alma ni reciben daño (el tajo hacia abajo y el rebote se retiraron). La caja es la zona
+ * peligrosa; los pinchos visibles (conos del motor) la llenan según su tamaño.
  */
 UCLASS()
 class SAEVUS_API ASAEVUSPeligro : public ASAEVUSVolumenCaida

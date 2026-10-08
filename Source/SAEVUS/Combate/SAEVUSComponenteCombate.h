@@ -13,6 +13,7 @@ class USAEVUSComponenteMovimiento;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSAEVUSFirmaGolpeAtaque, AActor*, ActorGolpeado, float, Danio);
 DECLARE_MULTICAST_DELEGATE(FSAEVUSEventoAtaque);
+DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoImpactoEscenario, AActor* /*Escenario*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FSAEVUSEventoImpactoAtaque, const FSAEVUSDefinicionAtaque& /*Ataque*/);
 
 /**
@@ -35,7 +36,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Combate")
 	void PedirAtaque();
 
-	/** Pulsación de ataque en una dirección. Arriba y abajo no encadenan; abajo en el suelo es frontal. */
+	/** Pulsación de ataque en una dirección. El tajo hacia arriba no encadena. */
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Combate")
 	void PedirAtaqueEnDireccion(ESAEVUSDireccionAtaque Direccion);
 
@@ -118,6 +119,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "SAEVUS|Combate")
 	FSAEVUSFirmaGolpeAtaque AlGolpear;
 
+	/** La hoja golpea algo que no es un blanco (puerta, pared, palanca): sonido y chispas, sin alma (GAMEPLAY-28). */
+	FSAEVUSEventoImpactoEscenario AlImpactarEscenario;
+
 	/** Se emite una vez por ataque, en su primer contacto (con lo que sea): retroceso del brazo, sacudida. */
 	FSAEVUSEventoImpactoAtaque AlImpactar;
 
@@ -144,7 +148,7 @@ private:
 	/** Pone en marcha el ataque: giro, estocada y escala de velocidad (hacia DireccionForzada si se da). */
 	void PrepararAtaque(const FSAEVUSDefinicionAtaque& Ataque, const FVector* DireccionForzada = nullptr);
 	void DetectarGolpes(const FSAEVUSDefinicionAtaque& Ataque);
-	/** Retroceso, empuje, rebote y parada de golpe del primer acierto de un ataque. */
+	/** Retroceso, empuje y parada de golpe del primer acierto de un ataque. */
 	void AplicarImpacto(const FSAEVUSDefinicionAtaque& Ataque, TConstArrayView<AActor*> Golpeados);
 	/** Dirección en la que el ataque en curso empuja a lo que golpea. */
 	FVector DireccionEmpuje(const AActor* Objetivo) const;
@@ -166,7 +170,7 @@ private:
 	float TiempoAccionPendienteRestante = 0.f;
 	ESAEVUSDireccionAtaque DireccionAtaque = ESAEVUSDireccionAtaque::Frontal;
 	ESAEVUSDireccionAtaque DireccionPedida = ESAEVUSDireccionAtaque::Frontal;
-	/** El impacto (retroceso, rebote, parada) se aplica una vez por ataque, en su primer acierto. */
+	/** El impacto (retroceso, parada) se aplica una vez por ataque, en su primer acierto. */
 	bool bImpactoAplicado = false;
 	bool bTajoEnCarrera = false;
 	bool bAtaqueCargado = false;

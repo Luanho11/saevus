@@ -90,6 +90,9 @@ private:
 	void AlContinuarPartida();
 
 	UFUNCTION()
+	void AlNuevaPartida();
+
+	UFUNCTION()
 	void AlOpciones();
 
 	UFUNCTION()
@@ -153,6 +156,15 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UButton>> BotonesOpciones;
+
+	/** «Nueva partida» pide confirmación: pulsarlo dos veces seguidas (esta marca es el momento de la primera). */
+	UPROPERTY(Transient)
+	TObjectPtr<UButton> BotonNuevaPartida;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoNuevaPartida;
+
+	double TiempoPrimerPulsoNuevaPartida = -1000.0;
 
 	/** "Continuar" del menú principal: solo con un punto de control guardado para este mapa. */
 	UPROPERTY(Transient)

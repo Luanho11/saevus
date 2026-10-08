@@ -28,6 +28,8 @@ namespace SAEVUSPausa
 	constexpr float PasoVolumen = 0.25f;
 	constexpr int32 NumeroCalidades = 4;
 	constexpr int32 TamanoTitulo = 40;
+	// Segundos para confirmar «Nueva partida» con una segunda pulsación.
+	constexpr double EsperaConfirmacion = 4.0;
 	// Separación entre la columna de opciones y el mapa.
 	constexpr float SeparacionMapa = 48.f;
 	constexpr int32 TamanoTituloPrincipal = 88;
@@ -210,9 +212,23 @@ void USAEVUSWidgetPausa::MostrarOpciones(bool bOpciones)
 	bEnOpciones = bOpciones;
 	FijarVisibles(BotonesInicio, !bOpciones);
 	FijarVisibles(BotonesOpciones, bOpciones);
-	if (BotonContinuarPartida && !bOpciones && !bHayPartidaGuardada)
+	if (!bOpciones && !bHayPartidaGuardada)
 	{
-		BotonContinuarPartida->SetVisibility(ESlateVisibility::Collapsed);
+		// Sin partida empezada no hay a dónde continuar ni qué borrar.
+		if (BotonContinuarPartida)
+		{
+			BotonContinuarPartida->SetVisibility(ESlateVisibility::Collapsed);
+		}
+		if (BotonNuevaPartida)
+		{
+			BotonNuevaPartida->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+	if (TextoNuevaPartida)
+	{
+		// Una confirmación a medias no se queda esperando al volver del menú de opciones.
+		TiempoPrimerPulsoNuevaPartida = -1000.0;
+		TextoNuevaPartida->SetText(LOCTEXT("NuevaPartida", "Nueva partida"));
 	}
 	if (IsInViewport())
 	{
@@ -270,13 +286,18 @@ void USAEVUSWidgetPausa::Construir()
 
 	if (bPrincipal)
 	{
-		CrearBoton(Columna, TEXT("Tutorial"), LOCTEXT("Tutorial", "Tutorial"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlTutorial);
-		CrearBoton(Columna, TEXT("Mazmorra"), LOCTEXT("Mazmorra", "Mazmorra"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlMazmorra);
-		// "Continuar" solo si hay un punto de control guardado (en este mapa o en otro: lleva a él).
+		// "Continuar" va primero y solo si hay un punto de control guardado (en este mapa o en otro: lleva a él): así es
+		// lo que recibe el foco al abrir el menú con una partida empezada (auditoría IA-20).
 		const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(GetOwningPlayer());
 		bHayPartidaGuardada = Guardado && !Guardado->ObtenerMapaUltimoPuntoControl().IsNone();
 		BotonContinuarPartida = CrearBoton(Columna, TEXT("ContinuarPartida"), LOCTEXT("ContinuarPartida", "Continuar"), BotonesInicio);
 		BotonContinuarPartida->OnClicked.AddDynamic(this, &ThisClass::AlContinuarPartida);
+		CrearBoton(Columna, TEXT("Tutorial"), LOCTEXT("Tutorial", "Tutorial"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlTutorial);
+		CrearBoton(Columna, TEXT("Mazmorra"), LOCTEXT("Mazmorra", "Mazmorra"), BotonesInicio)->OnClicked.AddDynamic(this, &ThisClass::AlMazmorra);
+		UTextBlock* EtiquetaNuevaPartida = nullptr;
+		BotonNuevaPartida = CrearBoton(Columna, TEXT("NuevaPartida"), LOCTEXT("NuevaPartida", "Nueva partida"), BotonesInicio, &EtiquetaNuevaPartida);
+		TextoNuevaPartida = EtiquetaNuevaPartida;
+		BotonNuevaPartida->OnClicked.AddDynamic(this, &ThisClass::AlNuevaPartida);
 	}
 	else
 	{
@@ -361,6 +382,22 @@ void USAEVUSWidgetPausa::AlContinuarPartida()
 	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
 	{
 		Controlador->ContinuarPartidaGuardada();
+	}
+}
+
+void USAEVUSWidgetPausa::AlNuevaPartida()
+{
+	// Borrar el progreso no se deshace: la primera pulsación pide confirmar, la segunda (en 4 s) lo hace.
+	const double Ahora = FPlatformTime::Seconds();
+	if (Ahora - TiempoPrimerPulsoNuevaPartida > SAEVUSPausa::EsperaConfirmacion)
+	{
+		TiempoPrimerPulsoNuevaPartida = Ahora;
+		TextoNuevaPartida->SetText(LOCTEXT("ConfirmarNuevaPartida", "Se borra el progreso. Pulsa otra vez"));
+		return;
+	}
+	if (ASAEVUSControladorJugador* Controlador = Cast<ASAEVUSControladorJugador>(GetOwningPlayer()))
+	{
+		Controlador->NuevaPartida();
 	}
 }
 

@@ -496,6 +496,10 @@ void USAEVUSComponenteCombate::DetectarGolpes(const FSAEVUSDefinicionAtaque& Ata
 		{
 			AlGolpear.Broadcast(Objetivo, Hecho);
 		}
+		else if (!SAEVUSCombate::CuentaComoGolpe(Objetivo))
+		{
+			AlImpactarEscenario.Broadcast(Objetivo);
+		}
 	}
 	if (!Nuevos.IsEmpty())
 	{

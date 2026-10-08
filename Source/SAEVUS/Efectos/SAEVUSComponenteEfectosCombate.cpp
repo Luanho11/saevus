@@ -32,6 +32,7 @@ void USAEVUSComponenteEfectosCombate::BeginPlay()
 	if (Combate)
 	{
 		Combate->AlGolpear.AddUniqueDynamic(this, &ThisClass::AlGolpear);
+		ManejadorEscenario = Combate->AlImpactarEscenario.AddUObject(this, &ThisClass::AlImpactarEscenario);
 	}
 	Animacion = GetOwner()->FindComponentByClass<USAEVUSComponenteAnimacionProcedural>();
 	Alma = GetOwner()->FindComponentByClass<USAEVUSComponenteAlma>();
@@ -55,6 +56,10 @@ void USAEVUSComponenteEfectosCombate::AlBloquear(AActor* Atacante, const FVector
 
 void USAEVUSComponenteEfectosCombate::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (Combate)
+	{
+		Combate->AlImpactarEscenario.Remove(ManejadorEscenario);
+	}
 	if (Alma)
 	{
 		Alma->AlCurar.Remove(ManejadorCurar);
@@ -88,6 +93,21 @@ void USAEVUSComponenteEfectosCombate::AlGolpear(AActor* ActorGolpeado, float Dan
 	}
 	const float FuerzaGolpe = FMath::Clamp(Danio / FMath::Max(AjusteEfectos.DanioReferenciaGolpe, UE_KINDA_SMALL_NUMBER), 0.6f, 2.f);
 	EmitirRafaga(Punto, Alejandose * AjusteEfectos.VelocidadGolpe, FMath::Max(1, FMath::RoundToInt(AjusteEfectos.ParticulasGolpe * FuerzaGolpe)), AjusteEfectos.Dispersion);
+}
+
+void USAEVUSComponenteEfectosCombate::AlImpactarEscenario(AActor* Escenario)
+{
+	if (!Escenario)
+	{
+		return;
+	}
+	// Pocas chispas desde la punta de la hoja hacia atrás: el filo raspa la piedra.
+	FVector Base;
+	FVector Punta;
+	const bool bHoja = Animacion && Animacion->ObtenerHoja(Base, Punta);
+	const FVector Punto = bHoja ? FMath::ClosestPointOnSegment(Escenario->GetActorLocation(), Base, Punta) : Escenario->GetActorLocation();
+	const FVector Atras = (GetOwner()->GetActorLocation() - Escenario->GetActorLocation()).GetSafeNormal();
+	EmitirRafaga(Punto, Atras * AjusteEfectos.VelocidadBloqueo, AjusteEfectos.ParticulasBloqueo, AjusteEfectos.Dispersion);
 }
 
 void USAEVUSComponenteEfectosCombate::AlCurar(float VidaRecuperada)

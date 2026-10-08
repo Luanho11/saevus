@@ -148,6 +148,18 @@ void ASAEVUSControladorJugador::JugarEn(const FString& Ruta)
 	IrAMapa(Ruta);
 }
 
+void ASAEVUSControladorJugador::NuevaPartida()
+{
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->ReiniciarPartida();
+	}
+	if (const ASAEVUSModoJuego* ModoJuego = GetWorld()->GetAuthGameMode<ASAEVUSModoJuego>())
+	{
+		IrAMapa(ModoJuego->ObtenerRutaMapaTutorial());
+	}
+}
+
 void ASAEVUSControladorJugador::ContinuarPartidaGuardada()
 {
 	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);

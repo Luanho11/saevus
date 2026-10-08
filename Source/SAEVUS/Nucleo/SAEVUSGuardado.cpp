@@ -193,6 +193,19 @@ void USAEVUSSubsistemaGuardado::GuardarVolumen(float Volumen)
 	Guardar();
 }
 
+void USAEVUSSubsistemaGuardado::ReiniciarPartida()
+{
+	USAEVUSPartidaGuardada* Nueva = NewObject<USAEVUSPartidaGuardada>(this);
+	Nueva->Version = SAEVUSGuardado::VersionActual;
+	Nueva->Sensibilidad = Partida->Sensibilidad;
+	Nueva->Volumen = Partida->Volumen;
+	Nueva->bSacudidaCamara = Partida->bSacudidaCamara;
+	Nueva->bCampoVisionDinamico = Partida->bCampoVisionDinamico;
+	Nueva->bParpadeoGolpe = Partida->bParpadeoGolpe;
+	Partida = Nueva;
+	Guardar();
+}
+
 void USAEVUSSubsistemaGuardado::GuardarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo)
 {
 	Partida->bSacudidaCamara = bSacudida;

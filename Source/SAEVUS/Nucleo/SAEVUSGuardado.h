@@ -141,6 +141,9 @@ public:
 	bool ObtenerParpadeoGolpe() const { return Partida->bParpadeoGolpe; }
 	void GuardarComodidad(bool bSacudida, bool bCampoVision, bool bParpadeo);
 
+	/** Borra el progreso (puntos de control, fragmentos, exploración, estado del mundo) y conserva las opciones. */
+	void ReiniciarPartida();
+
 	int32 ObtenerNumeroFragmentos() const { return Partida->FragmentosMascara.Num(); }
 	bool FragmentoRecogido(FName Identificador) const { return Partida->FragmentosMascara.Contains(Identificador); }
 	void GuardarFragmento(FName Identificador);
