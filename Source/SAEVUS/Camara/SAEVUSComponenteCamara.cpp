@@ -59,6 +59,10 @@ void USAEVUSComponenteCamara::BeginPlay()
 	{
 		Guardia->AlBloquear.AddUObject(this, &ThisClass::AlBloquear);
 	}
+	if (USAEVUSComponenteMovimiento* Movimiento = SAEVUSMovimiento::DelActor(Duenio))
+	{
+		Movimiento->AlAterrizar.AddUObject(this, &ThisClass::AlAterrizar);
+	}
 }
 
 void USAEVUSComponenteCamara::AlGolpear(AActor* ActorGolpeado, float Danio)
@@ -71,6 +75,16 @@ void USAEVUSComponenteCamara::AlCambiarVida(USAEVUSComponenteVida* ComponenteVid
 	if (Delta < 0.f)
 	{
 		Sacudir(ObtenerAjuste().SacudidaGolpeRecibido);
+	}
+}
+
+void USAEVUSComponenteCamara::AlAterrizar(float VelocidadCaida)
+{
+	// Solo los aterrizajes fuertes: el peso de la caída llega a la imagen (ANIMVFX-14).
+	const FSAEVUSAjusteCamara& Ajuste = ObtenerAjuste();
+	if (VelocidadCaida > Ajuste.VelocidadAterrizajeSacudida)
+	{
+		Sacudir(FMath::Min(Ajuste.SacudidaAterrizajeMaxima, (VelocidadCaida - Ajuste.VelocidadAterrizajeSacudida) / (Ajuste.VelocidadAterrizajeSacudida * 2.f)));
 	}
 }
 

@@ -108,3 +108,10 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 - La escala 0 del arma oculta no la saca de los límites de física.
 - Ajuste fino a ojo de los gestos y muelles en el juego (los valores son de primera pasada).
 - Los personajes los rehace el dueño: los gestos dependen solo de los 25 huesos, así sirven igual para los modelos nuevos.
+
+## Auditoría v2 (2026-10-08)
+
+- **Muelles estables:** `TSAEVUSMuelle` integra con Euler implícito (el semiimplícito explotaba a NaN con la cadera a ~44 Hz y un tirón de 0,1 s: el protagonista desaparecía). Frecuencia ≤ 20 Hz, fotograma recortado a 0,1 s, muelle roto reiniciado al objetivo y huesos con NaN devueltos al reposo (`Animacion.MuelleEstable`, `Animacion.TironNoRompe`).
+- **Zancada sin patinar:** la longitud del ciclo es proporcional a la zancada (velocidad × apertura del muslo), así el pie en apoyo recorre lo mismo que el cuerpo.
+- **Reacciones:** el golpe recibido mueve el cuerpo en proporción al daño (media a doble fuerza). El parpadeo tras un golpe va a 4 Hz y se puede quitar en Opciones. Una rotación forzada (sentarse, portal) mayor de 100° en un fotograma no deja la cadera retorcida. Límites de la malla poseable ×1,6.
+- **Muerte de enemigos:** el cuerpo con esqueleto cae entero y solo se encoge en el último 30 % de su vida (1,5 s).

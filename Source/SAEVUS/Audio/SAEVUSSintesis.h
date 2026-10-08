@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "SAEVUSSintesis.generated.h"
 
-class USoundWaveProcedural;
 class USoundAttenuation;
+class USoundBase;
+class USoundWaveProcedural;
 
 /**
  * Un sonido boceto descrito por datos: un tono que barre de FrecuenciaInicio a FrecuenciaFin
@@ -52,6 +53,10 @@ struct FSAEVUSSonidoSintetizado
 	/** Semilla del ruido: el mismo sonido suena siempre igual. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ruido")
 	int32 Semilla = 1;
+
+	/** Sonido hecho a mano que sustituye al sintetizado cuando existe (pieza a pieza, sin tocar el código). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sonido")
+	TSoftObjectPtr<USoundBase> Activo;
 };
 
 /** Síntesis de muestras (PCM 16 bits mono). Funciones puras: se prueban sin dispositivo de audio. */
@@ -70,6 +75,9 @@ namespace SAEVUSSintesis
 	 * dirección, y se apagan con la distancia en lugar de sonar a pleno volumen en todo el mapa (auditoría EA-5).
 	 */
 	SAEVUS_API USoundAttenuation* ObtenerAtenuacion();
+
+	/** El sonido que suena: el Activo de la definición si existe; si no, una onda procedural nueva con Datos. */
+	SAEVUS_API USoundBase* ObtenerSonido(UObject* Propietario, const TSoftObjectPtr<USoundBase>& Activo, const TArray<uint8>& Datos, float Duracion);
 
 	/** Onda procedural de un solo uso con Datos (se consume al sonar). */
 	SAEVUS_API USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion);

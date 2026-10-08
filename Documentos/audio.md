@@ -56,3 +56,11 @@ La calma no se apaga en la pelea: queda de fondo (`CalmaEnPelea`). La pelea sigu
 - Música: un tema propio por zona y transiciones a compás (ahora los fundidos son libres).
 - Posicionales (3D) para lo que no sea del jugador; mezcla y atenuación.
 - Sustituir por sonidos diseñados a mano cuando haya dirección de audio.
+
+## Auditoría v2 (2026-10-08)
+
+- **Música:** el bucle de exploración ya no tiene escalón de volumen a los 5 s (bordón con ciclos enteros y viento mezclado en la cola con ganancias complementarias; test `Audio.MusicaSinEscalon`); las pistas se generan una vez por proceso (caché) y los mapas siguientes arrancan al instante; la calma se apaga con el jefe (sus acordes chocaban); un enemigo que solo persigue tras una pared no enciende la música de pelea (traza de visión); el `Underflow` ya no se desenlaza al salir.
+- **Sonido 3D:** los sonidos de enemigos y del mundo llevan una atenuación común (`SAEVUSSintesis::ObtenerAtenuacion`: pleno hasta 6 m, silencio a 30 m).
+- **Enemigos:** tono según el peso (`PesoAnimacion`), ±5 % por reproducción, «te he visto» (aviso corto y agudo al pasar de reposo a persecución) y «herido».
+- **Jugador:** las pisadas exigen entrada de movimiento (no suenan con la inercia de un tajo) y el aterrizaje solo suena por encima de `VelocidadMinimaAterrizaje`.
+- **Sustitución por assets:** cada sonido tiene un `Activo` opcional.

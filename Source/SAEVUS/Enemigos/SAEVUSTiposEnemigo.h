@@ -289,11 +289,15 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	float DistanciaRetirada = 0.f;
 
 	/**
-	 * Diferencia de altura máxima con el objetivo para detectarlo (cm). Un enemigo no ve a quien está en una cornisa
-	 * tres metros más arriba ni en el piso de abajo (auditoría EA-1). Los voladores suman su altura de vuelo.
+	 * Diferencia de altura máxima para detectar al objetivo cuando está POR ENCIMA del enemigo (cm): no ve a quien
+	 * está en una cornisa tres metros más arriba (auditoría EA-1). Los voladores suman su altura de vuelo.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float AlturaMaximaDeteccion = 300.f;
+
+	/** Lo mismo con el objetivo POR DEBAJO: desde un balcón se ve el salón entero (un lanzador tira desde arriba). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float AlturaMaximaDeteccionAbajo = 1200.f;
 
 	/** Solo detecta al objetivo si no hay una pared entre los dos. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")

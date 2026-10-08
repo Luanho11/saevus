@@ -114,6 +114,7 @@ private:
 	{
 		TArray<uint8> Datos;
 		float Duracion = 0.f;
+		TSoftObjectPtr<USoundBase> Activo;
 	};
 
 	enum class EEfecto : uint8 { Tajo, Golpe, Disparo, GatilloEnSeco, Danio, Curacion, Bloqueo, Contraataque, Dash, DobleSalto, Paso, Aterrizaje, Total };

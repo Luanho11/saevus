@@ -142,3 +142,19 @@ La prueba de humo lleva al jugador junto al primer enemigo del mapa y comprueba 
 - Voladores; proyectiles en arco y en abanico.
 - Barra de vida del jefe (tarea de interfaz) y música/sonido.
 - Red: la IA corre solo en el servidor; el aspecto se derivará del estado replicado.
+
+## Auditoría v2 (2026-10-08)
+
+- **Golpe sincronizado:** `FSAEVUSAtaqueEnemigo::TiempoImpacto` (0,15 s por defecto): el daño del golpe y la salida del proyectil llegan cuando el brazo termina el barrido, no en el primer fotograma del ataque.
+- **Percepción:** detecta al objetivo solo si está a una altura razonable (`AlturaMaximaDeteccion` hacia arriba, `AlturaMaximaDeteccionAbajo` hacia abajo, para que un lanzador en un balcón vea el salón) y sin pared por medio (traza de visibilidad cada 0,2 s). Los golpes y embestidas exigen `AlcanceVertical`. La patrulla va sobre el eje del enemigo al aparecer, da la vuelta si choca con una pared y, tras perseguir, vuelve a su puesto.
+- **Agresión por daño:** quien recibe daño de un pawn lo persigue 6 s sin perderlo por distancia (también los jefes). `Despertar()` hace lo mismo sin daño.
+- **Director de combate** (`USAEVUSDirectorCombate`, subsistema del mundo): solo `MaximoAtacantes` (2) enemigos a la vez avisan o atacan. Quien no tiene ficha (`PedirFicha`) rodea al jugador (`EsperarTurno`). Los jefes no piden ficha. La ficha vuelve al dejar de avisar, atacar o recuperarse.
+- **Giro limitado:** `VelocidadGiro` (540°/s) y `FraccionSeguimientoAviso` (0,7): el aviso deja de apuntar antes del golpe, así se puede esquivar y rodear.
+- **Jefes:**
+  - `ReiniciarCombate()`: al morir el jugador o volver al punto de control, los jefes vuelven a vida máxima, fase 0 y su sitio.
+  - `FSAEVUSFaseEnemigo::DuracionTransicion`: al entrar en la fase ruge quieto e intocable.
+  - `ASAEVUSArenaJefe`: al entrar el jugador en su zona cierra las puertas de entrada (`ASAEVUSPuertaArena::Cerrar`, que empiezan abiertas con `bAbiertaAlInicio`) y despierta al jefe; si el jugador muere, las abre y se rearma; si el jefe cae, las deja abiertas. Está en el trono de la Mazmorra.
+  - Un jefe vencido no vuelve en esa partida (estado del mundo persistente, `arquitectura.md`); el HUD muestra «DERROTADO» con su nombre.
+- **Ataques:** `bAtaquesAleatorios` elige entre los válidos sin repetir el último y, si el jugador se cura, el de aviso más corto (Rey Goblin); `RadioOnda` hace al aterrizar un salto una onda de daño (Rey Goblin, 450 cm).
+- **Datos:** `SAEVUSEnemigo::Validar` (y `IsDataValid` del Data Asset) avisa de fases desordenadas, ataques inexistentes, distancias invertidas, avisos de menos de 0,25 s y picados sin vuelo.
+- **Contraataque:** solo cuenta si el atacante está en `Atacar`; el roce de un enemigo que no ataca se bloquea sin dar alma. Tras soltar la guardia hay que esperar `EsperaTrasSoltar` (0,35 s) para tener otra ventana de parry.

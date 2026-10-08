@@ -114,21 +114,21 @@ void USAEVUSComponenteSonidoEnemigo::AlCambiarEstado(ESAEVUSEstadoEnemigo NuevoE
 		// «Te he visto»: el aviso, corto, suave y agudo, solo al pasar del reposo a la persecución.
 		if (EstadoAnterior == ESAEVUSEstadoEnemigo::Reposo)
 		{
-			Reproducir(DatosAviso, Ajuste.Aviso.Duracion, SAEVUSSonidoEnemigo::VolumenDetectar, SAEVUSSonidoEnemigo::TonoDetectar);
+			Reproducir(DatosAviso, Ajuste.Aviso, Ajuste.Aviso.Duracion, SAEVUSSonidoEnemigo::VolumenDetectar, SAEVUSSonidoEnemigo::TonoDetectar);
 		}
 		break;
 	case ESAEVUSEstadoEnemigo::Telegrafiar:
-		Reproducir(DatosAviso, Ajuste.Aviso.Duracion);
+		Reproducir(DatosAviso, Ajuste.Aviso, Ajuste.Aviso.Duracion);
 		break;
 	case ESAEVUSEstadoEnemigo::Atacar:
-		Reproducir(DatosAtaque, Ajuste.Ataque.Duracion);
+		Reproducir(DatosAtaque, Ajuste.Ataque, Ajuste.Ataque.Duracion);
 		break;
 	case ESAEVUSEstadoEnemigo::Aturdido:
 		// Herido: el chillido de la muerte, muy corto y suave.
-		Reproducir(DatosMuerte, Ajuste.Muerte.Duracion * SAEVUSSonidoEnemigo::FraccionHerido, SAEVUSSonidoEnemigo::VolumenHerido, SAEVUSSonidoEnemigo::TonoHerido);
+		Reproducir(DatosMuerte, Ajuste.Muerte, Ajuste.Muerte.Duracion * SAEVUSSonidoEnemigo::FraccionHerido, SAEVUSSonidoEnemigo::VolumenHerido, SAEVUSSonidoEnemigo::TonoHerido);
 		break;
 	case ESAEVUSEstadoEnemigo::Muerto:
-		Reproducir(DatosMuerte, Ajuste.Muerte.Duracion);
+		Reproducir(DatosMuerte, Ajuste.Muerte, Ajuste.Muerte.Duracion);
 		break;
 	default:
 		break;
@@ -167,17 +167,17 @@ void USAEVUSComponenteSonidoEnemigo::TickComponent(float DeltaTime, ELevelTick T
 	const APawn* Objetivo = IA->ObtenerObjetivo();
 	if (Objetivo && FVector::Dist(Objetivo->GetActorLocation(), Enemigo->GetActorLocation()) <= Ajuste.DistanciaAleteo)
 	{
-		Reproducir(DatosAleteo, Ajuste.Aleteo.Duracion);
+		Reproducir(DatosAleteo, Ajuste.Aleteo, Ajuste.Aleteo.Duracion);
 	}
 }
 
-void USAEVUSComponenteSonidoEnemigo::Reproducir(const TArray<uint8>& Datos, float Duracion, float Volumen, float Tono)
+void USAEVUSComponenteSonidoEnemigo::Reproducir(const TArray<uint8>& Datos, const FSAEVUSSonidoSintetizado& Definicion, float Duracion, float Volumen, float Tono)
 {
-	if (Datos.IsEmpty())
+	if (Datos.IsEmpty() && Definicion.Activo.IsNull())
 	{
 		return;
 	}
 	++Reproducciones;
 	const float Variado = Tono * TonoBase() * (1.f + Variacion.FRandRange(-SAEVUSSonidoEnemigo::VariacionTono, SAEVUSSonidoEnemigo::VariacionTono));
-	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::CrearOnda(this, Datos, Duracion), GetOwner()->GetActorLocation(), Ajuste.Volumen * Volumen, Variado, 0.f, SAEVUSSintesis::ObtenerAtenuacion());
+	UGameplayStatics::PlaySoundAtLocation(this, SAEVUSSintesis::ObtenerSonido(this, Definicion.Activo, Datos, Duracion), GetOwner()->GetActorLocation(), Ajuste.Volumen * Volumen, Variado, 0.f, SAEVUSSintesis::ObtenerAtenuacion());
 }

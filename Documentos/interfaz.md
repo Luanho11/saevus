@@ -74,3 +74,9 @@ El mismo widget en modo `Principal` (`ESAEVUSModoMenu`): velo más opaco, títul
 - Dirección de arte: iconos de máscara y orbe pintados; una tipografía con más carácter (necesita una fuente externa con licencia libre: pendiente de que el dueño lo decida).
 - Opciones completas (resolución, controles, volumen).
 - Indicadores en el mundo (enemigos fuera de pantalla, interacción).
+
+## Auditoría v2 (2026-10-08)
+
+- **Menú principal:** Continuar (si hay partida) va primero y recibe el foco; Tutorial, Mazmorra, Nueva partida (pide confirmar con una segunda pulsación en 4 s y borra el progreso, no las opciones), Opciones, Salir. En el menú el foco se recupera solo con la cruceta, las flechas o el botón inferior, y B atrás desde Opciones.
+- **Opciones:** calidad con cuatro niveles (Baja, Media, Alta, Épica; la instalación nueva del motor está en Épica), sensibilidad, volumen y comodidad (sacudida de cámara, campo de visión que se abre, parpadeo tras un golpe).
+- **HUD:** la barra de vida crece con las máscaras; rótulo «DERROTADO» con el nombre del jefe al vencerlo; los avisos hacen cola (2,5 s de lectura mínima) en vez de pisarse.

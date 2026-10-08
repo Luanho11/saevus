@@ -152,6 +152,7 @@ void USAEVUSComponenteSonido::Preparar(EEfecto Efecto, const FSAEVUSSonidoSintet
 	FEfecto& Destino = Efectos[static_cast<int32>(Efecto)];
 	Destino.Datos = SAEVUSSintesis::SintetizarBytes(Sonido);
 	Destino.Duracion = Sonido.Duracion;
+	Destino.Activo = Sonido.Activo;
 }
 
 void USAEVUSComponenteSonido::BeginPlay()
@@ -240,13 +241,13 @@ void USAEVUSComponenteSonido::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void USAEVUSComponenteSonido::Reproducir(EEfecto Efecto, float VolumenCategoria, float Tono)
 {
 	const FEfecto& Datos = Efectos[static_cast<int32>(Efecto)];
-	if (Datos.Datos.IsEmpty())
+	if (Datos.Datos.IsEmpty() && Datos.Activo.IsNull())
 	{
 		return;
 	}
 	++Reproducciones;
-	// Una onda procedural nueva por reproducción: se consume al sonar.
-	UGameplayStatics::PlaySound2D(this, SAEVUSSintesis::CrearOnda(this, Datos.Datos, Datos.Duracion), Ajuste.VolumenGeneral * VolumenCategoria, Tono);
+	// Un sonido hecho a mano si lo hay; si no, una onda procedural nueva por reproducción (se consume al sonar).
+	UGameplayStatics::PlaySound2D(this, SAEVUSSintesis::ObtenerSonido(this, Datos.Activo, Datos.Datos, Datos.Duracion), Ajuste.VolumenGeneral * VolumenCategoria, Tono);
 }
 
 void USAEVUSComponenteSonido::AlIniciarAtaque()

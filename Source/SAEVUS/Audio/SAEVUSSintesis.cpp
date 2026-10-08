@@ -96,6 +96,15 @@ namespace SAEVUSSintesis
 		return Compartida.Get();
 	}
 
+	USoundBase* ObtenerSonido(UObject* Propietario, const TSoftObjectPtr<USoundBase>& Activo, const TArray<uint8>& Datos, float Duracion)
+	{
+		if (USoundBase* Hecho = Activo.IsNull() ? nullptr : Activo.LoadSynchronous())
+		{
+			return Hecho;
+		}
+		return CrearOnda(Propietario, Datos, Duracion);
+	}
+
 	USoundWaveProcedural* CrearOnda(UObject* Propietario, const TArray<uint8>& Datos, float Duracion)
 	{
 		USoundWaveProcedural* Onda = NewObject<USoundWaveProcedural>(Propietario);

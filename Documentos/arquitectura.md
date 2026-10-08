@@ -90,3 +90,12 @@ Orden de actualización por fotograma: armas, combate, guardia (tras combate) y 
 ## Entrada
 
 Teclas y técnicas en `controles.md`. Las acciones mantenidas (esprint, caminar, gatillo, guardia, curar) usan `Started` (cierto) y `Completed` (falso); `IA_Pausa` dispara también en pausa.
+
+## Auditoría v2 (2026-10-08): guardado y estado del mundo
+
+- **Guardado robusto** (`Nucleo/SAEVUSGuardado`): `Version` y `Migrar`; un único guardado asíncrono en vuelo (si llega otro cambio mientras se escribe, se reescribe al terminar); copia `<ranura>_bak` de lo leído bien al arrancar; si la principal no tiene cabecera `GVAS` (bytes basura reventaban el motor al cargar) o no se lee, se usa la copia. La ranura del editor es `SAEVUS_Editor`, distinta de la del ejecutable.
+- **Estado del mundo persistente:** `EstadoMundo` (claves `Mapa.NombreActor`). Lo escriben al cambiar `ASAEVUSPuertaArena::Abrir`, `ASAEVUSPalanca::Accionar`, `ASAEVUSParedRompible::Romper` y la muerte de un jefe; lo leen sus `BeginPlay` para restaurarse en silencio. Elegir Tutorial o Mazmorra en el menú olvida el estado de ese mapa (`LimpiarEstadoMapa`); «Continuar» lo conserva; «Nueva partida» (con confirmación) borra todo menos las opciones.
+- **Opciones de comodidad** guardadas (`bSacudidaCamara`, `bCampoVisionDinamico`, `bParpadeoGolpe`) y aplicadas al personaje al aparecer (`AplicarComodidad`).
+- **Muelles** (`TSAEVUSMuelle`): Euler implícito, estable con cualquier fotograma y frecuencia; ver `animacion.md`.
+- **Sonidos sustituibles:** `FSAEVUSSonidoSintetizado::Activo` (`TSoftObjectPtr<USoundBase>`): si existe se usa en vez de la síntesis, pieza a pieza.
+- La depuración (HUD F6, CVars `SAEVUS.Depuracion.*`, números de daño) no se dibuja en Shipping.

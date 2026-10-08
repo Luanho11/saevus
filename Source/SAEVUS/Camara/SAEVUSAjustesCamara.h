@@ -117,7 +117,14 @@ struct FSAEVUSAjusteCamara
 
 	/** Trauma por evento (0..1). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
-	float SacudidaGolpeDado = 0.3f;
+	float SacudidaGolpeDado = 0.5f;
+
+	/** Un aterrizaje más rápido que esto (cm/s) sacude la cámara, hasta SacudidaAterrizajeMaxima. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ForceUnits = "cm/s", EditCondition = "bSacudida"))
+	float VelocidadAterrizajeSacudida = 700.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
+	float SacudidaAterrizajeMaxima = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sacudida", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bSacudida"))
 	float SacudidaGolpeRecibido = 0.65f;

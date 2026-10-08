@@ -386,9 +386,9 @@ bool USAEVUSComponenteIAEnemigo::PuedeDetectarObjetivo()
 		return false;
 	}
 	// A distinta altura (cornisa, otro piso) no se ve; los voladores flotan a su altura de vuelo.
-	const float DiferenciaAltura = FMath::Abs(static_cast<float>(Pawn->GetActorLocation().Z - GetOwner()->GetActorLocation().Z));
-	const float AlturaPermitida = Ajuste.AlturaMaximaDeteccion + (Ajuste.bVolador ? Ajuste.AlturaVuelo : 0.f);
-	if (DiferenciaAltura > AlturaPermitida)
+	const float Diferencia = static_cast<float>(Pawn->GetActorLocation().Z - GetOwner()->GetActorLocation().Z);
+	const float AlturaPermitida = (Diferencia > 0.f ? Ajuste.AlturaMaximaDeteccion : Ajuste.AlturaMaximaDeteccionAbajo) + (Ajuste.bVolador ? Ajuste.AlturaVuelo : 0.f);
+	if (FMath::Abs(Diferencia) > AlturaPermitida)
 	{
 		return false;
 	}

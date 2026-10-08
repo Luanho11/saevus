@@ -65,7 +65,7 @@ protected:
 
 private:
 	void AlCambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado);
-	void Reproducir(const TArray<uint8>& Datos, float Duracion, float Volumen = 1.f, float Tono = 1.f);
+	void Reproducir(const TArray<uint8>& Datos, const FSAEVUSSonidoSintetizado& Definicion, float Duracion, float Volumen = 1.f, float Tono = 1.f);
 	/** Tono según el tamaño (los grandes suenan graves) y una pequeña variación por reproducción (EA-6 y EA-29). */
 	float TonoBase() const;
 

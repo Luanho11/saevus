@@ -62,6 +62,7 @@ private:
 	void AlCambiarVida(class USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador);
 
 	void AlBloquear(AActor* Atacante, const FVector& PuntoContacto);
+	void AlAterrizar(float VelocidadCaida);
 
 	bool bSacudidaJugador = true;
 	bool bCampoVisionJugador = true;

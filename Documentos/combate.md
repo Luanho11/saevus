@@ -163,3 +163,12 @@ Todavía no. Combate y armas son locales (la parada de golpe del atacante dilata
 ## Pendiente
 
 Reacciones al golpe en enemigos (llegan con los enemigos), rebote en pinchos y peligros, bloqueo, modo de apuntado, munición de reserva.
+
+## Auditoría v2 (2026-10-08)
+
+- **Buffer de cancelación:** un dash o salto pulsado hasta `TiempoBufferAccion` (0,15 s) antes de abrirse su ventana de cancelación se recuerda y se ejecuta al abrirse (`GuardarAccionPendiente`); sin ventana (el remate no se cancela con salto) la pulsación se pierde, como debe.
+- **Dash en racha:** `DuracionInvulnerable` 0,10 s y solo el primer dash de una racha (`VentanaRachaSinInvulnerabilidad`, 0,45 s) la da. Encadenar dashes y el dash aéreo ilimitado siguen siendo como GunZ.
+- **Parry sin ráfagas** (`EsperaTrasSoltar`), **roce no contraataca** y **recibir un golpe levanta al sentado y corta la estocada**.
+- **Combo aéreo/suelo:** si se aterriza (o se sale de un borde) a mitad de cadena, la cadena se reinicia en el medio actual y la gravedad vuelve a la normal.
+- **Impactos:** las chispas salen del punto de la hoja más cercano al golpeado y en proporción al daño; golpear escenario (`AlImpactarEscenario`) suena y suelta chispas sin dar alma. Cámara: sacudida al golpear (0,5) y al aterrizar fuerte; el campo de visión no bombea con cada dash.
+- **Fuera del mundo:** `FellOutOfWorld` mata (`Vida::Matar`) y el modo de juego reaparece al jugador.
