@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Audio/SAEVUSComponenteSonido.h"
+#include "Audio/SAEVUSMusica.h"
 #include "Audio/SAEVUSComponenteSonidoEnemigo.h"
 #include "Audio/SAEVUSSintesis.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
@@ -142,6 +143,24 @@ bool FSAEVUSPruebaAudioAleteo::RunTest(const FString& Parameters)
 	const int32 Cerca = Escuchar(DistanciaCerca);
 	AddInfo(FString::Printf(TEXT("Aleteos en %.1f s cerca del jugador: %d"), TiempoEscucha, Cerca));
 	TestTrue(TEXT("Cerca aletea al ritmo del cuerpo"), Cerca >= FMath::FloorToInt32(Datos->Enemigo.FrecuenciaAleteo * TiempoEscucha) - 1);
+	return true;
+}
+
+// EA-12: el bucle de exploración no tiene un escalón de volumen a los 5 s (donde acaba la cola de la reverberación).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaMusicaSinEscalon, "SAEVUS.Audio.MusicaSinEscalon", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaMusicaSinEscalon::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAudio;
+	const TArray<int16> Pista = SAEVUSMusica::GenerarPista(ESAEVUSPistaMusica::Exploracion);
+	const int32 Segundo = SAEVUSMusica::Muestreo;
+	if (!TestTrue(TEXT("La pista dura más de 8 s"), Pista.Num() > 8 * Segundo))
+	{
+		return false;
+	}
+	const float Antes = ValorEficaz(Pista, 4 * Segundo, 5 * Segundo);
+	const float Despues = ValorEficaz(Pista, 5 * Segundo, 6 * Segundo);
+	const float Decibelios = 20.f * FMath::LogX(10.f, FMath::Max(Antes, 1.0e-6f) / FMath::Max(Despues, 1.0e-6f));
+	TestTrue(FString::Printf(TEXT("Sin escalón a los 5 s (%.1f dB)"), Decibelios), FMath::Abs(Decibelios) < 2.5f);
 	return true;
 }
 

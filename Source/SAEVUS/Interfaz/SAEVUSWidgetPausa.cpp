@@ -11,6 +11,8 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/GameUserSettings.h"
+#include "GameFramework/PlayerController.h"
+#include "InputCoreTypes.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
 #include "Interfaz/SAEVUSMapa.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -142,6 +144,30 @@ UButton* USAEVUSWidgetPausa::CrearBoton(UVerticalBox* Columna, FName Nombre, con
 void USAEVUSWidgetPausa::NativeTick(const FGeometry& Geometria, float DeltaTime)
 {
 	Super::NativeTick(Geometria, DeltaTime);
+	// Con mando o teclado el foco no se queda perdido (un clic fuera de un botón o volver con Alt-Tab lo quitaban y
+	// la cruceta ya no navegaba, auditoría IA-8): al tocar una tecla de navegación vuelve al primer botón.
+	APlayerController* Jugador = GetOwningPlayer();
+	if (Jugador && IsInViewport() && !TieneFocoAlgunBoton())
+	{
+		const FKey TeclasNavegacion[] = { EKeys::Gamepad_DPad_Up, EKeys::Gamepad_DPad_Down, EKeys::Gamepad_LeftStick_Up, EKeys::Gamepad_LeftStick_Down,
+			EKeys::Gamepad_FaceButton_Bottom, EKeys::Up, EKeys::Down, EKeys::Enter };
+		for (const FKey& Tecla : TeclasNavegacion)
+		{
+			if (Jugador->IsInputKeyDown(Tecla))
+			{
+				if (UWidget* Primero = ObtenerPrimerBoton())
+				{
+					Primero->SetUserFocus(Jugador);
+				}
+				break;
+			}
+		}
+	}
+	// B del mando: atrás desde Opciones.
+	if (Jugador && bEnOpciones && Jugador->WasInputKeyJustPressed(EKeys::Gamepad_FaceButton_Right))
+	{
+		MostrarOpciones(false);
+	}
 	for (int32 Indice = 0; Indice < Botones.Num(); ++Indice)
 	{
 		UButton* Boton = Botones[Indice];

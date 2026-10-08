@@ -71,13 +71,16 @@ public:
 	ESAEVUSPistaMusica DecidirPista(float DeltaTime);
 
 private:
-	/** Crea las ondas y los componentes de audio cuando las pistas ya están generadas. */
-	void EmpezarASonar();
+	/** Crea las ondas y los componentes de audio con las pistas ya generadas. */
+	void EmpezarASonar(const TArray<TSharedPtr<const TArray<uint8>>>& Pistas);
+
+	/** Cierto si hay línea de visión entre el enemigo y el jugador (la pelea que no se ve no cuenta, EA-10). */
+	bool TieneLineaDeVision(const AActor* Enemigo, const AActor* Jugador) const;
 
 	FSAEVUSAjusteMusica Ajuste;
 
-	/** Pistas generadas en otro hilo (bytes PCM); vacío mientras se generan. */
-	TFuture<TArray<TArray<uint8>>> Generacion;
+	/** Pistas generadas en otro hilo (bytes PCM); vacío mientras se generan. Una vez hechas, quedan en una caché del proceso. */
+	TFuture<TArray<TSharedPtr<const TArray<uint8>>>> Generacion;
 	TArray<TSharedPtr<const TArray<uint8>>> Bucles;
 
 	UPROPERTY(Transient)

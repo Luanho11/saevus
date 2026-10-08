@@ -148,15 +148,19 @@ namespace SAEVUSMusica
 	/** Bordón continuo de toda la pista (sin principio ni fin: enlaza en bucle). */
 	void Bordon(FLienzo& Lienzo, float NotaMidi, float Volumen, float Corte, float CiclosRespiracion)
 	{
-		const float Base = Frecuencia(NotaMidi);
+		// Ciclos enteros en el bucle (y solo dentro de él, sin la cola): si no, al cerrar el bucle se sumaban dos
+		// bordones al principio y el volumen caía de golpe a los 5 s (auditoría EA-12).
+		const float DuracionBucle = static_cast<float>(Lienzo.Largo) / Muestreo;
+		const float Base = FMath::Max(1.f, FMath::RoundToFloat(Frecuencia(NotaMidi) * DuracionBucle)) / DuracionBucle;
+		const float BaseQuinta = FMath::Max(1.f, FMath::RoundToFloat(Frecuencia(NotaMidi) * 1.4983f * DuracionBucle)) / DuracionBucle;
 		float Fase = 0.f;
 		float FaseQuinta = 0.f;
 		FPasoBajo Filtro;
-		for (int32 Muestra = 0; Muestra < Lienzo.Muestras.Num(); ++Muestra)
+		for (int32 Muestra = 0; Muestra < Lienzo.Largo; ++Muestra)
 		{
 			const float Tiempo = static_cast<float>(Muestra) / Muestreo;
 			Fase += UE_TWO_PI * Base / Muestreo;
-			FaseQuinta += UE_TWO_PI * Base * 1.4983f / Muestreo;
+			FaseQuinta += UE_TWO_PI * BaseQuinta / Muestreo;
 			// La respiración del bordón da ciclos enteros en el bucle.
 			const float Respira = 0.8f + 0.2f * FMath::Sin(UE_TWO_PI * CiclosRespiracion * Tiempo * Muestreo / Lienzo.Largo);
 			const float Bruto = 0.7f * Sierra(Fase) + 0.3f * Triangulo(FaseQuinta);
@@ -169,12 +173,24 @@ namespace SAEVUSMusica
 	{
 		FPasoBajo Filtro;
 		FPasoBajo Segundo;
+		const int32 LargoCola = Lienzo.Muestras.Num() - Lienzo.Largo;
 		for (int32 Muestra = 0; Muestra < Lienzo.Muestras.Num(); ++Muestra)
 		{
 			const float Fraccion = static_cast<float>(Muestra) / Lienzo.Largo;
 			const float Rafaga = 0.5f + 0.5f * FMath::Sin(UE_TWO_PI * CiclosRafaga * Fraccion);
 			const float Ruido = Segundo.Filtrar(Filtro.Filtrar(Aleatorio.FRandRange(-1.f, 1.f), Corte), Corte);
-			Lienzo.Muestras[Muestra] += Ruido * Rafaga * Volumen;
+			// El ruido de la cola se suma al principio al cerrar el bucle: se mezcla con una subida y una bajada
+			// complementarias (potencia constante) para que no haya escalón (EA-12).
+			float Ganancia = 1.f;
+			if (Muestra < LargoCola)
+			{
+				Ganancia = FMath::Sin(UE_HALF_PI * static_cast<float>(Muestra) / LargoCola);
+			}
+			else if (Muestra >= Lienzo.Largo)
+			{
+				Ganancia = FMath::Cos(UE_HALF_PI * static_cast<float>(Muestra - Lienzo.Largo) / LargoCola);
+			}
+			Lienzo.Muestras[Muestra] += Ruido * Rafaga * Volumen * Ganancia;
 		}
 	}
 

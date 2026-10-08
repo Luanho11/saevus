@@ -168,12 +168,16 @@ void ASAEVUSPersonaje::ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, 
 	{
 		return;
 	}
+	// Un golpe levanta al que descansa (sin esto salía despedido con la pose de sentado en el aire) y corta la estocada
+	// del propio ataque, que anulaba el retroceso: el golpe se siente igual lo reciba cuando lo reciba (GAMEPLAY-17 y 20).
+	Levantarse();
 	FVector Alejarse = (GetActorLocation() - Instigador->GetActorLocation()).GetSafeNormal2D();
 	if (Alejarse.IsNearlyZero())
 	{
 		Alejarse = -GetActorForwardVector();
 	}
 	ObtenerMovimiento()->CancelarDash();
+	ObtenerMovimiento()->TerminarEstocada();
 	LaunchCharacter(Alejarse * GolpeRecibido.VelocidadHorizontal + FVector::UpVector * GolpeRecibido.VelocidadVertical, true, true);
 }
 
@@ -544,6 +548,10 @@ void ASAEVUSPersonaje::PedirDashHacia(const FVector& Direccion)
 
 void ASAEVUSPersonaje::FijarCuracion(bool bPulsada)
 {
+	if (bPulsada)
+	{
+		Levantarse();
+	}
 	// En guardia no se cura.
 	Alma->FijarCuracionPedida(bPulsada && !Guardia->EstaPedida());
 }
@@ -552,6 +560,7 @@ void ASAEVUSPersonaje::FijarGuardia(bool bPulsada)
 {
 	if (bPulsada)
 	{
+		Levantarse();
 		Alma->CancelarCuracion();
 	}
 	Guardia->FijarGuardiaPedida(bPulsada);

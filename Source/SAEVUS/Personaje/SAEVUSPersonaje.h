@@ -34,7 +34,7 @@ struct FSAEVUSAjusteGolpeRecibido
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0", ForceUnits = "cm/s"))
-	float VelocidadHorizontal = 550.f;
+	float VelocidadHorizontal = 380.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadVertical = 350.f;
