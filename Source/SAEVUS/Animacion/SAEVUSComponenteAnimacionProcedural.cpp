@@ -26,6 +26,9 @@ namespace SAEVUSAnimacion
 	// Escala mínima de la zancada para el ciclo del paso (evita un ritmo desbocado a velocidades casi nulas).
 	constexpr float EscalaZancadaMinima = 0.3f;
 
+	// Margen sobre los límites de la malla poseable.
+	constexpr float EscalaLimitesMalla = 1.6f;
+
 	constexpr int32 NumHuesos = static_cast<int32>(ESAEVUSHueso::Total);
 	static_assert(NumHuesos <= 32, "Subarbol usa una máscara de 32 bits");
 
@@ -289,6 +292,10 @@ void USAEVUSComponenteAnimacionProcedural::PrepararEsqueleto()
 	{
 		return;
 	}
+	// Los límites de la malla son los de la pose de reposo: la espada extendida, el giratorio o la caída de la muerte
+	// los superan y el cuerpo podía desaparecer en el borde de la pantalla (ANIMVFX-25).
+	Malla->BoundsScale = FMath::Max(Malla->BoundsScale, SAEVUSAnimacion::EscalaLimitesMalla);
+	Malla->UpdateBounds();
 	const FReferenceSkeleton& Referencia = Malla->GetSkinnedAsset()->GetRefSkeleton();
 	const TArray<FTransform>& PoseReferencia = Referencia.GetRefBonePose();
 

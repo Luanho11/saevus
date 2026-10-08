@@ -17,6 +17,7 @@
 #include "Efectos/SAEVUSComponenteEcoDash.h"
 #include "Engine/SkeletalMesh.h"
 #include "Mundo/SAEVUSFuegoBrasero.h"
+#include "Enemigos/SAEVUSDirectorCombate.h"
 #include "Enemigos/SAEVUSTiposEnemigo.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
@@ -267,6 +268,63 @@ bool FSAEVUSPruebaValidarEnemigo::RunTest(const FString& Parameters)
 	Roto.Fases = { Fase0, Fase1 };
 	// Distancias invertidas, aviso corto, picado sin vuelo, fases desordenadas y un ataque que no existe.
 	TestEqual(TEXT("Cada defecto se avisa"), SAEVUSEnemigo::Validar(Roto).Num(), 5);
+	return true;
+}
+
+// EA-8: como mucho MaximoAtacantes enemigos a la vez avisan o atacan; el resto espera su turno.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaDirectorFichas, "SAEVUS.Enemigo.GrupoFichas", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaDirectorFichas::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	Mundo.Personaje->ObtenerVida()->FijarVidaMaxima(100000.f);
+	TArray<ASAEVUSEnemigo*> Grupo;
+	for (int32 Indice = 0; Indice < 4; ++Indice)
+	{
+		const FVector Posicion = Mundo.Personaje->GetActorLocation() + FVector(300.f * FMath::Cos(Indice * UE_HALF_PI), 300.f * FMath::Sin(Indice * UE_HALF_PI), 0.f);
+		Grupo.Add(Mundo.MundoPrueba.CrearEnemigo(Posicion, nullptr, Mundo.Personaje));
+	}
+	int32 MaximoSimultaneos = 0;
+	int32 AlgunoAtaco = 0;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(5.f); ++Indice)
+	{
+		Mundo.MundoPrueba.Paso();
+		int32 Activos = 0;
+		for (const ASAEVUSEnemigo* Enemigo : Grupo)
+		{
+			const ESAEVUSEstadoEnemigo Estado = Enemigo->ObtenerIA()->ObtenerEstado();
+			Activos += (Estado == ESAEVUSEstadoEnemigo::Telegrafiar || Estado == ESAEVUSEstadoEnemigo::Atacar) ? 1 : 0;
+		}
+		MaximoSimultaneos = FMath::Max(MaximoSimultaneos, Activos);
+		AlgunoAtaco += Activos > 0 ? 1 : 0;
+	}
+	TestTrue(TEXT("Alguno llega a atacar"), AlgunoAtaco > 0);
+	TestTrue(FString::Printf(TEXT("Nunca más de %d a la vez (máximo visto: %d)"), USAEVUSDirectorCombate::MaximoAtacantes, MaximoSimultaneos), MaximoSimultaneos <= USAEVUSDirectorCombate::MaximoAtacantes);
+	return true;
+}
+
+// EA-1: un enemigo no detecta a quien está en una cornisa muy por encima ni detrás de un muro.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaPercepcionEnemigo, "SAEVUS.Enemigo.Percepcion", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaPercepcionEnemigo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	// Jugador sobre una cornisa 6 m por encima, a 4 m en horizontal: dentro del radio de detección en 2D.
+	ASAEVUSEnemigo* Enemigo = Mundo.MundoPrueba.CrearEnemigo(FVector(400.f, 0.f, 100.f), CrearDatos(0.f), Mundo.Personaje);
+	Mundo.Personaje->SetActorLocation(FVector(0.f, 0.f, 700.f));
+	Enemigo->ObtenerIA()->Actualizar(0.3f);
+	TestEqual(TEXT("En una cornisa alta no lo detecta"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+
+	// A su altura y sin nada por medio, sí.
+	Mundo.Personaje->SetActorLocation(FVector(0.f, 0.f, 100.f));
+	Enemigo->ObtenerIA()->Actualizar(0.3f);
+	TestEqual(TEXT("A su altura lo detecta"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Perseguir);
+
+	// Con un muro entre los dos, no.
+	Enemigo->ObtenerIA()->Reiniciar();
+	Mundo.MundoPrueba.CrearBloque(FVector(200.f, 0.f, 100.f), FVector(40.f, 800.f, 400.f));
+	Enemigo->ObtenerIA()->Actualizar(0.3f);
+	TestEqual(TEXT("Detrás de un muro no lo detecta"), Enemigo->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
 	return true;
 }
 

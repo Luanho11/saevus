@@ -11,6 +11,7 @@
 #include "Nucleo/SAEVUSModoJuego.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
+#include "Mundo/SAEVUSExploracion.h"
 
 ASAEVUSControladorJugador::ASAEVUSControladorJugador()
 {
@@ -37,6 +38,11 @@ void ASAEVUSControladorJugador::AlternarPausa()
 	if (!MenuPausa && ClaseMenuPausa)
 	{
 		MenuPausa = CreateWidget<USAEVUSWidgetPausa>(this, ClaseMenuPausa);
+	}
+	// Pausar es un buen momento para guardar lo explorado (el guardado periódico va cada 30 s).
+	if (USAEVUSSubsistemaExploracion* Exploracion = GetWorld()->GetSubsystem<USAEVUSSubsistemaExploracion>())
+	{
+		Exploracion->Guardar();
 	}
 	AbrirMenu(MenuPausa);
 }

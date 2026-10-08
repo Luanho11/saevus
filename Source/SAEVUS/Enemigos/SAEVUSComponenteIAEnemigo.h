@@ -77,6 +77,10 @@ private:
 
 	void CambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado);
 	void ActualizarReposo();
+	/** Cierto si el objetivo está lo bastante cerca en altura y, si se exige, sin pared por medio (se vuelve a mirar cada pocas décimas). */
+	bool PuedeDetectarObjetivo();
+	/** Rodea al objetivo esperando su turno de ataque (no tiene ficha). */
+	void EsperarTurno(float Distancia);
 	/** Voladores: dirección de movimiento con la componente vertical que lleva a AlturaObjetivo. */
 	FVector ConAltura(const FVector& DireccionHorizontal, float AlturaObjetivo) const;
 	/** Voladores: vuelve a volar al salir del aturdimiento (el golpe los hace caer). */
@@ -90,6 +94,8 @@ private:
 	void LanzarProyectil(const FSAEVUSAtaqueEnemigo& Ataque);
 	/** Elige el siguiente ataque válido a esta distancia (en rotación); falso si no hay. */
 	bool ElegirAtaque(float Distancia);
+	/** Cierto si el objetivo está a una altura que el ataque alcanza. */
+	bool AlcanzaEnAltura(const FSAEVUSAtaqueEnemigo& Ataque) const;
 	void ComprobarContacto();
 	void GolpearObjetivo(float Danio);
 	void MoverHacia(const FVector& Direccion, float Escala);
@@ -118,6 +124,17 @@ private:
 	int32 Fase = 0;
 	FVector Origen = FVector::ZeroVector;
 	float SentidoPatrulla = 1.f;
+	/** Eje de la patrulla: hacia donde mira el enemigo al aparecer (no el eje X del mundo). */
+	FVector EjePatrulla = FVector::ForwardVector;
+	/** Tiempo que lleva sin avanzar al patrullar (da la vuelta al toparse con una pared). */
+	float TiempoBloqueado = 0.f;
+	/** Resultado de la última comprobación de vista y cuándo se hizo. */
+	bool bVeObjetivo = false;
+	float TiempoSinMirar = 1.f;
+	/** Ficha de ataque del director de combate. */
+	bool bTieneFicha = false;
+	/** El índice de ataque que se iba a usar antes de quedarse sin ficha (para no saltarse el siguiente de la rotación). */
+	int32 SiguienteAtaqueAntes = 0;
 	FVector DireccionAtaque = FVector::ForwardVector;
 	bool bGolpeAplicado = false;
 

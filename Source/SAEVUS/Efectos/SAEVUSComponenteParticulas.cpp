@@ -92,7 +92,8 @@ void USAEVUSComponenteParticulas::TickComponent(float DeltaTime, ELevelTick Tick
 		return;
 	}
 
-	const float Frenado = FMath::Max(0.f, 1.f - Ajuste.Arrastre * DeltaTime);
+	// Exponencial: frena igual a 15 que a 144 fotogramas por segundo (1 − k·dt frenaba el doble o el triple a pocos fps).
+	const float Frenado = FMath::Exp(-FMath::Max(Ajuste.Arrastre, 0.f) * DeltaTime);
 	for (FParticula& Particula : Particulas)
 	{
 		if (!Particula.bViva)

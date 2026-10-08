@@ -21,6 +21,8 @@ namespace SAEVUSSecundaria
 	constexpr float FraccionQuieto = 0.03f;
 	// Los gestos de reposo entran y salen suaves en este tramo de su duración.
 	constexpr float BordeGestoReposo = 0.2f;
+	// Un giro de guiñada mayor que esto en un fotograma es una rotación forzada, no el jugador girando (grados).
+	constexpr float MaximoGiroPorFotograma = 100.f;
 
 	float Suavizar(float X)
 	{
@@ -67,7 +69,13 @@ void FSAEVUSCapaSecundaria::Actualizar(const FSAEVUSAjusteSecundario& Ajuste, co
 	const float Rapidez = static_cast<float>(Entrada.Velocidad.Size());
 	const float Avance = FMath::Clamp(Rapidez / FMath::Max(Entrada.VelocidadReferencia, 1.f), 0.f, 1.5f);
 
-	const float DeltaGuinada = bIniciada ? FMath::FindDeltaAngleDegrees(GuinadaAnterior, Entrada.Guinada) : 0.f;
+	float DeltaGuinada = bIniciada ? FMath::FindDeltaAngleDegrees(GuinadaAnterior, Entrada.Guinada) : 0.f;
+	// Un giro de golpe mayor que esto no es el jugador girando sino una rotación forzada (sentarse, salir de un portal,
+	// reaparecer): se ignora, si no la cadera quedaba retorcida y luego se «desenroscaba» (ANIMVFX-23).
+	if (FMath::Abs(DeltaGuinada) > MaximoGiroPorFotograma)
+	{
+		DeltaGuinada = 0.f;
+	}
 	const float VelocidadGiro = DeltaGuinada / Dt;
 	// Aceleración en el mundo, pasada a los ejes del cuerpo: girar la cámara corriendo de lado no es acelerar.
 	const FVector2D Aceleracion = bIniciada ? (Entrada.Velocidad - VelocidadAnterior) / Dt : FVector2D::ZeroVector;

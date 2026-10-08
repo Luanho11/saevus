@@ -49,8 +49,10 @@ public:
 
 	const TSet<FIntPoint>& ObtenerCeldas() const { return Celdas; }
 
-private:
+	/** Guarda lo explorado ahora mismo si hay algo nuevo (al pausar, al sentarse en un banco). */
 	void Guardar();
+
+private:
 
 	TSet<FIntPoint> Celdas;
 	bool bSucio = false;

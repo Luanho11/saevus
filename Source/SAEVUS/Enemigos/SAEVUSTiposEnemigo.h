@@ -113,6 +113,13 @@ struct FSAEVUSAtaqueEnemigo
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoTelegrafiar = 0.5f;
 
+	/**
+	 * Golpe y Embestida: diferencia de altura máxima con el objetivo para elegir este ataque. Con el jugador en una
+	 * cornisa por encima, el enemigo no golpea al aire (auditoría EA-1).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Elección", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float AlcanceVertical = 220.f;
+
 	/** Embestida: lo que dura. Salto: tiempo máximo en el aire. Golpe: tiempo hasta pasar a recuperarse. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tiempos", meta = (ClampMin = "0", ForceUnits = "s"))
 	float Duracion = 0.45f;
@@ -259,6 +266,21 @@ struct SAEVUS_API FSAEVUSAjusteEnemigo
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float DistanciaRetirada = 0.f;
+
+	/**
+	 * Diferencia de altura máxima con el objetivo para detectarlo (cm). Un enemigo no ve a quien está en una cornisa
+	 * tres metros más arriba ni en el piso de abajo (auditoría EA-1). Los voladores suman su altura de vuelo.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float AlturaMaximaDeteccion = 300.f;
+
+	/** Solo detecta al objetivo si no hay una pared entre los dos. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento")
+	bool bExigirLineaDeVision = true;
+
+	/** Sin ficha de ataque, el enemigo rodea al objetivo a esta distancia o más (retrocede si está más cerca). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DistanciaEspera = 250.f;
 
 	/** Patrulla de ida y vuelta alrededor del origen. 0 = quieto. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movimiento", meta = (ClampMin = "0", ForceUnits = "cm"))

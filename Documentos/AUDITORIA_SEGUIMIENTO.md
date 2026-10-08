@@ -11,9 +11,9 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [~] GAMEPLAY-1 dash en racha sin invulnerabilidad (ver decisión)
 - [ ] GAMEPLAY-2 estado del mundo persistente (puertas, palancas, paredes, jefes)
 - [x] GAMEPLAY-3 `FellOutOfWorld` → muerte y reaparición (`USAEVUSComponenteVida::Matar`)
-- [ ] GAMEPLAY-4 defensa con coste (parry machacable, guardia gratuita)
+- [~] GAMEPLAY-4 defensa: tras soltar la guardia hay que esperar 0,35 s para tener ventana de parry (`EsperaTrasSoltar`); falta bloqueo parcial/postura
 - [x] GAMEPLAY-5 buffer de cancelación (dash y salto adelantados), test `Combate.BufferCancelacion`
-- [ ] GAMEPLAY-6 morir castiga y el jefe se reinicia
+- [~] GAMEPLAY-6 los jefes vuelven a vida máxima, fase 0 y su sitio al morir o reiniciar el jugador; falta puerta de jefe y repoblar al descansar
 - [x] GAMEPLAY-7 guardado: un solo guardado en vuelo, copia `_bak`, versión y migración
 - [ ] GAMEPLAY-8 tutorial «haciendo»
 - [ ] GAMEPLAY-9 parry con respuesta propia
@@ -24,15 +24,15 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] GAMEPLAY-14 equilibrio con cancelaciones
 - [ ] GAMEPLAY-15 pruebas de E2, E3, E5, E12 y del guardado
 - [ ] GAMEPLAY-16 invulnerabilidad durante la parada de golpe
-- [ ] GAMEPLAY-17 retroceso con fosos
+- [~] GAMEPLAY-17 retroceso 550→380 y el golpe corta la estocada; falta ajustar por tipo de ataque enemigo
 - [ ] GAMEPLAY-18 salto variable
-- [ ] GAMEPLAY-19 cadena de combo y medio (aire/suelo)
-- [ ] GAMEPLAY-20 sentado: guardia y golpes levantan
+- [x] GAMEPLAY-19 cadena de combo y medio (aire/suelo)
+- [x] GAMEPLAY-20 sentado: recibir un golpe, levantar la guardia y curar levantan al jugador
 - [x] GAMEPLAY-21 `EscalasVelocidadAccion` a 1 y comprobación de índice
 - [ ] GAMEPLAY-22 recursos de los muñecos
-- [ ] GAMEPLAY-23 cola de avisos
+- [x] GAMEPLAY-23 cola de avisos con tiempo mínimo de lectura (2,5 s); falta registrar los vistos en el guardado
 - [ ] GAMEPLAY-24 opciones de control del dash
-- [x] GAMEPLAY-25 exploración cada 30 s (falta guardar al pausar)
+- [x] GAMEPLAY-25 exploración cada 30 s y al pausar
 - [x] GAMEPLAY-26 migración: se descarta `None` de los fragmentos
 - [x] GAMEPLAY-27 tiempo de plataforma y brasero envuelto
 - [ ] GAMEPLAY-28 golpes contra el escenario con sonido y chispa
@@ -43,43 +43,50 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 ## Animación, VFX y cámara
 - [x] ANIMVFX-1 muelles: Euler implícito, frecuencia ≤ 20 Hz, guardas de NaN en muelle y pose; test `Animacion.MuelleEstable`
 - [x] ANIMVFX-2 el golpe del enemigo llega en `TiempoImpacto` (0,15 s), igual que el proyectil
-- [ ] ANIMVFX-3 contacto con el suelo (zancada por velocidad, IK)
+- [~] ANIMVFX-3 longitud del ciclo proporcional a la zancada (sin patinar); falta IK/trazas al suelo
 - [~] ANIMVFX-4 arco y estela a 1 partícula por paso (falta la cinta como única firma y el arco por gesto)
-- [ ] ANIMVFX-5 emisores y mallas por familia, punto de contacto del impacto
+- [~] ANIMVFX-5 chispas en el punto de la hoja más cercano y en proporción al daño; falta un emisor por familia y sangre/parry
 - [ ] ANIMVFX-6 esqueleto por roles
 - [ ] ANIMVFX-7 gestos de enemigo con claves
 - [ ] ANIMVFX-8 claves de gestos en datos
 - [ ] ANIMVFX-9 curva continua en la fase activa
-- [ ] ANIMVFX-10 reacciones según daño y dirección
+- [~] ANIMVFX-10 la reacción al golpe recibido escala con el daño; falta tambaleo/derribo
 - [ ] ANIMVFX-11 giro axial
-- [ ] ANIMVFX-12 parpadeo de invulnerabilidad por material y opción
-- [ ] ANIMVFX-13 opciones de comodidad de cámara (sacudida, FOV, roll)
+- [~] ANIMVFX-12 parpadeo a 4 Hz; falta pasarlo a material y opción de accesibilidad
+- [~] ANIMVFX-13 el FOV no bombea con los dashes y se puede fijar (`bCampoVisionDinamico`); falta exponerlo en Opciones
 - [ ] ANIMVFX-14 cámara de combate direccional
 - [ ] ANIMVFX-15 pose de carga, bloqueo con impacto y parry
 - [ ] ANIMVFX-16 capa de varias tiras
 - [ ] ANIMVFX-17 LOD de animación por distancia
 - [~] ANIMVFX-18 muerte: el cuerpo con esqueleto solo se encoge en el último 30 % y dura 1,5 s
 - [ ] ANIMVFX-19 pruebas con dt variable (el de muelles ya está)
-- [ ] ANIMVFX-20 a 27 menores
+- [ ] ANIMVFX-20 motas de ambiente: reciclar las que salen de la caja
+- [ ] ANIMVFX-21 eco del dash creado en `BeginPlay`
+- [~] ANIMVFX-22 arrastre exponencial en partículas; falta el rango sucio
+- [x] ANIMVFX-23 cadera retorcida tras rotaciones forzadas
+- [ ] ANIMVFX-24 repetición del reposo y estados emocionales
+- [x] ANIMVFX-25 límites de la malla poseable
+- [ ] ANIMVFX-26 ocultar el arma sin escalar a 0
+- [ ] ANIMVFX-27 sacudida tras la colisión del brazo de cámara
 
 ## Enemigos y audio
-- [ ] EA-1 percepción con línea de visión y altura, patrulla relativa, navegación
+- [~] EA-1 no detecta a distinta altura ni tras una pared, patrulla sobre su eje y da la vuelta contra paredes, vuelve a su puesto; falta navegación
 - [~] EA-2 aggro por daño (6 s sin perder al objetivo); falta reiniciar al jefe al morir el jugador
 - [ ] EA-3 jefes como experiencia (arena, intro, transición de fase, victoria)
 - [x] EA-4 `TiempoImpacto` (ver ANIMVFX-2)
 - [x] EA-5 atenuación 3D compartida (`SAEVUSSintesis::ObtenerAtenuacion`) en enemigos y mundo
 - [ ] EA-6 sonidos por tipo de enemigo
 - [ ] EA-7 sonidos sustituibles por assets, categorías y concurrencia
-- [ ] EA-8 director de combate con fichas
+- [x] EA-8 director de combate con 2 fichas (`USAEVUSDirectorCombate`); el resto rodea esperando turno
 - [ ] EA-9 música por secciones, temas por jefe, stingers
-- [ ] EA-10 música de pelea solo con pelea visible
-- [ ] EA-11 armonías de las capas
-- [ ] EA-12 escalón del bucle de exploración
-- [ ] EA-13 caché de la música entre mundos
-- [ ] EA-14 desenlazar el `Underflow`
+- [x] EA-10 música de pelea solo con pelea visible
+- [x] EA-11 armonías de las capas
+- [x] EA-12 escalón del bucle de exploración
+- [x] EA-13 caché de la música entre mundos
+- [x] EA-14 desenlazar el `Underflow`
 - [ ] EA-15 PCM compartido
 - [ ] EA-16 elección de ataque con pesos
-- [ ] EA-17 giro limitado al avisar
+- [x] EA-17 giro limitado al avisar
 - [ ] EA-18 escudo y pogo
 - [ ] EA-19 transición de fase
 - [ ] EA-20 ataques de área
@@ -87,7 +94,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [~] EA-22 muerte con cadáver (ver ANIMVFX-18)
 - [ ] EA-23 legibilidad jugador/goblin
 - [x] EA-24 el roce de un enemigo que no ataca no da contraataque
-- [ ] EA-25 validación de datos de enemigos
+- [x] EA-25 `SAEVUSEnemigo::Validar` + `IsDataValid` del Data Asset
 - [ ] EA-26 coste por enemigo fuera de pantalla
 - [x] EA-27 `#include "Async/Future.h"`
 - [ ] EA-28 pruebas del área
@@ -97,11 +104,28 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [x] IA-1 partida ilegible: se prueba la copia `_bak` antes de rendirse
 - [x] IA-2 guardados serializados
 - [ ] IA-3 ajustes completos (remapeo, categorías, accesibilidad)
-- [ ] IA-4 calidad Épica rotulada como Alta
+- [x] IA-4 calidad Épica rotulada como Alta
 - [ ] IA-5 notificaciones separadas del tutorial
-- [ ] IA-6 barra de vida que crece con las máscaras
+- [x] IA-6 barra de vida que crece con las máscaras
 - [ ] IA-7 muerte con elección y victoria
-- [ ] IA-8 foco del mando en el menú
+- [x] IA-8 foco del mando en el menú
 - [ ] IA-9 teclas por acción y glifos de mando
-- [ ] IA-10 depuración fuera de Shipping
-- [ ] IA-11 a 28 resto
+- [x] IA-10 depuración fuera de Shipping
+- [ ] IA-11 barridos por fotograma en el HUD
+- [ ] IA-12 mapa de pausa con widgets por rectángulo
+- [ ] IA-13 componente de animación como nudo central
+- [ ] IA-14 ciclos de dependencia entre carpetas
+- [ ] IA-15 herramientas de QA frágiles
+- [ ] IA-16 huecos de cobertura de pruebas
+- [ ] IA-17 CI, crash reporting y telemetría
+- [ ] IA-18 localización
+- [ ] IA-19 identidad: terminología calcada de Hollow Knight
+- [ ] IA-20 «Nueva partida» y orden del menú
+- [ ] IA-21 zona segura y escala de texto
+- [ ] IA-22 barra de jefe: rastro falso al reaparecer
+- [ ] IA-23 stick de cámara dependiente del framerate
+- [ ] IA-24 caché de síntesis sin límite
+- [x] IA-25 exploración cada 30 s y al pausar
+- [ ] IA-26 acoplamiento al primer jugador
+- [ ] IA-27 opacidad del velo de muerte
+- [ ] IA-28 finales de línea mezclados
