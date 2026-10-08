@@ -164,3 +164,6 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 - Incidencias: un test de audio contaba pisadas durante el tajo (las pisadas ahora exigen entrada de movimiento); el parry de prueba usaba un enemigo en reposo; `private:` en medio de una estructura de ajustes rompió la compilación (los `UPROPERTY` BlueprintReadOnly no pueden ser privados). 162 tests superados al final del bloque 8.
 - **Decisión pendiente del dueño (GAMEPLAY-1):** se mantiene el dash encadenable sin límite y el planeo aéreo que pidió (GunZ); solo se quitó la inmortalidad. Si quiere limitarlo (un dash aéreo por salto o caída), son datos: `MaxDashesAereos`, `VelocidadVerticalDashAereo`.
 - El bucle (`loop.ps1`) quedó activo en segundo plano: respeta el cerrojo de `PROGRESS.md`.
+
+## 2026-10-08 (sesión del loop) — Auditoría v2: salto variable
+Soltar el botón de salto mientras sube recorta la velocidad vertical (`bCortarSaltoAlSoltar`, `FactorCorteSalto` 0,5, en `FSAEVUSAjusteMovimientoAire`); `ASAEVUSPersonaje::StopJumping` llama a `CortarSaltoAlSoltar`. Test `SAEVUS.Movimiento.CorteSalto`. Verificación sin juego: 166/166.

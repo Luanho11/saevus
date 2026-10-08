@@ -25,7 +25,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [~] GAMEPLAY-15 pruebas nuevas: buffer de cancelación, dash en racha, fuera del mundo, estado del mundo y copia de seguridad del guardado; faltan Continuar con `?continuar` y doble reaparición
 - [ ] GAMEPLAY-16 invulnerabilidad durante la parada de golpe
 - [~] GAMEPLAY-17 retroceso 550→380 y el golpe corta la estocada; falta ajustar por tipo de ataque enemigo
-- [ ] GAMEPLAY-18 salto variable
+- [x] GAMEPLAY-18 salto variable (`bCortarSaltoAlSoltar`, `FactorCorteSalto`; test `SAEVUS.Movimiento.CorteSalto`)
 - [x] GAMEPLAY-19 cadena de combo y medio (aire/suelo)
 - [x] GAMEPLAY-20 sentado: recibir un golpe, levantar la guardia y curar levantan al jugador
 - [x] GAMEPLAY-21 `EscalasVelocidadAccion` a 1 y comprobación de índice

@@ -686,6 +686,15 @@ void USAEVUSComponenteMovimiento::AplicarAjustes()
 	}
 }
 
+void USAEVUSComponenteMovimiento::CortarSaltoAlSoltar()
+{
+	const FSAEVUSAjusteMovimientoAire& Aire = ObtenerAjusteAire();
+	if (Aire.bCortarSaltoAlSoltar && MovementMode == MOVE_Falling && Velocity.Z > 0.f)
+	{
+		Velocity.Z *= Aire.FactorCorteSalto;
+	}
+}
+
 USAEVUSComponenteMovimiento* SAEVUSMovimiento::DelActor(const AActor* Actor)
 {
 	const ACharacter* Personaje = Cast<ACharacter>(Actor);

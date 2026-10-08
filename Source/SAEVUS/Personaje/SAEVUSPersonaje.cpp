@@ -320,6 +320,15 @@ void ASAEVUSPersonaje::Sentarse(const FTransform& Asiento)
 	SetActorLocationAndRotation(FVector(Asiento.GetLocation().X, Asiento.GetLocation().Y, GetActorLocation().Z), Asiento.GetRotation().Rotator());
 }
 
+void ASAEVUSPersonaje::StopJumping()
+{
+	Super::StopJumping();
+	if (USAEVUSComponenteMovimiento* Mov = ObtenerMovimiento())
+	{
+		Mov->CortarSaltoAlSoltar();
+	}
+}
+
 void ASAEVUSPersonaje::Levantarse()
 {
 	bSentado = false;

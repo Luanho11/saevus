@@ -129,6 +129,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void PedirSiguienteArma();
 
+	/** Soltar el salto recorta la subida (salto variable, por datos). */
+	virtual void StopJumping() override;
+
 	UFUNCTION(BlueprintCallable, Category = "SAEVUS|Personaje")
 	void PedirRecarga();
 

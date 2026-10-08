@@ -65,6 +65,14 @@ struct FSAEVUSAjusteMovimientoAire
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto", meta = (ClampMin = "0", ForceUnits = "s"))
 	float TiempoMaximoMantenerSalto = 0.f;
 
+	/** Al soltar el botón de salto mientras sube, recorta la subida (salto variable: se puede «pellizcar»). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto")
+	bool bCortarSaltoAlSoltar = true;
+
+	/** Fracción de la velocidad vertical que se conserva al cortar el salto. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Salto", meta = (ClampMin = "0", ClampMax = "1", EditCondition = "bCortarSaltoAlSoltar"))
+	float FactorCorteSalto = 0.5f;
+
 	/** Multiplicador de la gravedad del mundo. Mayor que 1 da un arco más pesado y seco. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gravedad", meta = (ClampMin = "0"))
 	float EscalaGravedad = 1.75f;

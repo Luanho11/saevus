@@ -179,6 +179,9 @@ public:
 	FVector ObtenerNormalPared() const { return (EstaEnCarreraPared() || EstaEscalando()) ? NormalPared : FVector::ZeroVector; }
 
 	const FSAEVUSAjusteMovimientoSuelo& ObtenerAjusteSuelo() const;
+	/** Recorta la subida del salto al soltar el botón (salto variable); no hace nada si no sube o va en otro modo. */
+	void CortarSaltoAlSoltar();
+
 	const FSAEVUSAjusteMovimientoAire& ObtenerAjusteAire() const;
 	const FSAEVUSAjusteDash& ObtenerAjusteDash() const;
 	const FSAEVUSAjusteSaltoPared& ObtenerAjusteSaltoPared() const;

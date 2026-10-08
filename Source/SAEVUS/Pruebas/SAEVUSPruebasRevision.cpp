@@ -186,6 +186,24 @@ bool FSAEVUSPruebaEscalasVelocidad::RunTest(const FString& Parameters)
 	return true;
 }
 
+// GAMEPLAY-18: soltar el salto mientras sube recorta la subida; en el suelo o cayendo no hace nada.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaCorteSalto, "SAEVUS.Movimiento.CorteSalto", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaCorteSalto::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	USAEVUSComponenteMovimiento* Movimiento = Mundo.Personaje->ObtenerMovimiento();
+	const float Factor = Movimiento->ObtenerAjusteAire().FactorCorteSalto;
+	Movimiento->SetMovementMode(MOVE_Falling);
+	Movimiento->Velocity.Z = 600.f;
+	Movimiento->CortarSaltoAlSoltar();
+	TestEqual(TEXT("Subiendo: se recorta"), Movimiento->Velocity.Z, 600.0 * Factor);
+	Movimiento->Velocity.Z = -300.f;
+	Movimiento->CortarSaltoAlSoltar();
+	TestEqual(TEXT("Cayendo: no se toca"), Movimiento->Velocity.Z, -300.0);
+	return true;
+}
+
 // E7: una parada de golpe a escala 0 termina, y devuelve la dilatación que había (no siempre 1).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaParadaEscalaCero, "SAEVUS.Combate.ParadaEscalaCero", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaParadaEscalaCero::RunTest(const FString& Parameters)
