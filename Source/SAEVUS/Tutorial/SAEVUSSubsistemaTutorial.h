@@ -25,7 +25,8 @@ struct FSAEVUSMensajeTutorial
 
 /**
  * Avisos del tutorial: los volúmenes y las puertas publican un mensaje; la interfaz muestra el
- * activo. Un mensaje nuevo sustituye al anterior.
+ * activo. Un mensaje nuevo sustituye al anterior solo si este ya se pudo leer (DuracionMinima); si no, espera
+ * en una cola corta, así recoger un fragmento o sentarse no borra a mitad de lectura la instrucción (auditoría GAMEPLAY-23).
  */
 UCLASS()
 class SAEVUS_API USAEVUSSubsistemaTutorial : public UWorldSubsystem
@@ -44,8 +45,20 @@ public:
 	/** Cuántos mensajes se han mostrado (tests y depuración). */
 	int32 ObtenerMensajesMostrados() const { return MensajesMostrados; }
 
+	/** Mensajes esperando su turno. */
+	int32 ObtenerMensajesEnCola() const { return Cola.Num(); }
+
+	/** Segundos que un mensaje se queda en pantalla antes de dejar su sitio a otro. */
+	static constexpr float DuracionMinima = 2.5f;
+	static constexpr int32 MaximoEnCola = 4;
+
 private:
-	FSAEVUSMensajeTutorial Mensaje;
-	bool bHayMensaje = false;
-	int32 MensajesMostrados = 0;
+	void Activar(const FSAEVUSMensajeTutorial& Nuevo) const;
+	bool HayMensajeLegible() const;
+
+	// El avance de la cola ocurre al consultar (la interfaz pregunta cada fotograma): por eso son mutables.
+	mutable FSAEVUSMensajeTutorial Mensaje;
+	mutable bool bHayMensaje = false;
+	mutable TArray<FSAEVUSMensajeTutorial> Cola;
+	mutable int32 MensajesMostrados = 0;
 };

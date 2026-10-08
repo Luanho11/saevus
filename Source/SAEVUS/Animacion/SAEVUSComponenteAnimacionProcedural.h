@@ -273,6 +273,10 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0"))
 	float HundimientoGolpeRecibido = 90.f;
 
+	/** Daño que mueve el cuerpo con la fuerza normal; la reacción escala con el daño real (de media a doble fuerza). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe recibido", meta = (ClampMin = "0.1"))
+	float DanioReferenciaReaccion = 15.f;
+
 	/** Movimiento secundario: giro por capas, inercia, rebote, respiración, reposo vivo. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Secundario")
 	FSAEVUSAjusteSecundario Secundario;

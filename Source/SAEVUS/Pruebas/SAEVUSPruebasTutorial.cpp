@@ -41,6 +41,21 @@ bool FSAEVUSPruebaTutorialAviso::RunTest(const FString& Parameters)
 	Volumen->NotificarEntrada(Jugador);
 	TestEqual(TEXT("Solo la primera vez"), Tutorial->ObtenerMensajesMostrados(), 1);
 
+	// Con el primero ya leído, uno nuevo lo sustituye; mientras se lee, el nuevo espera su turno (GAMEPLAY-23).
+	Tutorial->MostrarMensaje(FText::FromString(TEXT("Segundo")), FText::FromString(TEXT("Texto")), 0.f);
+	TestEqual(TEXT("El nuevo espera mientras se lee el primero"), Tutorial->ObtenerMensajesEnCola(), 1);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(USAEVUSSubsistemaTutorial::DuracionMinima + 0.2f); ++Indice)
+	{
+		MundoPrueba.Paso();
+	}
+	const FSAEVUSMensajeTutorial* Activo = Tutorial->ObtenerMensajeActivo();
+	TestTrue(TEXT("Leído el primero, sale el que esperaba"), Activo && Activo->Titulo.ToString() == TEXT("Segundo"));
+	TestEqual(TEXT("y la cola queda vacía"), Tutorial->ObtenerMensajesEnCola(), 0);
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(USAEVUSSubsistemaTutorial::DuracionMinima + 0.2f); ++Indice)
+	{
+		MundoPrueba.Paso();
+	}
+
 	// Caduca tras su duración.
 	Tutorial->MostrarMensaje(FText::FromString(TEXT("Título")), FText::FromString(TEXT("Texto")), 0.5f);
 	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara(1.f); ++Indice)

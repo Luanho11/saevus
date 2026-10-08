@@ -21,6 +21,14 @@ struct FSAEVUSAjusteEfectosCombate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0"))
 	int32 ParticulasGolpe = 10;
 
+	/** Daño que da las chispas normales; más daño, más chispas (de 0,6 a 2 veces). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0.1"))
+	float DanioReferenciaGolpe = 12.f;
+
+	/** Si la hoja pasa más lejos que esto del golpeado, las chispas salen de su centro. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DistanciaMaximaContacto = 250.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golpe", meta = (ClampMin = "0", ForceUnits = "cm/s"))
 	float VelocidadGolpe = 350.f;
 

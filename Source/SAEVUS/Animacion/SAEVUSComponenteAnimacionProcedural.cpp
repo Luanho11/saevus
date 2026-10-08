@@ -23,6 +23,9 @@ namespace SAEVUSAnimacion
 	// Más allá de este giro (grados) el enemigo está detrás: la cabeza no lo sigue.
 	constexpr float GiroMaximoParaMirar = 120.f;
 
+	// Escala mínima de la zancada para el ciclo del paso (evita un ritmo desbocado a velocidades casi nulas).
+	constexpr float EscalaZancadaMinima = 0.3f;
+
 	constexpr int32 NumHuesos = static_cast<int32>(ESAEVUSHueso::Total);
 	static_assert(NumHuesos <= 32, "Subarbol usa una máscara de 32 bits");
 
@@ -473,7 +476,11 @@ void USAEVUSComponenteAnimacionProcedural::PoseLocomocion(FPose& Pose, float Vel
 	const float Amplitud = Velocidad < VelocidadQuieto ? 0.f : FMath::Clamp(Velocidad / Ajuste.VelocidadReferencia, 0.f, 1.5f);
 	// Esprint: por encima de la velocidad de referencia el cuerpo se echa más y las rodillas suben.
 	const float Esprint = FMath::Clamp((Amplitud - 1.f) / 0.5f, 0.f, 1.f);
-	FaseCiclo = FMath::Fmod(FaseCiclo + Velocidad * DeltaTime / Ajuste.LongitudCiclo * UE_TWO_PI, UE_TWO_PI);
+	// La zancada crece con la velocidad (el muslo abre más cuanto más rápido), así que la longitud de un ciclo también:
+	// el pie en apoyo recorre lo mismo que el cuerpo y no patina (auditoría ANIMVFX-3). Con una longitud fija, a media
+	// velocidad el muslo abría la mitad pero el ciclo pedía el doble de camino.
+	const float EscalaZancada = FMath::Max(Amplitud * (1.f + 0.25f * Esprint), SAEVUSAnimacion::EscalaZancadaMinima);
+	FaseCiclo = FMath::Fmod(FaseCiclo + Velocidad * DeltaTime / (Ajuste.LongitudCiclo * EscalaZancada) * UE_TWO_PI, UE_TWO_PI);
 	const float Seno = FMath::Sin(FaseCiclo);
 	const float Coseno = FMath::Cos(FaseCiclo);
 	const float Carrera = FMath::Min(1.f, Amplitud);
@@ -1103,8 +1110,10 @@ void USAEVUSComponenteAnimacionProcedural::AlCambiarVida(USAEVUSComponenteVida* 
 		Desde = DireccionMalla(Instigador->GetActorLocation() - GetOwner()->GetActorLocation());
 	}
 	DireccionUltimoGolpe = Desde;
-	const FVector2D Empuje(-FVector::DotProduct(Desde, Adelante) * Ajuste.ImpulsoGolpeRecibido, -FVector::DotProduct(Desde, Derecha) * Ajuste.ImpulsoGolpeRecibido);
-	CapaSecundaria.Empujar(Empuje, Ajuste.HundimientoGolpeRecibido);
+	// Un golpe fuerte mueve más el cuerpo que un roce (ANIMVFX-10): proporcional al daño, entre media y doble fuerza.
+	const float Fuerza = FMath::Clamp(-Delta / FMath::Max(Ajuste.DanioReferenciaReaccion, UE_KINDA_SMALL_NUMBER), 0.5f, 2.f);
+	const FVector2D Empuje(-FVector::DotProduct(Desde, Adelante) * Ajuste.ImpulsoGolpeRecibido * Fuerza, -FVector::DotProduct(Desde, Derecha) * Ajuste.ImpulsoGolpeRecibido * Fuerza);
+	CapaSecundaria.Empujar(Empuje, Ajuste.HundimientoGolpeRecibido * Fuerza);
 	if (!ComponenteVida->EstaMuerto())
 	{
 		TiempoReaccionGolpe = Ajuste.DuracionReaccionGolpe;

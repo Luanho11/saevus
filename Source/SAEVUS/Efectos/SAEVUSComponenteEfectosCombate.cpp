@@ -72,9 +72,22 @@ void USAEVUSComponenteEfectosCombate::AlGolpear(AActor* ActorGolpeado, float Dan
 	{
 		return;
 	}
-	// Las chispas salen del golpeado alejándose del atacante.
+	// Las chispas salen del golpeado alejándose del atacante, desde el punto de la hoja más cercano a él (donde se ve el
+	// contacto) y no desde el centro de su cápsula; más cuanto más daño (ANIMVFX-5).
 	const FVector Alejandose = (ActorGolpeado->GetActorLocation() - GetOwner()->GetActorLocation()).GetSafeNormal();
-	EmitirRafaga(ActorGolpeado->GetActorLocation(), Alejandose * AjusteEfectos.VelocidadGolpe, AjusteEfectos.ParticulasGolpe, AjusteEfectos.Dispersion);
+	FVector Punto = ActorGolpeado->GetActorLocation();
+	FVector Base;
+	FVector Punta;
+	if (Animacion && Animacion->ObtenerHoja(Base, Punta))
+	{
+		const FVector EnLaHoja = FMath::ClosestPointOnSegment(Punto, Base, Punta);
+		if (FVector::DistSquared(EnLaHoja, Punto) <= FMath::Square(AjusteEfectos.DistanciaMaximaContacto))
+		{
+			Punto = EnLaHoja;
+		}
+	}
+	const float FuerzaGolpe = FMath::Clamp(Danio / FMath::Max(AjusteEfectos.DanioReferenciaGolpe, UE_KINDA_SMALL_NUMBER), 0.6f, 2.f);
+	EmitirRafaga(Punto, Alejandose * AjusteEfectos.VelocidadGolpe, FMath::Max(1, FMath::RoundToInt(AjusteEfectos.ParticulasGolpe * FuerzaGolpe)), AjusteEfectos.Dispersion);
 }
 
 void USAEVUSComponenteEfectosCombate::AlCurar(float VidaRecuperada)
