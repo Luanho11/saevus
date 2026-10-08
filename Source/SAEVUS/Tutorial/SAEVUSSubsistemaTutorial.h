@@ -45,6 +45,9 @@ public:
 	/** Cuántos mensajes se han mostrado (tests y depuración). */
 	int32 ObtenerMensajesMostrados() const { return MensajesMostrados; }
 
+	/** Quita el mensaje en pantalla y la cola (el recorrido automático salta de un aviso a otro sin leerlos). */
+	void LimpiarMensajes();
+
 	/** Mensajes esperando su turno. */
 	int32 ObtenerMensajesEnCola() const { return Cola.Num(); }
 

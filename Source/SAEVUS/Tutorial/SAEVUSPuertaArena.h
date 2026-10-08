@@ -31,6 +31,12 @@ public:
 	/** Abre la puerta (sin colisión al instante; se hunde en DuracionApertura). Silenciosa: ya hundida, sin sonido ni aviso. */
 	void Abrir(bool bSilenciosa = false);
 
+	/** Vuelve a subir y a bloquear (las puertas de una arena de jefe se cierran al empezar el combate). */
+	void Cerrar();
+
+	/** Fracción abierta ahora: 0 cerrada, 1 hundida del todo. */
+	float ObtenerFraccionApertura() const { return FraccionApertura; }
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -46,6 +52,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta", meta = (ClampMin = "0", ForceUnits = "s"))
 	float DuracionApertura = 1.2f;
 
+	/** Empieza abierta (la entrada de una arena de jefe: se cierra cuando empieza el combate). */
+	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta")
+	bool bAbiertaAlInicio = false;
+
 	/** Aviso al abrirse (vacío = ninguno). */
 	UPROPERTY(EditAnywhere, Category = "SAEVUS|Puerta")
 	FText TituloAlAbrir;
@@ -59,6 +69,6 @@ private:
 
 	FDelegateHandle Manejador;
 	bool bAbierta = false;
-	float TiempoAbriendo = 0.f;
+	float FraccionApertura = 0.f;
 	FVector PosicionCerrada = FVector::ZeroVector;
 };

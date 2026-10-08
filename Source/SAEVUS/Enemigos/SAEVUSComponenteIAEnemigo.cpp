@@ -24,6 +24,8 @@ namespace SAEVUSIAEnemigo
 	constexpr float GananciaAltura = 2.f;
 	// Tras recibir daño, el enemigo sabe dónde está el agresor y no lo pierde de vista por distancia durante este tiempo.
 	constexpr float DuracionAlertaPorDanio = 6.f;
+	// Un combate de arena no se pierde por distancia en mucho tiempo (se corta al reiniciar o morir uno de los dos).
+	constexpr float DuracionAlertaCombateJefe = 3600.f;
 	// Cada cuánto se mira si hay pared entre el enemigo y el objetivo.
 	constexpr float IntervaloVista = 0.2f;
 	// Patrulla: por debajo de esta velocidad (cm/s) durante este tiempo (s) está contra una pared y da la vuelta.
@@ -163,6 +165,19 @@ void USAEVUSComponenteIAEnemigo::Aturdir()
 	}
 	IndiceAtaque = INDEX_NONE;
 	CambiarEstado(ESAEVUSEstadoEnemigo::Aturdido);
+}
+
+void USAEVUSComponenteIAEnemigo::Despertar()
+{
+	if (Estado == ESAEVUSEstadoEnemigo::Muerto)
+	{
+		return;
+	}
+	TiempoAlertaRestante = SAEVUSIAEnemigo::DuracionAlertaCombateJefe;
+	if (Estado == ESAEVUSEstadoEnemigo::Reposo)
+	{
+		CambiarEstado(ESAEVUSEstadoEnemigo::Perseguir);
+	}
 }
 
 void USAEVUSComponenteIAEnemigo::Reiniciar()

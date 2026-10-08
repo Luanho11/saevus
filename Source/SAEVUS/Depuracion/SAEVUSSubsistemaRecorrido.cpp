@@ -303,6 +303,11 @@ void USAEVUSSubsistemaRecorrido::ActualizarAvisos(ASAEVUSPersonaje* Jugador)
 	ASAEVUSVolumenTutorial* Volumen = Avisos[Indice].Get();
 	if (!bLlevado)
 	{
+		// El aviso anterior aún se estaba «leyendo» (tiempo mínimo del subsistema): este no debe esperar su turno.
+		if (USAEVUSSubsistemaTutorial* TutorialLimpio = GetWorld()->GetSubsystem<USAEVUSSubsistemaTutorial>())
+		{
+			TutorialLimpio->LimpiarMensajes();
+		}
 		// El centro del volumen queda a la altura de un jugador de pie sobre el suelo del aviso.
 		Llevar(Jugador, Volumen->GetActorLocation());
 		bLlevado = true;

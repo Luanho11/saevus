@@ -1,8 +1,10 @@
 # ESTADO DEL PROYECTO SAEVUS
 
-_Actualizado: 2026-10-07 (sesión 6, fase "Iteración integral")_
+_Actualizado: 2026-10-08 (sesión 7, fase "Auditoría v2")_
 
 ## Objetivo actual
+
+**Auditoría v2** (dueño, 2026-10-08): `SAEVUS_Auditoria_Detallada.md` se aplica por bloques; el estado de cada hallazgo está en `AUDITORIA_SEGUIMIENTO.md` (tarea 114–116 de `PROGRESS.md`). Ya hecho: muelles estables, guardado robusto, estado del mundo persistente, percepción y director de combate, música, accesibilidad, jefes que se reinician y rugen al cambiar de fase.
 
 **Iteración integral** (dueño, 2026-10-07): el dueño pasó el código por otro chat de Claude; la revisión (E1–E12, R1–R8, D1–D8, M1–M9) está contestada y corregida en `REVISION_CODIGO.md`. Prioridad: que el juego se sienta vivo y pulido (animación con peso y reacción, un gesto por golpe, dash con identidad, enemigos y jefes animados, música, HUD, atmósfera cercana a Elden Ring en 2D dibujado). **Los personajes los rehace el dueño**; la animación solo depende de los 25 huesos. Tareas 101–113 de `PROGRESS.md`.
 

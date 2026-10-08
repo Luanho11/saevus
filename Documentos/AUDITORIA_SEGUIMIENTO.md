@@ -9,7 +9,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 
 ## Gameplay
 - [~] GAMEPLAY-1 dash en racha sin invulnerabilidad (ver decisión)
-- [ ] GAMEPLAY-2 estado del mundo persistente (puertas, palancas, paredes, jefes)
+- [x] GAMEPLAY-2 estado del mundo persistente (`EstadoMundo`): puertas, palancas, paredes rotas y jefes vencidos; elegir un mapa en el menú lo empieza de nuevo
 - [x] GAMEPLAY-3 `FellOutOfWorld` → muerte y reaparición (`USAEVUSComponenteVida::Matar`)
 - [~] GAMEPLAY-4 defensa: tras soltar la guardia hay que esperar 0,35 s para tener ventana de parry (`EsperaTrasSoltar`); falta bloqueo parcial/postura
 - [x] GAMEPLAY-5 buffer de cancelación (dash y salto adelantados), test `Combate.BufferCancelacion`
@@ -22,7 +22,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] GAMEPLAY-12 abanico aéreo bajo
 - [x] GAMEPLAY-13 punto de control sin escala ni alabeo
 - [ ] GAMEPLAY-14 equilibrio con cancelaciones
-- [ ] GAMEPLAY-15 pruebas de E2, E3, E5, E12 y del guardado
+- [~] GAMEPLAY-15 pruebas nuevas: buffer de cancelación, dash en racha, fuera del mundo, estado del mundo y copia de seguridad del guardado; faltan Continuar con `?continuar` y doble reaparición
 - [ ] GAMEPLAY-16 invulnerabilidad durante la parada de golpe
 - [~] GAMEPLAY-17 retroceso 550→380 y el golpe corta la estocada; falta ajustar por tipo de ataque enemigo
 - [ ] GAMEPLAY-18 salto variable
@@ -59,7 +59,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] ANIMVFX-16 capa de varias tiras
 - [ ] ANIMVFX-17 LOD de animación por distancia
 - [~] ANIMVFX-18 muerte: el cuerpo con esqueleto solo se encoge en el último 30 % y dura 1,5 s
-- [ ] ANIMVFX-19 pruebas con dt variable (el de muelles ya está)
+- [~] ANIMVFX-19 prueba de tirones largos con ataque aéreo (`Animacion.TironNoRompe`) y de muelles; faltan dt variable en el resto, pies y presupuesto de partículas
 - [ ] ANIMVFX-20 motas de ambiente: reciclar las que salen de la caja
 - [ ] ANIMVFX-21 eco del dash creado en `BeginPlay`
 - [~] ANIMVFX-22 arrastre exponencial en partículas; falta el rango sucio
@@ -72,10 +72,10 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 ## Enemigos y audio
 - [~] EA-1 no detecta a distinta altura ni tras una pared, patrulla sobre su eje y da la vuelta contra paredes, vuelve a su puesto; falta navegación
 - [~] EA-2 aggro por daño (6 s sin perder al objetivo); falta reiniciar al jefe al morir el jugador
-- [ ] EA-3 jefes como experiencia (arena, intro, transición de fase, victoria)
+- [~] EA-3 arena de jefe (`ASAEVUSArenaJefe`: cierra la entrada y despierta al jefe, se rearma si el jugador muere), rugido de fase invulnerable y rótulo «DERROTADO»; falta música propia por jefe, stinger y postura
 - [x] EA-4 `TiempoImpacto` (ver ANIMVFX-2)
 - [x] EA-5 atenuación 3D compartida (`SAEVUSSintesis::ObtenerAtenuacion`) en enemigos y mundo
-- [ ] EA-6 sonidos por tipo de enemigo
+- [~] EA-6 tono según el tamaño, variación por reproducción, «te he visto» y «herido»; faltan los sonidos por tipo en los datos y el escudo roto
 - [ ] EA-7 sonidos sustituibles por assets, categorías y concurrencia
 - [x] EA-8 director de combate con 2 fichas (`USAEVUSDirectorCombate`); el resto rodea esperando turno
 - [ ] EA-9 música por secciones, temas por jefe, stingers
@@ -85,12 +85,12 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [x] EA-13 caché de la música entre mundos
 - [x] EA-14 desenlazar el `Underflow`
 - [ ] EA-15 PCM compartido
-- [ ] EA-16 elección de ataque con pesos
+- [x] EA-16 elección al azar sin repetir y castigo al que se cura (opcional por datos: `bAtaquesAleatorios`, activo en el Rey Goblin)
 - [x] EA-17 giro limitado al avisar
 - [ ] EA-18 escudo y pogo
-- [ ] EA-19 transición de fase
-- [ ] EA-20 ataques de área
-- [ ] EA-21 proyectiles
+- [~] EA-19 transición de fase (`DuracionTransicion`); falta `ObtenerProgresoRecuperacion` para la animación
+- [~] EA-20 onda al aterrizar del salto (`RadioOnda`, Rey Goblin 450 cm); falta el telegrafiado de área en el suelo
+- [~] EA-21 el proyectil que nace sobre el jugador le da; faltan sonido al desviar y presencia
 - [~] EA-22 muerte con cadáver (ver ANIMVFX-18)
 - [ ] EA-23 legibilidad jugador/goblin
 - [x] EA-24 el roce de un enemigo que no ataca no da contraataque
@@ -98,16 +98,16 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] EA-26 coste por enemigo fuera de pantalla
 - [x] EA-27 `#include "Async/Future.h"`
 - [ ] EA-28 pruebas del área
-- [ ] EA-29 variaciones de sonido
+- [~] EA-29 variación de tono de ±5 % en los sonidos de los enemigos; falta el resto y las variantes de síntesis
 
 ## Interfaz y arquitectura
 - [x] IA-1 partida ilegible: se prueba la copia `_bak` antes de rendirse
 - [x] IA-2 guardados serializados
-- [ ] IA-3 ajustes completos (remapeo, categorías, accesibilidad)
+- [~] IA-3 tres opciones de comodidad guardadas (sacudida, campo de visión, parpadeo); faltan remapeo, categorías, volumen por canales, texto
 - [x] IA-4 calidad Épica rotulada como Alta
 - [ ] IA-5 notificaciones separadas del tutorial
 - [x] IA-6 barra de vida que crece con las máscaras
-- [ ] IA-7 muerte con elección y victoria
+- [~] IA-7 rótulo «DERROTADO» al vencer a un jefe; falta la pantalla de muerte con elección
 - [x] IA-8 foco del mando en el menú
 - [ ] IA-9 teclas por acción y glifos de mando
 - [x] IA-10 depuración fuera de Shipping

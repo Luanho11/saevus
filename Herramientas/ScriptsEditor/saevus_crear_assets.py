@@ -1739,7 +1739,18 @@ def construir_mapa_mazmorra(bp_modo_juego, datos_enemigos, material_base):
 
     # Sala del Rey (al sur del final de la galería, bajo su muro): el jefe de la Mazmorra, lejos de la puerta.
     crear_recinto(actores, "Trono", 4200, 6000, -3600, -800, 1200, materiales, {"xmin": [], "xmax": [], "ymin": []})
-    enemigo("Trono_ReyGoblin", "DA_Jefe_ReyGoblin", 5100, -3000)
+    jefe_trono = enemigo("Trono_ReyGoblin", "DA_Jefe_ReyGoblin", 5100, -3000)
+    if jefe_trono is not None:
+        # Arena de jefe: la entrada (el hueco de la pared sur de la galería) se cierra al empezar el combate.
+        entrada_trono = crear_puerta(actores, "Trono_Puerta", 5600, 600, 700, [], materiales["Puerta"], "", "", altura=0.0, y=-850)
+        entrada_trono.set_actor_rotation(unreal.Rotator(0, 0, 90), False)
+        entrada_trono.set_editor_property("abierta_al_inicio", True)
+        arena_trono = actores.spawn_actor_from_class(unreal.SAEVUSArenaJefe, unreal.Vector(5100, -2300, 300))
+        arena_trono.set_actor_label("Trono_Arena")
+        arena_trono.get_component_by_class(unreal.BoxComponent).set_box_extent(unreal.Vector(800, 1200, 400))
+        arena_trono.set_editor_property("jefe", jefe_trono)
+        arena_trono.set_editor_property("puertas_entrada", [entrada_trono])
+        arena_trono.set_folder_path("Enemigos")
     crear_texto(actores, "Cartel_Trono", "El trono", unreal.Vector(5100, -900, 900), tamano=90.0)
     for indice, x in enumerate((4500, 5700)):
         crear_antorcha(actores, f"Trono_Antorcha{indice}", unreal.Vector(x, -3500, 420), materiales)

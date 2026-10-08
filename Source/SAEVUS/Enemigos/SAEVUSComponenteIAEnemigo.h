@@ -49,6 +49,9 @@ public:
 	/** Fuerza un estado sin pasar por las condiciones (pruebas y escenas guionizadas). */
 	void ForzarEstado(ESAEVUSEstadoEnemigo NuevoEstado) { CambiarEstado(NuevoEstado); }
 
+	/** Despierta al enemigo contra el objetivo y no lo pierde por distancia (una arena de jefe empieza el combate). */
+	void Despertar();
+
 	/** Vuelve al reposo como al empezar: fase 0, sin ataque ni alerta (el jugador murió o reinició). */
 	void Reiniciar();
 

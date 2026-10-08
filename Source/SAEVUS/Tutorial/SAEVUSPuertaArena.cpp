@@ -36,7 +36,7 @@ void ASAEVUSPuertaArena::BeginPlay()
 	Manejador = ASAEVUSEnemigo::AlMorirEnemigo.AddUObject(this, &ThisClass::AlMorirEnemigo);
 	// Abierta en esta partida: sigue abierta al volver (si no, el que descansó al otro lado quedaba encerrado, GAMEPLAY-2).
 	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
-	if (Guardado && Guardado->TieneEstadoMundo(this))
+	if (bAbiertaAlInicio || (Guardado && Guardado->TieneEstadoMundo(this)))
 	{
 		Abrir(true);
 	}
@@ -89,11 +89,12 @@ void ASAEVUSPuertaArena::Abrir(bool bSilenciosa)
 	if (bSilenciosa)
 	{
 		// Restaurada de la partida guardada: ya hundida y oculta, sin sonido, aviso ni nueva escritura.
+		FraccionApertura = 1.f;
 		SetActorLocation(PosicionCerrada - FVector(0.f, 0.f, Malla->Bounds.BoxExtent.Z * 2.0));
 		SetActorHiddenInGame(true);
 		return;
 	}
-	TiempoAbriendo = 0.f;
+	SetActorHiddenInGame(false);
 	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
 	{
 		Guardado->GuardarEstadoMundo(this);
@@ -109,17 +110,34 @@ void ASAEVUSPuertaArena::Abrir(bool bSilenciosa)
 	}
 }
 
+void ASAEVUSPuertaArena::Cerrar()
+{
+	if (!bAbierta)
+	{
+		return;
+	}
+	bAbierta = false;
+	Malla->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SetActorHiddenInGame(false);
+	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Puerta, GetActorLocation());
+	SetActorTickEnabled(true);
+}
+
 void ASAEVUSPuertaArena::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	// Se hunde toda su altura en el suelo.
-	TiempoAbriendo += DeltaSeconds;
-	const float Fraccion = DuracionApertura > 0.f ? FMath::Clamp(TiempoAbriendo / DuracionApertura, 0.f, 1.f) : 1.f;
+	// Se hunde toda su altura en el suelo al abrirse y vuelve a subir al cerrarse.
+	const float Rapidez = DuracionApertura > 0.f ? 1.f / DuracionApertura : TNumericLimits<float>::Max();
+	FraccionApertura = FMath::FInterpConstantTo(FraccionApertura, bAbierta ? 1.f : 0.f, DeltaSeconds, Rapidez);
 	const float Altura = static_cast<float>(Malla->Bounds.BoxExtent.Z * 2.0);
-	SetActorLocation(PosicionCerrada - FVector(0.f, 0.f, Altura * FMath::InterpEaseInOut(0.f, 1.f, Fraccion, 2.f)));
-	if (Fraccion >= 1.f)
+	SetActorLocation(PosicionCerrada - FVector(0.f, 0.f, Altura * FMath::InterpEaseInOut(0.f, 1.f, FraccionApertura, 2.f)));
+	if (bAbierta && FraccionApertura >= 1.f)
 	{
 		SetActorHiddenInGame(true);
+		SetActorTickEnabled(false);
+	}
+	else if (!bAbierta && FraccionApertura <= 0.f)
+	{
 		SetActorTickEnabled(false);
 	}
 }

@@ -21,6 +21,7 @@
 #include "Enemigos/SAEVUSTiposEnemigo.h"
 #include "GameFramework/DamageType.h"
 #include "Kismet/GameplayStatics.h"
+#include "Mundo/SAEVUSArenaJefe.h"
 #include "Mundo/SAEVUSBanco.h"
 #include "Mundo/SAEVUSMunecoEntrenamiento.h"
 #include "Tutorial/SAEVUSPuertaArena.h"
@@ -356,6 +357,58 @@ bool FSAEVUSPruebaTransicionFase::RunTest(const FString& Parameters)
 
 	Jefe->ObtenerIA()->Actualizar(1.1f);
 	TestFalse(TEXT("Acabado el rugido vuelve a actuar"), Jefe->ObtenerIA()->EstaEnTransicion());
+	return true;
+}
+
+// GAMEPLAY-3: caer fuera del mundo es morir (y por tanto reaparecer), no quedarse sin personaje.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaFueraDelMundo, "SAEVUS.Vida.FueraDelMundo", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaFueraDelMundo::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	TestFalse(TEXT("Vivo al empezar"), Mundo.Personaje->ObtenerVida()->EstaMuerto());
+	Mundo.Personaje->ObtenerVida()->HacerInvulnerable(10.f);
+	static_cast<AActor*>(Mundo.Personaje)->FellOutOfWorld(*GetDefault<UDamageType>());
+	TestTrue(TEXT("Caer fuera del mundo mata aunque sea invulnerable"), Mundo.Personaje->ObtenerVida()->EstaMuerto());
+	TestFalse(TEXT("y el personaje sigue existiendo para que el modo de juego lo reemplace"), Mundo.Personaje->IsActorBeingDestroyed());
+	return true;
+}
+
+// EA-3: la arena de jefe cierra la entrada y despierta al jefe; la abre si el jugador muere o el jefe cae.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaArenaJefe, "SAEVUS.Enemigo.ArenaJefe", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaArenaJefe::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	FMundoRevision Mundo;
+	USAEVUSDatosEnemigo* Datos = CrearDatos(0.f);
+	Datos->Enemigo.bEsJefe = true;
+	Datos->Enemigo.RadioDeteccion = 50.f;
+	ASAEVUSEnemigo* Jefe = Mundo.MundoPrueba.CrearEnemigo(FVector(6000.f, 0.f, 100.f), Datos, Mundo.Personaje);
+	ASAEVUSPuertaArena* Puerta = Mundo.MundoPrueba.CrearActor<ASAEVUSPuertaArena>(FVector(0.f, 800.f, 100.f));
+	Puerta->Abrir(true);
+	ASAEVUSArenaJefe* Arena = Mundo.MundoPrueba.CrearActor<ASAEVUSArenaJefe>(FVector(0.f, 0.f, 100.f));
+	Arena->Configurar(Jefe, { Puerta });
+	TestTrue(TEXT("La entrada empieza abierta"), Puerta->EstaAbierta());
+	TestEqual(TEXT("El jefe descansa"), Jefe->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Reposo);
+
+	Arena->Activar();
+	TestTrue(TEXT("La arena se activa"), Arena->EstaActiva());
+	TestFalse(TEXT("La entrada se cierra"), Puerta->EstaAbierta());
+	TestEqual(TEXT("El jefe despierta"), Jefe->ObtenerIA()->ObtenerEstado(), ESAEVUSEstadoEnemigo::Perseguir);
+
+	// El jugador muere: el jefe se reinicia y la arena abre la entrada y se rearma.
+	Jefe->ReiniciarCombate();
+	Arena->Tick(0.3f);
+	TestTrue(TEXT("Con el jefe en reposo la entrada se abre"), Puerta->EstaAbierta());
+	TestFalse(TEXT("y la arena se rearma"), Arena->EstaActiva());
+
+	// Segundo intento: el jefe cae y la entrada queda abierta.
+	Arena->Activar();
+	TestFalse(TEXT("Se vuelve a cerrar"), Puerta->EstaAbierta());
+	Jefe->ObtenerVida()->Matar(Mundo.Personaje);
+	Arena->Tick(0.3f);
+	TestTrue(TEXT("Vencido el jefe, la entrada se abre"), Puerta->EstaAbierta());
+	TestFalse(TEXT("y la arena no sigue activa"), Arena->EstaActiva());
 	return true;
 }
 

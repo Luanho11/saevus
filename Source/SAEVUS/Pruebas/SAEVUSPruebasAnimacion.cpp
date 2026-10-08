@@ -108,6 +108,34 @@ bool FSAEVUSPruebaEsqueletoCaballero::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ANIMVFX-1: un tirón largo (compilación de shader, recolección de basura) con un ataque aéreo no rompe la pose para siempre.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionTiron, "SAEVUS.Animacion.TironNoRompe", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaAnimacionTiron::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasAnimacion;
+
+	FMundoAnimacion Mundo(*this);
+	if (!Mundo.bListo || !TestTrue(TEXT("Esqueleto válido"), Mundo.Animacion->EsqueletoValido()))
+	{
+		return false;
+	}
+	Mundo.Personaje->PedirSalto();
+	Mundo.AvanzarDurante(0.2f);
+	Mundo.Personaje->PedirAtaque();
+	Mundo.AvanzarDurante(0.1f);
+	for (const float Tiron : { 0.1f, 0.25f, 0.4f, 0.1f })
+	{
+		Mundo.Animacion->Actualizar(Tiron);
+	}
+	for (int32 Hueso = 0; Hueso < static_cast<int32>(ESAEVUSHueso::Total); ++Hueso)
+	{
+		const FVector Posicion = Mundo.Hueso(static_cast<ESAEVUSHueso>(Hueso));
+		TestFalse(FString::Printf(TEXT("El hueso %d no tiene NaN"), Hueso), Posicion.ContainsNaN());
+		TestTrue(FString::Printf(TEXT("El hueso %d sigue cerca del cuerpo"), Hueso), Posicion.Size() < 1000.0);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaAnimacionEscala, "SAEVUS.Animacion.EscalaReposo", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaAnimacionEscala::RunTest(const FString& Parameters)
 {

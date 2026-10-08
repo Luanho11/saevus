@@ -23,6 +23,12 @@ bool USAEVUSSubsistemaTutorial::HayMensajeLegible() const
 	return !bCaducado && Edad < DuracionMinima;
 }
 
+void USAEVUSSubsistemaTutorial::LimpiarMensajes()
+{
+	Cola.Reset();
+	bHayMensaje = false;
+}
+
 void USAEVUSSubsistemaTutorial::MostrarMensaje(const FText& Titulo, const FText& Texto, float Duracion)
 {
 	FSAEVUSMensajeTutorial Nuevo;
