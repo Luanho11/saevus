@@ -134,7 +134,12 @@ void ASAEVUSControladorJugador::IrAMapa(const FString& Ruta)
 
 void ASAEVUSControladorJugador::JugarEn(const FString& Ruta)
 {
-	if (SAEVUSGuardado::NombreMapa(GetWorld()) == FName(*FPackageName::GetShortName(Ruta)))
+	const FName Destino(*FPackageName::GetShortName(Ruta));
+	// Elegir un mapa en el menú es empezarlo de nuevo: se olvidan sus puertas abiertas y sus jefes vencidos (los que
+	// ya estaban aplicados en este mundo obligan a recargarlo). «Continuar» es lo que retoma la partida.
+	USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	const bool bHabiaEstado = Guardado && Guardado->LimpiarEstadoMapa(Destino);
+	if (!bHabiaEstado && SAEVUSGuardado::NombreMapa(GetWorld()) == Destino)
 	{
 		CerrarMenuPrincipal();
 		return;

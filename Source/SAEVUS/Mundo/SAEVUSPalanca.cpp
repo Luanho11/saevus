@@ -2,6 +2,7 @@
 
 #include "Mundo/SAEVUSPalanca.h"
 #include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -66,6 +67,18 @@ float ASAEVUSPalanca::TakeDamage(float DamageAmount, const FDamageEvent& DamageE
 	return 0.f;
 }
 
+void ASAEVUSPalanca::BeginPlay()
+{
+	Super::BeginPlay();
+	// Ya accionada en esta partida: queda en su sitio, sin sonido ni aviso. Sus puertas guardan su propio estado.
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	if (Guardado && Guardado->TieneEstadoMundo(this))
+	{
+		bAccionada = true;
+		Pivote->SetRelativeRotation(FRotator(0.f, 0.f, AnguloAccionada));
+	}
+}
+
 void ASAEVUSPalanca::Accionar()
 {
 	if (bAccionada)
@@ -73,6 +86,10 @@ void ASAEVUSPalanca::Accionar()
 		return;
 	}
 	bAccionada = true;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarEstadoMundo(this);
+	}
 	TiempoGiro = 0.f;
 	SetActorTickEnabled(true);
 	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Palanca, GetActorLocation());

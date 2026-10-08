@@ -2,6 +2,7 @@
 
 #include "Mundo/SAEVUSParedRompible.h"
 #include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -52,9 +53,26 @@ float ASAEVUSParedRompible::TakeDamage(float DamageAmount, const FDamageEvent& D
 	return 0.f;
 }
 
+void ASAEVUSParedRompible::BeginPlay()
+{
+	Super::BeginPlay();
+	// Rota en esta partida: sigue rota al volver.
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	if (Guardado && Guardado->TieneEstadoMundo(this))
+	{
+		bRota = true;
+		SetActorEnableCollision(false);
+		SetActorHiddenInGame(true);
+	}
+}
+
 void ASAEVUSParedRompible::Romper()
 {
 	bRota = true;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarEstadoMundo(this);
+	}
 	SetActorEnableCollision(false);
 	SetActorHiddenInGame(true);
 	SetActorTickEnabled(false);

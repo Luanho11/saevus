@@ -27,6 +27,8 @@ public:
 	int32 ObtenerGolpes() const { return Golpes; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<UStaticMeshComponent> Malla;
 

@@ -5,7 +5,9 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "HAL/FileManager.h"
 #include "Misc/CommandLine.h"
+#include "Misc/Paths.h"
 #include "SAEVUS.h"
 
 namespace SAEVUSGuardado
@@ -20,6 +22,30 @@ namespace SAEVUSGuardado
 	const TCHAR* const ParametroSinGuardar = TEXT("SAEVUSSinGuardar");
 	constexpr int32 IndiceUsuario = 0;
 
+	FName ClaveMundo(FName Mapa, FName Actor)
+	{
+		return FName(*FString::Printf(TEXT("%s.%s"), *Mapa.ToString(), *Actor.ToString()));
+	}
+
+	bool QuitarEstadoMapa(USAEVUSPartidaGuardada* Partida, FName Mapa)
+	{
+		if (!Partida)
+		{
+			return false;
+		}
+		const FString Prefijo = Mapa.ToString() + TEXT(".");
+		bool bQuitado = false;
+		for (auto Iterador = Partida->EstadoMundo.CreateIterator(); Iterador; ++Iterador)
+		{
+			if (Iterador->ToString().StartsWith(Prefijo))
+			{
+				Iterador.RemoveCurrent();
+				bQuitado = true;
+			}
+		}
+		return bQuitado;
+	}
+
 	void Migrar(USAEVUSPartidaGuardada* Partida)
 	{
 		if (!Partida || Partida->Version >= VersionActual)
@@ -30,7 +56,25 @@ namespace SAEVUSGuardado
 		// propio, así que contaría dos veces (GAMEPLAY-26).
 		Partida->FragmentosMascara.RemoveAll([](const FName& Id) { return Id.IsNone(); });
 		Partida->Sensibilidad = FMath::Clamp(Partida->Sensibilidad, 0.1f, 5.f);
+		// Versión 1 → 2: aparece EstadoMundo (vacío en las partidas anteriores).
 		Partida->Version = VersionActual;
+	}
+
+	/**
+	 * Cierto si el archivo de la ranura empieza como una partida de UE («GVAS»). Cargar bytes basura revienta el motor
+	 * (lee un nombre de millones de caracteres y aborta), así que un archivo que no lo parece ni se intenta leer.
+	 */
+	bool TieneCabeceraValida(const FString& Ranura)
+	{
+		const FString Ruta = FPaths::ProjectSavedDir() / TEXT("SaveGames") / (Ranura + TEXT(".sav"));
+		TUniquePtr<FArchive> Lector(IFileManager::Get().CreateFileReader(*Ruta));
+		if (!Lector || Lector->TotalSize() < 16)
+		{
+			return false;
+		}
+		uint8 Cabecera[4] = { 0, 0, 0, 0 };
+		Lector->Serialize(Cabecera, sizeof(Cabecera));
+		return Cabecera[0] == 'G' && Cabecera[1] == 'V' && Cabecera[2] == 'A' && Cabecera[3] == 'S';
 	}
 
 	USAEVUSPartidaGuardada* Cargar(const FString& Ranura)
@@ -40,6 +84,11 @@ namespace SAEVUSGuardado
 		{
 			if (!UGameplayStatics::DoesSaveGameExist(*Candidata, IndiceUsuario))
 			{
+				continue;
+			}
+			if (!TieneCabeceraValida(*Candidata))
+			{
+				UE_LOG(LogSAEVUS, Warning, TEXT("La partida guardada '%s' está dañada (cabecera inválida)"), **Candidata);
 				continue;
 			}
 			if (USAEVUSPartidaGuardada* Partida = Cast<USAEVUSPartidaGuardada>(UGameplayStatics::LoadGameFromSlot(*Candidata, IndiceUsuario)))
@@ -160,6 +209,31 @@ void USAEVUSSubsistemaGuardado::GuardarFragmento(FName Identificador)
 {
 	Partida->FragmentosMascara.AddUnique(Identificador);
 	Guardar();
+}
+
+bool USAEVUSSubsistemaGuardado::TieneEstadoMundo(const AActor* Actor) const
+{
+	return Actor && Partida->EstadoMundo.Contains(SAEVUSGuardado::ClaveMundo(SAEVUSGuardado::NombreMapa(Actor->GetWorld()), Actor->GetFName()));
+}
+
+void USAEVUSSubsistemaGuardado::GuardarEstadoMundo(const AActor* Actor)
+{
+	if (!Actor)
+	{
+		return;
+	}
+	Partida->EstadoMundo.Add(SAEVUSGuardado::ClaveMundo(SAEVUSGuardado::NombreMapa(Actor->GetWorld()), Actor->GetFName()));
+	Guardar();
+}
+
+bool USAEVUSSubsistemaGuardado::LimpiarEstadoMapa(FName Mapa)
+{
+	const bool bHabiaAlgo = SAEVUSGuardado::QuitarEstadoMapa(Partida, Mapa);
+	if (bHabiaAlgo)
+	{
+		Guardar();
+	}
+	return bHabiaAlgo;
 }
 
 void USAEVUSSubsistemaGuardado::GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto)

@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Enemigos/SAEVUSEnemigo.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Nucleo/SAEVUSFormasMotor.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/CapsuleComponent.h"
@@ -147,6 +148,15 @@ void ASAEVUSEnemigo::BeginPlay()
 	CrearMateriales();
 	Vida->AlMorir.AddUniqueDynamic(this, &ThisClass::ManejarMuerte);
 	Vida->AlCambiarVida.AddUniqueDynamic(this, &ThisClass::ManejarCambioVida);
+	// Un jefe derrotado en esta partida no vuelve (los enemigos menores sí, como al descansar en un banco).
+	if (ObtenerAjuste().bEsJefe)
+	{
+		const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+		if (Guardado && Guardado->TieneEstadoMundo(this))
+		{
+			Destroy();
+		}
+	}
 }
 
 void ASAEVUSEnemigo::ManejarCambioVida(USAEVUSComponenteVida* ComponenteVida, float Delta, AActor* Instigador)
@@ -348,6 +358,13 @@ void ASAEVUSEnemigo::ManejarMuerte(USAEVUSComponenteVida* ComponenteVida, AActor
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Efectos->EmitirRafaga(GetActorLocation(), FVector::UpVector * VelocidadParticulasMuerte, ParticulasMuerte, DispersionParticulasMuerte);
 	SetLifeSpan(FMath::Max(ObtenerAjuste().DuracionMuerte, KINDA_SMALL_NUMBER));
+	if (ObtenerAjuste().bEsJefe)
+	{
+		if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+		{
+			Guardado->GuardarEstadoMundo(this);
+		}
+	}
 	AlMorirEnemigo.Broadcast(this);
 }
 

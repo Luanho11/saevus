@@ -20,6 +20,8 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Combate/SAEVUSComponenteVida.h"
+#include "Enemigos/SAEVUSEnemigo.h"
 #include "Interfaz/SAEVUSEstiloInterfaz.h"
 #include "Interfaz/SAEVUSTextoTeclas.h"
 #include "Mundo/SAEVUSInfoZona.h"
@@ -329,6 +331,23 @@ void USAEVUSWidgetInterfaz::Construir()
 	BloqueTituloZona->SetVisibility(ESlateVisibility::Collapsed);
 	TiempoEntrada = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 
+	// Victoria sobre un jefe: nombre y «Derrotado», centrados un poco más abajo que el título de zona.
+	BloqueVictoria = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Victoria"));
+	UCanvasPanelSlot* RanuraVictoria = Lienzo->AddChildToCanvas(BloqueVictoria);
+	RanuraVictoria->SetAnchors(FAnchors(0.5f, Ajuste.AlturaTituloZona + 0.12f));
+	RanuraVictoria->SetAlignment(FVector2D(0.5f, 0.5f));
+	RanuraVictoria->SetAutoSize(true);
+	TextoVictoriaNombre = CrearTitulo(TEXT("NombreJefeVencido"), Ajuste.TamanoTextoAviso * 2);
+	TextoVictoriaNombre->SetColorAndOpacity(FSlateColor(Ajuste.ColorTextoHueso * 0.8f));
+	UTextBlock* TextoDerrotado = CrearTitulo(TEXT("Derrotado"), Ajuste.TamanoTituloZona);
+	TextoDerrotado->SetColorAndOpacity(FSlateColor(Ajuste.ColorTextoHueso));
+	TextoDerrotado->SetText(NSLOCTEXT("SAEVUSInterfaz", "Derrotado", "DERROTADO"));
+	BloqueVictoria->AddChildToVerticalBox(TextoVictoriaNombre)->SetHorizontalAlignment(HAlign_Center);
+	BloqueVictoria->AddChildToVerticalBox(TextoDerrotado)->SetHorizontalAlignment(HAlign_Center);
+	BloqueVictoria->SetRenderOpacity(0.f);
+	BloqueVictoria->SetVisibility(ESlateVisibility::Collapsed);
+	ManejadorMuerteEnemigo = ASAEVUSEnemigo::AlMorirEnemigo.AddUObject(this, &ThisClass::AlMorirEnemigo);
+
 	// Abajo al centro, encima del jefe: lo que se puede usar ("[E]  Sentarse", con la tecla dibujada).
 	CajaInteraccion = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("Interaccion"));
 	UCanvasPanelSlot* RanuraInteraccion = Lienzo->AddChildToCanvas(CajaInteraccion);
@@ -546,6 +565,24 @@ void USAEVUSWidgetInterfaz::AnimarBarras(const FSAEVUSEstadoInterfaz& Estado, fl
 	}
 }
 
+void USAEVUSWidgetInterfaz::NativeDestruct()
+{
+	ASAEVUSEnemigo::AlMorirEnemigo.Remove(ManejadorMuerteEnemigo);
+	Super::NativeDestruct();
+}
+
+void USAEVUSWidgetInterfaz::AlMorirEnemigo(ASAEVUSEnemigo* Enemigo)
+{
+	// Solo cuenta un jefe que muere de verdad (no uno que desaparece), y de este mundo.
+	if (!Enemigo || !BloqueVictoria || Enemigo->GetWorld() != GetWorld() || !Enemigo->ObtenerAjuste().bEsJefe || !Enemigo->ObtenerVida()->EstaMuerto())
+	{
+		return;
+	}
+	TextoVictoriaNombre->SetText(Enemigo->ObtenerAjuste().NombreVisible);
+	TiempoVictoria = GetWorld()->GetTimeSeconds();
+	bVictoriaActiva = true;
+}
+
 void USAEVUSWidgetInterfaz::NativeTick(const FGeometry& Geometria, float DeltaTime)
 {
 	using namespace SAEVUSInterfaz;
@@ -573,6 +610,17 @@ void USAEVUSWidgetInterfaz::NativeTick(const FGeometry& Geometria, float DeltaTi
 			Raya->SetWidthOverride(Ajuste.AnchoRayasZona * Opacidad);
 		}
 		bTituloZonaTerminado = Opacidad <= 0.f && Segundos > Ajuste.RetardoTituloZona + Ajuste.FundidoTituloZona;
+	}
+	if (bVictoriaActiva && BloqueVictoria)
+	{
+		const float Segundos = static_cast<float>(GetWorld()->GetTimeSeconds() - TiempoVictoria);
+		const float Opacidad = OpacidadTituloZona(Segundos, Ajuste);
+		FijarOpacidad(BloqueVictoria, Opacidad);
+		FijarVisible(BloqueVictoria, Opacidad > 0.f);
+		if (Opacidad <= 0.f && Segundos > Ajuste.RetardoTituloZona + Ajuste.FundidoTituloZona)
+		{
+			bVictoriaActiva = false;
+		}
 	}
 	if (VeloMuerte)
 	{

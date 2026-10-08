@@ -33,6 +33,8 @@ public:
 	const TArray<TObjectPtr<ASAEVUSPuertaArena>>& ObtenerPuertas() const { return Puertas; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, Category = "Componentes")
 	TObjectPtr<UBoxComponent> Caja;
 

@@ -2,6 +2,7 @@
 
 #include "Tutorial/SAEVUSPuertaArena.h"
 #include "Nucleo/SAEVUSFormasMotor.h"
+#include "Nucleo/SAEVUSGuardado.h"
 #include "Audio/SAEVUSSubsistemaSonidoMundo.h"
 #include "Combate/SAEVUSComponenteVida.h"
 #include "Components/StaticMeshComponent.h"
@@ -33,6 +34,12 @@ void ASAEVUSPuertaArena::BeginPlay()
 	Super::BeginPlay();
 	PosicionCerrada = GetActorLocation();
 	Manejador = ASAEVUSEnemigo::AlMorirEnemigo.AddUObject(this, &ThisClass::AlMorirEnemigo);
+	// Abierta en esta partida: sigue abierta al volver (si no, el que descansó al otro lado quedaba encerrado, GAMEPLAY-2).
+	const USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this);
+	if (Guardado && Guardado->TieneEstadoMundo(this))
+	{
+		Abrir(true);
+	}
 }
 
 void ASAEVUSPuertaArena::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -71,16 +78,27 @@ void ASAEVUSPuertaArena::AlMorirEnemigo(ASAEVUSEnemigo* Enemigo)
 	}
 }
 
-void ASAEVUSPuertaArena::Abrir()
+void ASAEVUSPuertaArena::Abrir(bool bSilenciosa)
 {
 	if (bAbierta)
 	{
 		return;
 	}
 	bAbierta = true;
-	TiempoAbriendo = 0.f;
-	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Puerta, GetActorLocation());
 	Malla->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (bSilenciosa)
+	{
+		// Restaurada de la partida guardada: ya hundida y oculta, sin sonido, aviso ni nueva escritura.
+		SetActorLocation(PosicionCerrada - FVector(0.f, 0.f, Malla->Bounds.BoxExtent.Z * 2.0));
+		SetActorHiddenInGame(true);
+		return;
+	}
+	TiempoAbriendo = 0.f;
+	if (USAEVUSSubsistemaGuardado* Guardado = USAEVUSSubsistemaGuardado::Obtener(this))
+	{
+		Guardado->GuardarEstadoMundo(this);
+	}
+	USAEVUSSubsistemaSonidoMundo::Reproducir(this, ESAEVUSSonidoMundo::Puerta, GetActorLocation());
 	SetActorTickEnabled(true);
 	if (!TituloAlAbrir.IsEmpty())
 	{

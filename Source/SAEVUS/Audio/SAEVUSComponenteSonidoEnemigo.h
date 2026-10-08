@@ -65,13 +65,17 @@ protected:
 
 private:
 	void AlCambiarEstado(ESAEVUSEstadoEnemigo NuevoEstado);
-	void Reproducir(const TArray<uint8>& Datos, float Duracion);
+	void Reproducir(const TArray<uint8>& Datos, float Duracion, float Volumen = 1.f, float Tono = 1.f);
+	/** Tono según el tamaño (los grandes suenan graves) y una pequeña variación por reproducción (EA-6 y EA-29). */
+	float TonoBase() const;
 
 	TArray<uint8> DatosAviso;
 	TArray<uint8> DatosAtaque;
 	TArray<uint8> DatosMuerte;
 	TArray<uint8> DatosAleteo;
 	float TiempoAleteo = 0.f;
+	ESAEVUSEstadoEnemigo EstadoAnterior = ESAEVUSEstadoEnemigo::Reposo;
+	FRandomStream Variacion;
 	FDelegateHandle Manejador;
 	int32 Reproducciones = 0;
 };

@@ -205,6 +205,7 @@ public:
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	virtual void NativeTick(const FGeometry& Geometria, float DeltaTime) override;
+	virtual void NativeDestruct() override;
 
 	UPROPERTY(EditAnywhere, Category = "SAEVUS|Interfaz")
 	FSAEVUSAjusteInterfaz Ajuste;
@@ -242,6 +243,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> BloqueTituloZona;
+
+	/** Rótulo al derrotar a un jefe: su nombre y «Derrotado», que aparece y se va como el título de zona. */
+	UPROPERTY(Transient)
+	TObjectPtr<UVerticalBox> BloqueVictoria;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTextBlock> TextoVictoriaNombre;
 
 	/** Tiempo de mundo al construirse la interfaz: de ahí cuenta el título de zona (se para con la pausa). */
 	double TiempoEntrada = 0.0;
@@ -297,6 +305,12 @@ private:
 	/** Zona cuyo título se muestra (se busca una vez); el título deja de calcularse al apagarse. */
 	TWeakObjectPtr<const class ASAEVUSInfoZona> Zona;
 	bool bTituloZonaTerminado = false;
+
+	/** Un jefe murió: se muestra el rótulo de victoria desde TiempoVictoria (tiempo de mundo). */
+	void AlMorirEnemigo(class ASAEVUSEnemigo* Enemigo);
+	FDelegateHandle ManejadorMuerteEnemigo;
+	bool bVictoriaActiva = false;
+	double TiempoVictoria = 0.0;
 
 	/** Rastros del daño: valor que muestran y tiempo desde el último golpe. */
 	float FraccionRastroVida = 1.f;

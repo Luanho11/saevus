@@ -28,8 +28,8 @@ public:
 	/** Sin enemigos asignados es una compuerta: solo la abre una palanca (ASAEVUSPalanca) o Abrir(). */
 	bool TieneEnemigos() const { return !Enemigos.IsEmpty(); }
 
-	/** Abre la puerta (sin colisión al instante; se hunde en DuracionApertura). */
-	void Abrir();
+	/** Abre la puerta (sin colisión al instante; se hunde en DuracionApertura). Silenciosa: ya hundida, sin sonido ni aviso. */
+	void Abrir(bool bSilenciosa = false);
 
 	virtual void Tick(float DeltaSeconds) override;
 

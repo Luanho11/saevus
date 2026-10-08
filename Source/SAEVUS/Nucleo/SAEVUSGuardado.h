@@ -60,6 +60,13 @@ public:
 	/** Celdas exploradas por mapa (nombre corto). */
 	UPROPERTY()
 	TMap<FName, FSAEVUSExploracionMapa> Exploracion;
+
+	/**
+	 * Estado del mundo que no se rehace al volver: puertas abiertas, palancas accionadas, paredes rotas, jefes
+	 * derrotados. Cada entrada es «Mapa.NombreDelActor» (SAEVUSGuardado::ClaveMundo).
+	 */
+	UPROPERTY()
+	TSet<FName> EstadoMundo;
 };
 
 namespace SAEVUSGuardado
@@ -68,7 +75,13 @@ namespace SAEVUSGuardado
 	SAEVUS_API extern const TCHAR* const RanuraPorDefecto;
 
 	/** Versión actual del formato de la partida guardada. */
-	constexpr int32 VersionActual = 1;
+	constexpr int32 VersionActual = 2;
+
+	/** Clave estable de un actor colocado en un mapa dentro de EstadoMundo. */
+	SAEVUS_API FName ClaveMundo(FName Mapa, FName Actor);
+
+	/** Quita de EstadoMundo todo lo de Mapa; cierto si había algo. */
+	SAEVUS_API bool QuitarEstadoMapa(USAEVUSPartidaGuardada* Partida, FName Mapa);
 
 	/** Sufijo de la copia de seguridad de una ranura. */
 	SAEVUS_API extern const TCHAR* const SufijoCopia;
@@ -120,6 +133,12 @@ public:
 	/** Celdas exploradas del mapa (vacío si nunca se exploró). */
 	TArray<FIntPoint> ObtenerExploracion(FName Mapa) const;
 	void GuardarExploracion(FName Mapa, const TArray<FIntPoint>& Celdas);
+
+	/** ¿Este actor ya cambió el mundo en esta partida (puerta abierta, palanca accionada, jefe vencido)? */
+	bool TieneEstadoMundo(const AActor* Actor) const;
+	void GuardarEstadoMundo(const AActor* Actor);
+	/** Olvida el estado de un mapa (empezarlo de nuevo); cierto si había algo. */
+	bool LimpiarEstadoMapa(FName Mapa);
 
 	void GuardarPuntoControl(const UWorld* Mundo, const FTransform& Punto);
 	/** Cierto si hay un punto de control guardado para el mapa de Mundo. */
