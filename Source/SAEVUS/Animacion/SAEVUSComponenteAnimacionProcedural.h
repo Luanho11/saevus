@@ -398,6 +398,26 @@ struct FSAEVUSAjusteAnimacion
 	/** La mirada busca enemigo cercano cada tanto, no cada fotograma (s). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
 	float IntervaloBusquedaMirada = 0.2f;
+
+	/** Pies al suelo (ANIMVFX-3): cada pie baja o sube hasta el suelo real (escalones, rampas) con una traza corta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pies al suelo")
+	bool bPiesAlSuelo = true;
+
+	/** Cuánto se busca el suelo por encima y por debajo de la planta del pie (cm); fuera de eso el pie no se ajusta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pies al suelo", meta = (ClampMin = "1", ForceUnits = "cm"))
+	float AlcanceTrazaPies = 35.f;
+
+	/** Ajuste máximo de un pie respecto al suelo plano (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pies al suelo", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float AjusteMaximoPies = 28.f;
+
+	/** Por encima de esta altura sobre el suelo (cm) el pie está en el aire de la zancada y no se ajusta. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pies al suelo", meta = (ClampMin = "0.1", ForceUnits = "cm"))
+	float AlturaContactoPies = 9.f;
+
+	/** Rapidez con la que el ajuste de cada pie y de la cadera sigue al suelo (1/s). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pies al suelo", meta = (ClampMin = "0.1"))
+	float VelocidadAjustePies = 16.f;
 };
 
 /**
@@ -515,6 +535,14 @@ private:
 	void SuavizarYAplicar(const FPose& Pose, const FQuat (&Objetivo)[static_cast<int32>(ESAEVUSHueso::Total)], float DeltaTime, bool bAccion);
 	/** Escribe las transformaciones de los huesos (espacio de componente) en la malla de una vez, sin buscar nombres. */
 	void EscribirEnMalla(const FTransform (&Componente)[static_cast<int32>(ESAEVUSHueso::Total)]);
+	/**
+	 * Pies al suelo: traza hacia abajo bajo cada pie y, si el suelo no es plano, lo coloca encima con cinemática inversa
+	 * de dos huesos (muslo y pierna). Además fija cuánto baja la cadera el próximo fotograma (AjusteCaderaSuelo, ≤ 0)
+	 * para que el pie más bajo llegue.
+	 */
+	void AplicarPiesAlSuelo(FTransform (&Componente)[static_cast<int32>(ESAEVUSHueso::Total)], float DeltaTime);
+	/** Altura del suelo bajo un punto del mundo respecto al origen de la malla (cm locales); falso si no hay suelo a mano. */
+	bool AlturaSueloBajo(const FVector& PuntoMundo, float& OutAltura) const;
 
 	UFUNCTION()
 	void AlDisparar(FVector Boca, FVector Impacto, AActor* ActorGolpeado);
@@ -577,6 +605,9 @@ private:
 	FQuat RotacionActual[static_cast<int32>(ESAEVUSHueso::Total)];
 	FVector PosicionActual[static_cast<int32>(ESAEVUSHueso::Total)];
 	FVector DesplazamientoRaizActual = FVector::ZeroVector;
+	/** Pies al suelo: ajuste suavizado de cada pie (D, I) respecto al suelo plano y bajada de la cadera (cm, ≤ 0). */
+	float AjustePieSuelo[2] = { 0.f, 0.f };
+	float AjusteCaderaSuelo = 0.f;
 	float EscalaArmaActual = 1.f;
 	float EscalaArmaFuegoActual = 0.f;
 	bool bPoseIniciada = false;

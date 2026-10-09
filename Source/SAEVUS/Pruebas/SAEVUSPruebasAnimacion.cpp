@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "AnimationRuntime.h"
+#include "Animacion/SAEVUSCinematicaInversa.h"
 #include "Armas/SAEVUSTiposArma.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Efectos/SAEVUSComponenteEstelaEspada.h"
@@ -154,6 +155,34 @@ bool FSAEVUSPruebaAnimacionEscala::RunTest(const FString& Parameters)
 		TestEqual(FString::Printf(TEXT("Escala de %s igual a la de reposo"), *USAEVUSComponenteAnimacionProcedural::NombreHueso(Hueso).ToString()),
 			Mundo.EscalaHueso(Hueso), 1.f, ToleranciaEscala);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaCinematicaInversaPierna, "SAEVUS.Animacion.CinematicaInversaPierna", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaCinematicaInversaPierna::RunTest(const FString& Parameters)
+{
+	constexpr float Largo = 45.f;
+	constexpr float Tolerancia = 0.05f;
+	const FVector Cadera(0.f, 0.f, 90.f);
+
+	// Alcanzable: el pie llega al objetivo y los huesos conservan su largo.
+	const FVector Objetivo(10.f, 0.f, 20.f);
+	const FSAEVUSResultadoPierna Alcanzable = SAEVUSCinematicaInversa::ResolverPierna(Cadera, Largo, Largo, Objetivo, FVector::ForwardVector);
+	TestTrue(TEXT("El pie llega al objetivo"), Alcanzable.Pie.Equals(Objetivo, Tolerancia));
+	TestEqual(TEXT("Largo del muslo"), static_cast<float>(FVector::Dist(Cadera, Alcanzable.Rodilla)), Largo, Tolerancia);
+	TestEqual(TEXT("Largo de la pierna"), static_cast<float>(FVector::Dist(Alcanzable.Rodilla, Alcanzable.Pie)), Largo, Tolerancia);
+	TestTrue(TEXT("La rodilla apunta hacia delante"), Alcanzable.Rodilla.X > Cadera.X);
+
+	// Lejos: se estira sin pasarse del largo total y mantiene la dirección.
+	const FSAEVUSResultadoPierna Lejana = SAEVUSCinematicaInversa::ResolverPierna(Cadera, Largo, Largo, Cadera - FVector(0.f, 0.f, 500.f), FVector::ForwardVector);
+	TestTrue(TEXT("No supera el largo total"), FVector::Dist(Cadera, Lejana.Pie) <= 2.f * Largo);
+	TestTrue(TEXT("Cae en vertical"), FMath::IsNearlyEqual(static_cast<float>(Lejana.Pie.X), 0.f, Tolerancia) && Lejana.Pie.Z < Cadera.Z);
+
+	// Rodilla alineada con el eje o sin dirección: no genera NaN.
+	const FSAEVUSResultadoPierna Alineada = SAEVUSCinematicaInversa::ResolverPierna(Cadera, Largo, Largo, Cadera - FVector(0.f, 0.f, 60.f), -FVector::UpVector);
+	TestFalse(TEXT("Sin NaN con el polo alineado"), Alineada.Rodilla.ContainsNaN() || Alineada.Pie.ContainsNaN());
+	const FSAEVUSResultadoPierna Nula = SAEVUSCinematicaInversa::ResolverPierna(Cadera, Largo, Largo, Cadera, FVector::ZeroVector);
+	TestFalse(TEXT("Sin NaN con el objetivo en la cadera"), Nula.Rodilla.ContainsNaN() || Nula.Pie.ContainsNaN());
 	return true;
 }
 

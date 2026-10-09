@@ -43,7 +43,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 ## Animación, VFX y cámara
 - [x] ANIMVFX-1 muelles: Euler implícito, frecuencia ≤ 20 Hz, guardas de NaN en muelle y pose; test `Animacion.MuelleEstable`
 - [x] ANIMVFX-2 el golpe del enemigo llega en `TiempoImpacto` (0,15 s), igual que el proyectil
-- [~] ANIMVFX-3 longitud del ciclo proporcional a la zancada (sin patinar); falta IK/trazas al suelo
+- [~] ANIMVFX-3 longitud del ciclo proporcional a la zancada (sin patinar); pies al suelo con traza y cinemática inversa de dos huesos (`SAEVUSCinematicaInversa.h`, `bPiesAlSuelo`; escalones y rampas, cadera baja al pie más bajo); falta comprobarlo a ojo en una rampa
 - [~] ANIMVFX-4 arco y estela a 1 partícula por paso (falta la cinta como única firma y el arco por gesto)
 - [~] ANIMVFX-5 chispas en el punto de la hoja más cercano y en proporción al daño; falta un emisor por familia y sangre/parry
 - [ ] ANIMVFX-6 esqueleto por roles

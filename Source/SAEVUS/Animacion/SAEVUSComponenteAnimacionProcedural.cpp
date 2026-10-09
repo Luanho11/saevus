@@ -1,6 +1,7 @@
 // Copyright SAEVUS. Todos los derechos reservados.
 
 #include "Animacion/SAEVUSComponenteAnimacionProcedural.h"
+#include "Animacion/SAEVUSCinematicaInversa.h"
 #include "Animacion/SAEVUSGestosAtaque.h"
 #include "Armas/SAEVUSComponenteArmas.h"
 #include "Combate/SAEVUSComponenteAlma.h"
@@ -1354,7 +1355,7 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 		const int32 IndicePadre = Padre[Hueso];
 		if (IndicePadre == INDEX_NONE)
 		{
-			PosicionActual[Hueso] = ReposoComponente[Hueso].GetLocation() + DesplazamientoRaizActual;
+			PosicionActual[Hueso] = ReposoComponente[Hueso].GetLocation() + DesplazamientoRaizActual + FVector(0.f, 0.f, AjusteCaderaSuelo);
 		}
 		else
 		{
@@ -1373,7 +1374,100 @@ void USAEVUSComponenteAnimacionProcedural::SuavizarYAplicar(const FPose& Pose, c
 		// La escala de reposo se conserva: el FBX de Blender puede traerla distinta de 1 (unidades del armazón).
 		Componente[Hueso] = FTransform(RotacionActual[Hueso], PosicionActual[Hueso], ReposoComponente[Hueso].GetScale3D() * Escala);
 	}
+	AplicarPiesAlSuelo(Componente, DeltaTime);
 	EscribirEnMalla(Componente);
+}
+
+bool USAEVUSComponenteAnimacionProcedural::AlturaSueloBajo(const FVector& PuntoMundo, float& OutAltura) const
+{
+	const UWorld* Mundo = GetWorld();
+	if (!Mundo || !Malla)
+	{
+		return false;
+	}
+	const FTransform& Transformacion = Malla->GetComponentTransform();
+	const float EscalaMalla = FMath::Max(static_cast<float>(Transformacion.GetScale3D().Z), UE_KINDA_SMALL_NUMBER);
+	const float OrigenZ = static_cast<float>(Transformacion.GetLocation().Z);
+	const float Alcance = Ajuste.AlcanceTrazaPies * EscalaMalla;
+	const FVector Inicio(PuntoMundo.X, PuntoMundo.Y, OrigenZ + Alcance);
+	const FVector Fin(PuntoMundo.X, PuntoMundo.Y, OrigenZ - Alcance);
+	FCollisionQueryParams Parametros(SCENE_QUERY_STAT(PiesAlSuelo), false, GetOwner());
+	FHitResult Golpe;
+	const FCollisionObjectQueryParams Objetos(FCollisionObjectQueryParams::AllStaticObjects);
+	if (!Mundo->LineTraceSingleByObjectType(Golpe, Inicio, Fin, Objetos, Parametros) || Golpe.bStartPenetrating)
+	{
+		return false;
+	}
+	OutAltura = static_cast<float>(Golpe.ImpactPoint.Z - OrigenZ) / EscalaMalla;
+	return true;
+}
+
+void USAEVUSComponenteAnimacionProcedural::AplicarPiesAlSuelo(FTransform (&Componente)[SAEVUSAnimacion::NumHuesos], float DeltaTime)
+{
+	using namespace SAEVUSAnimacion;
+	if (!Ajuste.bPiesAlSuelo || !Movimiento || !MovimientoBase || !Malla)
+	{
+		return;
+	}
+	const bool bApoyado = !MovimientoBase->IsFalling() && !Movimiento->EstaEnDash() && !Movimiento->EstaEscalando()
+		&& !Movimiento->EstaEnCarreraPared() && !(Vida && Vida->EstaMuerto());
+
+	struct FPierna { ESAEVUSHueso Muslo, Pierna, Pie; };
+	const FPierna Piernas[2] = {
+		{ ESAEVUSHueso::MusloD, ESAEVUSHueso::PiernaD, ESAEVUSHueso::PieD },
+		{ ESAEVUSHueso::MusloI, ESAEVUSHueso::PiernaI, ESAEVUSHueso::PieI } };
+
+	// Ajuste de cada pie hacia el suelo que tiene debajo (0 si no está apoyado o no hay suelo cerca).
+	for (int32 Lado = 0; Lado < 2; ++Lado)
+	{
+		float Objetivo = 0.f;
+		float AlturaSuelo = 0.f;
+		if (bApoyado && AlturaSueloBajo(Malla->GetComponentTransform().TransformPosition(Componente[Indice(Piernas[Lado].Pie)].GetLocation()), AlturaSuelo))
+		{
+			Objetivo = FMath::Clamp(AlturaSuelo, -Ajuste.AjusteMaximoPies, Ajuste.AjusteMaximoPies);
+		}
+		AjustePieSuelo[Lado] = FMath::FInterpTo(AjustePieSuelo[Lado], Objetivo, DeltaTime, Ajuste.VelocidadAjustePies);
+	}
+
+	// La cadera baja hasta el pie más bajo (nunca sube: el motor ya pone la cápsula sobre el suelo más alto).
+	const float CaderaAplicada = AjusteCaderaSuelo;
+	const float ObjetivoCadera = FMath::Min3(0.f, AjustePieSuelo[0], AjustePieSuelo[1]);
+	AjusteCaderaSuelo = FMath::FInterpTo(AjusteCaderaSuelo, ObjetivoCadera, DeltaTime, Ajuste.VelocidadAjustePies);
+
+	for (int32 Lado = 0; Lado < 2; ++Lado)
+	{
+		const FPierna& Hueso = Piernas[Lado];
+		const FVector Cadera = Componente[Indice(Hueso.Muslo)].GetLocation();
+		const FVector Rodilla = Componente[Indice(Hueso.Pierna)].GetLocation();
+		const FVector Pie = Componente[Indice(Hueso.Pie)].GetLocation();
+		// El cuerpo ya está bajado CaderaAplicada: el pie sube lo que le falta para llegar a su suelo, solo si está apoyado en la zancada.
+		const float Elevacion = static_cast<float>(Pie.Z - ReposoComponente[Indice(Hueso.Pie)].GetLocation().Z);
+		const float Contacto = 1.f - FMath::SmoothStep(0.f, Ajuste.AlturaContactoPies, Elevacion);
+		const float Desplazamiento = Contacto * (AjustePieSuelo[Lado] - CaderaAplicada);
+		if (FMath::Abs(Desplazamiento) < 0.05f)
+		{
+			continue;
+		}
+		const float LargoMuslo = static_cast<float>(FVector::Dist(Cadera, Rodilla));
+		const float LargoPierna = static_cast<float>(FVector::Dist(Rodilla, Pie));
+		const FVector PuntoMedio = (Cadera + Pie) * 0.5f;
+		const FVector Polo = (Rodilla - PuntoMedio).IsNearlyZero() ? Adelante : (Rodilla - PuntoMedio);
+		const FSAEVUSResultadoPierna Resuelta = SAEVUSCinematicaInversa::ResolverPierna(Cadera, LargoMuslo, LargoPierna, Pie + FVector(0.f, 0.f, Desplazamiento), Polo);
+		if (Resuelta.Rodilla.ContainsNaN() || Resuelta.Pie.ContainsNaN())
+		{
+			continue;
+		}
+		const FQuat GiroMuslo = FQuat::FindBetweenNormals((Rodilla - Cadera).GetSafeNormal(), (Resuelta.Rodilla - Cadera).GetSafeNormal());
+		const FQuat GiroPierna = FQuat::FindBetweenNormals(GiroMuslo.RotateVector((Pie - Rodilla).GetSafeNormal()), (Resuelta.Pie - Resuelta.Rodilla).GetSafeNormal()) * GiroMuslo;
+		FTransform& TMuslo = Componente[Indice(Hueso.Muslo)];
+		FTransform& TPierna = Componente[Indice(Hueso.Pierna)];
+		FTransform& TPie = Componente[Indice(Hueso.Pie)];
+		TMuslo.SetRotation((GiroMuslo * TMuslo.GetRotation()).GetNormalized());
+		TPierna.SetRotation((GiroPierna * TPierna.GetRotation()).GetNormalized());
+		TPierna.SetLocation(Resuelta.Rodilla);
+		TPie.SetRotation((GiroPierna * TPie.GetRotation()).GetNormalized());
+		TPie.SetLocation(Resuelta.Pie);
+	}
 }
 
 void USAEVUSComponenteAnimacionProcedural::EscribirEnMalla(const FTransform (&Componente)[SAEVUSAnimacion::NumHuesos])

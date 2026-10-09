@@ -115,3 +115,6 @@ El FBX de Blender llega con **escala 100 en la raíz** (unidades del armazón). 
 - **Zancada sin patinar:** la longitud del ciclo es proporcional a la zancada (velocidad × apertura del muslo), así el pie en apoyo recorre lo mismo que el cuerpo.
 - **Reacciones:** el golpe recibido mueve el cuerpo en proporción al daño (media a doble fuerza). El parpadeo tras un golpe va a 4 Hz y se puede quitar en Opciones. Una rotación forzada (sentarse, portal) mayor de 100° en un fotograma no deja la cadera retorcida. Límites de la malla poseable ×1,6.
 - **Muerte de enemigos:** el cuerpo con esqueleto cae entero y solo se encoge en el último 30 % de su vida (1,5 s).
+
+### Pies al suelo (ANIMVFX-3)
+Tras suavizar la pose, `AplicarPiesAlSuelo` lanza una traza corta (solo geometría estática y móvil) bajo cada pie del jugador apoyado. El ajuste de cada pie se suaviza; la cadera baja hasta el pie más bajo (nunca sube) y cada pierna se resuelve con cinemática inversa de dos huesos (`SAEVUSCinematicaInversa::ResolverPierna`, rodilla hacia delante). Un pie en el aire de la zancada no se ajusta (peso de contacto por altura). Se apaga en el aire, dash, escalada, carrera por pared y muerte. Ajustes en `FSAEVUSAjusteAnimacion` (categoría "Pies al suelo"). Test: `SAEVUS.Animacion.CinematicaInversaPierna`.

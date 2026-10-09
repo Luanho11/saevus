@@ -167,3 +167,6 @@ Historial breve de las sesiones. El estado actual está en `Documentos/ESTADO_PR
 
 ## 2026-10-08 (sesión del loop) — Auditoría v2: salto variable
 Soltar el botón de salto mientras sube recorta la velocidad vertical (`bCortarSaltoAlSoltar`, `FactorCorteSalto` 0,5, en `FSAEVUSAjusteMovimientoAire`); `ASAEVUSPersonaje::StopJumping` llama a `CortarSaltoAlSoltar`. Test `SAEVUS.Movimiento.CorteSalto`. Verificación sin juego: 166/166.
+
+## 2026-10-09 (sesión del loop) — Auditoría v2: pies al suelo (ANIMVFX-3)
+Traza bajo cada pie del jugador apoyado y cinemática inversa de dos huesos (`SAEVUSCinematicaInversa.h`); la cadera baja al pie más bajo; ajustes en `FSAEVUSAjusteAnimacion` ("Pies al suelo"). Test `SAEVUS.Animacion.CinematicaInversaPierna`. 169 tests verdes. Falta verlo a ojo en una rampa.
