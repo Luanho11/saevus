@@ -630,6 +630,17 @@ bool FSAEVUSPruebaReposoSinRepetir::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaLodAnimacion, "SAEVUS.Animacion.LodPorDistancia", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaLodAnimacion::RunTest(const FString& Parameters)
+{
+	const FSAEVUSAjusteAnimacion Ajuste;
+	TestEqual(TEXT("De cerca, cada fotograma"), Ajuste.IntervaloPorDistancia(Ajuste.DistanciaLejana - 1.f), 0.f);
+	TestEqual(TEXT("Lejos, intervalo lejano"), Ajuste.IntervaloPorDistancia(Ajuste.DistanciaLejana + 1.f), Ajuste.IntervaloLejano);
+	TestEqual(TEXT("Muy lejos, intervalo muy lejano"), Ajuste.IntervaloPorDistancia(Ajuste.DistanciaMuyLejana + 1.f), Ajuste.IntervaloMuyLejano);
+	TestTrue(TEXT("Más lejos, menos actualizaciones"), Ajuste.IntervaloMuyLejano >= Ajuste.IntervaloLejano);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaGestosDistintos,"SAEVUS.Animacion.GestosDistintos", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaGestosDistintos::RunTest(const FString& Parameters)
 {

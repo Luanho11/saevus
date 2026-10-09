@@ -12,10 +12,12 @@
 #include "Enemigos/SAEVUSComponenteIAEnemigo.h"
 #include "Enemigos/SAEVUSEnemigo.h"
 #include "Personaje/SAEVUSPersonaje.h"
+#include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Movimiento/SAEVUSComponenteMovimiento.h"
+#include "Kismet/GameplayStatics.h"
 #include "SAEVUS.h"
 
 namespace SAEVUSAnimacion
@@ -357,10 +359,22 @@ void USAEVUSComponenteAnimacionProcedural::TickComponent(float DeltaTime, ELevel
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	// Los enemigos que no se ven se animan a saltos (el tiempo se acumula, nada se pierde).
 	TiempoPendiente += DeltaTime;
-	if (IA && Malla && bPoseIniciada && Ajuste.IntervaloFueraDePantalla > 0.f && !Malla->WasRecentlyRendered(Ajuste.IntervaloFueraDePantalla)
-		&& TiempoPendiente < Ajuste.IntervaloFueraDePantalla)
+	if (IA && Malla && bPoseIniciada)
 	{
-		return;
+		float Intervalo = 0.f;
+		if (Ajuste.IntervaloFueraDePantalla > 0.f && !Malla->WasRecentlyRendered(Ajuste.IntervaloFueraDePantalla))
+		{
+			Intervalo = Ajuste.IntervaloFueraDePantalla;
+		}
+		else if (const APlayerCameraManager* Camara = UGameplayStatics::GetPlayerCameraManager(this, 0))
+		{
+			// Visible pero lejos: menos fotogramas de pose (LOD por distancia, ANIMVFX-17).
+			Intervalo = Ajuste.IntervaloPorDistancia(FVector::Dist(Camara->GetCameraLocation(), Malla->GetComponentLocation()));
+		}
+		if (TiempoPendiente < Intervalo)
+		{
+			return;
+		}
 	}
 	Actualizar(TiempoPendiente);
 	TiempoPendiente = 0.f;

@@ -3,7 +3,7 @@
 ## ⚠ CERROJO DE SESIÓN — LEER PRIMERO
 
 **Estado: SESIÓN DEL LOOP ACTIVA**
-**Último latido: 2026-10-08 22:10** (la sesión activa lo actualiza en cada commit)
+**Último latido: 2026-10-08 22:30** (la sesión activa lo actualiza en cada commit)
 
 Si eres una iteración de `loop.ps1` (`claude -p ...`) y el último latido tiene **menos de 45 minutos**:
 - otra sesión de Claude está trabajando en este repo ahora mismo;
@@ -181,4 +181,4 @@ La auditoría detallada (`SAEVUS_Auditoria_Detallada.md`: gameplay, animación/V
 ## Estado del turno
 - Completado: tareas 101–110 (iteración integral; ver `REVISION_CODIGO.md` y `REGISTRO_SESIONES.md`). Verificación completa con juego: 150/150 tests, assets SUPERADA, humo SUPERADA (31 fps en frío), recorrido Mazmorra → tutorial SUPERADO.
 - A medias (sin commit, verificación lanzada a las 21:00): fuego de los braseros (`ASAEVUSFuegoBrasero`), sonido por golpe con pasos y aterrizaje (113), motas más grandes y brillantes, tests `SAEVUS.Efectos.EcoDash`, `SAEVUS.Mundo.FuegoBrasero`, `SAEVUS.Audio.TonoGolpes`. Pendiente además: menús sin cápsulas (texto en hueso con rombos, entrada escalonada, sonido al navegar y confirmar).
-- Siguiente paso exacto: auditoría v2 (tarea 116), siguiente: pendientes grandes de la tarea 116 (ANIMVFX-17 LOD de animación), luego 111–113; luego 111–113. Último bloque hecho: reposo variado (ANIMVFX-24, 167 tests; antes sacudida recortada por la sonda (ANIMVFX-27; antes motas recicladas (ANIMVFX-20; antes arma oculta sin escala 0 (ANIMVFX-26; antes eco del dash ANIMVFX-21, antes, salto variable GAMEPLAY-18), 166 tests verdes.
+- Siguiente paso exacto: auditoría v2 (tarea 116), siguiente: pendientes grandes de la tarea 116 (IK de pies ANIMVFX-3, remapeo de opciones IA-3), luego 111–113; luego 111–113. Último bloque hecho: LOD de animación por distancia (ANIMVFX-17, 168 tests; antes reposo variado (ANIMVFX-24, 167 tests; antes sacudida recortada por la sonda (ANIMVFX-27; antes motas recicladas (ANIMVFX-20; antes arma oculta sin escala 0 (ANIMVFX-26; antes eco del dash ANIMVFX-21, antes, salto variable GAMEPLAY-18), 166 tests verdes.

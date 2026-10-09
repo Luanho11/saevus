@@ -57,7 +57,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [ ] ANIMVFX-14 cámara de combate direccional
 - [ ] ANIMVFX-15 pose de carga, bloqueo con impacto y parry
 - [ ] ANIMVFX-16 capa de varias tiras
-- [ ] ANIMVFX-17 LOD de animación por distancia
+- [x] ANIMVFX-17 LOD de animación por distancia (enemigos visibles lejos: 20 Hz a 25 m, 10 Hz a 50 m; `SAEVUS.Animacion.LodPorDistancia`)
 - [~] ANIMVFX-18 muerte: el cuerpo con esqueleto solo se encoge en el último 30 % y dura 1,5 s
 - [~] ANIMVFX-19 prueba de tirones largos con ataque aéreo (`Animacion.TironNoRompe`) y de muelles; faltan dt variable en el resto, pies y presupuesto de partículas
 - [x] ANIMVFX-20 motas de ambiente: las que salen de la caja se apagan y se reponen (`ApagarSi`)

@@ -373,6 +373,28 @@ struct FSAEVUSAjusteAnimacion
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
 	float IntervaloFueraDePantalla = 0.25f;
 
+	/** LOD por distancia de los enemigos visibles: más allá de esta distancia (cm) se animan con IntervaloLejano. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DistanciaLejana = 2500.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
+	float IntervaloLejano = 0.05f;
+
+	/** Más allá de esta distancia (cm) el intervalo es IntervaloMuyLejano. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "cm"))
+	float DistanciaMuyLejana = 5000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
+	float IntervaloMuyLejano = 0.1f;
+
+	/** Intervalo de actualización de la pose (s) para un cuerpo visible a esta distancia (0 = cada fotograma). */
+	float IntervaloPorDistancia(float Distancia) const
+	{
+		if (Distancia >= DistanciaMuyLejana) { return IntervaloMuyLejano; }
+		if (Distancia >= DistanciaLejana) { return IntervaloLejano; }
+		return 0.f;
+	}
+
 	/** La mirada busca enemigo cercano cada tanto, no cada fotograma (s). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rendimiento", meta = (ClampMin = "0", ForceUnits = "s"))
 	float IntervaloBusquedaMirada = 0.2f;
