@@ -158,6 +158,10 @@ struct FSAEVUSAjusteSecundario
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo vivo", meta = (ClampMin = "0.2", ForceUnits = "s"))
 	float DuracionGestoReposo = 2.2f;
+
+	/** Variación aleatoria de la espera entre gestos (0,4 = entre un 60 % y un 140 % del tiempo base). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reposo vivo", meta = (ClampMin = "0", ClampMax = "0.8"))
+	float VariacionEsperaGesto = 0.4f;
 };
 
 /** Gestos de reposo que salen tras un rato quieto, por turno. */
@@ -269,11 +273,18 @@ private:
 	float TiempoQuieto = 0.f;
 	float TiempoGestoReposo = 0.f;
 	ESAEVUSGestoReposo GestoReposo = ESAEVUSGestoReposo::Ninguno;
-	ESAEVUSGestoReposo SiguienteGestoReposo = ESAEVUSGestoReposo::MirarAtras;
+	ESAEVUSGestoReposo UltimoGestoReposo = ESAEVUSGestoReposo::Ninguno;
+	/** Factor de la espera hasta el próximo gesto (se sortea tras cada gesto). */
+	float FactorEsperaGesto = 1.f;
+	FRandomStream Azar;
 	/** Fase propia de cada cuerpo, para que dos enemigos iguales no respiren ni miren al unísono. */
 	float Desfase = 0.f;
 
 public:
 	/** Fija el desfase del ruido y los ritmos (por ejemplo, con el identificador del actor). */
-	void FijarDesfase(float NuevoDesfase) { Desfase = NuevoDesfase; }
+	void FijarDesfase(float NuevoDesfase)
+	{
+		Desfase = NuevoDesfase;
+		Azar.Initialize(FMath::FloorToInt(NuevoDesfase * 1000.f));
+	}
 };

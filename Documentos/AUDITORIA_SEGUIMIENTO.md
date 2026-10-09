@@ -64,7 +64,7 @@ Estados: `[x]` hecho y probado · `[~]` hecho en parte · `[ ]` pendiente · `[-
 - [x] ANIMVFX-21 eco del dash: el grupo de mallas se crea en `BeginPlay` (respaldo en el primer dash)
 - [~] ANIMVFX-22 arrastre exponencial en partículas; falta el rango sucio
 - [x] ANIMVFX-23 cadera retorcida tras rotaciones forzadas
-- [ ] ANIMVFX-24 repetición del reposo y estados emocionales
+- [x] ANIMVFX-24 reposo variado: gesto al azar sin repetir y espera con variación (`SAEVUS.Animacion.ReposoSinRepetir`); estados emocionales pendientes
 - [x] ANIMVFX-25 límites de la malla poseable
 - [x] ANIMVFX-26 arma oculta con escala mínima 0,001 (no 0: matriz no invertible)
 - [x] ANIMVFX-27 la sacudida se recorta con la sonda del brazo de cámara

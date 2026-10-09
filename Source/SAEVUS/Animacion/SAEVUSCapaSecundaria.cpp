@@ -166,10 +166,16 @@ void FSAEVUSCapaSecundaria::Actualizar(const FSAEVUSAjusteSecundario& Ajuste, co
 		GestoReposo = ESAEVUSGestoReposo::Ninguno;
 		TiempoGestoReposo = 0.f;
 	}
-	else if (GestoReposo == ESAEVUSGestoReposo::Ninguno && TiempoQuieto >= Ajuste.TiempoGestoReposo)
+	else if (GestoReposo == ESAEVUSGestoReposo::Ninguno && TiempoQuieto >= Ajuste.TiempoGestoReposo * FactorEsperaGesto)
 	{
-		GestoReposo = SiguienteGestoReposo;
-		SiguienteGestoReposo = static_cast<ESAEVUSGestoReposo>(static_cast<uint8>(SiguienteGestoReposo) % 3 + 1);
+		// Al azar, pero nunca el mismo gesto dos veces seguidas.
+		ESAEVUSGestoReposo Elegido = static_cast<ESAEVUSGestoReposo>(Azar.RandRange(1, 3));
+		if (Elegido == UltimoGestoReposo)
+		{
+			Elegido = static_cast<ESAEVUSGestoReposo>(static_cast<uint8>(Elegido) % 3 + 1);
+		}
+		GestoReposo = Elegido;
+		UltimoGestoReposo = Elegido;
 		TiempoGestoReposo = 0.f;
 	}
 	if (GestoReposo != ESAEVUSGestoReposo::Ninguno)
@@ -180,6 +186,7 @@ void FSAEVUSCapaSecundaria::Actualizar(const FSAEVUSAjusteSecundario& Ajuste, co
 			GestoReposo = ESAEVUSGestoReposo::Ninguno;
 			// El siguiente gesto, otro rato después.
 			TiempoQuieto = EsperaQuietud + RampaQuietud;
+			FactorEsperaGesto = 1.f + Azar.FRandRange(-Ajuste.VariacionEsperaGesto, Ajuste.VariacionEsperaGesto);
 		}
 	}
 	Salida.GestoReposo = GestoReposo;

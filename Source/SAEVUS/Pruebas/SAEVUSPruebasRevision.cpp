@@ -599,7 +599,38 @@ bool FSAEVUSPruebaReposoVivo::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaGestosDistintos, "SAEVUS.Animacion.GestosDistintos", SAEVUSPruebas::BanderasPrueba)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaReposoSinRepetir, "SAEVUS.Animacion.ReposoSinRepetir", SAEVUSPruebas::BanderasPrueba)
+bool FSAEVUSPruebaReposoSinRepetir::RunTest(const FString& Parameters)
+{
+	using namespace SAEVUSPruebasRevision;
+	const FSAEVUSAjusteSecundario Ajuste;
+	FSAEVUSCapaSecundaria Capa;
+	Capa.FijarDesfase(1.7f);
+	FSAEVUSEntradaSecundaria Entrada;
+	Entrada.bReposoLibre = true;
+	Entrada.DeltaTime = SAEVUSPruebas::PasoSimulacion;
+	ESAEVUSGestoReposo Anterior = ESAEVUSGestoReposo::Ninguno;
+	ESAEVUSGestoReposo UltimoVisto = ESAEVUSGestoReposo::Ninguno;
+	int32 Gestos = 0;
+	bool bRepetido = false;
+	for (int32 Indice = 0; Indice < SAEVUSPruebas::PasosPara((Ajuste.TiempoGestoReposo + Ajuste.DuracionGestoReposo) * 12.f); ++Indice)
+	{
+		Capa.Actualizar(Ajuste, Entrada);
+		const ESAEVUSGestoReposo Actual = Capa.ObtenerSalida().GestoReposo;
+		if (Actual != Anterior && Actual != ESAEVUSGestoReposo::Ninguno)
+		{
+			++Gestos;
+			bRepetido |= (Actual == UltimoVisto);
+			UltimoVisto = Actual;
+		}
+		Anterior = Actual;
+	}
+	TestTrue(TEXT("Salen varios gestos en un rato largo"), Gestos >= 4);
+	TestFalse(TEXT("Nunca el mismo gesto dos veces seguidas"), bRepetido);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSAEVUSPruebaGestosDistintos,"SAEVUS.Animacion.GestosDistintos", SAEVUSPruebas::BanderasPrueba)
 bool FSAEVUSPruebaGestosDistintos::RunTest(const FString& Parameters)
 {
 	using namespace SAEVUSPruebasRevision;
